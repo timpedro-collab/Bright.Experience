@@ -1,0 +1,27 @@
+---
+description: Keep all documentation current with every code change for clean handover
+alwaysApply: true
+---
+
+# Documentation & Handover Standards
+
+Every code change must leave the codebase ready for a new developer to pick up without explanation.
+
+## After Every Feature or Phase
+
+- Update `README.md` with any new setup steps, environment variables, or commands
+- Update relevant `docs/*.md` files if the data model, lifecycle, roles, or architecture changed
+- If a new environment variable is introduced, add it to `.env.example` with a comment explaining its purpose
+- If a new database migration is created, ensure `docs/04-data-model.md` reflects the new/changed entities
+
+## File-Level Documentation
+
+- Every new file must have a one-line JSDoc comment at the top explaining what it does
+- Every exported function must have a brief JSDoc explaining its purpose and return value
+- Complex business logic (pricing calculations, tier lookups, template expansion) must have inline comments explaining the "why," not the "what"
+
+## Changelog
+
+- Maintain a `CHANGELOG.md` at the project root
+- Add an entry for each phase or significant feature with date, summary, and files changed
+- Format: `## [Phase X] - YYYY-MM-DD` with bullet points

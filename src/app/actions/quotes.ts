@@ -1,0 +1,256 @@
+/** Server actions for the two-track quoting engine. */
+"use server";
+
+import { headers } from "next/headers";
+import { createClient } from "@/lib/supabase/server";
+import { revalidatePath } from "next/cache";
+import { sanitiseCapabilitySlugs } from "@/lib/capabilities";
+import { sendProposalIntakeNotification } from "@/lib/email";
+import { dispatchNotification } from "@/lib/notifications/dispatch";
+
+/** Submit a Track 1 (Book Now) quote from the configurator checkout. */
+export async function submitBookNowQuote(data: {
+  packageId: string;
+  machinePreference?: string;
+  gamePreference?: string;
+  addons?: string[];
+  eventDateStart?: string;
+  eventDateEnd?: string;
+  contactName: string;
+  contactEmail: string;
+  contactPhone?: string;
+  companyName?: string;
+}) {
+  const supabase = await createClient();
+  const addons = sanitiseCapabilitySlugs(data.addons);
+
+  const { data: quote, error } = await supabase
+    .from("quotes")
+    .insert({
+      track: "book_now",
+      status: "submitted",
+      package_id: data.packageId,
+      machine_preference: data.machinePreference ?? null,
+      game_preference: data.gamePreference ?? null,
+      addons,
+      event_date_start: data.eventDateStart ?? null,
+      event_date_end: data.eventDateEnd ?? null,
+      contact_name: data.contactName,
+      contact_email: data.contactEmail,
+      contact_phone: data.contactPhone ?? null,
+      company_name: data.companyName ?? null,
+    })
+    .select("id")
+    .single();
+
+  if (error) return { success: false as const, error: "Failed to submit booking" };
+
+  revalidatePath("/admin/quotes");
+  return { success: true as const, data: { id: quote.id } };
+}
+
+/** Submit a Track 2 (Proposal) intake from the guided wizard.
+ *
+ * `addons` carries the canonical capability slugs the customer chose on the
+ * match reveal — silently absorbed from URL params so the customer never sees
+ * a configurator step. Untrusted input is filtered to the canonical list.
+ */
+export async function submitProposalIntake(data: {
+  eventType: string;
+  objective?: string;
+  venueName?: string;
+  postcode?: string;
+  eventDateStart?: string;
+  eventDateEnd?: string;
+  machinePreference?: string;
+  gamePreference?: string;
+  footfallEstimate?: string;
+  creativeNeeds?: string;
+  specialRequirements?: string;
+  budgetIndication?: string;
+  contactName: string;
+  contactEmail: string;
+  contactPhone?: string;
+  companyName?: string;
+  addons?: string[];
+}) {
+  const supabase = await createClient();
+  const addons = sanitiseCapabilitySlugs(data.addons);
+
+  const { data: quote, error } = await supabase
+    .from("quotes")
+    .insert({
+      track: "proposal",
+      status: "submitted",
+      event_type: data.eventType,
+      objective: data.objective ?? null,
+      venue_name: data.venueName ?? null,
+      postcode: data.postcode ?? null,
+      event_date_start: data.eventDateStart ?? null,
+      event_date_end: data.eventDateEnd ?? null,
+      machine_preference: data.machinePreference ?? null,
+      game_preference: data.gamePreference ?? null,
+      footfall_estimate: data.footfallEstimate ?? null,
+      creative_needs: data.creativeNeeds ?? null,
+      special_requirements: data.specialRequirements ?? null,
+      budget_indication: data.budgetIndication ?? null,
+      contact_name: data.contactName,
+      contact_email: data.contactEmail,
+      contact_phone: data.contactPhone ?? null,
+      company_name: data.companyName ?? null,
+      addons,
+    })
+    .select("id")
+    .single();
+
+  if (error) return { success: false as const, error: "Failed to submit intake" };
+
+  // Fire-and-forget AE handoff email. Capability slugs travel as structured
+  // data so the AE sees the customer's outcome lines (not just slugs).
+  try {
+    const h = await headers();
+    const host = h.get("host") ?? "localhost:3000";
+    const proto = h.get("x-forwarded-proto") ?? "https";
+    await sendProposalIntakeNotification({
+      quoteId: quote.id,
+      contactName: data.contactName,
+      contactEmail: data.contactEmail,
+      companyName: data.companyName ?? null,
+      eventType: data.eventType ?? null,
+      venueName: data.venueName ?? null,
+      capabilitySlugs: addons,
+      portalUrl: `${proto}://${host}/admin/quotes/${quote.id}`,
+    });
+  } catch (notifyError) {
+    console.error("[submitProposalIntake] notification failed", notifyError);
+  }
+
+  // In-portal AE ping — the existing email handoff above remains as the
+  // structured outcomes-with-slugs reference; this gives the AE a row on
+  // the bell + notifications page that ties back to the quote.
+  await dispatchNotification("proposal.intake_received", {
+    quoteId: quote.id,
+    contactName: data.contactName,
+    entityType: "quote",
+    entityId: quote.id,
+  });
+
+  revalidatePath("/admin/quotes");
+  return { success: true as const, data: { id: quote.id } };
+}
+
+/**
+ * Update the canonical capability slugs on a quote.
+ *
+ * Backs the "Adjust the experience" link on the confirmation screen — opens the
+ * same RefineDrawer the match card used, and the customer's new selection is
+ * pushed back to the quote so the AE sees the latest set.
+ */
+export async function updateQuoteCapabilities(
+  quoteId: string,
+  capabilitySlugs: string[]
+) {
+  const supabase = await createClient();
+  const addons = sanitiseCapabilitySlugs(capabilitySlugs);
+
+  const { error } = await supabase
+    .from("quotes")
+    .update({ addons })
+    .eq("id", quoteId);
+
+  if (error) {
+    return { success: false as const, error: "Failed to update capabilities" };
+  }
+
+  revalidatePath(`/admin/quotes/${quoteId}`);
+  return { success: true as const, data: { id: quoteId, addons } };
+}
+
+/** Prepare and send a proposal with line items (internal). */
+export async function prepareProposal(
+  quoteId: string,
+  data: {
+    lineItems: { label: string; amount: number; category?: string }[];
+    proposalNotes?: string;
+  }
+) {
+  const supabase = await createClient();
+
+  const totalAmount = data.lineItems.reduce((sum, li) => sum + li.amount, 0);
+
+  const items = data.lineItems.map((li, i) => ({
+    quote_id: quoteId,
+    label: li.label,
+    amount: li.amount,
+    category: li.category ?? null,
+    sort_order: i,
+  }));
+
+  const { error: itemsError } = await supabase
+    .from("quote_line_items")
+    .insert(items);
+
+  if (itemsError) return { success: false as const, error: "Failed to add line items" };
+
+  const { error: updateError } = await supabase
+    .from("quotes")
+    .update({
+      status: "proposal_sent",
+      total_amount: totalAmount,
+      proposal_notes: data.proposalNotes ?? null,
+      expires_at: new Date(Date.now() + 14 * 86_400_000).toISOString(),
+    })
+    .eq("id", quoteId);
+
+  if (updateError) return { success: false as const, error: "Failed to send proposal" };
+
+  revalidatePath(`/admin/quotes/${quoteId}`);
+  revalidatePath("/admin/quotes");
+  return { success: true as const, data: { id: quoteId } };
+}
+
+/** Accept a proposal (public). */
+export async function acceptQuote(quoteId: string) {
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("quotes")
+    .update({ status: "accepted", accepted_at: new Date().toISOString() })
+    .eq("id", quoteId);
+
+  if (error) return { success: false as const, error: "Failed to accept proposal" };
+
+  const { data: quote } = await supabase
+    .from("quotes")
+    .select("contact_name, company_name")
+    .eq("id", quoteId)
+    .single();
+
+  await dispatchNotification("quote.accepted", {
+    quoteId,
+    contactName: quote?.contact_name ?? "Customer",
+    eventName: quote?.company_name ?? "the new event",
+    entityType: "quote",
+    entityId: quoteId,
+  });
+
+  revalidatePath(`/proposal/${quoteId}`);
+  revalidatePath("/admin/quotes");
+  return { success: true as const, data: { id: quoteId } };
+}
+
+/** Decline a proposal (public). */
+export async function declineQuote(quoteId: string) {
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("quotes")
+    .update({ status: "declined", declined_at: new Date().toISOString() })
+    .eq("id", quoteId);
+
+  if (error) return { success: false as const, error: "Failed to decline proposal" };
+
+  revalidatePath(`/proposal/${quoteId}`);
+  revalidatePath("/admin/quotes");
+  return { success: true as const, data: { id: quoteId } };
+}

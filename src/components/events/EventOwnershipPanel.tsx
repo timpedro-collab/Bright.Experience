@@ -1,0 +1,115 @@
+/**
+ * "Right now, here's where things sit" — a single panel that surfaces
+ * every party currently owing work on an event, with the customer's row
+ * highlighted when they're the viewer.
+ *
+ * The panel sits directly under the next-step hero on the event overview
+ * so the customer (or internal user) reads the room at a glance without
+ * having to scan the full task list.
+ */
+import { ChevronRight } from "lucide-react";
+
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
+import { groupOpenTasksByOwner, OWNER_DISPLAY_LABEL } from "@/lib/ownership";
+import type { OwnerRole } from "@/lib/ownership";
+import type { Task, UserRole } from "@/types";
+
+const CUSTOMER_ROLES: UserRole[] = ["customer_user", "customer_admin"];
+
+const OWNER_TO_VIEWER_ROLES: Partial<Record<OwnerRole, UserRole[]>> = {
+  customer: CUSTOMER_ROLES,
+  creative: ["creative_lead"],
+  operations: ["operations_lead"],
+  qa: ["qa_lead"],
+  development: ["developer"],
+  ae: ["events_lead"],
+};
+
+function ownerHeading(owner: OwnerRole, viewerRole: UserRole) {
+  if ((OWNER_TO_VIEWER_ROLES[owner] ?? []).includes(viewerRole)) {
+    return "On your plate";
+  }
+  if (owner === "customer") return "On the customer";
+  return `On ${OWNER_DISPLAY_LABEL[owner]}`;
+}
+
+interface EventOwnershipPanelProps {
+  tasks: Task[];
+  viewerRole: UserRole;
+  /** Where rows link to — typically `/events/{id}/actions`. */
+  ctaHref: string;
+}
+
+export function EventOwnershipPanel({
+  tasks,
+  viewerRole,
+  ctaHref,
+}: EventOwnershipPanelProps) {
+  const buckets = groupOpenTasksByOwner(tasks);
+
+  if (buckets.length === 0) {
+    return (
+      <Card tone="subtle">
+        <CardContent className="py-6 text-center">
+          <p className="text-sm text-foreground font-medium">
+            Everyone's caught up.
+          </p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            There's no open work waiting on anyone right now.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card tone="subtle">
+      <CardHeader className="pb-3">
+        <CardTitle>Right now, here's where things sit</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-2">
+          {buckets.map(({ owner, tasks: ownerTasks }) => {
+            const heading = ownerHeading(owner, viewerRole);
+            const isYou = heading === "On your plate";
+            return (
+              <a
+                key={owner}
+                href={ctaHref}
+                className={cn(
+                  "group flex items-center justify-between gap-3 rounded-[var(--radius-control)] border p-3",
+                  "transition-all hover:border-white/16",
+                  isYou
+                    ? "border-warning/30 bg-warning/[0.06] hover:bg-warning/[0.1]"
+                    : "border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04]"
+                )}
+              >
+                <div className="min-w-0">
+                  <p
+                    className={cn(
+                      "text-xs uppercase tracking-wider font-semibold",
+                      isYou ? "text-warning" : "text-muted-foreground"
+                    )}
+                  >
+                    {heading}
+                  </p>
+                  <p className="mt-1 text-sm text-foreground truncate">
+                    {ownerTasks[0].title}
+                    {ownerTasks.length > 1 && (
+                      <span className="text-muted-foreground">
+                        {" "}
+                        + {ownerTasks.length - 1} more
+                      </span>
+                    )}
+                  </p>
+                </div>
+                <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+              </a>
+            );
+          })}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}

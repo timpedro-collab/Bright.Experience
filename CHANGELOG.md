@@ -1,0 +1,391 @@
+# Changelog
+
+All notable changes to the Bright.Experience platform are documented here.
+
+---
+
+## [Cross-event work hub and Pipedrive write-back] - 2026-05-16
+
+A three-PR pass that answers a single user question — *"where should I look first when I sit down at the portal?"* — and keeps the AE's Pipedrive deal current without dual-entry. The dashboard now shows what's on you for every event in a glance, internal users get a consolidated work hub plus a dedicated `/inbox`, and Pipedrive deals stay honest as Bright.Experience writes back six high-signal delivery moments to deal notes and three custom fields.
+
+### PR 1 — Actions-on-you pill on every event card
+- **NEW query `getOpenTaskCountsForUser`** (`src/lib/queries/tasks.ts`) — one round-trip that returns a `{ eventId: openTaskCount }` map. Internal viewer counts tasks where `assigned_to = user`; customer viewer counts customer-visible-and-not-complete tasks
+- **`EventCard` gains an `actionsForViewer` prop and renders a header pill** — `"{n} on you"` (internal) or `"{n} to do"` (customer) in warning tone, `"All clear"` in muted green when zero
+- **`src/app/page.tsx` fetches the counts map** and passes the per-event count into each `<EventCard>` so the entire dashboard reads cross-event status without bouncing through every workspace
+
+### PR 2 — Cross-event work hub on the dashboard (internal only)
+- **`InternalWorkQueue` extended from four to six tiles** — adds "Asset reviews" (count of `assets.review_status = 'pending_review'`) and "Stuck customers" (count of approvals + briefings + asset revisions older than 7 days). Grid expands to `lg:grid-cols-3 xl:grid-cols-6` so all six fit cleanly
+- **NEW shared helper `countStuckCustomerActions` + `STUCK_CUSTOMER_DAYS`** (`src/lib/queries/admin-queues.ts`) — same predicates as `/admin/customer-queue`, extracted into one place so the tile count and the page stay in lock-step
+- **NEW `MyTasksPanel`** (`src/components/admin/MyTasksPanel.tsx`) — rendered below the tile grid for internal viewers. Lists up to 8 open tasks assigned to the current user, sorted "overdue → due in 3 days → everything else", each row deep-links to `/events/{id}/actions`. "See all" jumps to `/inbox` for the full view. Empty state shows "Inbox zero across every event"
+- **NEW page `/inbox`** (`src/app/inbox/page.tsx`) — full filterable view of every open task assigned to the current internal user. Filters: event / category / status (open vs recently completed vs both). Renders four sections: Overdue (destructive), Due in next 3 days (warning), Everything else, Recently completed
+- **NEW `InboxFilters`** (`src/components/inbox/InboxFilters.tsx`) — client component using URL search params so filters survive refresh and link-sharing
+- **NEW query `getTasksAssignedToUser`** (`src/lib/queries/tasks.ts`) — joins events + accounts so every row carries parent context without a second round-trip. Optional `includeCompletedSince` window for the "recently completed" filter
+- **`Sidebar` adds "Inbox" link under the Pipeline group** for internal users
+
+### PR 3 — Pipedrive write-back integration
+- **NEW migration `supabase/migrations/20260516000000_pipedrive_integration.sql`** — adds `events.pipedrive_deal_id` (+ `pipedrive_linked_at` timestamp); creates `pipedrive_outbox` (one row per pending Pipedrive write, with `kind`, `payload`, `attempts`, `last_error`, `sent_at`); creates `pipedrive_config` singleton (API token, base URL, three custom-field keys, three health option IDs, default pipeline ID). Both tables are RLS-gated to internal users
+- **NEW `src/lib/pipedrive/client.ts`** — thin REST client (`addNoteToDeal`, `updateDealCustomFields`, `searchPersonByEmail`, `getCurrentPipedriveUser`, `getDeal`). Returns typed `PipedriveResult` discriminated union; never throws on transport failure. Auth flows from `pipedrive_config.api_token` with fallback to `PIPEDRIVE_API_TOKEN` env var; absent config silently no-ops every call
+- **NEW `src/lib/pipedrive/format.ts`** — pure note-body formatters for the six trigger archetypes (deal kickoff, stage advance, approval decision, asset review decision, event live, event delivered). Every note carries a `<p><strong>title</strong></p><p>body</p><p>Open in Bright.Experience</p>` shape so the Pipedrive UI and email digests both render cleanly. Portal back-links honour `NEXT_PUBLIC_SITE_URL`
+- **NEW `src/lib/pipedrive/drain.ts`** — `drainOutbox()` worker. Picks pending rows (max attempts = 3), routes them through the client, marks `sent_at` on success or bumps `attempts` + `last_error` on failure. Resolves an `__increment__` sentinel for the delivered-events counter by GETting the current value and PUTting `current + 1`. Used by both the inline enqueue-then-drain path and the hourly cron
+- **NEW `src/lib/pipedrive/triggers.ts`** — six high-signal helpers: `enqueueDealKickoff`, `enqueueStageAdvance` (only for the five customer-visible stages: creative_assets, approvals, qa_readiness, event_live, reporting), `enqueueApprovalDecision`, `enqueueAssetReviewDecision`, `enqueueEventLive`, `enqueueEventDelivered`. Each writes one note row plus one custom-field-update row, then kicks an inline drain. Updates three custom fields on the same triggers: `bb_last_activity_at` (today), `bb_health_status` (green/amber/red), `bb_delivered_events` (++ on delivered)
+- **Existing server actions wired to the new triggers:**
+  - `acceptQuote` / `createEvent` → `enqueueDealKickoff` (when a deal is linked at event creation)
+  - `advanceStage` → `enqueueStageAdvance`
+  - `decideApproval` → `enqueueApprovalDecision` (with feedback)
+  - `submitAssetReview` → `enqueueAssetReviewDecision` (with feedback)
+- **NEW `/api/cron/pipedrive` route** (`src/app/api/cron/pipedrive/route.ts`) — hourly Vercel Cron that drains the outbox and fires the two time-driven triggers (event live, event delivered) on a once-per-event sentinel basis. Auth mirrors the other cron routes
+- **NEW `/admin/integrations/pipedrive` page** (`src/app/admin/integrations/pipedrive/page.tsx`) — single setup screen. Paste API token (masked when stored), edit base URL, three custom-field keys, three health-option IDs, default pipeline. Three actions: Save, Test connection (round-trips `/v1/users/me`), Drain outbox now. Side panel explains the six triggers. Below the form: outbox tail of the last 20 writes with status (sent / pending / failed), kind, deal ID, attempt count, and the last error
+- **NEW `src/components/admin/PipedriveSetupForm.tsx` + `PipedriveOutboxTail.tsx`** — client + server components backing the admin page
+- **NEW `src/app/actions/pipedrive-config.ts`** — `saveConfig`, `testConnection`, `runDrain` server actions. All gated on internal role
+- **Event creation form** (`src/app/events/new/page.tsx`) **adds an optional "Pipedrive deal" field** — accepts a deal URL or numeric ID. `createEventFromForm` normalises both shapes, persists `pipedrive_deal_id` + `pipedrive_linked_at`, and fires `enqueueDealKickoff` if a deal is supplied
+- **`EventContextBar` shows a "Pipedrive deal · #1234" chip** when an event is linked, deep-linking to the deal in Pipedrive (configurable via `NEXT_PUBLIC_PIPEDRIVE_WEB_BASE_URL`)
+- **`Event` type gains `pipedriveDealId` and `pipedriveLinkedAt`**; `mapEvent` reads them out
+- **`Sidebar` adds "Pipedrive" link under the Platform group** for internal users
+- **`vercel.json` adds an hourly cron for `/api/cron/pipedrive`**
+- **`.env.example` documents `PIPEDRIVE_API_TOKEN`, `PIPEDRIVE_BASE_URL`, `NEXT_PUBLIC_PIPEDRIVE_WEB_BASE_URL`** — all three are optional; the integration is a full no-op when unset
+
+### Why this matters
+- Internal events leads now answer *"what's actually on me today across every customer?"* without clicking into five workspaces. The pill is the cross-event scan; the work hub is the consolidated answer; `/inbox` is the deep-dive
+- Customers see the same pill on their own dashboard so "you have N things to do across your events" is visible the moment they sign in
+- Pipedrive deals stay current without dual-entry. AEs read a clean activity feed and three custom fields tell them in one glance: when the customer last did something, what the health looks like, and how many events this customer has now delivered
+- The outbox pattern means a Pipedrive outage never blocks a customer action. Anything that didn't land inline gets retried hourly; anything stuck after three attempts surfaces on the admin page with the error visible
+
+---
+
+## [Unified notification spine] - 2026-05-15
+
+A three-PR pass that replaces the "million emails back and forth" pattern with a single, opinionated dispatch spine. Every domain event with a canonical archetype goes through one function (`dispatchNotification`), every recipient resolves through one resolver per archetype, and every message lands in both the in-portal lane and the email lane using one shared visual template. The customer reads outcome-line subjects ("Your asset needs a small revision"), never slugs. Class A ("action required") archetypes are unsilenceable in the portal — even when email is downgraded, the system never assumes a stuck customer chose to be stuck.
+
+### PR 1 — Dispatcher + archetypes + email shell
+- **NEW migration `supabase/migrations/20260515000001_notification_spine.sql`** — extends `notifications` with `kind`, `priority`, `entity_type`, `entity_id`, `action_required` plus indexes; creates `notification_preferences` (per-user, per-archetype, with `in_portal` + `email_mode` columns and RLS for "users see own"); creates `notification_reminders` (the dedup ledger); adds `review_status`, `review_decided_by/at`, `revision_count` to `assets`
+- **NEW `src/lib/notifications/archetypes.ts`** — catalogue of 24 canonical archetypes (customer-actionable, internal-actionable, FYI, time-driven) with subject/body/link templates, owner resolver slugs, reminder cadences, defaults and Class A/B classification. Helpers `getArchetype`, `fillTemplate`, `CLASS_A_KINDS`, `CLASS_B_KINDS`
+- **NEW `src/lib/notifications/dispatch.ts`** — `dispatchNotification(kind, context, options?)` resolves owners, writes one in-portal row per recipient (Class A always; Class B per preference), and sends one email per recipient via Resend (per-archetype `email_mode` with Class A reminder override). Supports a `supabaseClient` override so the cron can run with service-role
+- **NEW `src/lib/notifications/resolve-owners.ts`** — pure per-archetype resolvers (`customer_admins`, `event_account_executive`, `event_creative_lead`, `event_operations_lead`, `event_members_internal`, `event_members_all`, `task_assignee`, `message_recipients`, `asset_uploader`, `approval_requester`). Falls back to the AE persona when no internal user exists for an archetype yet
+- **NEW `src/lib/notifications/email-shell.ts`** — single Bright.Blue-styled email template with gradient header, eyebrow chip ("Action required" / "FYI" / "Reminder"), headline, body, optional feedback block, optional CTA, AE sign-off ("Sarah Chen · Account Manager"), and a "Manage these notifications" deep link anchored at the archetype
+- **Refactored every domain action to flow through the dispatcher:**
+  - `uploadAsset` → dispatches `asset.review_needed` and flips the asset into `pending_review`
+  - `decideApproval` → dispatches `approval.approved` or `approval.revision_requested` with feedback inline
+  - `saveBriefingResponse` (on submit) → dispatches `briefing.submitted` to creative
+  - `updateStudioRequestStatus` → dispatches `studio.status_changed`
+  - `createStudioRequest` → keeps the existing Resend handoff, adds `studio.request_submitted` for the in-portal queue
+  - `acceptQuote` → dispatches `quote.accepted` to AE + ops
+  - `submitProposalIntake` → keeps the structured AE handoff email, adds `proposal.intake_received` to the bell so the AE has an authenticated landing link
+  - `advanceStage` → routes through `stage.changed` (replaces the previous `event_members` query that was silently returning nothing)
+  - `sendMessage` → routes through `message.received`
+- **NEW `MarkAllReadButton`** wires up the "Mark all read" affordance on `/notifications`
+- **`NotificationList` rewritten to group by `action_required` first** — "Awaiting you · N" lane in warning tone, then "FYI · N" with the existing recency buckets. New camelCase mapping in `getNotificationsByUser` so the renderer doesn't need to bridge snake_case any more
+
+### PR 2 — Asset review gate + ownership UI
+- **NEW server action `submitAssetReview`** (`src/app/actions/asset-review.ts`) — internal-only (Zod-validated), flips `review_status` to `approved` or `revision_requested`, increments `revision_count` on revisions, requires non-empty feedback for revisions, and dispatches the customer-facing follow-up archetype with feedback inline
+- **NEW page `/admin/asset-reviews`** — queue of every asset waiting on a Bright.Blue decision, oldest-first. Accordion rows preview the file, show spec details, capture review notes, and post approve/request-revision decisions
+- **NEW `AssetReviewBadge`** rendered on every asset row in `/events/[id]/assets` — amber "Pending Bright.Blue review", green "Approved", or red "Revision requested" pill. Revision feedback surfaces as a "Note from Bright.Blue creative" block on the customer-side asset card
+- **`AssetUploadButton` now shows "Uploaded — pending Bright.Blue review"** as a pill instead of a small line of text, so the customer reads the next step the second the upload completes
+- **NEW `src/lib/ownership.ts`** — pure `ownerForMilestone`, `groupOpenTasksByOwner`, and `ownerLabelFor` helpers that translate task categories into customer-facing owner labels (`customer` / `creative` / `operations` / `qa` / `development` / `logistics` / `reporting` / `ae`), with the personalised "Waiting on you" variant when the viewer matches the owner
+- **`MilestoneTimeline` extended** with optional `tasks` + `viewerRole` props — when supplied, each active milestone gets a small "Waiting on …" pill (`Waiting on you` in warning tone for the viewer's items, neutral for everyone else). Wired into both the event overview sidebar and the standalone `/events/[id]/timeline`
+- **NEW `EventOwnershipPanel`** on the event overview — "Right now, here's where things sit" panel listing every open-task bucket with the customer-side row highlighted in warning tone when the viewer is the customer
+- **NEW `Textarea` shadcn primitive** (`src/components/ui/textarea.tsx`) — matches the existing `Input` design language; used by the review queue for feedback notes
+- **Asset query extensions** — `getAssetsByEvent` exposes `reviewStatus`, `revisionCount`, `reviewDecidedBy/At`, `uploadedBy`; new `getAssetsPendingReview` joins events + uploader profile for the queue; new `getAssetById` for direct lookups
+- **`Asset` type** gains `reviewStatus`, `reviewDecidedBy/At`, `revisionCount`, `uploadedBy`. Mock data updated to set sane defaults
+- **Sidebar adds "Asset reviews" link** under the Pipeline group (internal only)
+
+### PR 3 — Reminders + per-user preferences + AE backstop
+- **NEW cron `/api/cron/reminders`** (daily 09:00 UTC) — auth via `x-vercel-cron` header or `Authorization: Bearer ${CRON_SECRET}`. Scans every archetype with a `reminderCadence`, consults `notification_reminders` per (subject, recipient, kind) to avoid duplicate nudges, escalates `escalation_level` on each send. Applies the Class A override (`overrideEmailOff: true` at level 2+) so Class A reminders bypass `email_mode: "off"` once the action has sat long enough. CC's the AE at the configured escalation level (default 2 = 72h on a 48h cadence). Also wires the time-driven `event.t_minus_30/14/7/3` archetypes so events are pinged automatically at each milestone
+- **NEW cron `/api/cron/digest`** (daily 17:00 UTC) — bundles every unread FYI notification from the last 24h into one email per recipient (max 8 line items + "and N more in the portal"). Reads `notification_preferences` to honour each recipient's per-archetype `digest` mode; falls back to archetype defaults when no row exists
+- **NEW `src/lib/supabase/service-role.ts`** — privileged client used by the crons so they can scan and write across all rows regardless of RLS. Throws a clear error if `SUPABASE_SERVICE_ROLE_KEY` isn't set
+- **`vercel.json` declares both cron schedules** — `/api/cron/reminders` at `0 9 * * *` and `/api/cron/digest` at `0 17 * * *`
+- **NEW page `/settings/notifications`** — split into "Action items" (Class A) and "FYI" (Class B) sections. Class A rows show the in-portal lane as a non-editable "Always on" pill and a three-way Immediate / Daily digest / Off control for email. Class B rows expose both lanes. A standing footnote sets honest expectations: *"Action items always show up in the portal. Reminders may email you anyway if something stays stuck — we'd rather knock twice than let your event stall."*
+- **NEW server action `updateNotificationPreference`** — Zod-validated, upserts into `notification_preferences`. Always writes `in_portal=true` for Class A regardless of what the caller sent so the row stays a faithful record of "what the UI showed"
+- **NEW page `/admin/customer-queue`** — every customer-side action item (pending approval, unsubmitted brief, awaiting re-upload) that has sat > 7 days, oldest-first. One click takes the AE to the relevant event surface to chase by phone. Surfaces the rows the system has already emailed twice
+- **Sidebar additions** — "Customer queue" under Pipeline (internal), "Notifications" in the footer beside Settings for every persona
+- **`.env.example` extended** — documents `SUPABASE_SERVICE_ROLE_KEY`, `CRON_SECRET`, and `SALES_TEAM_EMAIL`
+
+### Acceptance highlights
+- Every domain action listed above now produces both an in-portal notification and an email to the right person (when Resend is configured)
+- The customer reads outcome-line subjects ("Your asset needs a small revision"), never slugs
+- Asset uploads land in `/admin/asset-reviews` immediately; approval clears the customer's badge; revision pings the customer with feedback inline and writes a "Note from Bright.Blue creative" block on the asset card
+- A Class A action sitting 48h sends a second email even if the recipient has set email to "off" (the override is what makes it a reminder, not spam)
+- `/settings/notifications` lets any user toggle email mode per archetype; the in-portal lane for Class A archetypes is "Always on" and not editable
+- The `EventOwnershipPanel` shows every party which actions sit on their plate today, with "On your plate" highlighted for the viewer
+- `npm run build` clean
+
+---
+
+## [World-class buying experience] - 2026-05-15
+
+A three-PR pass that rewrites the discovery-to-acceptance journey to feel like a conversation, not a configurator. The customer never sees a checkbox graveyard, never re-decides anything they've already decided, and never reads the word "configure" or "add-on." Brand voice ("Make Your Moment Count") surfaces twice — once at match, once at confirmation.
+
+### PR 1 — Capability foundation (zero visible change to customer)
+- **NEW `src/lib/capabilities.ts`** — single source of truth for nine canonical tailorable capabilities (`live-telemetry`, `sampling-unlock`, `voucher-redemption`, `linkedin-follow`, `survey-layer`, `dynamic-sponsors`, `app-qr-drive`, `age-verification`, `payments-onunit`) plus five always-on inclusions. Each capability carries a customer-facing outcome line, a quiet mechanism caption, the bright.blue product surface it maps to, a default price in pence, and a pre-select rule predicate. Helpers: `getCapability`, `getCapabilities`, `sanitiseCapabilitySlugs`, `preSelectCapabilities`, `encodeCapabilityParam`, `decodeCapabilityParam`
+- **NEW migration `supabase/migrations/20260515000000_capability_vocabulary.sql`** — adds `package_addons.capability_slug` (nullable, with check constraint scoping to the nine canonical slugs and an index) and `quotes.addons jsonb default '[]'::jsonb` with a GIN index. Existing ad-hoc add-ons remain valid with null slug
+- **`submitProposalIntake` extended** — accepts `addons: string[]`, sanitises against the canonical set, persists to `quotes.addons`. `submitBookNowQuote` now sanitises its existing `addons` field through the same gate
+- **NEW `RequestedCapabilities` component** (`src/components/quotes/RequestedCapabilities.tsx`) — renders the customer's chosen slugs as outcome-line chips on `/admin/quotes/[id]` so the AE reads the same language the customer chose. Empty state explicitly says "None requested — turnkey activation as-is"
+
+### PR 2 — Match reveal + Refine drawer
+- **Quiz step 5 trimmed to single-select Audience** (B2B / Consumer / Mixed). Step 1 (objective) remains the only multi-select; every other step auto-advances on click. The "Step N of M" numeric counter is removed — only the thin gradient progress bar remains
+- **Quiz question copy rewritten in bright.blue voice** — "What do you want this moment to do?" / "Where will it live?" / "How many people are coming?" / "What's your footprint?" / "Who's coming?"
+- **Quiz page rewritten** — title becomes `Let's make your moment count`, eyebrow `Two minutes, five questions`, subheading promises one tailored suggestion with no comparison table and no commitment
+- **NEW `QuizMatchCard`** (`src/components/catalog/QuizMatchCard.tsx`) — replaces the legacy quiz `done` state. Eyebrow `Your moment`, one conversational sentence in prose ("We'd suggest the Claw with our Professional package — our most-asked-for setup for a trade show where pipeline matters most."), large machine image, "Your tailored experience" overline + 3–5 outcome chips already selected, a quiet `Refine` link, a single primary `Get my tailored proposal` CTA. No comparison table, no tiers grid, no price
+- **NEW `RefineDrawer`** (`src/components/catalog/RefineDrawer.tsx`) — slide-in `Sheet` from the right, listing all nine tailorable capabilities as outcome-line rows with a trailing toggle. Off rows dim to 70% opacity; on rows full opacity. Sticky `Save my choices` button at the bottom. Closing the drawer cancels — the only positive action is Save
+- **`getRecommendation` extended** to return `{ match, preSelectedCapabilities, signals }` — `preSelectCapabilities()` applies all nine predicates against the quiz signals and caps the result at 5 to keep the match card calm
+- **CTA carries capability slugs through URL params** (`?machine=…&package=…&event=…&objective=…&audience=…&addons=…`) using `encodeCapabilityParam` for a stable comma-separated list
+
+### PR 3 — Intake + confirmation + post-accept
+- **`IntakeWizard` silently absorbs URL capabilities** via `useSearchParams()`. No sixth step is added. The five existing steps are preserved; the customer never re-decides anything they already decided
+- **Step titles rewritten in bright.blue voice** — `Tell us about the moment.` / `Where and when?` / `What do you have in mind?` / `The creative side.` / `And you — who should we send this to?`. Field labels and helper text also softened across all five step components
+- **Step labels in the wizard rail** — "The moment / Where & when / The brief / The creative / Your details"
+- **Submit button rewritten** — `Send me my tailored proposal` (was: `Submit Request`)
+- **NEW `PostIntakeCard`** (`src/components/quotes/PostIntakeCard.tsx`) — replaces the transactional `Thank You!`. Eyebrow `Make your moment count`, headline `{first name}, your proposal is being crafted.`, "Here's the experience we'll price for you:" bullet list with the named machine + package + every outcome chip, a named-human card (`Sarah Chen · Account Manager` with avatar + mailto), and the only post-submit affordance: a quiet `Adjust the experience` link that reopens the same `RefineDrawer` from the match card
+- **NEW server action `updateQuoteCapabilities(quoteId, slugs[])`** — persists changes from the post-submit RefineDrawer back to `quotes.addons` and revalidates the admin quote view
+- **NEW `PostAcceptBanner`** (`src/components/quotes/PostAcceptBanner.tsx`) — renders above `ProposalHero` on `/proposal/[id]` when `status === 'accepted'`. Eyebrow + headline `{first name}, the {machine} is yours for {date}.` + `{Sarah}'s working on your kickoff — you'll hear from her within the hour.` Looks up the machine's friendly name from the live catalogue, gracefully degrades when not found
+- **NEW `src/lib/team.ts`** — `DEFAULT_ACCOUNT_MANAGER` persona (Sarah Chen). Swap-in-one-place wiring for when a real AE round-robin lands
+- **NEW `sendProposalIntakeNotification`** in `src/lib/email.ts` — AE handoff email. Body lists the customer's chosen capabilities as outcome lines (not slugs), with the raw slug array printed at the foot as machine-readable structured data. Sends to `SALES_TEAM_EMAIL` env (`sales@brightblue.co.uk` default). Fire-and-forget after `submitProposalIntake` succeeds
+
+### Acceptance check passed
+- `npm run build` clean after each PR
+- A customer reaches the match card in under 60 seconds (5 steps, 4 of them auto-advance)
+- The match card shows exactly one machine, one paragraph, and 3–5 outcome chips
+- The intake form has the same 5 steps; zero new fields visible
+- The phrase "Make Your Moment Count" appears once on the match card eyebrow text and once on the confirmation card eyebrow text
+- Nothing in the customer-facing flow uses the words *configure*, *add-on*, or *upsell*
+
+---
+
+## [Premium polish pass] - 2026-05-15
+
+A three-workstream pass that takes the platform from "polished build" to "world-class and premium": global visual restraint, a catalog rewrite that swaps the misplaced ROI calculator for trust signals, and a proposal brochure rebuild where ROI returns at the bottom alongside a known price.
+
+### Workstream 1 — Foundation polish (global)
+- **Glass surfaces are now the exception, not the default.** `Card` `tone="subtle"` is the new body-card aesthetic (solid `hsl(233 50% 8%)` with a hairline border). Every authenticated page sweeps from `glass` → `subtle` on inner content cards; `glass` is reserved for one hero card per page max
+- **Decorative orbs trimmed to one per page max.** `CatalogHero` collapses from three radial gradients to one, the catalog bottom CTA radial gradient is removed, and the corner orb on `ProposalView` is gone; `NextStepCard` and `ReferralLinkCard` retain their single orbs (earning them)
+- **Ad-hoc gradient text killed** — `CatalogHero`'s `bg-clip-text` "drive results" em swapped for a clean `text-foreground` em; codebase no longer contains `bg-clip-text` outside of brand marks
+- **Radius token discipline** — every ad-hoc `rounded-2xl` / `rounded-3xl` replaced with one of three CSS variables (`--radius-chip`, `--radius-control`, `--radius-card`) across `MachineCard`, `ReportHighlights`, `RebookCTA`, `LeadTable`, `ROICalculator`, `LogisticsTimeline`, `FileUpload`, `TaskChecklist`, `BrandMark`, `login`, and partner / admin tables
+- **NEW primitive `HeroMetric`** (`components/ui/hero-metric.tsx`) — single oversized KPI with optional satellites row. Adopted on the authenticated dashboard ("On track / X events"), the event overview ("Days to event"), the partner dashboard ("Pipeline value"), and reduced KPI density on the venue dashboard
+
+### Workstream 2 — Catalog rewrite
+- **`/catalog` no longer sells ROI math.** The `ROICalculator` section is removed from the public catalog; `HowItWorks` is demoted to a new standalone route `/how-it-works`; new section order is **Hero → Logos strip → Machines → Case studies → Trust band → Final CTA** (Featured games removed from the storefront)
+- **`CatalogHero` tightened** — specific outcome headline (`Capture 1,200+ leads at your next exhibition.`), refined subheadline, two confident stat pills (`Live in 12 markets`, `92% rebook rate`)
+- **NEW `LogosStrip`** (`components/catalog/LogosStrip.tsx`) — six-to-eight monochrome client monograms with `Trusted by` overline; falls back to letter glyphs until real client logos are dropped in
+- **NEW `TrustBand`** (`components/catalog/TrustBand.tsx`) — three big numbers (`4,800+ activations / 1.2M+ leads captured / 92% rebook rate`) plus a pull-quote testimonial slot. Replaces the ROI calculator visually
+- **Bottom CTA simplified** — radial gradient and trophy chip removed, single hero heading + single primary CTA (`Find your fit`)
+- **`/how-it-works`** route renders the three-step strip standalone; linked from the public footer
+
+### Workstream 3 — Proposal brochure rebuild
+- **`/proposal/[id]` rebuilt as a brochure** — above-the-fold leads with `BrandLockup` + "Prepared for { name }" + a display-type total + a single `Accept proposal` CTA; status badge demoted to a thin meta row; below-the-fold flows breakdown → outcomes → ROI panel → footer
+- **`ProposalView` split** into four named sub-components: `ProposalHero`, `ProposalBreakdown`, `ProposalOutcomes`, `ProposalROIPanel` (`src/components/quotes/`)
+- **NEW `ProposalROIPanel`** — pre-fills investment from `quote.total_amount` (read-only chip) and modelled leads from `quote.estimated_leads`; single editable `Average lead value (£)` input with smart defaults derived from `quote.event_type` (£50 B2C / £400 B2B / £120 mixed); outputs three big tiles (`Estimated revenue` / `ROI multiple` / `Payback`) computed live, with a `What does this assume?` disclosure exposing the formula
+- **Sticky accept bar on desktop** — once the user scrolls past the hero, a thin sticky footer appears at the bottom of the viewport with `Total · £X` and `Accept proposal`; mobile keeps the in-flow buttons
+- **NEW `src/lib/roi.ts`** — `computeProspectROI`, `computeProposalROI`, `defaultLeadValueForEventType`, `formatGBP`, `DEFAULT_LEAD_VALUE`, `INTERACTION_RATE`, `DEFAULT_CONVERSION_RATE`. Used by both the new `ProposalROIPanel` and the legacy catalog `ROICalculator`
+- **Print-ready by default** — new `.print-break-inside-avoid` utility on outcomes / ROI tiles, line-items table rows marked `print-break-inside-avoid` so they don't split mid-row, `proposal-brochure` Container narrows to a comfortable A4 width in print, `no-print` on all interactive controls (including the new sticky bar)
+
+### Acceptance check passed
+- `npm run build` clean after each workstream
+- No more than one `tone="glass"` Card per page across the authenticated app
+- No more than one decorative blur orb per page
+- No `bg-clip-text` outside of brand marks
+- Every authenticated dashboard leads with exactly one `HeroMetric`
+- The word "ROI" no longer appears on `/catalog`
+- Hero headline contains a specific outcome (number + event noun)
+- Top of the proposal page leads with the total in display type
+- ROI panel uses the quote's actual price (no longer hypothetical)
+- One primary CTA in the proposal hero (`Accept proposal`); `Decline` and `Print` are demoted
+
+---
+
+## [World-Class UX Overhaul] - 2026-05-14
+
+A six-phase UX overhaul transforming Bright.Experience into a premium, intuitive, beautifully delivered product across every persona.
+
+### Phase 1 — Foundation
+- **Unified design tokens** (`globals.css`): brand colors mapped to shadcn semantic variables, new typography (`text-display`, `text-balance`), refined radii, glassmorphism utilities, sonner toaster theming
+- **Extended shadcn primitives**: `Button` now ships `brand` & `glass` variants + `xs/lg/xl` sizes with `active:scale-[0.97]` micro-feedback; `Card` accepts `tone` & `interactive` props; `Badge` gains `success/warning/info/muted`; `Input` & `Skeleton` aligned to tokens
+- **New UI primitives**: `BrandMark` & `BrandLockup`, `Container` & `Section`, `Kbd`, `Toaster`, `Command` (cmdk), `StatCard`
+- **AppShell refactor**: persistent sidebar collapse (`useSidebarState`), Cmd+K command palette, profile dropdown (`UserMenu`), notification bell, skip-to-content a11y link
+
+### Phase 2 — Wayfinding
+- **`NextStepCard`** — hero CTA used on every dashboard and event overview
+- **`CommandPalette`** with role-aware quick actions, Cmd+K shortcut
+- **`EmptyState` refresh** — decorative orb, secondary actions, premium glass styling
+- **Enhanced `PageHeader`** — eyebrow, meta badges, responsive flex
+
+### Phase 3 — Premium public surfaces
+- **Rebuilt `(public)/layout.tsx`** — `BrandLockup`, `PublicMobileMenu`, footer column grid, `PartnerAttributionBanner`
+- **New routes**: `/catalog/machines`, `/catalog/packages`, `/catalog/packages/[slug]`, `/terms`, `/privacy`
+- **Magazine-grade machine PDP**, `PackageTierCard`, polished `MachineCard` / `GameCard` / `CaseStudyCard`
+
+### Phase 4 — Intuitive dashboards
+- **`EventContextBar`** mounted on every event sub-page (overview, actions, assets, approvals, briefing, communications, logistics, QA, leads, live, reports, studio, timeline, campaign)
+- **Resolved next step** — `lib/event-next-step.ts` powers contextual `NextStepCard` on the event overview
+- **`InternalWorkQueue`** on the admin dashboard — quotes, studio orders, partner apps, blocked events
+- **Quote pipeline** — tabbed status filter, search, smart defaults
+- **`ReferralLinkCard`** for partners with QR code + copy
+- **Venue calendar-first dashboard** with 12-week runway
+
+### Phase 5 — Motion & delight
+- **Motion primitives** (`components/ui/motion.tsx`) — `FadeIn`, `Stagger`, `PageTransition`, `AnimatedCounter`
+- **Page transitions** wired into `AppShell` (per-pathname `<PageTransition>`)
+- **Confetti utility** (`lib/celebrate.ts`) — fires on approval accept, asset upload, briefing submit, studio order, quote acceptance
+- **Sonner toasts** wired into every server-action surface with loading / success / error states
+- **`AnimatedCounter`** now backs every numeric `StatCard`
+- **`StudioTierCard`** flips into request form via `AnimatePresence`
+
+### Phase 6 — Performance, accessibility, production polish
+- **Next.js `Image` migration** across machine, game, case-study, report-highlight, and machine PDP surfaces
+- **`next.config.ts`** image `remotePatterns` for Supabase Storage, Unsplash, QR API, CDN; AVIF/WebP output
+- **`reactStrictMode: true`**, `poweredByHeader: false`
+- **Metadata sweep** — dedicated `metadata` / `generateMetadata` on `/catalog`, `/catalog/case-studies`, `/catalog/case-studies/[slug]`, `/catalog/games/[slug]`, `/book`, `/partners/join`
+- **A11y verified** — sidebar toggle, notification bell, skip link, focus rings on tappable cards, proper `aria-label`s on icon-only buttons
+
+### Migration notes
+- Legacy `.btn`, `.card`, `.badge`, `.input`, `.glass`, `.skeleton`, `text-text-*` utility classes are preserved and aligned to the new token system. New surfaces should prefer the `Button` / `Card` / `Badge` / `Input` primitives directly.
+- All new server-action consumers must wrap calls in `toast.loading` → `toast.success` / `toast.error` patterns for consistency.
+- `AppShell` now requires `notificationCount`; every page that renders `AppShell` fetches `getUnreadCount(user.id)` alongside its primary data.
+
+---
+
+## [Phase 8 — Intelligence & Scale] - 2026-05-13
+
+- **Added** `campaigns`, `campaign_events`, `recommendations`, `api_keys`, `webhook_subscriptions` tables
+- **Added** Campaign management pages (`/admin/campaigns`, `/admin/campaigns/[id]`)
+- **Added** Recommendation engine page (`/admin/recommendations`)
+- **Added** API & Webhook management page (`/admin/api`)
+- **Added** Event campaign context page (`/events/[id]/campaign`)
+- **Added** `CampaignCard`, `CampaignDashboard`, `RecommendationCard` components
+- **Added** `ApiKeyManager`, `WebhookManager` components
+- **Added** Query files: campaigns, recommendations
+- **Added** Server actions: campaigns, api-management
+- **Migration**: `20260403000009_intelligence_tables.sql`
+
+---
+
+## [Phase 7 — Venue & Runway Module] - 2026-05-13
+
+- **Added** `venues`, `placements`, `sponsorship_slots`, `venue_packages` tables
+- **Added** Venue dashboard (`/venues/[slug]/dashboard`)
+- **Added** Placement management (`/venues/[slug]/placements`)
+- **Added** Sponsorship management (`/venues/[slug]/sponsorships`)
+- **Added** Venue package builder (`/venues/[slug]/packages`)
+- **Added** Embed code generator (`/venues/[slug]/embed`)
+- **Added** `PlacementCalendar`, `SponsorshipSlotCard`, `VenuePackageBuilder`, `EmbedCodeGenerator` components
+- **Added** Query files: venues, placements, sponsorship-slots
+- **Added** Server actions: venues
+- **Migration**: `20260403000008_venue_runway_tables.sql`
+
+---
+
+## [Phase 6 — Partner & Reseller Portal] - 2026-05-13
+
+- **Added** `partners`, `partner_users`, `partner_attributions` tables with `user_partner_id()` helper
+- **Added** `partner_member` and `partner_admin` role types
+- **Added** Partner dashboard (`/partners/[slug]/dashboard`)
+- **Added** Partner clients, quotes, commissions, resources pages
+- **Added** Partner join/application page (`/partners/join`)
+- **Added** Partner attribution entry point (`/p/[code]`)
+- **Added** Internal partner management (`/admin/partners`, `/admin/partners/[id]`)
+- **Added** `PartnerDashboard`, `PartnerPipelineTable`, `CommissionTracker`, `PartnerOnboardingWizard`, `PartnerResourceCard` components
+- **Added** Query files: partners, partner-attributions
+- **Added** Server actions: partners
+- **Migration**: `20260403000007_partner_tables.sql`
+
+---
+
+## [Phase 5 — Proof of Performance & Reporting] - 2026-05-13
+
+- **Added** `event_reports` and `benchmarks` tables with public share token support
+- **Rebuilt** `/events/[id]/reports` — full proof-of-performance page with metrics, predicted vs actual, benchmarks, sharing
+- **Added** Public shareable report page (`/report/[token]`)
+- **Added** Internal benchmarks page (`/admin/benchmarks`)
+- **Added** `PredictedVsActual`, `BenchmarkComparison`, `CostPerLeadCard`, `ReportHighlights`, `ShareableReportBanner`, `RebookCTA`, `MetricCard` components
+- **Added** Query files: event-reports, benchmarks
+- **Added** Server actions: reports (generate, publish, unpublish)
+- **Migration**: `20260403000006_reporting_tables.sql`
+
+---
+
+## [Phase 4 — Live Event Mode & Telemetry] - 2026-05-13
+
+- **Added** `machine_instances`, `telemetry_events`, `leads`, `event_metrics_snapshot` tables
+- **Added** Live event dashboard (`/events/[id]/live`) with real-time counters and hourly chart
+- **Added** Leads page (`/events/[id]/leads`) with searchable table and CSV export
+- **Added** `LiveCounter`, `LiveFeed`, `HourlyChart`, `LeadTable`, `MetricCard`, `MachineStatusCard` components
+- **Added** Query files: machine-instances, telemetry, leads, event-metrics
+- **Added** Server actions: telemetry (ingest, capture lead, heartbeat, refresh metrics)
+- **Added** Zod validation schemas for telemetry
+- **Updated** Sidebar with Live Dashboard and Leads navigation
+- **Installed** `recharts` for chart components
+- **Migration**: `20260403000005_telemetry_tables.sql`
+
+---
+
+## [Phase 3 — Two-Track Quoting Engine] - 2026-05-13
+
+- **Added** `quotes`, `quote_line_items`, `locations` (or `location_tiers`), `prospect_sessions` tables
+- **Added** Book Now flow (`/book`, `/book/configure`, `/book/checkout`, `/book/confirmation/[id]`)
+- **Added** Guided Proposal intake wizard (`/proposal`, `/proposal/[id]`)
+- **Added** Internal quote management (`/admin/quotes`, `/admin/quotes/[id]`)
+- **Added** Location tier management (`/admin/locations`)
+- **Added** `IntakeWizard`, `ProposalView`, `ValueContextCard`, `QuoteStatusBadge` components
+- **Added** Query files: quotes, locations
+- **Added** Server actions: quotes (submit, prepare, accept, decline, expire)
+- **Added** Zod validation schemas for quotes
+- **Migration**: `20260403000004_quoting_engine.sql`
+
+---
+
+## [Phase 2 — Game Catalog & Storefront] - 2026-05-13
+
+- **Added** `machines`, `games`, `machine_games`, `packages`, `package_addons`, `case_studies` tables
+- **Added** Public catalog landing (`/catalog`) with hero, machine grid, ROI calculator
+- **Added** Machine and game detail pages
+- **Added** Case studies listing and detail pages
+- **Added** Recommendation quiz (`/quiz`)
+- **Added** Public layout for unauthenticated pages
+- **Added** Internal catalog management (`/admin/catalog`)
+- **Added** `CatalogHero`, `MachineCard`, `GameCard`, `PackageTierCard`, `CaseStudyCard`, `ROICalculator`, `RecommendationQuiz` components
+- **Migration**: `20260403000003_catalog_tables.sql`
+
+---
+
+## [Phase 1 — Delivery Lifecycle] - 2026-05-13
+
+- **Added** `notifications`, `messages`, `event_templates`, `qa_items`, `logistics_entries` tables
+- **Added** Notifications page (`/notifications`)
+- **Added** Per-event communications (`/events/[id]/communications`)
+- **Added** QA checklist (`/events/[id]/qa`)
+- **Added** Logistics timeline (`/events/[id]/logistics`)
+- **Added** Admin templates page (`/admin/templates`)
+- **Updated** Sidebar navigation with new sections
+- **Updated** Middleware for public routes
+- **Migration**: `20260403000002_delivery_lifecycle.sql`
+
+---
+
+## [Phase 0 — Stack Alignment] - 2026-05-13
+
+- **Added** shadcn/ui component library (17 primitives)
+- **Added** `cn()` utility, `components.json`, Zod validation schemas
+- **Added** RBAC helpers (`requireRole`, `requirePermission`)
+- **Added** Rate limiting utility
+- **Added** Security headers via `next.config.ts`
+- **Added** `.cursor/rules/` with 5 persistent rules
+- **Added** `.env.example`, updated `README.md`
+- **Updated** `globals.css` with shadcn semantic colour mapping
+- **Migrated** existing components to use shadcn primitives and `cn()`
+
+---
+
+## [Stage 2] - 2026-04-03
+
+- Asset upload centre with drag-and-drop
+- Approval workflow (request, review, approve/reject)
+- Bright.Studio creative service ordering with email notifications
+- Creative briefing forms and internal Studio dashboard
+
+---
+
+## [Stage 1] - 2026-04-03
+
+- Project scaffolding (Next.js 16, Tailwind v4, Supabase)
+- Dashboard with event list
+- Event overview with stage progress, health, milestones
+- Supabase Auth with role-based access
+- Bright.Blue design system (glassmorphism, custom tokens)

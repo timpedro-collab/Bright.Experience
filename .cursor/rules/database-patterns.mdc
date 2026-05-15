@@ -1,0 +1,29 @@
+---
+description: Database migration and query patterns for Supabase
+globs: "supabase/**/*.sql,src/lib/queries/**/*.ts"
+alwaysApply: false
+---
+
+# Database Patterns
+
+## Migrations
+
+- One migration per feature or phase, named `YYYYMMDDHHMMSS_descriptive_name.sql`
+- Every new table must have: RLS enabled, appropriate policies, indexes on foreign keys, `updated_at` trigger
+- Always include both "up" logic and a comment describing what would need to be undone
+
+## Queries
+
+- One query file per entity in `src/lib/queries/`
+- Every query function must be typed: return `Promise<EntityType[]>` or `Promise<EntityType | null>`
+- Use Supabase client query builder, not raw SQL
+- Handle errors gracefully: return empty arrays or null, log errors server-side
+- Name queries clearly: `getEventById`, `getQuotesByPartner`, `getLeadsByEvent`
+
+## Row-Level Security
+
+- Every table must have RLS enabled — no exceptions
+- Customer data scoped to their account via `user_account_id()`
+- Internal users see all via `is_internal_user()`
+- Partner data scoped to their partner record
+- Never bypass RLS in application code unless using the service role for seeding/admin

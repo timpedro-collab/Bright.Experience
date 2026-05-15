@@ -1,0 +1,36 @@
+---
+description: React and shadcn/ui component patterns for consistency
+globs: "**/*.tsx"
+alwaysApply: false
+---
+
+# Component Patterns
+
+## shadcn/ui Usage
+
+- Always use shadcn/ui primitives for standard UI elements (Button, Input, Label, Dialog, Select, Table, Badge, Card, etc.)
+- Import from `@/components/ui/` — never install UI libraries that duplicate shadcn functionality
+- Use the `cn()` utility from `@/lib/utils` for all conditional classNames
+- Extend shadcn components via composition, not modification of the `ui/` files
+
+## Component Structure
+
+```tsx
+/** Brief description of what this component does */
+"use client"; // only if needed
+
+import { cn } from "@/lib/utils";
+
+interface MyComponentProps { /* typed props */ }
+
+export function MyComponent({ ...props }: MyComponentProps) {
+  return ( /* JSX */ );
+}
+```
+
+## Rules
+
+- Prefer Server Components. Only add `"use client"` when the component needs interactivity.
+- Never pass functions or React components across the server/client boundary.
+- Keep components focused: if it renders more than one distinct section, split it.
+- Co-locate types with components when they are only used by that component.

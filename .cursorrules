@@ -1,0 +1,40 @@
+---
+description: "Use shadcn/ui components for all UI code in Bright.Experience"
+patterns: "*.tsx"
+---
+
+# Shadcn UI Components
+
+This project uses shadcn/ui for UI components. They live in `src/components/ui/`.
+
+## Using Components
+
+```tsx
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Input } from "@/components/ui/input"
+```
+
+## Installing Additional Components
+
+```bash
+npx shadcn@latest add [component-name]
+```
+
+Full list: https://ui.shadcn.com/r
+
+## Class Composition
+
+Always use `cn()` from `@/lib/utils` for conditional classes:
+
+```tsx
+import { cn } from "@/lib/utils"
+<div className={cn("base-class", isActive && "active-class")} />
+```
+
+## Design System
+
+Bright.Blue design tokens are mapped to shadcn CSS variables in `globals.css`.
+Use shadcn's semantic classes (`bg-primary`, `text-muted-foreground`, etc.)
+which automatically render in Bright.Blue brand colours.

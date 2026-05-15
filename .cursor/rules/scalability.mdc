@@ -1,0 +1,32 @@
+---
+description: Performance and scalability patterns for production readiness
+alwaysApply: true
+---
+
+# Scalability Standards
+
+## Data Fetching
+
+- Use Server Components for all data-fetching pages — zero client JS overhead
+- Paginate all list queries: never fetch unbounded result sets
+- Use Supabase `.range()` for pagination, not client-side slicing
+- Add database indexes for any column used in WHERE, ORDER BY, or JOIN
+- Use `.select()` to fetch only needed columns, not `select *`
+
+## Real-time
+
+- Use Supabase Realtime only where live updates are essential (Live Event Mode, notifications)
+- Unsubscribe from channels on component unmount
+- Debounce high-frequency telemetry updates on the client side
+
+## Error Handling
+
+- Every Server Action must return `{ success: true, data } | { success: false, error }`
+- Never expose internal error details to the client
+- Log errors server-side with enough context to debug (entity ID, user ID, action name)
+
+## Images and Media
+
+- Use Next.js `<Image>` component for all images (automatic optimization)
+- Store media in Supabase Storage with signed URLs
+- Use appropriate image sizes: thumbnails for lists, full-size only on detail pages

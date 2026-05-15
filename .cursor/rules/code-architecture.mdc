@@ -1,0 +1,47 @@
+---
+description: Enforce modular, well-segmented code architecture — no monoliths
+alwaysApply: true
+---
+
+# Code Architecture Standards
+
+## File Size Limits
+
+- No single file should exceed 200 lines. If it does, split it.
+- Components: one component per file, max 150 lines including imports
+- Server Actions: group by domain (e.g., `actions/quotes.ts`, `actions/events.ts`), max 200 lines per file
+- Queries: one file per entity (e.g., `queries/events.ts`, `queries/quotes.ts`), max 150 lines
+
+## Naming Conventions
+
+- Files: `kebab-case.ts` for utilities, `PascalCase.tsx` for components
+- Directories: `kebab-case/`
+- Functions: `camelCase` — verbs first (e.g., `getEventById`, `createQuoteFromIntake`)
+- Types/Interfaces: `PascalCase` — nouns (e.g., `Quote`, `LocationTier`)
+- Constants: `UPPER_SNAKE_CASE` (e.g., `INTERNAL_ROLES`, `STAGE_CONFIG`)
+
+## Directory Structure
+
+```
+src/
+  app/              → Pages and route handlers only. No business logic.
+  components/
+    ui/             → shadcn/ui primitives (never modify directly)
+    layout/         → App shell, sidebar, headers
+    [domain]/       → Domain-specific components (events/, studio/, catalog/)
+  lib/
+    queries/        → Supabase read queries, one file per entity
+    validations/    → Zod schemas, one file per domain
+    utils.ts        → cn() and shared utilities
+    rbac.ts         → Role/permission helpers
+  types/            → TypeScript types and enums
+  app/actions/      → Server Actions grouped by domain
+```
+
+## Separation of Concerns
+
+- Pages (`page.tsx`) only fetch data and compose components. No business logic in pages.
+- Components handle UI rendering and user interaction. No direct Supabase calls in components.
+- Server Actions handle mutations. One action per function, clearly named.
+- Queries handle reads. Pure functions that return typed data.
+- Validations define Zod schemas. Imported by both Server Actions and client forms.
