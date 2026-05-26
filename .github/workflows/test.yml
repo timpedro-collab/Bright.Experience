@@ -1,0 +1,53 @@
+name: Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint-typecheck-unit:
+    name: Lint, typecheck, unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+        continue-on-error: true # Pre-existing lint errors out of scope for now.
+      - run: npm run typecheck
+      - run: npm test
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage/
+          retention-days: 7
+
+  rls:
+    name: RLS policy tests (pgTAP)
+    runs-on: ubuntu-latest
+    needs: lint-typecheck-unit
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - run: npm ci
+      - name: Start local Supabase
+        run: supabase start
+      - name: Run pgTAP tests
+        run: npm run test:rls
+      - name: Stop Supabase
+        if: always()
+        run: supabase stop

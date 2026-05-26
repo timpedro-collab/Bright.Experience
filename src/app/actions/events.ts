@@ -29,7 +29,7 @@ const createEventSchema = z.object({
  * (`"1234"`), a full deal URL (`https://acme.pipedrive.com/deal/1234`),
  * or the empty string. Returns the numeric ID as a string, or null.
  */
-function normalisePipedriveDealId(raw?: string): string | null {
+export function normalisePipedriveDealId(raw?: string): string | null {
   if (!raw) return null;
   const trimmed = raw.trim();
   if (trimmed === "") return null;

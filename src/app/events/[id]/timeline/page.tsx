@@ -1,17 +1,34 @@
+/**
+ * Event timeline — full milestone list with stage progress and current
+ * stage callout. Built on the editorial Bright.Experience design language
+ * (EditionShell + RidgeHero, no sidebar, no glass cards).
+ */
+
 import { notFound, redirect } from "next/navigation";
-import { AppShell } from "@/components/layout/AppShell";
-import { PageHeader } from "@/components/layout/PageHeader";
-import { EventContextBar } from "@/components/events/EventContextBar";
-import { Card } from "@/components/ui/card";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
+
+import { CommandPalette } from "@/components/layout/CommandPalette";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
+import { UserMenu } from "@/components/layout/UserMenu";
+import {
+  EditionShell,
+  EditionChrome,
+  EditionBody,
+  EditionFooter,
+  RidgeHero,
+  EditorialEyebrow,
+  Hairline,
+} from "@/components/brand";
+import { HealthBadge } from "@/components/ui/StatusBadge";
 import { MilestoneTimeline } from "@/components/timeline/MilestoneTimeline";
 import { StageProgressBar } from "@/components/events/StageProgressBar";
-import { HealthBadge } from "@/components/ui/StatusBadge";
+
 import { getEventById } from "@/lib/queries/events";
 import { getMilestonesByEvent } from "@/lib/queries/milestones";
 import { getTasksByEvent } from "@/lib/queries/tasks";
 import { getUnreadCount } from "@/lib/queries/notifications";
 import { getUser } from "@/lib/auth";
-import { isInternalRole } from "@/lib/roles";
 import { STAGE_CONFIG } from "@/types";
 
 export default async function TimelinePage({
@@ -28,64 +45,116 @@ export default async function TimelinePage({
     getTasksByEvent(id),
     getUnreadCount(user.id),
   ]);
-  const isInternal = isInternalRole(user.role);
   if (!event) return notFound();
 
   const completedMilestones = milestones.filter(
-    (m) => m.status === "complete"
+    (m) => m.status === "complete",
   ).length;
   const stageConfig = STAGE_CONFIG[event.currentStage];
 
   return (
-    <AppShell
-      eventId={id}
-      user={user}
-      isInternal={isInternal}
-      notificationCount={unread}
-    >
-      <EventContextBar event={event} currentSection="Timeline" />
-      <PageHeader
-        eyebrow="Delivery plan"
-        title="Timeline"
-        subtitle={`Currently in ${stageConfig.label.toLowerCase()} — ${completedMilestones} of ${milestones.length} milestones complete.`}
-        actions={<HealthBadge status={event.healthStatus} />}
+    <EditionShell>
+      <EditionChrome
+        breadcrumbs={[
+          { label: "Home", href: "/" },
+          { label: event.name, href: `/events/${id}` },
+          { label: "Timeline" },
+        ]}
+        rightSlot={
+          <>
+            <NotificationBell unreadCount={unread} />
+            <span
+              className="hidden md:block h-6 w-px bg-border"
+              aria-hidden
+            />
+            <UserMenu user={user} />
+          </>
+        }
       />
 
-      <Card tone="subtle" className="mb-6 p-6">
-        <div className="flex items-center justify-between mb-4">
+      <RidgeHero
+        seed={`${event.id}::timeline`}
+        eyebrow={`${event.account.name} · Delivery plan`}
+        title="The timeline."
+        subtitle={`Currently in ${stageConfig.label}. ${completedMilestones} of ${milestones.length} milestones complete.`}
+        rightSlot={
+          <div className="flex items-center gap-2">
+            <HealthBadge status={event.healthStatus} />
+          </div>
+        }
+      />
+
+      <EditionBody>
+        {/* Stage strip */}
+        <section className="py-6">
+          <div className="flex items-baseline justify-between gap-3 mb-3">
+            <EditorialEyebrow accent>The journey</EditorialEyebrow>
+            <span className="text-overline text-muted-foreground tabular-nums">
+              Stage {stageConfig.order + 1} of 10 · {stageConfig.label}
+            </span>
+          </div>
+          <StageProgressBar currentStage={event.currentStage} />
+        </section>
+
+        <Hairline className="opacity-60" />
+
+        {/* Current stage callout */}
+        <section className="py-10 grid grid-cols-1 md:grid-cols-[1fr_auto] gap-6 items-end">
           <div>
-            <p className="text-overline text-muted-foreground mb-1">
-              Current stage
-            </p>
-            <h2 className="text-heading text-lg font-semibold text-foreground">
+            <EditorialEyebrow>Right now</EditorialEyebrow>
+            <h2 className="text-heading text-foreground text-[clamp(1.75rem,3.5vw,2.5rem)] leading-tight mt-2">
               {stageConfig.label}
             </h2>
+            <p className="mt-3 max-w-[58ch] text-base text-muted-foreground leading-relaxed">
+              We&apos;ll keep you posted as this stage advances. Anything
+              that needs your eyes lives in your inbox and on the event
+              page.
+            </p>
           </div>
           <div className="text-right">
-            <p className="text-heading text-2xl font-bold text-primary tabular-nums">
+            <p className="text-display text-foreground text-[clamp(3rem,6vw,4.5rem)] leading-none tabular-nums">
               {completedMilestones}
-              <span className="text-muted-foreground text-base font-normal">
-                /{milestones.length}
+              <span className="text-muted-foreground text-2xl font-normal">
+                {" / "}
+                {milestones.length}
               </span>
             </p>
-            <p className="text-overline text-muted-foreground">
+            <p className="text-overline text-muted-foreground mt-1">
               Milestones complete
             </p>
           </div>
-        </div>
-        <StageProgressBar currentStage={event.currentStage} />
-      </Card>
+        </section>
 
-      <Card tone="subtle" className="p-8">
-        <h2 className="text-heading text-base font-semibold text-foreground mb-6">
-          Event milestones
-        </h2>
-        <MilestoneTimeline
-          milestones={milestones}
-          tasks={tasks}
-          viewerRole={user.role}
-        />
-      </Card>
-    </AppShell>
+        <Hairline className="opacity-60" />
+
+        {/* All milestones */}
+        <section className="py-10">
+          <EditorialEyebrow>Every milestone</EditorialEyebrow>
+          <p className="mt-2 text-sm text-muted-foreground max-w-[58ch]">
+            The full delivery plan, from kickoff through wrap-up. Active
+            milestones show who&apos;s on it.
+          </p>
+          <div className="mt-6">
+            <MilestoneTimeline
+              milestones={milestones}
+              tasks={tasks}
+              viewerRole={user.role}
+            />
+          </div>
+        </section>
+      </EditionBody>
+
+      <EditionFooter
+        rightSlot={
+          <Link
+            href={`/events/${id}`}
+            className="inline-flex items-center gap-1.5 hover:opacity-80 transition-opacity"
+          >
+            <ArrowLeft className="h-3 w-3" /> Back to {event.name}
+          </Link>
+        }
+      />
+      <CommandPalette />
+    </EditionShell>
   );
 }

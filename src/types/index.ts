@@ -287,13 +287,10 @@ export const STAGE_CONFIG: Record<
   complete: { label: "Complete", shortLabel: "Complete", order: 9 },
 };
 
-export const HEALTH_CONFIG: Record<
-  HealthStatus,
-  { label: string; color: string }
-> = {
-  green: { label: "On Track", color: "badge-green" },
-  amber: { label: "At Risk", color: "badge-amber" },
-  red: { label: "Blocked", color: "badge-red" },
+export const HEALTH_CONFIG: Record<HealthStatus, { label: string }> = {
+  green: { label: "On Track" },
+  amber: { label: "At Risk" },
+  red: { label: "Blocked" },
 };
 
 // ============================================================

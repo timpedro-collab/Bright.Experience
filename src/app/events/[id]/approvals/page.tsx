@@ -1,27 +1,28 @@
+/**
+ * Customer approvals — every deliverable awaiting the customer's sign-off
+ * (or already decided). Editorial Bright.Experience design language:
+ * EditionShell + RidgeHero + hairline-grouped rows, no glass cards.
+ */
+
 import { notFound, redirect } from "next/navigation";
 import {
   CheckCircle2,
-  XCircle,
-  Clock,
   Eye,
   MessageSquare,
   RefreshCw,
 } from "lucide-react";
-import { AppShell } from "@/components/layout/AppShell";
-import { PageHeader } from "@/components/layout/PageHeader";
-import { EventContextBar } from "@/components/events/EventContextBar";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+
+import { EventPageShell, EditorialEyebrow, Hairline } from "@/components/brand";
 import { ApprovalStatusBadge } from "@/components/ui/StatusBadge";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { ApprovalActions } from "@/components/approvals/ApprovalActions";
+
 import { getEventById } from "@/lib/queries/events";
 import { getApprovalsByEvent } from "@/lib/queries/approvals";
 import { getUnreadCount } from "@/lib/queries/notifications";
 import { getUser } from "@/lib/auth";
-import { isInternalRole } from "@/lib/roles";
-import { ApprovalActions } from "@/components/approvals/ApprovalActions";
-import type { Approval } from "@/types";
 import { formatDateMedium, timeSince } from "@/lib/dates";
+import type { Approval } from "@/types";
 
 export default async function ApprovalsPage({
   params,
@@ -36,112 +37,101 @@ export default async function ApprovalsPage({
     getApprovalsByEvent(id),
     getUnreadCount(user.id),
   ]);
-  const isInternal = isInternalRole(user.role);
   if (!event) return notFound();
 
   const pending = approvals.filter(
-    (a) => a.status === "pending" || a.status === "revision_requested"
+    (a) => a.status === "pending" || a.status === "revision_requested",
   );
   const decided = approvals.filter(
-    (a) => a.status === "approved" || a.status === "rejected"
+    (a) => a.status === "approved" || a.status === "rejected",
   );
 
-  if (approvals.length === 0) {
-    return (
-      <AppShell
-        eventId={id}
-        user={user}
-        isInternal={isInternal}
-        notificationCount={unread}
-      >
-        <EventContextBar event={event} currentSection="Approvals" />
-        <PageHeader
-          eyebrow="Review queue"
-          title="Approvals"
-          subtitle="Review and approve deliverables for your event."
-        />
+  const subtitle =
+    approvals.length === 0
+      ? "Approval requests will appear here once creative deliverables are ready for your review."
+      : pending.length > 0
+        ? `${pending.length} item${pending.length === 1 ? "" : "s"} need your review. Approve or request a revision to keep delivery moving.`
+        : "All deliverables have been reviewed. Nice work.";
+
+  return (
+    <EventPageShell
+      event={event}
+      user={user}
+      unreadCount={unread}
+      section="Approvals"
+      title="Sign-off."
+      subtitle={subtitle}
+      heroRight={
+        approvals.length > 0 ? (
+          <div className="text-overline text-muted-foreground tabular-nums">
+            <span className="text-foreground text-base font-semibold">
+              {decided.length}
+            </span>
+            <span className="opacity-60"> / {approvals.length} </span>
+            decided
+          </div>
+        ) : null
+      }
+    >
+      {approvals.length === 0 ? (
         <EmptyState
           icon={CheckCircle2}
           title="No approvals pending"
           description="Approval requests will appear here once creative deliverables are ready for your review."
           action={{ label: "View timeline", href: `/events/${id}/timeline` }}
         />
-      </AppShell>
-    );
-  }
+      ) : (
+        <>
+          {pending.length > 0 && (
+            <section className="py-10">
+              <div className="mb-4 flex items-baseline justify-between gap-3">
+                <EditorialEyebrow accent>Awaiting your review</EditorialEyebrow>
+                <span className="text-overline text-muted-foreground tabular-nums">
+                  {pending.length} pending
+                </span>
+              </div>
+              <ul className="flex flex-col divide-y divide-border/40 border-t border-b border-border/40">
+                {pending.map((approval) => (
+                  <ApprovalRow
+                    key={approval.id}
+                    approval={approval}
+                    showActions
+                  />
+                ))}
+              </ul>
+            </section>
+          )}
 
-  return (
-    <AppShell
-      eventId={id}
-      user={user}
-      isInternal={isInternal}
-      notificationCount={unread}
-    >
-      <EventContextBar event={event} currentSection="Approvals" />
-      <PageHeader
-        eyebrow="Review queue"
-        title="Approvals"
-        subtitle={
-          pending.length > 0
-            ? `${pending.length} item${pending.length === 1 ? "" : "s"} need your review. Approve or request a revision to keep delivery moving.`
-            : "All deliverables have been reviewed. Nice work!"
-        }
-        actions={
-          pending.length > 0 ? (
-            <Badge variant="warning">{pending.length} pending</Badge>
-          ) : (
-            <Badge variant="success">All reviewed</Badge>
-          )
-        }
-      />
+          {pending.length > 0 && decided.length > 0 && (
+            <Hairline className="opacity-60" />
+          )}
 
-      {pending.length > 0 && (
-        <div className="mb-8">
-          <h2 className="text-overline text-muted-foreground mb-4 flex items-center gap-2">
-            <Clock size={14} />
-            Awaiting your review
-          </h2>
-          <div className="space-y-4">
-            {pending.map((approval, i) => (
-              <ApprovalCard
-                key={approval.id}
-                approval={approval}
-                index={i}
-                showActions
-              />
-            ))}
-          </div>
-        </div>
+          {decided.length > 0 && (
+            <section className="py-10">
+              <div className="mb-4 flex items-baseline justify-between gap-3">
+                <EditorialEyebrow>Already decided</EditorialEyebrow>
+                <span className="text-overline text-muted-foreground tabular-nums">
+                  {decided.length} done
+                </span>
+              </div>
+              <ul className="flex flex-col divide-y divide-border/40 border-t border-b border-border/40">
+                {decided.map((approval) => (
+                  <ApprovalRow key={approval.id} approval={approval} />
+                ))}
+              </ul>
+            </section>
+          )}
+        </>
       )}
-
-      {decided.length > 0 && (
-        <div>
-          <h2 className="text-overline text-muted-foreground mb-4 flex items-center gap-2">
-            <CheckCircle2 size={14} />
-            Reviewed
-          </h2>
-          <div className="space-y-4">
-            {decided.map((approval, i) => (
-              <ApprovalCard
-                key={approval.id}
-                approval={approval}
-                index={i + pending.length}
-              />
-            ))}
-          </div>
-        </div>
-      )}
-    </AppShell>
+    </EventPageShell>
   );
 }
 
-function ApprovalCard({
+function ApprovalRow({
   approval,
-  index,
   showActions = false,
 }: {
   approval: Approval;
-  index: number;
   showActions?: boolean;
 }) {
   const isPending =
@@ -149,77 +139,82 @@ function ApprovalCard({
     approval.status === "revision_requested";
 
   return (
-    <Card
-      tone="subtle"
-      className={`stagger-item p-6 ${isPending ? "border-primary/40 shadow-[inset_3px_0_0_0_hsl(223,94%,53%)]" : ""}`}
-      style={{ "--stagger-index": index } as React.CSSProperties}
-    >
-      <div className="flex items-start justify-between gap-4 mb-3">
-        <div>
-          <div className="flex items-center gap-3 mb-1">
-            <h3 className="text-heading text-base font-semibold text-foreground">
+    <li className="relative py-5 pl-3 pr-2">
+      {/* Left accent stripe */}
+      <span
+        aria-hidden
+        className={`absolute left-0 top-3 bottom-3 w-[2px] rounded-full ${
+          isPending
+            ? "bg-[var(--color-bb-cobalt)]"
+            : approval.status === "approved"
+              ? "bg-success/40"
+              : "bg-destructive/40"
+        }`}
+      />
+
+      <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-4 items-start">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2 flex-wrap mb-1">
+            <h3 className="text-base font-semibold text-foreground">
               {approval.title}
             </h3>
             <ApprovalStatusBadge status={approval.status} />
+            {approval.revisionCount > 0 && (
+              <span className="inline-flex items-center gap-1 text-overline text-muted-foreground">
+                <RefreshCw className="size-3" /> Rev {approval.revisionCount}
+              </span>
+            )}
           </div>
+
           {approval.description && (
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-muted-foreground leading-snug mt-0.5 max-w-[60ch]">
               {approval.description}
             </p>
           )}
-        </div>
-        <span className="text-overline text-muted-foreground shrink-0">
-          {timeSince(approval.requestedAt)}
-        </span>
-      </div>
 
-      {approval.previewUrl && isPending && (
-        <div className="mb-4 rounded-[var(--radius-control)] border border-white/[0.06] bg-white/[0.02] p-8 flex items-center justify-center">
-          <div className="flex flex-col items-center gap-2 text-muted-foreground">
-            <Eye size={24} />
-            <span className="text-sm">Preview available</span>
-            <button className="btn btn-ghost text-xs mt-1">
-              <Eye size={14} />
-              View full preview
-            </button>
-          </div>
-        </div>
-      )}
+          {approval.feedback && (
+            <div className="mt-3 border-l-2 border-border/60 pl-3 py-1">
+              <p className="text-overline text-muted-foreground mb-0.5 inline-flex items-center gap-1">
+                <MessageSquare className="size-3" /> Feedback
+              </p>
+              <p className="text-sm text-foreground/90 leading-snug whitespace-pre-line">
+                {approval.feedback}
+              </p>
+            </div>
+          )}
 
-      {approval.revisionCount > 0 && (
-        <div className="flex items-center gap-2 mb-3">
-          <RefreshCw size={12} className="text-muted-foreground" />
-          <span className="text-xs text-muted-foreground">
-            Revision {approval.revisionCount}
-          </span>
-        </div>
-      )}
+          {approval.previewUrl && isPending && (
+            <a
+              href={approval.previewUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-3 inline-flex items-center gap-1.5 text-overline text-[var(--color-bb-cobalt)] underline decoration-from-font underline-offset-4"
+            >
+              <Eye className="size-3" /> View preview
+            </a>
+          )}
 
-      {approval.feedback && (
-        <div className="mb-4 p-3 rounded-[var(--radius-control)] bg-white/[0.02] border border-white/[0.06]">
-          <div className="flex items-start gap-2">
-            <MessageSquare
-              size={12}
-              className="text-muted-foreground mt-0.5 shrink-0"
+          <p className="mt-2 text-overline text-muted-foreground">
+            Requested {timeSince(approval.requestedAt)}
+            {approval.decidedAt && (
+              <>
+                <span className="opacity-60"> · </span>
+                {approval.status === "approved" ? "Approved" : "Decided"}{" "}
+                {formatDateMedium(approval.decidedAt)}
+              </>
+            )}
+          </p>
+        </div>
+
+        {showActions && isPending && (
+          <div className="md:text-right">
+            <ApprovalActions
+              approvalId={approval.id}
+              eventId={approval.eventId}
             />
-            <p className="text-xs text-muted-foreground">{approval.feedback}</p>
           </div>
-        </div>
-      )}
-
-      {approval.decidedAt && (
-        <p className="text-xs text-muted-foreground">
-          {approval.status === "approved" ? "Approved" : "Rejected"} on{" "}
-          {formatDateMedium(approval.decidedAt)}
-        </p>
-      )}
-
-      {showActions && isPending && (
-        <ApprovalActions
-          approvalId={approval.id}
-          eventId={approval.eventId}
-        />
-      )}
-    </Card>
+        )}
+      </div>
+    </li>
   );
 }

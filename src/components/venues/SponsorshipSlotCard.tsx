@@ -34,7 +34,7 @@ export function SponsorshipSlotCard({ slot, onReserve }: SponsorshipSlotCardProp
   const config = STATUS_CONFIG[slot.status] ?? STATUS_CONFIG.available;
 
   return (
-    <Card className="card-interactive">
+    <Card interactive>
       <CardContent className="p-4 space-y-3">
         <div className="flex items-center justify-between">
           <Badge variant="outline" className={cn("text-xs", config.class)}>

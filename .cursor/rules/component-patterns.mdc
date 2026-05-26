@@ -1,17 +1,69 @@
 ---
-description: React and shadcn/ui component patterns for consistency
+description: React, shadcn/ui, and Bright.Experience editorial design-system patterns
 globs: "**/*.tsx"
 alwaysApply: false
 ---
 
 # Component Patterns
 
+## Editorial design language
+
+Bright.Experience uses a single editorial design language. Every authenticated page composes from the same chassis — never roll a bespoke layout.
+
+### Page chassis primitives (in `src/components/brand/`)
+
+- `EditionShell` — theme wrapper. All authenticated pages start here.
+- `EditionChrome` — sticky top bar with breadcrumbs + right slot (notifications, user menu).
+- `RidgeHero` — hero with seeded `RidgeArtwork`, eyebrow, title, subtitle, optional `rightSlot`.
+- `EditionBody` — main content wrapper with the standard horizontal rhythm.
+- `EditionFooter` — bottom bar with brand lockup and Cmd+K hint.
+- `EventPageShell` — convenience wrapper for `/events/[id]/*` sub-pages. Pass `event`, `section`, `title`, `subtitle`.
+- `AdminPageShell` — same shape for internal `/admin/*` and adjacent pages.
+
+For any new event sub-page, use `EventPageShell`. For any new internal admin view, use `AdminPageShell`. Never compose `EditionShell` + `EditionChrome` + `RidgeHero` by hand unless the page is genuinely one-of-one.
+
+### Editorial primitives (in `src/components/brand/editorial.tsx`)
+
+- `EditorialEyebrow` — tracked uppercase DM Sans Medium label. Use this anywhere we'd have used a small heading or a section eyebrow. Pass `accent` for the cobalt brand colour.
+- `Hairline` — 1px gradient rule that separates editorial sections without the weight of a card border. Pass `orientation="vertical"` for column dividers.
+
+### Generative artwork
+
+- `RidgeArtwork` — deterministic SVG, seeded by an event id or route key. Use this in place of decorative blur orbs. Pass `lines` and `amplitude` to dial visual weight.
+- `EditionPlate` — compact card representing a single event. Used in event lists, the "Your other events" rail, partner dashboards. Has its own scoped ridge.
+
 ## shadcn/ui Usage
 
-- Always use shadcn/ui primitives for standard UI elements (Button, Input, Label, Dialog, Select, Table, Badge, Card, etc.)
-- Import from `@/components/ui/` — never install UI libraries that duplicate shadcn functionality
-- Use the `cn()` utility from `@/lib/utils` for all conditional classNames
-- Extend shadcn components via composition, not modification of the `ui/` files
+- Always use shadcn primitives for standard UI elements (`Button`, `Input`, `Label`, `Textarea`, `Dialog`, `Select`, `Table`, `Badge`, `Card`).
+- Import from `@/components/ui/` — never install UI libraries that duplicate shadcn functionality.
+- Use the `cn()` utility from `@/lib/utils` for all conditional classNames.
+- Extend shadcn components via composition, not modification of the `ui/` files.
+
+### Variant cheat sheet
+
+| Need | Use |
+|------|-----|
+| Primary CTA | `<Button variant="brand">` (or `default` — same gradient) |
+| Secondary CTA | `<Button variant="glass">` |
+| Tertiary CTA | `<Button variant="ghost">` |
+| Destructive action | `<Button variant="destructive">` |
+| Hoverable card | `<Card interactive>` |
+| Hero card | `<Card tone="glass">` — max one per page |
+| Body card | `<Card>` (default `tone="glass"`) or `<Card tone="subtle">` |
+| Success badge | `<Badge variant="success">` |
+| Warning badge | `<Badge variant="warning">` |
+| Destructive badge | `<Badge variant="destructive">` |
+| Info badge | `<Badge variant="info">` |
+| Muted/neutral badge | `<Badge variant="muted">` |
+
+### Banned patterns
+
+- **No legacy `.btn`/`.card`/`.badge`/`.input` CSS classes.** They were removed in May 2026. Use the shadcn primitives instead.
+- **No ad-hoc `rounded-2xl` / `rounded-3xl`.** Use `var(--radius-card)`, `var(--radius-control)`, or `var(--radius-chip)`.
+- **No `bg-clip-text`** outside of the brand mark itself.
+- **No more than one `tone="glass"` `<Card>` per page.**
+- **No emoji** in product UI unless explicitly added by the user.
+- **No "book/chapter/edition" metaphor.** That language was removed in May 2026 — use "events", "stages", "milestones".
 
 ## Component Structure
 
@@ -34,3 +86,4 @@ export function MyComponent({ ...props }: MyComponentProps) {
 - Never pass functions or React components across the server/client boundary.
 - Keep components focused: if it renders more than one distinct section, split it.
 - Co-locate types with components when they are only used by that component.
+- Files cap at ~200 lines. Split if longer.

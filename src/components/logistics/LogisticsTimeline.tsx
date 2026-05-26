@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Truck, Package, ArrowDownToLine, MoreHorizontal, MapPin, Phone, Hash } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { updateLogisticsEntry } from "@/app/actions/logistics";
 import type { LogisticsEntry, LogisticsStatus } from "@/types";
 
@@ -74,7 +75,7 @@ function LogisticsCard({ entry, index, isInternal }: {
         <Icon size={20} className={entry.status === "completed" ? "text-success" : "text-muted-foreground"} />
       </div>
 
-      <div className="flex-1 card p-5">
+      <Card className="flex-1 p-5">
         <div className="flex items-center justify-between gap-3 mb-2">
           <h3 className="text-sm font-semibold text-foreground">{entry.title}</h3>
           <span className={cn(
@@ -135,7 +136,7 @@ function LogisticsCard({ entry, index, isInternal }: {
             </Button>
           </div>
         )}
-      </div>
+      </Card>
     </div>
   );
 }

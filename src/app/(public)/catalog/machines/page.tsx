@@ -6,6 +6,7 @@ import { ArrowRight } from "lucide-react";
 import { MachineCard } from "@/components/catalog/MachineCard";
 import { Container, Section } from "@/components/ui/section";
 import { Button } from "@/components/ui/button";
+import { RidgeArtwork, EditorialEyebrow } from "@/components/brand";
 import { getMachines } from "@/lib/queries/machines";
 
 export const metadata: Metadata = {
@@ -19,16 +20,32 @@ export default async function MachinesIndexPage() {
 
   return (
     <>
-      <Section spacing="md" className="border-b border-white/[0.06]">
-        <Container>
-          <p className="text-overline text-muted-foreground">Catalog</p>
-          <h1 className="text-display mt-2 text-4xl md:text-5xl font-bold text-foreground">
-            Our machines
+      <section className="relative isolate overflow-hidden border-b border-border/40">
+        <div
+          aria-hidden
+          className="absolute inset-x-0 top-0 ridge-color-cobalt"
+          style={{ height: "clamp(240px, 28vw, 320px)" }}
+        >
+          <RidgeArtwork
+            seed="catalog::machines"
+            lines={22}
+            amplitude={70}
+            className="text-[hsl(223,94%,53%)]"
+          />
+          <div
+            aria-hidden
+            className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-background to-transparent"
+          />
+        </div>
+        <Container className="relative pt-16 md:pt-20 pb-10">
+          <EditorialEyebrow accent>Catalog</EditorialEyebrow>
+          <h1 className="text-display mt-2 text-[clamp(2.25rem,4.5vw,3.75rem)] leading-[1.1] text-foreground">
+            The machines.
           </h1>
-          <p className="mt-3 max-w-2xl text-base text-muted-foreground md:text-lg">
+          <p className="mt-3 max-w-2xl text-base text-muted-foreground md:text-lg leading-relaxed">
             Every Bright.Blue machine is engineered for crowd-stopping
-            experiential moments — prize-rich, brandable, and built around our
-            telemetry and reporting stack.
+            experiential moments — prize-rich, brandable, and built around
+            our telemetry and reporting stack.
           </p>
           <div className="mt-6 flex flex-wrap gap-2">
             <Button asChild variant="brand">
@@ -39,7 +56,7 @@ export default async function MachinesIndexPage() {
             </Button>
           </div>
         </Container>
-      </Section>
+      </section>
 
       <Section>
         <Container>

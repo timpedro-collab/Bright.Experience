@@ -28,7 +28,7 @@ export function CampaignCard({ campaign }: CampaignCardProps) {
 
   return (
     <Link href={`/admin/campaigns/${campaign.id}`}>
-      <Card className="card-interactive h-full">
+      <Card interactive className="h-full">
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <CardTitle className="text-base font-semibold text-text-primary truncate">
             {campaign.name}

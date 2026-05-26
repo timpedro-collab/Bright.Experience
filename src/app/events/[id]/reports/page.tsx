@@ -1,18 +1,25 @@
-/** Proof of Performance page — post-event reporting with metrics, benchmarks, and sharing */
+/** Proof of Performance — post-event reporting with metrics, benchmarks, and sharing. */
 import { notFound, redirect } from "next/navigation";
-import { BarChart3, Users, Target, Eye, DollarSign, FileText } from "lucide-react";
-import { AppShell } from "@/components/layout/AppShell";
-import { PageHeader } from "@/components/layout/PageHeader";
-import { EventContextBar } from "@/components/events/EventContextBar";
+import {
+  BarChart3,
+  Users,
+  Target,
+  Eye,
+  DollarSign,
+  FileText,
+} from "lucide-react";
+
+import { EventPageShell, EditorialEyebrow, Hairline } from "@/components/brand";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Button } from "@/components/ui/button";
 import { MetricCard } from "@/components/reports/MetricCard";
-import { getUnreadCount } from "@/lib/queries/notifications";
 import { PredictedVsActual } from "@/components/reports/PredictedVsActual";
 import { BenchmarkComparison } from "@/components/reports/BenchmarkComparison";
 import { ReportHighlights } from "@/components/reports/ReportHighlights";
 import { ShareableReportBanner } from "@/components/reports/ShareableReportBanner";
 import { RebookCTA } from "@/components/reports/RebookCTA";
+
+import { getUnreadCount } from "@/lib/queries/notifications";
 import { getEventById } from "@/lib/queries/events";
 import { getEventReports } from "@/lib/queries/event-reports";
 import { getLatestEventMetrics } from "@/lib/queries/event-metrics";
@@ -41,29 +48,27 @@ export default async function ReportsPage({
 
   if (!report) {
     return (
-      <AppShell
-        eventId={id}
+      <EventPageShell
+        event={event}
         user={user}
-        isInternal={isInternal}
-        notificationCount={unread}
+        unreadCount={unread}
+        section="Reports"
+        title="Proof of performance."
+        subtitle="Post-event reporting, ROI insights, and shareable summaries."
       >
-        <EventContextBar event={event} currentSection="Reports" />
-        <PageHeader
-          eyebrow="Proof of performance"
-          title="Reports"
-          subtitle="Post-event reporting, ROI insights, and shareable summaries."
-        />
-        <EmptyState
-          icon={BarChart3}
-          title="No report generated yet"
-          description={
-            isInternal
-              ? "Generate a proof-of-performance report once post-event data has been collected."
-              : "Your proof-of-performance report is being prepared. Check back soon."
-          }
-        />
-        {isInternal && <GenerateReportButton eventId={id} />}
-      </AppShell>
+        <section className="py-8">
+          <EmptyState
+            icon={BarChart3}
+            title="No report generated yet"
+            description={
+              isInternal
+                ? "Generate a proof-of-performance report once post-event data has been collected."
+                : "Your proof-of-performance report is being prepared. Check back soon."
+            }
+          />
+          {isInternal && <GenerateReportButton eventId={id} />}
+        </section>
+      </EventPageShell>
     );
   }
 
@@ -77,7 +82,11 @@ export default async function ReportsPage({
 
   const metricsData = (report.metricsJson ?? {}) as Record<string, number>;
   const predictionsData = (report.predictionsJson ?? {}) as Record<string, number>;
-  const highlights = (report.highlightsJson ?? []) as Array<{ url: string; caption?: string; stat?: string }>;
+  const highlights = (report.highlightsJson ?? []) as Array<{
+    url: string;
+    caption?: string;
+    stat?: string;
+  }>;
 
   const benchmarkMap: Record<string, number> = {};
   for (const b of benchmarkList) {
@@ -85,60 +94,100 @@ export default async function ReportsPage({
   }
 
   return (
-    <AppShell
-      eventId={id}
+    <EventPageShell
+      event={event}
       user={user}
-      isInternal={isInternal}
-      notificationCount={unread}
+      unreadCount={unread}
+      section="Reports"
+      title="Proof of performance."
+      subtitle="Headline metrics, predictions vs actuals, and a shareable summary you can hand to stakeholders."
     >
-      <EventContextBar event={event} currentSection="Reports" />
-      <PageHeader
-        eyebrow="Proof of performance"
-        title="Reports"
-        subtitle="Headline metrics, predictions vs actuals, and a shareable summary you can hand to stakeholders."
-      />
+      <section className="py-8">
+        <EditorialEyebrow accent>The headlines</EditorialEyebrow>
+        <div className="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <MetricCard
+            icon={Users}
+            label="Total plays"
+            value={totalPlays.toLocaleString()}
+          />
+          <MetricCard
+            icon={Target}
+            label="Total leads"
+            value={totalLeads.toLocaleString()}
+            delta={
+              totalPlays > 0
+                ? `${((totalLeads / totalPlays) * 100).toFixed(0)}% conversion`
+                : undefined
+            }
+            positive={true}
+          />
+          <MetricCard
+            icon={Eye}
+            label="Interactions"
+            value={Number(latestMetrics?.total_interactions ?? 0).toLocaleString()}
+          />
+          <MetricCard
+            icon={DollarSign}
+            label="Cost per lead"
+            value={
+              totalLeads > 0
+                ? `£${(Number(metricsData.total_cost ?? 0) / totalLeads).toFixed(2)}`
+                : "—"
+            }
+          />
+        </div>
+      </section>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <MetricCard icon={Users} label="Total plays" value={totalPlays.toLocaleString()} />
-        <MetricCard
-          icon={Target}
-          label="Total leads"
-          value={totalLeads.toLocaleString()}
-          delta={totalPlays > 0 ? `${((totalLeads / totalPlays) * 100).toFixed(0)}% conversion` : undefined}
-          positive={true}
-        />
-        <MetricCard icon={Eye} label="Interactions" value={Number(latestMetrics?.total_interactions ?? 0).toLocaleString()} />
-        <MetricCard
-          icon={DollarSign}
-          label="Cost per lead"
-          value={totalLeads > 0 ? `£${(Number(metricsData.total_cost ?? 0) / totalLeads).toFixed(2)}` : "—"}
-        />
-      </div>
+      <Hairline className="opacity-60" />
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+      <section className="py-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
         {Object.keys(predictionsData).length > 0 && (
-          <PredictedVsActual predictions={predictionsData} actuals={metricsData} />
+          <div>
+            <EditorialEyebrow>Predicted vs actual</EditorialEyebrow>
+            <div className="mt-4">
+              <PredictedVsActual
+                predictions={predictionsData}
+                actuals={metricsData}
+              />
+            </div>
+          </div>
         )}
         {Object.keys(benchmarkMap).length > 0 && (
-          <BenchmarkComparison eventMetrics={metricsData} benchmarks={benchmarkMap} />
+          <div>
+            <EditorialEyebrow>Vs benchmark</EditorialEyebrow>
+            <div className="mt-4">
+              <BenchmarkComparison
+                eventMetrics={metricsData}
+                benchmarks={benchmarkMap}
+              />
+            </div>
+          </div>
         )}
-      </div>
+      </section>
 
       {highlights.length > 0 && (
-        <div className="mb-6">
-          <ReportHighlights highlights={highlights} />
-        </div>
+        <>
+          <Hairline className="opacity-60" />
+          <section className="py-8">
+            <EditorialEyebrow>The moments</EditorialEyebrow>
+            <div className="mt-4">
+              <ReportHighlights highlights={highlights} />
+            </div>
+          </section>
+        </>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <Hairline className="opacity-60" />
+
+      <section className="py-8 grid grid-cols-1 lg:grid-cols-2 gap-4">
         <ShareableReportBanner
           reportId={report.id}
           shareToken={report.shareToken}
           isPublished={report.isPublished}
         />
         <RebookCTA />
-      </div>
-    </AppShell>
+      </section>
+    </EventPageShell>
   );
 }
 
@@ -149,10 +198,10 @@ function GenerateReportButton({ eventId }: { eventId: string }) {
         "use server";
         await generateEventReport(eventId);
       }}
-      className="flex justify-center pb-8"
+      className="flex justify-center pt-4"
     >
       <Button type="submit">
-        <FileText size={14} className="mr-2" /> Generate Report
+        <FileText size={14} className="mr-2" /> Generate report
       </Button>
     </form>
   );

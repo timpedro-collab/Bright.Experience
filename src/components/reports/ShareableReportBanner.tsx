@@ -5,6 +5,7 @@ import { useState, useTransition } from "react";
 import { cn } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   Globe,
   Copy,
@@ -68,7 +69,7 @@ export function ShareableReportBanner({
               <span className="text-sm font-medium text-text-primary">
                 Report is live
               </span>
-              <span className="badge badge-green ml-auto">Published</span>
+              <Badge variant="success" className="ml-auto">Published</Badge>
             </div>
 
             <div className="flex items-center gap-2">
@@ -126,10 +127,8 @@ export function ShareableReportBanner({
             <Button
               onClick={handlePublishToggle}
               disabled={isPending}
-              className={cn(
-                "btn-primary",
-                isPending && "opacity-70"
-              )}
+              variant="brand"
+              className={cn(isPending && "opacity-70")}
             >
               {isPending && (
                 <Loader2 size={14} className="animate-spin" />

@@ -119,7 +119,8 @@ docs/                       # Product documentation
 ├── 05-information-architecture.md
 ├── 06-build-roadmap.md
 ├── 07-platform-vision.md
-└── 08-pricing-and-quoting-model.md
+├── 08-pricing-and-quoting-model.md
+└── 09-design-system.md
 ```
 
 ## Architecture Principles
@@ -142,9 +143,51 @@ docs/                       # Product documentation
 
 ## Design System
 
-The Bright.Blue design system uses a dark glassmorphic aesthetic. Design tokens are defined as CSS custom properties in `src/app/globals.css` and mapped to shadcn/ui's semantic variable system. shadcn components automatically render in Bright.Blue brand colours.
+Bright.Experience uses an **editorial design language** — calm, premium, intentional — anchored by the locked Bright.Blue palette and the two display fonts the brand owns. It supports two themes:
 
-Key design tokens: `--bb-brand`, `--bb-dark-bg`, `--bb-card-dark`, `--bb-surface-glass`, `--bb-text-primary`.
+- **Deep Ink** (default dark) — `#060720` ground, cobalt accents, designed for the authenticated portal
+- **Linen** (light) — `#F2EDE0` ground, used for proposal print, brochure, and any context where ink-on-paper reads better. Switched on by adding `class="theme-light"` to `<html>`
+
+Design tokens live in `src/app/globals.css` and map to shadcn/ui's semantic variable system. shadcn primitives (`<Button>`, `<Card>`, `<Badge>`, `<Input>`) inherit those tokens, so they pick up theme switches automatically — never hand-roll a `.btn`/`.card`/`.badge`/`.input` class.
+
+### Brand primitives (`src/components/brand/`)
+
+| Primitive | Purpose |
+|-----------|---------|
+| `RidgeArtwork` | Deterministic SVG ridge fingerprint, seeded per event. Replaces decorative orbs. |
+| `EditorialEyebrow` | Tracked uppercase overline label (DM Sans Medium) used everywhere we'd previously have used a small heading. |
+| `Hairline` | 1px gradient rule that separates editorial sections without the weight of a card border. |
+| `EditionShell` + `EditionChrome` + `RidgeHero` + `EditionBody` + `EditionFooter` | The full editorial page chassis. Every authenticated page composes these. |
+| `EventPageShell` | Helper that wraps `EditionShell` for any `/events/[id]/*` sub-page. Pass `event`, `section`, `title`, `subtitle`, optional `heroRight`/`children`. |
+| `AdminPageShell` | Same shape as `EventPageShell` for internal `/admin/*` and adjacent pages. |
+| `EditionPlate` | Compact card representing a single event — used wherever we list multiple events at a glance. |
+
+### Typography
+
+- **Display & headings** — Nunito Bold (`--font-display`)
+- **Body** — DM Sans Regular (`--font-body`)
+- **Overline / metadata / eyebrows** — DM Sans Medium, tracked +0.08em (`text-overline`)
+
+The full font files live in `public/fonts/` and are wired up in `src/app/layout.tsx`.
+
+### Colour tokens (cheat sheet)
+
+| Token | Use |
+|-------|-----|
+| `--color-bb-cobalt` | Brand primary, links, active state |
+| `--color-bb-cyan` | Live / "in flight" state |
+| `--color-bb-deep-ink` | Deep Ink ground |
+| `--color-bb-linen` | Linen ground |
+| `--color-bb-paper` | Linen card surface |
+| `var(--radius-card)` / `var(--radius-control)` / `var(--radius-chip)` | The three legal radii — never use ad-hoc `rounded-2xl`/`rounded-3xl` |
+
+### Component rules
+
+- Every authenticated page uses an `EditionShell` (or one of the helper shells above) — never a one-off layout.
+- Use shadcn primitives (`<Button>`, `<Card interactive>`, `<Badge variant="success|warning|destructive|info|muted">`, `<Input>`, `<Textarea>`) for all standard UI. Card has a built-in `interactive` prop for hover affordances; Button has a `brand` variant for the gradient CTA.
+- Only one `tone="glass"` `<Card>` per page — pick the hero card.
+- One generative ridge per page — usually the `RidgeHero`; the `EditionPlate` ridges are an exception because they are signatures for sub-routes, not the page itself.
+- No emoji in UI unless explicitly added by the user.
 
 ## Roles
 
@@ -171,3 +214,4 @@ See the `docs/` directory for detailed product documentation:
 - **Data Model** — entity relationships and field definitions
 - **Platform Vision** — expanded vision including catalog, quoting, partners
 - **Pricing Model** — two-track quoting strategy (standard + experiential)
+- **Design System** — canonical reference for the editorial UI language, brand primitives, and banned patterns

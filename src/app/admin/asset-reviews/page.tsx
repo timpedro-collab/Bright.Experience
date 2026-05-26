@@ -1,16 +1,15 @@
 /**
- * Internal queue: every asset that's been uploaded and is waiting for a
- * Bright.Blue creative-team decision. Sorted oldest-first so the queue
- * naturally surfaces the assets that have been sitting longest.
+ * Admin asset reviews — every asset uploaded by a customer that's
+ * waiting for a Bright.Blue creative-team decision. Oldest first.
  */
-import { redirect } from "next/navigation";
 
-import { AppShell } from "@/components/layout/AppShell";
-import { PageHeader } from "@/components/layout/PageHeader";
+import { redirect } from "next/navigation";
+import { CheckCircle2 } from "lucide-react";
+
+import { AdminPageShell } from "@/components/brand";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { AssetReviewQueue } from "@/components/admin/AssetReviewQueue";
 
-import { CheckCircle2 } from "lucide-react";
 import { getUser } from "@/lib/auth";
 import { isInternalRole } from "@/lib/roles";
 import { getAssetsPendingReview } from "@/lib/queries/assets";
@@ -23,8 +22,7 @@ export const metadata = {
 export default async function AssetReviewsPage() {
   const user = await getUser();
   if (!user) redirect("/login");
-  const isInternal = isInternalRole(user.role);
-  if (!isInternal) redirect("/");
+  if (!isInternalRole(user.role)) redirect("/");
 
   const [pending, unread] = await Promise.all([
     getAssetsPendingReview(),
@@ -32,16 +30,27 @@ export default async function AssetReviewsPage() {
   ]);
 
   return (
-    <AppShell user={user} isInternal={isInternal} notificationCount={unread}>
-      <PageHeader
-        eyebrow="Creative review"
-        title="Asset reviews"
-        subtitle={
-          pending.length === 0
-            ? "Queue empty. Nothing waiting for a creative decision."
-            : `${pending.length} asset${pending.length === 1 ? "" : "s"} waiting for a Bright.Blue decision. Oldest first.`
-        }
-      />
+    <AdminPageShell
+      user={user}
+      unreadCount={unread}
+      section="Asset reviews"
+      title="Creative review queue."
+      subtitle={
+        pending.length === 0
+          ? "Queue empty. Nothing waiting for a creative decision."
+          : `${pending.length} asset${pending.length === 1 ? "" : "s"} waiting for a decision. Oldest first.`
+      }
+      heroRight={
+        pending.length > 0 ? (
+          <div className="text-overline text-muted-foreground tabular-nums">
+            <span className="text-foreground text-base font-semibold">
+              {pending.length}
+            </span>{" "}
+            pending
+          </div>
+        ) : null
+      }
+    >
       {pending.length === 0 ? (
         <EmptyState
           icon={CheckCircle2}
@@ -50,8 +59,10 @@ export default async function AssetReviewsPage() {
           size="lg"
         />
       ) : (
-        <AssetReviewQueue items={pending} />
+        <div className="py-8">
+          <AssetReviewQueue items={pending} />
+        </div>
       )}
-    </AppShell>
+    </AdminPageShell>
   );
 }

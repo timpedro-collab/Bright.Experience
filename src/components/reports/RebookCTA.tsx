@@ -51,7 +51,7 @@ export function RebookCTA(props: RebookCTAProps) {
             date — your configuration is ready to go.
           </p>
 
-          <Button asChild className="btn-primary w-full group">
+          <Button asChild variant="brand" className="w-full group">
             <Link href={href}>
               Rebook This Activation
               <ArrowRight

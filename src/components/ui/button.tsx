@@ -38,7 +38,8 @@ const buttonVariants = cva(
           "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost:
           "text-foreground hover:bg-accent hover:text-accent-foreground",
-        // Glass = ghost variant with subtle border (matches old .btn-ghost)
+        // Glass = ghost variant with subtle border, used for secondary CTAs
+        // alongside `brand` / `default` (e.g. "Request proposal" next to "Book now")
         glass: cn(
           "bg-transparent text-foreground",
           "border border-white/10",

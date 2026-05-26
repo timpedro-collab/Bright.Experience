@@ -9,6 +9,7 @@ import {
   User,
 } from "lucide-react";
 import type { Task } from "@/types";
+import { Badge } from "@/components/ui/badge";
 import { TaskStatusBadge } from "@/components/ui/StatusBadge";
 import { formatDateShort, isOverdue } from "@/lib/dates";
 
@@ -172,7 +173,7 @@ function TaskItem({
               </span>
             )}
             {task.isBlocking && (
-              <span className="badge badge-red text-[0.55rem]">Blocking</span>
+              <Badge variant="destructive" className="text-[0.55rem]">Blocking</Badge>
             )}
           </div>
         </div>

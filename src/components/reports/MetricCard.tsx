@@ -1,4 +1,5 @@
 /** Report metric card — displays a single KPI with optional delta indicator */
+import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
 interface MetricCardProps {
@@ -18,7 +19,7 @@ export function MetricCard({
   positive,
 }: MetricCardProps) {
   return (
-    <div className="card p-5">
+    <Card className="p-5">
       <div className="flex items-center gap-2 mb-3">
         <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-brand/10 border border-brand/15">
           <Icon size={14} className="text-brand" />
@@ -40,6 +41,6 @@ export function MetricCard({
           {delta}
         </p>
       )}
-    </div>
+    </Card>
   );
 }

@@ -1,11 +1,12 @@
 /** Standalone "How it works" page — three-step walkthrough of the Bright.Blue delivery journey */
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Container, Section } from "@/components/ui/section";
 import { HowItWorks } from "@/components/catalog/HowItWorks";
+import { RidgeArtwork, EditorialEyebrow } from "@/components/brand";
 
 export const metadata: Metadata = {
   title: "How it works",
@@ -16,26 +17,44 @@ export const metadata: Metadata = {
 export default function HowItWorksPage() {
   return (
     <>
-      <Section className="relative overflow-hidden">
-        <div aria-hidden className="pointer-events-none absolute inset-0">
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,hsl(223,94%,53%,0.16),transparent_60%)]" />
+      <section
+        className="relative isolate overflow-hidden"
+        aria-labelledby="how-it-works-hero"
+      >
+        <div
+          aria-hidden
+          className="absolute inset-x-0 top-0 ridge-color-cobalt"
+          style={{ height: "clamp(320px, 40vw, 480px)" }}
+        >
+          <RidgeArtwork
+            seed="how-it-works"
+            lines={28}
+            amplitude={90}
+            className="text-[hsl(223,94%,53%)]"
+          />
+          <div
+            aria-hidden
+            className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-background to-transparent"
+          />
         </div>
-        <Container size="md" className="relative">
+        <Container size="md" className="relative pt-24 md:pt-32 pb-10">
           <div className="mx-auto max-w-2xl text-center">
-            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/8 px-3.5 py-1.5">
-              <Sparkles size={14} className="text-primary" />
-              <span className="text-xs font-medium text-primary">The journey</span>
-            </div>
-            <h1 className="text-display text-4xl text-balance text-foreground md:text-6xl">
+            <EditorialEyebrow accent className="mb-3 inline-block">
+              The journey
+            </EditorialEyebrow>
+            <h1
+              id="how-it-works-hero"
+              className="text-display text-balance text-foreground text-[clamp(2.5rem,5vw,4rem)] leading-[1.1]"
+            >
               From brief to brand moment, end-to-end.
             </h1>
-            <p className="mt-6 text-lg text-muted-foreground text-balance">
-              Three deliberate moves. We handle the delivery, you keep ownership
-              of the brand story.
+            <p className="mt-6 text-lg text-muted-foreground text-balance leading-relaxed">
+              Three deliberate moves. We handle the delivery, you keep
+              ownership of the brand story.
             </p>
           </div>
         </Container>
-      </Section>
+      </section>
 
       <HowItWorks />
 

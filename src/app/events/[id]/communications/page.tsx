@@ -1,12 +1,11 @@
-/** Per-event communications page with threaded messaging */
+/** Per-event communications page with threaded messaging. */
 import { notFound, redirect } from "next/navigation";
 import { MessageCircle } from "lucide-react";
-import { AppShell } from "@/components/layout/AppShell";
-import { PageHeader } from "@/components/layout/PageHeader";
-import { EventContextBar } from "@/components/events/EventContextBar";
-import { Card } from "@/components/ui/card";
+
+import { EventPageShell } from "@/components/brand";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { MessageThread } from "@/components/messages/MessageThread";
+
 import { getEventById } from "@/lib/queries/events";
 import { getMessagesByEvent } from "@/lib/queries/messages";
 import { getUnreadCount } from "@/lib/queries/notifications";
@@ -30,19 +29,15 @@ export default async function CommunicationsPage({
   if (!event) return notFound();
 
   return (
-    <AppShell
-      eventId={id}
+    <EventPageShell
+      event={event}
       user={user}
-      isInternal={isInternal}
-      notificationCount={unread}
+      unreadCount={unread}
+      section="Messages"
+      title="The conversation."
+      subtitle="Threaded messages keep the team aligned without endless email chains."
     >
-      <EventContextBar event={event} currentSection="Communications" />
-      <PageHeader
-        eyebrow="Stay in sync"
-        title="Communications"
-        subtitle="Threaded messages keep the team aligned without endless email chains."
-      />
-      <Card tone="subtle" className="overflow-hidden">
+      <section className="py-8">
         {messages.length === 0 ? (
           <EmptyState
             icon={MessageCircle}
@@ -56,7 +51,7 @@ export default async function CommunicationsPage({
           currentUserId={user.id}
           isInternal={isInternal}
         />
-      </Card>
-    </AppShell>
+      </section>
+    </EventPageShell>
   );
 }

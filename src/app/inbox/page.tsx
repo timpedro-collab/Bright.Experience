@@ -1,28 +1,45 @@
 /**
- * Internal Inbox — every open (and optionally recently completed)
+ * Internal task inbox — every open (and optionally recently completed)
  * task assigned to the current user, across every event they touch.
  *
  * URL filters (all optional):
- *   ?event={id} — restrict to a single event
- *   ?category={creative|operations|qa|...} — restrict to one category
- *   ?status={open|recent|all} — defaults to "open"
+ *   ?event={id}                 restrict to a single event
+ *   ?category={creative|...}    restrict to one category
+ *   ?status={open|recent|all}   defaults to "open"
  *
- * Pairs with the dashboard `MyTasksPanel`: the panel is a top-8
- * preview, this page is the deep-dive list.
+ * Pairs with the dashboard `MyTasksPanel`: the panel is a top-8 preview;
+ * this page is the deep-dive list.
+ *
+ * Editorial Bright.Experience design language:
+ *   - EditionShell + EditionChrome + RidgeHero
+ *   - hairline-separated groups (Overdue / Due soon / Open / Done)
+ *   - clean rows with tracked metadata and cobalt accents
  */
 
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import {
+  CheckCircle2,
+  AlertCircle,
+  CalendarClock,
+  Clock,
+} from "lucide-react";
 
-import { AppShell } from "@/components/layout/AppShell";
-import { PageHeader } from "@/components/layout/PageHeader";
-import { Card, CardContent } from "@/components/ui/card";
+import { CommandPalette } from "@/components/layout/CommandPalette";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
+import { UserMenu } from "@/components/layout/UserMenu";
+import {
+  EditionShell,
+  EditionChrome,
+  EditionBody,
+  EditionFooter,
+  RidgeHero,
+} from "@/components/brand";
 import { EmptyState } from "@/components/ui/EmptyState";
 import {
   InboxFilters,
   type InboxEventOption,
 } from "@/components/inbox/InboxFilters";
-import { CheckCircle2, AlertCircle, CalendarClock, Clock } from "lucide-react";
 
 import { getUser } from "@/lib/auth";
 import { isInternalRole } from "@/lib/roles";
@@ -75,20 +92,22 @@ export default async function InboxPage({ searchParams }: InboxPageProps) {
   const categoryFilter = (params.category ?? "all") as TaskCategory | "all";
   const statusFilter = params.status ?? "open";
 
+  // Server Components run once per request; reading the current time here
+  // is intentional — the cutoff is a per-request boundary, not render state.
+  // eslint-disable-next-line react-hooks/purity
+  const recentCutoff = new Date(Date.now() - RECENT_WINDOW_DAYS * 24 * 60 * 60 * 1000).toISOString();
   const includeCompleted =
     statusFilter === "recent" || statusFilter === "all"
-      ? new Date(
-          Date.now() - RECENT_WINDOW_DAYS * 24 * 60 * 60 * 1000
-        ).toISOString()
+      ? recentCutoff
       : undefined;
 
   const [allTasks, unread] = await Promise.all([
-    getTasksAssignedToUser(user.id, { includeCompletedSince: includeCompleted }),
+    getTasksAssignedToUser(user.id, {
+      includeCompletedSince: includeCompleted,
+    }),
     getUnreadCount(user.id),
   ]);
 
-  // Distinct event list for the filter dropdown — pulled from this
-  // user's assigned tasks, not all events, to keep the dropdown short.
   const eventOptionsMap = new Map<string, InboxEventOption>();
   for (const task of allTasks) {
     if (!eventOptionsMap.has(task.eventId)) {
@@ -101,8 +120,8 @@ export default async function InboxPage({ searchParams }: InboxPageProps) {
   }
   const eventOptions = Array.from(eventOptionsMap.values()).sort((a, b) =>
     `${a.accountName ?? ""}${a.name}`.localeCompare(
-      `${b.accountName ?? ""}${b.name}`
-    )
+      `${b.accountName ?? ""}${b.name}`,
+    ),
   );
 
   let filtered = allTasks;
@@ -119,7 +138,7 @@ export default async function InboxPage({ searchParams }: InboxPageProps) {
     filtered = filtered.filter((t) => t.status !== "complete");
   }
 
-  // Group: overdue → due-soon (3d) → other open → completed.
+  // Group: overdue → due-soon (3d) → other open → completed
   const overdue: AssignedTaskWithContext[] = [];
   const dueSoon: AssignedTaskWithContext[] = [];
   const other: AssignedTaskWithContext[] = [];
@@ -142,67 +161,94 @@ export default async function InboxPage({ searchParams }: InboxPageProps) {
 
   const openTotal = overdue.length + dueSoon.length + other.length;
 
+  const subtitle =
+    openTotal === 0 && completed.length === 0
+      ? "Nothing is on you right now. Take a breath."
+      : `${openTotal} open task${openTotal === 1 ? "" : "s"} across ${eventOptions.length} event${eventOptions.length === 1 ? "" : "s"}.`;
+
   return (
-    <AppShell user={user} isInternal={isInternal} notificationCount={unread}>
-      <PageHeader
-        eyebrow="Internal"
-        title="Inbox"
-        subtitle={
-          openTotal === 0 && completed.length === 0
-            ? "Nothing is on you right now. Take a breath."
-            : `${openTotal} open task${openTotal === 1 ? "" : "s"} across ${eventOptions.length} event${eventOptions.length === 1 ? "" : "s"}.`
+    <EditionShell>
+      <EditionChrome
+        breadcrumbs={[{ label: "Your work" }]}
+        rightSlot={
+          <>
+            <NotificationBell unreadCount={unread} />
+            <span
+              className="hidden md:block h-6 w-px bg-border"
+              aria-hidden
+            />
+            <UserMenu user={user} />
+          </>
         }
       />
 
-      <div className="mb-6">
-        <InboxFilters events={eventOptions} categories={ALL_CATEGORIES} />
-      </div>
+      <RidgeHero
+        seed={`inbox::${user.id}`}
+        eyebrow="Internal · Cross-event"
+        title="Your work."
+        subtitle={subtitle}
+      />
 
-      {openTotal === 0 && completed.length === 0 ? (
-        <EmptyState
-          icon={CheckCircle2}
-          title="Inbox zero"
-          description="Every open task assigned to you is filtered out (or there are none). Adjust filters above or take a victory lap."
-          size="lg"
-        />
-      ) : (
-        <div className="space-y-8">
-          {overdue.length > 0 && (
-            <TaskGroup
-              title="Overdue"
-              tone="destructive"
-              tasks={overdue}
-              countLabel="now"
-            />
-          )}
-          {dueSoon.length > 0 && (
-            <TaskGroup
-              title="Due in the next 3 days"
-              tone="warning"
-              tasks={dueSoon}
-              countLabel="soon"
-            />
-          )}
-          {other.length > 0 && (
-            <TaskGroup
-              title="Everything else"
-              tone="default"
-              tasks={other}
-              countLabel="open"
-            />
-          )}
-          {completed.length > 0 && (
-            <TaskGroup
-              title="Recently completed"
-              tone="success"
-              tasks={completed}
-              countLabel="done"
-              completed
-            />
-          )}
-        </div>
-      )}
-    </AppShell>
+      <EditionBody>
+        <section className="py-8">
+          <InboxFilters events={eventOptions} categories={ALL_CATEGORIES} />
+        </section>
+
+        {openTotal === 0 && completed.length === 0 ? (
+          <EmptyState
+            icon={CheckCircle2}
+            title="Inbox zero"
+            description="Every open task assigned to you is filtered out (or there are none). Adjust filters above or take a victory lap."
+            size="lg"
+          />
+        ) : (
+          <div className="flex flex-col gap-12 pb-8">
+            {overdue.length > 0 && (
+              <TaskGroup
+                title="Overdue"
+                tone="destructive"
+                tasks={overdue}
+                countLabel="now"
+              />
+            )}
+            {dueSoon.length > 0 && (
+              <TaskGroup
+                title="Due in the next 3 days"
+                tone="warning"
+                tasks={dueSoon}
+                countLabel="soon"
+              />
+            )}
+            {other.length > 0 && (
+              <TaskGroup
+                title="Everything else"
+                tone="default"
+                tasks={other}
+                countLabel="open"
+              />
+            )}
+            {completed.length > 0 && (
+              <TaskGroup
+                title="Recently completed"
+                tone="success"
+                tasks={completed}
+                countLabel="done"
+                completed
+              />
+            )}
+          </div>
+        )}
+      </EditionBody>
+
+      <EditionFooter
+        rightSlot={
+          <Link href="/" className="hover:opacity-80 transition-opacity">
+            Back to home →
+          </Link>
+        }
+      />
+      <CommandPalette />
+    </EditionShell>
   );
 }
 
@@ -226,27 +272,28 @@ function TaskGroup({
     success: "text-success",
   }[tone];
 
+  const accentClass = {
+    default: "text-[var(--color-bb-cobalt)]",
+    destructive: "text-destructive",
+    warning: "text-warning",
+    success: "text-success",
+  }[tone];
+
   return (
     <section>
-      <div className="mb-3 flex items-center justify-between">
-        <h2 className={cn("text-heading text-base font-semibold", toneClass)}>
-          {title}
-        </h2>
+      <div className="mb-3 flex items-baseline justify-between gap-3">
+        <h2 className={cn("text-overline", accentClass)}>{title}</h2>
         <span className="text-overline text-muted-foreground tabular-nums">
           {tasks.length} {countLabel}
         </span>
       </div>
-      <Card tone="subtle">
-        <CardContent className="p-0">
-          <ul className="divide-y divide-white/[0.04]">
-            {tasks.map((task) => (
-              <li key={task.id}>
-                <TaskRow task={task} completed={completed} />
-              </li>
-            ))}
-          </ul>
-        </CardContent>
-      </Card>
+      <ul className="flex flex-col divide-y divide-border/40 border-t border-b border-border/40">
+        {tasks.map((task) => (
+          <li key={task.id}>
+            <TaskRow task={task} completed={completed} toneClass={toneClass} />
+          </li>
+        ))}
+      </ul>
     </section>
   );
 }
@@ -254,9 +301,11 @@ function TaskGroup({
 function TaskRow({
   task,
   completed,
+  toneClass,
 }: {
   task: AssignedTaskWithContext;
   completed: boolean;
+  toneClass: string;
 }) {
   const overdueState = task.dueDate ? isOverdue(task.dueDate) : false;
   const dueSoonState =
@@ -268,59 +317,98 @@ function TaskRow({
     <Link
       href={`/events/${task.eventId}/actions`}
       className={cn(
-        "group flex items-center gap-4 px-5 py-4 transition-colors",
-        "hover:bg-white/[0.03] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
+        "group relative flex items-start gap-4 py-3.5 pl-3 pr-2 text-left transition-colors",
+        "hover:bg-accent/30 focus-visible:outline-none focus-visible:bg-accent/40",
       )}
     >
-      {completed ? (
-        <span className="inline-flex items-center gap-1 rounded-full border border-success/30 bg-success/10 px-2 py-0.5 text-[10px] font-semibold text-success whitespace-nowrap min-w-[88px] justify-center">
-          <CheckCircle2 className="size-2.5" /> Done
-        </span>
-      ) : overdueState && task.dueDate ? (
-        <span className="inline-flex items-center gap-1 rounded-full border border-destructive/30 bg-destructive/10 px-2 py-0.5 text-[10px] font-semibold text-destructive whitespace-nowrap min-w-[88px] justify-center">
-          <AlertCircle className="size-2.5" /> Overdue
-        </span>
-      ) : dueSoonState && task.dueDate ? (
-        <span className="inline-flex items-center gap-1 rounded-full border border-warning/30 bg-warning/10 px-2 py-0.5 text-[10px] font-semibold text-warning whitespace-nowrap min-w-[88px] justify-center">
-          <CalendarClock className="size-2.5" /> {formatDateShort(task.dueDate)}
-        </span>
-      ) : task.dueDate ? (
-        <span className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 text-[10px] font-medium text-muted-foreground whitespace-nowrap min-w-[88px] justify-center">
-          <CalendarClock className="size-2.5" /> {formatDateShort(task.dueDate)}
-        </span>
-      ) : (
-        <span className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 text-[10px] font-medium text-muted-foreground whitespace-nowrap min-w-[88px] justify-center">
-          <Clock className="size-2.5" /> No date
-        </span>
-      )}
+      {/* Left edge stripe: tone for open, transparent for completed. */}
+      <span
+        aria-hidden
+        className={cn(
+          "absolute left-0 top-2 bottom-2 w-[2px] rounded-full",
+          completed
+            ? "bg-transparent"
+            : overdueState
+              ? "bg-destructive"
+              : dueSoonState
+                ? "bg-warning"
+                : "bg-[var(--color-bb-cobalt)]/40",
+        )}
+      />
 
+      {/* Status pill / glyph */}
+      <span
+        className={cn(
+          "inline-flex h-7 min-w-[88px] shrink-0 items-center justify-center gap-1 rounded-md border px-2 text-[10px] font-semibold whitespace-nowrap mt-0.5",
+          completed
+            ? "border-success/30 bg-success/10 text-success"
+            : overdueState && task.dueDate
+              ? "border-destructive/30 bg-destructive/10 text-destructive"
+              : dueSoonState && task.dueDate
+                ? "border-warning/30 bg-warning/10 text-warning"
+                : task.dueDate
+                  ? "border-border/60 bg-card/40 text-muted-foreground"
+                  : "border-border/60 bg-card/40 text-muted-foreground",
+        )}
+      >
+        {completed ? (
+          <>
+            <CheckCircle2 className="size-2.5" /> Done
+          </>
+        ) : overdueState && task.dueDate ? (
+          <>
+            <AlertCircle className="size-2.5" /> Overdue
+          </>
+        ) : dueSoonState && task.dueDate ? (
+          <>
+            <CalendarClock className="size-2.5" /> {formatDateShort(task.dueDate)}
+          </>
+        ) : task.dueDate ? (
+          <>
+            <CalendarClock className="size-2.5" /> {formatDateShort(task.dueDate)}
+          </>
+        ) : (
+          <>
+            <Clock className="size-2.5" /> No date
+          </>
+        )}
+      </span>
+
+      {/* Title + context */}
       <div className="min-w-0 flex-1">
         <p
           className={cn(
             "text-sm font-medium truncate",
             completed
               ? "text-muted-foreground line-through"
-              : "text-foreground"
+              : "text-foreground",
           )}
         >
           {task.title}
         </p>
-        <p className="mt-0.5 text-xs text-muted-foreground truncate">
+        <p className="mt-0.5 text-overline text-muted-foreground truncate">
           {task.accountName ? `${task.accountName} · ` : ""}
           {task.eventName}
-          {" · "}
+          <span className="opacity-60"> · </span>
           <span className="capitalize">{task.category}</span>
           {completed && task.completedAt && (
-            <span> · {timeSince(task.completedAt)}</span>
+            <>
+              <span className="opacity-60"> · </span>
+              {timeSince(task.completedAt)}
+            </>
           )}
         </p>
       </div>
 
+      {/* Critical marker */}
       {task.priority === "critical" && !completed && (
-        <span className="inline-flex items-center gap-1 rounded-full border border-destructive/30 bg-destructive/10 px-2 py-0.5 text-[10px] font-semibold text-destructive whitespace-nowrap">
-          <AlertCircle className="size-2.5" /> Critical
+        <span className="inline-flex items-center gap-1 text-overline text-destructive whitespace-nowrap shrink-0 mt-1">
+          <AlertCircle className="size-3" /> Critical
         </span>
       )}
+
+      {/* Tone hint badge (used only when no other badges showed) */}
+      <span className={cn("sr-only", toneClass)}>{task.category}</span>
     </Link>
   );
 }

@@ -8,49 +8,39 @@ import {
   Loader2,
   Truck,
 } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
 import { updateStudioRequestStatus } from "@/app/actions/studio";
 
 type AllowedStatus = "confirmed" | "in_progress" | "delivered" | "cancelled";
 
-const TRANSITIONS: Record<
-  string,
-  { label: string; status: AllowedStatus; Icon: React.ElementType; style: string }[]
-> = {
+type ButtonVariant = React.ComponentProps<typeof Button>["variant"];
+
+interface TransitionAction {
+  label: string;
+  status: AllowedStatus;
+  Icon: React.ElementType;
+  variant: ButtonVariant;
+  /**
+   * When true, the button shows in a destructive tone via the `ghost`
+   * variant + `text-destructive`. We don't use the full `destructive`
+   * variant (red fill) because these are secondary actions next to a
+   * primary "confirm" — soft red text reads as "available but cautious".
+   */
+  destructive?: boolean;
+}
+
+const TRANSITIONS: Record<string, TransitionAction[]> = {
   submitted: [
-    {
-      label: "Confirm Order",
-      status: "confirmed",
-      Icon: CheckCircle2,
-      style: "btn btn-primary",
-    },
-    {
-      label: "Decline",
-      status: "cancelled",
-      Icon: XCircle,
-      style: "btn btn-ghost text-destructive",
-    },
+    { label: "Confirm Order", status: "confirmed", Icon: CheckCircle2, variant: "brand" },
+    { label: "Decline", status: "cancelled", Icon: XCircle, variant: "ghost", destructive: true },
   ],
   confirmed: [
-    {
-      label: "Start Work",
-      status: "in_progress",
-      Icon: Play,
-      style: "btn btn-primary",
-    },
-    {
-      label: "Cancel",
-      status: "cancelled",
-      Icon: XCircle,
-      style: "btn btn-ghost text-destructive",
-    },
+    { label: "Start Work", status: "in_progress", Icon: Play, variant: "brand" },
+    { label: "Cancel", status: "cancelled", Icon: XCircle, variant: "ghost", destructive: true },
   ],
   in_progress: [
-    {
-      label: "Mark Delivered",
-      status: "delivered",
-      Icon: Truck,
-      style: "btn btn-primary",
-    },
+    { label: "Mark Delivered", status: "delivered", Icon: Truck, variant: "brand" },
   ],
 };
 
@@ -73,7 +63,7 @@ export function StudioRequestActions({
     try {
       await updateStudioRequestStatus(requestId, eventId, status);
     } catch {
-      // Error handling
+      // Error surfaced upstream via revalidation / toast — no inline UI here.
     } finally {
       setLoading(null);
     }
@@ -82,11 +72,13 @@ export function StudioRequestActions({
   return (
     <div className="flex items-center gap-2 mt-3 pt-3 border-t border-white/[0.06]">
       {actions.map((action) => (
-        <button
+        <Button
           key={action.status}
           onClick={() => handleAction(action.status)}
           disabled={loading !== null}
-          className={`${action.style} text-xs flex-1 disabled:opacity-50`}
+          variant={action.variant}
+          size="sm"
+          className={`flex-1 text-xs ${action.destructive ? "text-destructive hover:text-destructive" : ""}`}
         >
           {loading === action.status ? (
             <Loader2 size={13} className="animate-spin" />
@@ -94,7 +86,7 @@ export function StudioRequestActions({
             <action.Icon size={13} />
           )}
           {action.label}
-        </button>
+        </Button>
       ))}
     </div>
   );

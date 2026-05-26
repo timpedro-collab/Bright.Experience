@@ -4,6 +4,61 @@ All notable changes to the Bright.Experience platform are documented here.
 
 ---
 
+## [World-class editorial design pass] - 2026-05-26
+
+A months-long visual overhaul that takes Bright.Experience from "polished build" to "world-class portal". The product still does the same things — every route is the same route, every server action is the same server action — but it now feels like the bright.blue brand. Three workstreams: build the editorial design language, rebuild every surface against it, and strip the dead code that the rebuild made obsolete.
+
+### Workstream 1 — Editorial design language
+- **NEW brand primitives in `src/components/brand/`** — the canonical chassis for every authenticated surface:
+  - `RidgeArtwork` — deterministic SVG ridge fingerprint, seeded by event id or route key. Replaces decorative blur orbs as the brand's visual signature.
+  - `EditorialEyebrow` — tracked uppercase DM Sans Medium label, the canonical small-heading. `accent` flag swaps muted-foreground for cobalt.
+  - `Hairline` — 1px gradient rule between editorial sections, with horizontal + vertical orientations.
+  - `EditionShell` / `EditionChrome` / `RidgeHero` / `EditionBody` / `EditionFooter` — the full editorial page chassis.
+  - `EditionPlate` — compact card for one event, with its own scoped ridge.
+  - `EventPageShell` and `AdminPageShell` — helper wrappers that compose the chassis with the right defaults for `/events/[id]/*` and `/admin/*` sub-pages.
+- **NEW Linen (light) theme** — `class="theme-light"` on `<html>` flips the portal to the warm linen-on-deep-ink palette used by the proposal brochure and any print surface. `EditionShell` accepts a `theme` prop so a single component can be requested in either mode.
+- **Locked brand palette** — `#1E47F0` Cobalt, `#80E8FF` Cyan, `#060720` Deep Ink, `#F2EDE0` Linen, `#FAF7F0` Paper. Every UI colour reads from a CSS variable that resolves through one of these.
+- **Locked typography** — Nunito Bold for display/headings, DM Sans Regular for body, DM Sans Medium for overlines. Three faces, no more. Font files dropped in `public/fonts/` and wired up via `next/font/local`.
+- **shadcn primitives extended** — `Card` gained an `interactive` prop and five `tone` variants; `Button` gained the `brand` and `glass` variants alongside the default gradient; `Badge` gained `success`/`warning`/`destructive`/`info`/`muted` semantic variants.
+
+### Workstream 2 — Rebuild every surface against the new chassis
+Every authenticated and public surface in the app has been rebuilt against the editorial chassis. Functionally identical — visually a different product.
+
+- **Authenticated surfaces** — `/`, `/notifications`, `/inbox`, `/settings/notifications`, `/events/[id]` overview, and every `/events/[id]/*` sub-page (timeline, briefing, assets, approvals, actions, communications, logistics, qa, reports, live, leads, campaign, studio) all rebuilt with `EventPageShell` or `EditionShell` directly. Two-column editorial layouts replace the previous AppShell + PageHeader pattern.
+- **Internal admin surfaces** — `/admin/asset-reviews`, `/admin/quotes` (list + detail), `/admin/customer-queue`, `/admin/templates`, `/admin/partners` (list + detail), `/admin/locations`, `/admin/benchmarks`, `/admin/recommendations`, `/admin/campaigns` (list + detail), `/admin/catalog`, `/admin/api`, `/admin/integrations/pipedrive`, `/studio`, `/events/new` all converted to `AdminPageShell`.
+- **Public marketing surfaces** — `/catalog`, `/catalog/machines`, `/catalog/packages`, `/catalog/case-studies`, `/quiz`, `/proposal`, `/book`, `/book/configure`, `/book/checkout`, `/book/confirmation/[id]`, `/how-it-works`, `/partners/join`, and the `(public)/layout.tsx` chrome all rebuilt with `RidgeArtwork` heroes and the editorial eyebrow.
+- **Login** — single full-bleed editorial layout with a generative ridge artwork, calm copy, and the gradient B brand mark.
+- **Notification list** — hairline-separated rows with left-edge cobalt accent stripes for action items, replacing the previous "glass card" treatment.
+
+### Workstream 3 — Strip the dead code the rebuild made obsolete
+The previous design exploration introduced a "book / chapter / edition" metaphor that the user explicitly rejected ("the book stuff, chapters etc kind of is random and out of place"). That entire shape has been removed.
+
+- **Removed** `src/lib/event-chapters.ts` + its test (the chapter/stage mapping helper).
+- **Removed** `RomanList`, `RomanListItem`, and `toRoman` from `src/components/brand/editorial.tsx`. Only `EditorialEyebrow` and `Hairline` remain in that file.
+- **Removed** the `editionNo` prop from `EditionPlate` — plates now read as title + location + status, no "Edition No024" eyebrow.
+- **Removed** every "The library", "Your other editions", "Open the edition →" string from user-facing surfaces. The vocabulary is now "events", "stages", "milestones", "next step".
+- **Removed** legacy `.card` / `.card-interactive` / `.btn` / `.btn-primary` / `.btn-ghost` / `.input` / `.badge` / `.badge-{green,amber,red,blue,muted}` CSS classes from `globals.css`. Every consumer migrated to the shadcn primitive equivalents:
+  - `<Card interactive>` for the legacy `card card-interactive` pattern.
+  - `<Button variant="brand">` for `.btn-primary` (and the default Button variant already uses the same gradient).
+  - `<Badge variant="success|warning|destructive|info|muted">` for `.badge-{colour}`.
+- **Removed** the `color` field from `HEALTH_CONFIG` — it carried a legacy `badge-*` class string that no consumer was actually reading.
+- **Refactored** `StudioRequestActions` from inline `btn btn-primary` strings to proper `<Button variant="brand">` calls.
+
+### Workstream 4 — Documentation
+- **NEW `docs/09-design-system.md`** — canonical reference for the editorial design language, locked palette, type scale, page chassis, brand primitives, shadcn variant cheat sheet, and banned patterns.
+- **README rewritten Design System section** — covers Deep Ink + Linen themes, the brand primitives, the type scale, and the colour tokens cheat sheet.
+- **`.cursor/rules/component-patterns.mdc` rewritten** — lists the editorial primitives, the shadcn variant cheat sheet, the banned patterns, and where to look first when adding a new surface.
+- **CONTRIBUTING.md** gains an "Adding a new page" section pointing at the right shell helper for each page type.
+
+### Why this matters
+The portal now feels like a single product instead of a stack of features. Every page opens with the same editorial chassis, the same eyebrow voice, the same ridge fingerprint that's unique to its route. Customers, internal users, and resellers all read the same calm visual language. And the codebase no longer carries the dead exploration — there's exactly one way to build a page, one set of primitives to reach for, and one design system reference doc that tells the next contributor where everything lives.
+
+- 460 unit + component tests passing.
+- Zero references to `RomanList`, `chaptersForEvent`, `editionNo`, `event-chapters`, `toRoman`, or any legacy `.btn`/`.card`/`.badge`/`.input` class anywhere in `src/`.
+- Every public route returns 200; every authenticated route correctly redirects unauthenticated visitors to `/login`.
+
+---
+
 ## [Cross-event work hub and Pipedrive write-back] - 2026-05-16
 
 A three-PR pass that answers a single user question — *"where should I look first when I sit down at the portal?"* — and keeps the AE's Pipedrive deal current without dual-entry. The dashboard now shows what's on you for every event in a glance, internal users get a consolidated work hub plus a dedicated `/inbox`, and Pipedrive deals stay honest as Bright.Experience writes back six high-signal delivery moments to deal notes and three custom fields.
@@ -236,7 +291,7 @@ A six-phase UX overhaul transforming Bright.Experience into a premium, intuitive
 - **A11y verified** — sidebar toggle, notification bell, skip link, focus rings on tappable cards, proper `aria-label`s on icon-only buttons
 
 ### Migration notes
-- Legacy `.btn`, `.card`, `.badge`, `.input`, `.glass`, `.skeleton`, `text-text-*` utility classes are preserved and aligned to the new token system. New surfaces should prefer the `Button` / `Card` / `Badge` / `Input` primitives directly.
+- Legacy `.btn`, `.card`, `.badge`, `.input`, `.glass`, `.skeleton`, `text-text-*` utility classes are preserved and aligned to the new token system. New surfaces should prefer the `Button` / `Card` / `Badge` / `Input` primitives directly. *(Note: the legacy `.btn`/`.card`/`.badge`/`.input` classes were fully removed in the May 2026 editorial design pass — see the top of this changelog.)*
 - All new server-action consumers must wrap calls in `toast.loading` → `toast.success` / `toast.error` patterns for consistency.
 - `AppShell` now requires `notificationCount`; every page that renders `AppShell` fetches `getUnreadCount(user.id)` alongside its primary data.
 

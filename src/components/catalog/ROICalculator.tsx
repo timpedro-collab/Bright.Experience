@@ -37,7 +37,7 @@ export function ROICalculator() {
   });
 
   return (
-    <Card className="card-interactive mx-auto max-w-2xl">
+    <Card interactive className="mx-auto max-w-2xl">
       <CardHeader className="text-center">
         <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
           <TrendingUp className="h-5 w-5 text-primary" />

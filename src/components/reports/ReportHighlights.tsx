@@ -8,6 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Image as ImageIcon } from "lucide-react";
 
 interface Highlight {
@@ -69,9 +70,9 @@ export function ReportHighlights({ highlights }: ReportHighlightsProps) {
               )}
 
               {item.stat && (
-                <div className="absolute top-3 right-3 badge badge-blue backdrop-blur-sm">
+                <Badge variant="info" className="absolute top-3 right-3 backdrop-blur-sm">
                   {item.stat}
-                </div>
+                </Badge>
               )}
 
               {item.caption && (

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { MachineStep, GameStep, AddonStep, DateStep } from "@/components/quotes/ConfiguratorSteps";
+import { EditorialEyebrow } from "@/components/brand";
 import { cn } from "@/lib/utils";
 
 interface ConfigurePageProps {
@@ -59,18 +60,29 @@ export default function ConfigurePage({ searchParams }: ConfigurePageProps) {
   }
 
   return (
-    <section className="mx-auto max-w-3xl px-6 py-12">
-      <h1 className="text-heading text-3xl font-bold text-foreground mb-8">Configure Your Experience</h1>
+    <section className="mx-auto max-w-3xl px-6 py-16">
+      <EditorialEyebrow accent>Book now · Step {step + 1} of {STEPS.length}</EditorialEyebrow>
+      <h1 className="mt-2 text-display text-[clamp(2rem,3.5vw,3rem)] leading-[1.1] text-foreground">
+        Configure your experience.
+      </h1>
+      <p className="mt-3 max-w-xl text-base text-muted-foreground leading-relaxed">
+        A few decisions and you&apos;re booked. We&apos;ll handle everything else.
+      </p>
 
-      <div className="flex items-center gap-2 mb-8">
+      <div className="flex items-center gap-2 my-10">
         {STEPS.map((label, i) => (
           <div key={label} className="flex items-center gap-2 flex-1">
             <div className={cn(
-              "flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold",
-              i <= step ? "bg-brand text-white" : "bg-muted text-muted-foreground"
+              "flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold transition-colors",
+              i < step && "bg-foreground text-background",
+              i === step && "bg-[hsl(223,94%,53%)] text-white",
+              i > step && "bg-muted text-muted-foreground"
             )}>{i + 1}</div>
-            <span className={cn("text-xs hidden sm:block", i <= step ? "text-foreground" : "text-muted-foreground")}>{label}</span>
-            {i < STEPS.length - 1 && <div className="flex-1 h-px bg-border" />}
+            <span className={cn(
+              "text-overline hidden sm:block",
+              i <= step ? "text-foreground" : "text-muted-foreground"
+            )}>{label}</span>
+            {i < STEPS.length - 1 && <div className="flex-1 h-px bg-border/60" />}
           </div>
         ))}
       </div>

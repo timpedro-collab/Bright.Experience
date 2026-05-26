@@ -13,9 +13,7 @@ import {
   Film,
 } from "lucide-react";
 
-import { AppShell } from "@/components/layout/AppShell";
-import { PageHeader } from "@/components/layout/PageHeader";
-import { NextStepCard } from "@/components/layout/NextStepCard";
+import { AdminPageShell, EditorialEyebrow, Hairline } from "@/components/brand";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { StatCard } from "@/components/ui/stat-card";
@@ -65,27 +63,47 @@ export default async function StudioDashboardPage() {
   const deliveredCount = requests.filter((r) => r.status === "delivered").length;
 
   return (
-    <AppShell isInternal user={user} notificationCount={unread}>
-      <PageHeader
-        eyebrow="Bright.Studio"
-        title="Creative services queue"
-        subtitle="Manage creative orders submitted by customers and internal teams."
-        breadcrumbs={[{ label: "Dashboard", href: "/" }, { label: "Studio" }]}
-      />
-
+    <AdminPageShell
+      user={user}
+      unreadCount={unread}
+      section="Studio"
+      eyebrow="Internal · Bright.Studio"
+      title="Creative services."
+      subtitle="Manage creative orders submitted by customers and internal teams."
+      heroRight={
+        newCount > 0 ? (
+          <div className="text-overline text-muted-foreground tabular-nums">
+            <span className="text-[var(--color-bb-cobalt)] text-base font-semibold">
+              {newCount}
+            </span>{" "}
+            new
+          </div>
+        ) : null
+      }
+    >
       {newCount > 0 && (
-        <div className="mb-6">
-          <NextStepCard
-            eyebrow="Action needed"
-            title={`${newCount} new request${newCount === 1 ? "" : "s"} awaiting confirmation`}
-            description="Review and confirm orders to keep creative work moving on schedule."
-            primaryAction={{ label: "Jump to new", href: "#actionable" }}
-            tone="brand"
-          />
-        </div>
+        <section className="py-8 grid grid-cols-1 md:grid-cols-[1fr_auto] gap-4 items-end">
+          <div>
+            <EditorialEyebrow accent>Action needed</EditorialEyebrow>
+            <h2 className="text-heading text-foreground text-[clamp(1.5rem,3vw,2.25rem)] leading-tight mt-2">
+              {newCount} new request{newCount === 1 ? "" : "s"} awaiting confirmation
+            </h2>
+            <p className="mt-2 text-sm text-muted-foreground max-w-[60ch]">
+              Review and confirm orders to keep creative work moving on schedule.
+            </p>
+          </div>
+          <a
+            href="#actionable"
+            className="inline-flex items-center gap-2 bg-[var(--color-bb-cobalt)] text-white px-5 py-2.5 rounded-sm text-sm font-medium hover:opacity-90 transition-opacity"
+          >
+            Jump to new
+          </a>
+        </section>
       )}
 
-      <div className="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
+      {newCount > 0 && <Hairline className="opacity-60" />}
+
+      <div className="py-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatCard
           label="New"
           value={newCount}
@@ -156,7 +174,7 @@ export default async function StudioDashboardPage() {
           )}
         </>
       )}
-    </AppShell>
+    </AdminPageShell>
   );
 }
 

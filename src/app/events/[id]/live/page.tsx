@@ -1,17 +1,15 @@
-/** Live Event Dashboard — real-time telemetry view for an active event */
+/** Live Event Dashboard — real-time telemetry view for an active event. */
 import { notFound, redirect } from "next/navigation";
 import { Activity, Users, Gift, Clock } from "lucide-react";
-import { AppShell } from "@/components/layout/AppShell";
-import { PageHeader } from "@/components/layout/PageHeader";
-import { EventContextBar } from "@/components/events/EventContextBar";
-import { Card } from "@/components/ui/card";
+
+import { EventPageShell, EditorialEyebrow, Hairline } from "@/components/brand";
 import { Badge } from "@/components/ui/badge";
 import { LiveCounter } from "@/components/telemetry/LiveCounter";
 import { HourlyChart } from "@/components/telemetry/HourlyChart";
 import { LiveFeed } from "@/components/telemetry/LiveFeed";
 import { MachineStatusCard } from "@/components/telemetry/MachineStatusCard";
+
 import { getUser } from "@/lib/auth";
-import { isInternalRole } from "@/lib/roles";
 import { getEventById } from "@/lib/queries/events";
 import { getLatestEventMetrics } from "@/lib/queries/event-metrics";
 import { getTelemetryByEvent } from "@/lib/queries/telemetry";
@@ -36,8 +34,6 @@ export default async function LiveDashboardPage({
   ]);
   if (!event) return notFound();
 
-  const isInternal = isInternalRole(user.role);
-
   const totalPlays = Number(latestMetrics?.total_plays ?? 0);
   const totalLeads = Number(latestMetrics?.total_leads ?? 0);
   const totalPrizes = Number(latestMetrics?.total_prizes ?? 0);
@@ -56,47 +52,71 @@ export default async function LiveDashboardPage({
   }
 
   return (
-    <AppShell
-      eventId={id}
+    <EventPageShell
+      event={event}
       user={user}
-      isInternal={isInternal}
-      notificationCount={unread}
+      unreadCount={unread}
+      section="Live"
+      title="Live dashboard."
+      subtitle="Watch your activation perform in real time. Numbers refresh every few seconds."
+      heroRight={
+        <Badge variant="success" className="gap-2">
+          <span className="size-1.5 rounded-full bg-success animate-pulse" />
+          Live
+        </Badge>
+      }
     >
-      <EventContextBar event={event} currentSection="Live dashboard" />
-      <PageHeader
-        eyebrow="Real-time telemetry"
-        title="Live dashboard"
-        subtitle="Watch your activation perform in real time. Numbers refresh every few seconds."
-        actions={
-          <Badge variant="success" className="gap-2">
-            <span className="size-1.5 rounded-full bg-success animate-pulse" />
-            Live
-          </Badge>
-        }
-      />
+      <section className="py-8">
+        <EditorialEyebrow accent>Right now</EditorialEyebrow>
+        <div className="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <LiveCounter
+            label="Total plays"
+            value={totalPlays}
+            icon={<Activity size={20} />}
+          />
+          <LiveCounter
+            label="Total leads"
+            value={totalLeads}
+            icon={<Users size={20} />}
+          />
+          <LiveCounter
+            label="Prizes won"
+            value={totalPrizes}
+            icon={<Gift size={20} />}
+          />
+          <LiveCounter
+            label="Avg dwell time"
+            value={Math.round(avgDwellTime)}
+            icon={<Clock size={20} />}
+          />
+        </div>
+      </section>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <LiveCounter label="Total plays" value={totalPlays} icon={<Activity size={20} />} />
-        <LiveCounter label="Total leads" value={totalLeads} icon={<Users size={20} />} />
-        <LiveCounter label="Prizes won" value={totalPrizes} icon={<Gift size={20} />} />
-        <LiveCounter label="Avg dwell time" value={Math.round(avgDwellTime)} icon={<Clock size={20} />} />
-      </div>
+      <Hairline className="opacity-60" />
 
-      <div className="mb-6">
-        <HourlyChart data={hourlyData} />
-      </div>
+      <section className="py-8">
+        <EditorialEyebrow>By the hour</EditorialEyebrow>
+        <div className="mt-4">
+          <HourlyChart data={hourlyData} />
+        </div>
+      </section>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card tone="subtle" className="p-6">
-          <h2 className="text-heading text-base font-semibold text-foreground mb-4">Live activity</h2>
-          <LiveFeed items={feedItems} />
-        </Card>
+      <Hairline className="opacity-60" />
 
-        <Card tone="subtle" className="p-6">
-          <h2 className="text-heading text-base font-semibold text-foreground mb-4">Machine status</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <section className="py-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div>
+          <EditorialEyebrow>Live feed</EditorialEyebrow>
+          <div className="mt-4">
+            <LiveFeed items={feedItems} />
+          </div>
+        </div>
+        <div>
+          <EditorialEyebrow>Machine status</EditorialEyebrow>
+          <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
             {machines.length === 0 ? (
-              <p className="text-sm text-muted-foreground col-span-2 text-center py-6">No machines assigned</p>
+              <p className="text-sm text-muted-foreground col-span-2 py-6">
+                No machines assigned
+              </p>
             ) : (
               machines.map((m: Record<string, unknown>) => (
                 <MachineStatusCard
@@ -105,15 +125,19 @@ export default async function LiveDashboardPage({
                     serialNumber: String(m.serial_number ?? ""),
                     nickname: m.nickname ? String(m.nickname) : undefined,
                     status: String(m.status ?? "available"),
-                    lastHeartbeat: m.last_heartbeat ? String(m.last_heartbeat) : undefined,
-                    firmwareVersion: m.firmware_version ? String(m.firmware_version) : undefined,
+                    lastHeartbeat: m.last_heartbeat
+                      ? String(m.last_heartbeat)
+                      : undefined,
+                    firmwareVersion: m.firmware_version
+                      ? String(m.firmware_version)
+                      : undefined,
                   }}
                 />
               ))
             )}
           </div>
-        </Card>
-      </div>
-    </AppShell>
+        </div>
+      </section>
+    </EventPageShell>
   );
 }

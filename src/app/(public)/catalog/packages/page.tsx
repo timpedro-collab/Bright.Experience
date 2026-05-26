@@ -5,6 +5,7 @@ import Link from "next/link";
 import { PackageTierCard } from "@/components/catalog/PackageTierCard";
 import { Container, Section } from "@/components/ui/section";
 import { Button } from "@/components/ui/button";
+import { RidgeArtwork, EditorialEyebrow } from "@/components/brand";
 import { getPackages } from "@/lib/queries/packages";
 
 export const metadata: Metadata = {
@@ -25,13 +26,29 @@ export default async function PackagesIndexPage() {
 
   return (
     <>
-      <Section spacing="md" className="border-b border-white/[0.06]">
-        <Container>
-          <p className="text-overline text-muted-foreground">Catalog</p>
-          <h1 className="text-display mt-2 text-4xl md:text-5xl font-bold text-foreground">
-            Packages &amp; pricing
+      <section className="relative isolate overflow-hidden border-b border-border/40">
+        <div
+          aria-hidden
+          className="absolute inset-x-0 top-0 ridge-color-cobalt"
+          style={{ height: "clamp(240px, 28vw, 320px)" }}
+        >
+          <RidgeArtwork
+            seed="catalog::packages"
+            lines={22}
+            amplitude={70}
+            className="text-[hsl(223,94%,53%)]"
+          />
+          <div
+            aria-hidden
+            className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-background to-transparent"
+          />
+        </div>
+        <Container className="relative pt-16 md:pt-20 pb-10">
+          <EditorialEyebrow accent>Catalog</EditorialEyebrow>
+          <h1 className="text-display mt-2 text-[clamp(2.25rem,4.5vw,3.75rem)] leading-[1.1] text-foreground">
+            Packages &amp; pricing.
           </h1>
-          <p className="mt-3 max-w-2xl text-base text-muted-foreground md:text-lg">
+          <p className="mt-3 max-w-2xl text-base text-muted-foreground md:text-lg leading-relaxed">
             Transparent pricing for trade shows and conferences. Experiential
             activations are quoted bespoke because location, footfall, and
             media value materially change the value of your spend.
@@ -45,7 +62,7 @@ export default async function PackagesIndexPage() {
             </Button>
           </div>
         </Container>
-      </Section>
+      </section>
 
       <Section>
         <Container>
@@ -77,7 +94,7 @@ export default async function PackagesIndexPage() {
       <Section className="border-t border-white/[0.06]" spacing="md">
         <Container size="sm">
           <h2 className="text-heading text-center text-2xl font-semibold md:text-3xl">
-            What's included
+            What&apos;s included
           </h2>
           <div className="mt-8 grid gap-6 sm:grid-cols-2">
             <Inclusion title="Hardware & installation" body="Delivery, install, on-site QA and collection across the UK." />

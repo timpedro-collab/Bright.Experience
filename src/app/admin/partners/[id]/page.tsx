@@ -1,44 +1,60 @@
-/** Internal partner detail — partner info, attributions, and commission management */
+/** Internal partner detail — partner info, attributions, and commission management. */
 import { redirect, notFound } from "next/navigation";
+
+import { AdminPageShell } from "@/components/brand";
+import { PartnerDetailView } from "./PartnerDetailView";
+
 import { getUser } from "@/lib/auth";
 import { isInternalRole } from "@/lib/roles";
-import { AppShell } from "@/components/layout/AppShell";
-import { PageHeader } from "@/components/layout/PageHeader";
 import { getPartners } from "@/lib/queries/partners";
 import { getAttributionsByPartner } from "@/lib/queries/partner-attributions";
-import { PartnerDetailView } from "./PartnerDetailView";
+import { getUnreadCount } from "@/lib/queries/notifications";
 
 interface PartnerDetailPageProps {
   params: Promise<{ id: string }>;
 }
 
-export default async function AdminPartnerDetailPage({ params }: PartnerDetailPageProps) {
+export default async function AdminPartnerDetailPage({
+  params,
+}: PartnerDetailPageProps) {
   const { id } = await params;
   const user = await getUser();
   if (!user) redirect("/login");
-  const isInternal = isInternalRole(user.role);
-  if (!isInternal) redirect("/");
+  if (!isInternalRole(user.role)) redirect("/");
 
-  const partners = await getPartners();
-  const partner = partners.find((p: Record<string, unknown>) => String(p.id) === id);
+  const [partners, attributions, unread] = await Promise.all([
+    getPartners(),
+    getAttributionsByPartner(id),
+    getUnreadCount(user.id),
+  ]);
+  const partner = partners.find(
+    (p: Record<string, unknown>) => String(p.id) === id,
+  );
   if (!partner) notFound();
 
-  const attributions = await getAttributionsByPartner(id);
+  const partnerName = String(partner.name ?? "Partner");
 
   return (
-    <AppShell user={user} isInternal={isInternal}>
-      <PageHeader
-        title={`Partner — ${String(partner.name ?? "Detail")}`}
-        subtitle="Manage partner account and commissions"
-        breadcrumbs={[
-          { label: "Partners", href: "/admin/partners" },
-          { label: String(partner.name ?? "Detail") },
-        ]}
-      />
-      <PartnerDetailView
-        partner={partner as Record<string, unknown>}
-        attributions={attributions as Record<string, unknown>[]}
-      />
-    </AppShell>
+    <AdminPageShell
+      user={user}
+      unreadCount={unread}
+      section={partnerName}
+      breadcrumbs={[
+        { label: "Home", href: "/" },
+        { label: "Partners", href: "/admin/partners" },
+        { label: partnerName },
+      ]}
+      title={`${partnerName}.`}
+      subtitle="Manage partner account, attributions, and commission terms."
+      backHref="/admin/partners"
+      backLabel="Back to partners"
+    >
+      <div className="py-8">
+        <PartnerDetailView
+          partner={partner as Record<string, unknown>}
+          attributions={attributions as Record<string, unknown>[]}
+        />
+      </div>
+    </AdminPageShell>
   );
 }

@@ -1,17 +1,16 @@
+/** Per-event Bright.Studio storefront — tiers, existing requests, and pricing. */
 import { notFound, redirect } from "next/navigation";
-import { Sparkles, Image, Film, Clock, AlertTriangle } from "lucide-react";
-import { AppShell } from "@/components/layout/AppShell";
-import { PageHeader } from "@/components/layout/PageHeader";
-import { EventContextBar } from "@/components/events/EventContextBar";
-import { Card } from "@/components/ui/card";
+import { Sparkles, ImageIcon, Film, AlertTriangle } from "lucide-react";
+
+import { EventPageShell, EditorialEyebrow, Hairline } from "@/components/brand";
 import { Badge } from "@/components/ui/badge";
 import { StudioTierCard } from "@/components/studio/StudioServiceCard";
 import type { StudioTier } from "@/components/studio/StudioServiceCard";
+
 import { getEventById } from "@/lib/queries/events";
 import { getStudioRequestsByEvent } from "@/lib/queries/studio";
 import { getUnreadCount } from "@/lib/queries/notifications";
 import { getUser } from "@/lib/auth";
-import { isInternalRole } from "@/lib/roles";
 import type { StudioRequest } from "@/types";
 import { timeSince } from "@/lib/dates";
 
@@ -126,7 +125,7 @@ const STATUS_VARIANTS: Record<
   cancelled: { label: "Cancelled", variant: "muted" },
 };
 
-export default async function StudioPage({
+export default async function StudioEventPage({
   params,
 }: {
   params: Promise<{ id: string }>;
@@ -141,146 +140,120 @@ export default async function StudioPage({
   ]);
   if (!event) return notFound();
 
-  const isInternal = isInternalRole(user.role);
-
   return (
-    <AppShell
-      eventId={id}
+    <EventPageShell
+      event={event}
       user={user}
-      isInternal={isInternal}
-      notificationCount={unread}
+      unreadCount={unread}
+      section="Bright.Studio"
+      slug="studio"
+      title="Bright.Studio."
+      subtitle="Professional creative services to elevate your event — pick a tier and we'll get started."
+      heroRight={
+        <div className="inline-flex items-center gap-1.5 text-overline text-[var(--color-bb-cobalt)]">
+          <Sparkles size={12} /> Creative services
+        </div>
+      }
     >
-      <EventContextBar event={event} currentSection="Bright.Studio" />
-      <PageHeader
-        eyebrow="Creative services"
-        title="Bright.Studio"
-        subtitle="Professional creative services to elevate your event — pick a tier and we'll get started."
-      />
-
-      <Card
-        tone="subtle"
-        className="p-8 mb-8 bg-gradient-to-br from-primary/10 to-transparent border-primary/20"
-      >
-        <div className="flex items-start gap-4">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[var(--radius-control)] bg-primary/10 border border-primary/20">
-            <Sparkles size={22} className="text-primary" />
-          </div>
-          <div>
-            <h2 className="text-heading text-lg font-semibold text-foreground mb-1">
-              Need creative support?
-            </h2>
-            <p className="text-sm text-muted-foreground max-w-lg">
-              Bright.Studio handles everything from asset enhancements to
-              original creative — for both static visuals and motion content.
-              Select a tier below and we&apos;ll get started.
-            </p>
-          </div>
-        </div>
-      </Card>
-
       {requests.length > 0 && (
-        <div className="mb-8">
-          <h2 className="text-overline text-muted-foreground mb-4">Your requests</h2>
-          <div className="space-y-3">
-            {requests.map((req) => (
-              <RequestCard key={req.id} request={req} />
-            ))}
-          </div>
-        </div>
+        <>
+          <section className="py-8">
+            <EditorialEyebrow accent>Your requests</EditorialEyebrow>
+            <ul className="mt-4 flex flex-col divide-y divide-border/40 border-t border-b border-border/40">
+              {requests.map((req) => (
+                <RequestRow key={req.id} request={req} />
+              ))}
+            </ul>
+          </section>
+          <Hairline className="opacity-60" />
+        </>
       )}
 
-      <div className="mb-10">
-        <div className="flex items-center gap-2 mb-1">
-          <Image size={16} className="text-muted-foreground" />
-          <h2 className="text-heading text-base font-semibold text-foreground">
-            Static visuals
-          </h2>
+      <section className="py-8">
+        <div className="flex items-baseline gap-2 mb-1">
+          <ImageIcon size={14} className="text-muted-foreground" />
+          <EditorialEyebrow>Static visuals</EditorialEyebrow>
         </div>
-        <p className="text-xs text-muted-foreground mb-5">
-          Pricing for static visuals only. Turnaround under 7 days may incur
-          expedited fees.
+        <p className="text-overline text-muted-foreground mb-5">
+          Pricing for static visuals only · Turnaround under 7 days may incur express fees
         </p>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           {STATIC_TIERS.map((tier, i) => (
             <StudioTierCard key={tier.id} tier={tier} eventId={id} index={i} />
           ))}
         </div>
-      </div>
+      </section>
 
-      <div className="mb-10">
-        <div className="flex items-center gap-2 mb-1">
-          <Film size={16} className="text-muted-foreground" />
-          <h2 className="text-heading text-base font-semibold text-foreground">
-            Motion visuals
-          </h2>
+      <Hairline className="opacity-60" />
+
+      <section className="py-8">
+        <div className="flex items-baseline gap-2 mb-1">
+          <Film size={14} className="text-muted-foreground" />
+          <EditorialEyebrow>Motion visuals</EditorialEyebrow>
         </div>
-        <p className="text-xs text-muted-foreground mb-5">
-          Video asset duration 10–30 sec. Standard lead time is 7 working days.
-          Turnaround under 7 days incurs a 50% express fee.
+        <p className="text-overline text-muted-foreground mb-5">
+          Video duration 10–30 sec · Standard lead time 7 working days · Express incurs 50% fee
         </p>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           {VIDEO_TIERS.map((tier, i) => (
-            <StudioTierCard
-              key={tier.id}
-              tier={tier}
-              eventId={id}
-              index={i + 3}
-            />
+            <StudioTierCard key={tier.id} tier={tier} eventId={id} index={i + 3} />
           ))}
         </div>
-      </div>
+      </section>
 
-      <div className="flex items-start gap-2 p-4 rounded-[var(--radius-control)] bg-white/[0.02] border border-white/[0.06]">
-        <AlertTriangle size={14} className="text-muted-foreground mt-0.5 shrink-0" />
-        <p className="text-xs text-muted-foreground leading-relaxed">
-          All prices exclude VAT. Express turnaround (under 7 working days)
-          incurs a 50% surcharge. Quoted prices are per individual asset.
-          Complex or multi-asset projects will receive a custom quote within 24
-          hours of submission.
-        </p>
-      </div>
-    </AppShell>
+      <Hairline className="opacity-60" />
+
+      <section className="py-6">
+        <div className="border-l-2 border-border/60 pl-4 py-1">
+          <p className="text-overline text-muted-foreground inline-flex items-center gap-1.5 mb-1">
+            <AlertTriangle size={12} /> Fine print
+          </p>
+          <p className="text-sm text-muted-foreground leading-relaxed max-w-[60ch]">
+            All prices exclude VAT. Express turnaround (under 7 working days)
+            incurs a 50% surcharge. Quoted prices are per individual asset.
+            Complex or multi-asset projects receive a custom quote within 24
+            hours of submission.
+          </p>
+        </div>
+      </section>
+    </EventPageShell>
   );
 }
 
-function RequestCard({ request }: { request: StudioRequest }) {
+function RequestRow({ request }: { request: StudioRequest }) {
   const status = STATUS_VARIANTS[request.status] ?? STATUS_VARIANTS.draft;
-
   return (
-    <Card tone="subtle" className="p-5">
-      <div className="flex items-start justify-between gap-4">
-        <div className="min-w-0">
-          <div className="flex items-center gap-2 mb-1">
-            <h3 className="text-sm font-semibold text-foreground truncate">
-              {request.title}
-            </h3>
-            <Badge variant={status.variant}>{status.label}</Badge>
-          </div>
-          {request.description && (
-            <p className="text-xs text-muted-foreground line-clamp-2">
-              {request.description}
-            </p>
-          )}
+    <li className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-3 py-4 px-2 items-start">
+      <div className="min-w-0">
+        <div className="flex items-center gap-2 mb-1 flex-wrap">
+          <h3 className="text-sm font-semibold text-foreground">
+            {request.title}
+          </h3>
+          <Badge variant={status.variant}>{status.label}</Badge>
         </div>
-        <span className="text-overline text-muted-foreground shrink-0">
-          {timeSince(request.createdAt)}
-        </span>
-      </div>
-      {request.quotedCost && (
-        <div className="mt-3 pt-3 border-t border-white/[0.06] flex items-center gap-4">
-          <span className="text-xs text-muted-foreground">
-            Quote:{" "}
+        {request.description && (
+          <p className="text-sm text-muted-foreground line-clamp-2 leading-snug">
+            {request.description}
+          </p>
+        )}
+        {request.quotedCost && (
+          <p className="mt-1.5 text-overline text-muted-foreground">
+            Quote{" "}
             <span className="text-foreground font-semibold">
               £{request.quotedCost.toFixed(2)}
             </span>
-          </span>
-          {request.quotedDays && (
-            <span className="text-xs text-muted-foreground">
-              {request.quotedDays} working days
-            </span>
-          )}
-        </div>
-      )}
-    </Card>
+            {request.quotedDays && (
+              <>
+                <span className="opacity-60"> · </span>
+                {request.quotedDays} working days
+              </>
+            )}
+          </p>
+        )}
+      </div>
+      <span className="text-overline text-muted-foreground shrink-0 whitespace-nowrap">
+        {timeSince(request.createdAt)}
+      </span>
+    </li>
   );
 }

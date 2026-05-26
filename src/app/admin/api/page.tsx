@@ -1,27 +1,27 @@
 /** Internal API key and webhook management with tabbed interface. */
 import { redirect } from "next/navigation";
-import { AppShell } from "@/components/layout/AppShell";
-import { PageHeader } from "@/components/layout/PageHeader";
+
+import { AdminPageShell } from "@/components/brand";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ApiKeyManager } from "@/components/api/ApiKeyManager";
 import { WebhookManager } from "@/components/api/WebhookManager";
+
 import { getUser } from "@/lib/auth";
 import { isInternalRole } from "@/lib/roles";
 import { createClient } from "@/lib/supabase/server";
+import { getUnreadCount } from "@/lib/queries/notifications";
 
 export default async function ApiManagementPage() {
   const user = await getUser();
   if (!user) redirect("/login");
-  const isInternal = isInternalRole(user.role);
-  if (!isInternal) redirect("/");
+  if (!isInternalRole(user.role)) redirect("/");
 
   const supabase = await createClient();
+  const unread = await getUnreadCount(user.id);
 
   const { data: rawKeys } = await supabase
     .from("api_keys")
-    .select(
-      "id, name, key_prefix, is_active, last_used_at, created_at"
-    )
+    .select("id, name, key_prefix, is_active, last_used_at, created_at")
     .order("created_at", { ascending: false });
 
   const { data: rawWebhooks } = await supabase
@@ -47,30 +47,31 @@ export default async function ApiManagementPage() {
   }));
 
   return (
-    <AppShell user={user} isInternal={isInternal}>
-      <PageHeader
-        title="API & Integrations"
-        subtitle="Manage API keys and webhook subscriptions"
-      />
-
-      <Tabs defaultValue="api-keys" className="space-y-6">
-        <TabsList>
-          <TabsTrigger value="api-keys">API Keys</TabsTrigger>
-          <TabsTrigger value="webhooks">Webhooks</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="api-keys">
-          <div className="card p-6">
-            <ApiKeyManager keys={keys} />
-          </div>
-        </TabsContent>
-
-        <TabsContent value="webhooks">
-          <div className="card p-6">
-            <WebhookManager subscriptions={webhooks} />
-          </div>
-        </TabsContent>
-      </Tabs>
-    </AppShell>
+    <AdminPageShell
+      user={user}
+      unreadCount={unread}
+      section="API & integrations"
+      title="API & integrations."
+      subtitle="Manage API keys and webhook subscriptions for downstream systems."
+    >
+      <div className="py-8">
+        <Tabs defaultValue="api-keys" className="space-y-6">
+          <TabsList>
+            <TabsTrigger value="api-keys">API Keys</TabsTrigger>
+            <TabsTrigger value="webhooks">Webhooks</TabsTrigger>
+          </TabsList>
+          <TabsContent value="api-keys">
+            <div className="border border-border/60 bg-card/30 rounded-md p-6">
+              <ApiKeyManager keys={keys} />
+            </div>
+          </TabsContent>
+          <TabsContent value="webhooks">
+            <div className="border border-border/60 bg-card/30 rounded-md p-6">
+              <WebhookManager subscriptions={webhooks} />
+            </div>
+          </TabsContent>
+        </Tabs>
+      </div>
+    </AdminPageShell>
   );
 }

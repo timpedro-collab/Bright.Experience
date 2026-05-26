@@ -1,12 +1,13 @@
-/** Internal catalog management — CRUD for machines, games, packages, case studies */
+/** Internal catalog management — CRUD entry point for machines, games, packages, case studies. */
 import { redirect } from "next/navigation";
-import { Box, Gamepad2, Package, BookOpen } from "lucide-react";
-import { AppShell } from "@/components/layout/AppShell";
-import { PageHeader } from "@/components/layout/PageHeader";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { Box, Gamepad2, Package, BookOpen, ArrowRight } from "lucide-react";
+
+import { AdminPageShell, EditorialEyebrow } from "@/components/brand";
+
 import { getUser } from "@/lib/auth";
 import { isInternalRole } from "@/lib/roles";
+import { getUnreadCount } from "@/lib/queries/notifications";
 
 const SECTIONS = [
   {
@@ -14,64 +15,70 @@ const SECTIONS = [
     description: "Manage hardware units, specs, and imagery",
     icon: Box,
     href: "/admin/catalog/machines",
-    color: "text-brand",
   },
   {
     title: "Games",
     description: "Manage game software, previews, and configurations",
     icon: Gamepad2,
     href: "/admin/catalog/games",
-    color: "text-brand-soft",
   },
   {
     title: "Packages",
     description: "Manage pricing tiers, add-ons, and feature lists",
     icon: Package,
     href: "/admin/catalog/packages",
-    color: "text-success",
   },
   {
-    title: "Case Studies",
+    title: "Case studies",
     description: "Manage published portfolio pieces and testimonials",
     icon: BookOpen,
     href: "/admin/catalog/case-studies",
-    color: "text-warning",
   },
 ] as const;
 
 export default async function CatalogAdminPage() {
   const user = await getUser();
   if (!user) redirect("/login");
-  const isInternal = isInternalRole(user.role);
-  if (!isInternal) redirect("/");
+  if (!isInternalRole(user.role)) redirect("/");
+
+  const unread = await getUnreadCount(user.id);
 
   return (
-    <AppShell user={user} isInternal={isInternal}>
-      <PageHeader
-        title="Catalog Management"
-        subtitle="Manage the public storefront content"
-      />
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {SECTIONS.map((section) => {
-          const Icon = section.icon;
-          return (
-            <Card key={section.title} className="card-interactive">
-              <CardHeader className="flex flex-row items-center gap-4 pb-2">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-muted/40">
-                  <Icon size={20} className={section.color} />
+    <AdminPageShell
+      user={user}
+      unreadCount={unread}
+      section="Catalog"
+      title="The storefront."
+      subtitle="Manage the public catalog — machines, games, packages, and case studies that cold visitors land on."
+    >
+      <section className="py-8">
+        <EditorialEyebrow>Manage</EditorialEyebrow>
+        <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+          {SECTIONS.map((section) => {
+            const Icon = section.icon;
+            return (
+              <Link
+                key={section.title}
+                href={section.href}
+                className="group flex items-center gap-4 border border-border/60 bg-card/30 rounded-md p-5 hover:bg-accent/30 hover:border-border transition-colors"
+              >
+                <div className="flex h-10 w-10 items-center justify-center rounded-md border border-border/60 bg-card/60 text-muted-foreground group-hover:text-foreground transition-colors">
+                  <Icon size={18} />
                 </div>
-                <CardTitle className="text-base font-semibold">{section.title}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground mb-4">{section.description}</p>
-                <Button variant="outline" size="sm" asChild>
-                  <a href={section.href}>Manage</a>
-                </Button>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
-    </AppShell>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-base font-semibold text-foreground">
+                    {section.title}
+                  </h3>
+                  <p className="text-sm text-muted-foreground mt-0.5">
+                    {section.description}
+                  </p>
+                </div>
+                <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground group-hover:translate-x-0.5 transition-all" />
+              </Link>
+            );
+          })}
+        </div>
+      </section>
+    </AdminPageShell>
   );
 }

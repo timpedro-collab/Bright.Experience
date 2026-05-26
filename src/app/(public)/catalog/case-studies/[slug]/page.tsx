@@ -71,7 +71,7 @@ export default async function CaseStudyDetailPage({ params }: Props) {
       <div className="mt-8 space-y-4">
         <div className="flex flex-wrap items-center gap-3">
           {cs.event_type && (
-            <Badge className="badge-blue">{cs.event_type}</Badge>
+            <Badge variant="info">{cs.event_type}</Badge>
           )}
           {cs.location && (
             <span className="flex items-center gap-1 text-sm text-muted-foreground">

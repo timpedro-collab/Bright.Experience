@@ -1,10 +1,16 @@
-/** Quiz page — premium intake for the "find your fit" recommendation flow */
+/**
+ * Quiz page — "find your fit" guided recommendation flow.
+ *
+ * Editorial Bright.Experience design language: ridge artwork backdrop,
+ * tracked uppercase eyebrow, display-type headline, calm centred column.
+ */
+
 import type { Metadata } from "next";
-import { Sparkles } from "lucide-react";
 
 import { Container, Section } from "@/components/ui/section";
 import { RecommendationQuiz } from "@/components/catalog/RecommendationQuiz";
 import { getMachines } from "@/lib/queries/machines";
+import { RidgeArtwork, EditorialEyebrow } from "@/components/brand";
 
 export const metadata: Metadata = {
   title: "Find your fit",
@@ -16,26 +22,52 @@ export default async function QuizPage() {
   const machines = await getMachines();
 
   return (
-    <Section className="relative overflow-hidden">
-      <div aria-hidden className="pointer-events-none absolute inset-0">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,hsl(223,94%,53%,0.18),transparent_55%)]" />
-      </div>
-      <Container size="sm" className="relative">
-        <div className="mb-10 text-center">
-          <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/8 px-3.5 py-1.5">
-            <Sparkles size={14} className="text-primary" />
-            <span className="text-xs font-medium text-primary">Two minutes, five questions</span>
-          </div>
-          <h1 className="text-display text-4xl text-foreground md:text-5xl">
-            Let's make your moment count
-          </h1>
-          <p className="mt-4 max-w-2xl mx-auto text-muted-foreground md:text-lg">
-            A short conversation about the event you have in mind. At the end,
-            one tailored suggestion — no comparison table, no commitment.
-          </p>
+    <>
+      <section
+        className="relative isolate overflow-hidden"
+        aria-labelledby="quiz-hero"
+      >
+        <div
+          aria-hidden
+          className="absolute inset-x-0 top-0 ridge-color-cobalt"
+          style={{ height: "clamp(280px, 36vw, 420px)" }}
+        >
+          <RidgeArtwork
+            seed="quiz::intake"
+            lines={26}
+            amplitude={80}
+            className="text-[hsl(223,94%,53%)]"
+          />
+          <div
+            aria-hidden
+            className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-background to-transparent"
+          />
         </div>
-        <RecommendationQuiz machines={machines} />
-      </Container>
-    </Section>
+        <Container size="sm" className="relative pt-20 md:pt-28 pb-10">
+          <div className="text-center">
+            <EditorialEyebrow accent className="mb-3 inline-block">
+              Two minutes · Five questions
+            </EditorialEyebrow>
+            <h1
+              id="quiz-hero"
+              className="text-display text-foreground text-[clamp(2.5rem,5vw,4rem)] leading-[1.1]"
+            >
+              Let&apos;s make your moment count.
+            </h1>
+            <p className="mt-4 max-w-2xl mx-auto text-muted-foreground md:text-lg leading-relaxed">
+              A short conversation about the event you have in mind. At the
+              end, one tailored suggestion — no comparison table, no
+              commitment.
+            </p>
+          </div>
+        </Container>
+      </section>
+
+      <Section className="pt-0">
+        <Container size="sm">
+          <RecommendationQuiz machines={machines} />
+        </Container>
+      </Section>
+    </>
   );
 }

@@ -1,4 +1,22 @@
-/** Grouped notification list with read/unread state & navigation. */
+/**
+ * Grouped notification list — the editorial row-based design used on
+ * the Bright.Experience notification surfaces.
+ *
+ * Two visual groups, separated by a hairline:
+ *
+ *   1) Awaiting you · N      — anything `actionRequired: true`
+ *      Each row gets a cobalt left-edge stripe and a small unread dot.
+ *
+ *   2) FYI · N               — everything else, sub-grouped by recency
+ *      ("Today" / "Yesterday" / "Earlier this week" / etc).
+ *
+ * Each row is a clean horizontal line item:
+ *   ▍ [icon] ARCHETYPE EYEBROW      message body            2m ago
+ *
+ * No glass card, no rounded chunky containers — just calm editorial
+ * rows that match the rest of the design language (hairlines, tracked
+ * uppercase metadata, italic-underlined CTAs).
+ */
 "use client";
 
 import { useMemo, useTransition } from "react";
@@ -23,56 +41,46 @@ interface NotificationListProps {
 }
 
 /**
- * Map the canonical archetype kind (or legacy type) to an icon + tone. The
- * lookups are best-effort — anything we don't recognise falls back to the
- * bell glyph and a neutral tone.
+ * Map archetype kind (or legacy type) → glyph + short label. The label
+ * surfaces as the tracked uppercase eyebrow on the row so the user can
+ * scan vertically by topic. Unknown kinds get a neutral "Update".
  */
-const KIND_ICONS: Record<string, LucideIcon> = {
-  "stage.changed": CalendarClock,
-  stage_change: CalendarClock,
-  "approval.requested": CheckCircle2,
-  "approval.approved": CheckCircle2,
-  "approval.revision_requested": AlertCircle,
-  approval_decision: CheckCircle2,
-  "asset.upload_needed": Upload,
-  "asset.review_needed": Upload,
-  "asset.revision_requested": AlertCircle,
-  "asset.review_approved": CheckCircle2,
-  asset_uploaded: Upload,
-  "briefing.needed": Sparkles,
-  "briefing.submitted": Sparkles,
-  "proposal.intake_received": Sparkles,
-  "proposal.delivered": Sparkles,
-  "quote.accepted": CheckCircle2,
-  "studio.request_submitted": Sparkles,
-  "studio.status_changed": Sparkles,
-  studio_update: Sparkles,
-  "message.received": MessageCircle,
-  message_received: MessageCircle,
-  message: MessageCircle,
-  "task.assigned": Bell,
-  "task.overdue": AlertCircle,
-  deadline_approaching: Bell,
+const ARCHETYPE: Record<string, { icon: LucideIcon; label: string }> = {
+  "stage.changed": { icon: CalendarClock, label: "Stage" },
+  stage_change: { icon: CalendarClock, label: "Stage" },
+  "approval.requested": { icon: CheckCircle2, label: "Approval" },
+  "approval.approved": { icon: CheckCircle2, label: "Approval" },
+  "approval.revision_requested": { icon: AlertCircle, label: "Revision" },
+  approval_decision: { icon: CheckCircle2, label: "Approval" },
+  "asset.upload_needed": { icon: Upload, label: "Asset" },
+  "asset.review_needed": { icon: Upload, label: "Asset review" },
+  "asset.revision_requested": { icon: AlertCircle, label: "Revision" },
+  "asset.review_approved": { icon: CheckCircle2, label: "Approved" },
+  asset_uploaded: { icon: Upload, label: "Asset" },
+  "briefing.needed": { icon: Sparkles, label: "Briefing" },
+  "briefing.submitted": { icon: Sparkles, label: "Briefing" },
+  "proposal.intake_received": { icon: Sparkles, label: "Proposal" },
+  "proposal.delivered": { icon: Sparkles, label: "Proposal" },
+  "quote.accepted": { icon: CheckCircle2, label: "Quote" },
+  "studio.request_submitted": { icon: Sparkles, label: "Studio" },
+  "studio.status_changed": { icon: Sparkles, label: "Studio" },
+  studio_update: { icon: Sparkles, label: "Studio" },
+  "message.received": { icon: MessageCircle, label: "Message" },
+  message_received: { icon: MessageCircle, label: "Message" },
+  message: { icon: MessageCircle, label: "Message" },
+  "task.assigned": { icon: Bell, label: "Task" },
+  "task.overdue": { icon: AlertCircle, label: "Task overdue" },
+  deadline_approaching: { icon: Bell, label: "Deadline" },
 };
 
-function iconFor(notification: Notification): LucideIcon {
+function archetypeFor(notification: Notification): {
+  icon: LucideIcon;
+  label: string;
+} {
   return (
-    KIND_ICONS[notification.kind ?? ""] ?? KIND_ICONS[notification.type] ?? Bell
+    ARCHETYPE[notification.kind ?? ""] ??
+    ARCHETYPE[notification.type] ?? { icon: Bell, label: "Update" }
   );
-}
-
-function toneFor(notification: Notification): string {
-  if (notification.actionRequired) {
-    return "text-warning border-warning/30 bg-warning/10";
-  }
-  const key = notification.kind ?? notification.type;
-  if (key.startsWith("approval.") || key === "approval_decision") {
-    return "text-success border-success/30 bg-success/10";
-  }
-  if (key.startsWith("stage.") || key === "stage_change") {
-    return "text-info border-info/30 bg-info/10";
-  }
-  return "text-primary border-primary/30 bg-primary/10";
 }
 
 function groupBy<T>(arr: T[], by: (item: T) => string): Record<string, T[]> {
@@ -118,7 +126,7 @@ export function NotificationList({ notifications }: NotificationListProps) {
 
   const fyiByRecency = useMemo(
     () => groupBy(fyi, (n) => recencyKey(n.createdAt)),
-    [fyi]
+    [fyi],
   );
 
   function handleClick(notification: Notification) {
@@ -129,126 +137,155 @@ export function NotificationList({ notifications }: NotificationListProps) {
   }
 
   return (
-    <div className="space-y-10">
+    <div className="flex flex-col gap-12">
       {actionItems.length > 0 && (
         <section aria-labelledby="action-items-heading">
-          <div className="mb-4 flex items-baseline justify-between gap-3">
+          <div className="mb-3 flex items-baseline justify-between gap-3">
             <h2
               id="action-items-heading"
-              className="text-overline text-warning"
+              className="text-overline text-[var(--color-bb-cobalt)]"
             >
               Awaiting you · {actionItems.length}
             </h2>
-            <p className="text-xs text-muted-foreground">
-              These need a quick action before things can move forward.
+            <p className="text-overline text-muted-foreground">
+              Need a quick action
             </p>
           </div>
-          <div className="space-y-2">
+          <ul className="flex flex-col divide-y divide-border/40 border-t border-b border-border/40">
             {actionItems.map((notification) => (
-              <NotificationItem
+              <NotificationRow
                 key={notification.id}
                 notification={notification}
                 onClick={() => handleClick(notification)}
               />
             ))}
-          </div>
+          </ul>
         </section>
       )}
 
       {fyi.length > 0 && (
-        <section aria-labelledby="fyi-heading" className="space-y-8">
-          <h2 id="fyi-heading" className="text-overline text-muted-foreground">
-            FYI · {fyi.length}
-          </h2>
-          {RECENCY_ORDER.filter((key) => fyiByRecency[key]?.length).map(
-            (key) => (
-              <section key={key} className="space-y-2">
-                <h3 className="text-overline text-muted-foreground mb-2">
-                  {key}
-                </h3>
-                <div className="space-y-2">
-                  {fyiByRecency[key].map((notification) => (
-                    <NotificationItem
-                      key={notification.id}
-                      notification={notification}
-                      onClick={() => handleClick(notification)}
-                    />
-                  ))}
-                </div>
-              </section>
-            )
-          )}
+        <section aria-labelledby="fyi-heading">
+          <div className="mb-3 flex items-baseline justify-between gap-3">
+            <h2 id="fyi-heading" className="text-overline text-muted-foreground">
+              FYI · {fyi.length}
+            </h2>
+            <p className="text-overline text-muted-foreground">
+              Updates from your editions
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-8">
+            {RECENCY_ORDER.filter((key) => fyiByRecency[key]?.length).map(
+              (key) => (
+                <section key={key}>
+                  <h3 className="text-overline text-muted-foreground mb-2 opacity-70">
+                    {key}
+                  </h3>
+                  <ul className="flex flex-col divide-y divide-border/30 border-t border-b border-border/30">
+                    {fyiByRecency[key].map((notification) => (
+                      <NotificationRow
+                        key={notification.id}
+                        notification={notification}
+                        onClick={() => handleClick(notification)}
+                      />
+                    ))}
+                  </ul>
+                </section>
+              ),
+            )}
+          </div>
         </section>
       )}
     </div>
   );
 }
 
-function NotificationItem({
+function NotificationRow({
   notification,
   onClick,
 }: {
   notification: Notification;
   onClick: () => void;
 }) {
-  const Icon = iconFor(notification);
-  const tone = toneFor(notification);
+  const { icon: Icon, label } = archetypeFor(notification);
+  const isUnread = !notification.isRead;
+  const isAction = notification.actionRequired;
 
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        "group flex w-full items-start gap-4 rounded-[var(--radius-card)] border border-white/[0.06]",
-        "bg-[hsl(233,56%,11%,0.5)] backdrop-blur-md p-4 text-left",
-        "transition-all hover:border-white/16 hover:bg-[hsl(233,56%,11%,0.7)]",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-        !notification.isRead && "ring-1 ring-primary/30",
-        notification.actionRequired &&
-          !notification.isRead &&
-          "ring-1 ring-warning/40"
-      )}
-    >
-      <span
+    <li className="relative">
+      <button
+        type="button"
+        onClick={onClick}
         className={cn(
-          "inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-[var(--radius-control)] border",
-          tone
+          "group relative flex w-full items-start gap-4 py-3.5 pl-3 pr-2 text-left",
+          "transition-colors hover:bg-accent/30",
+          "focus-visible:outline-none focus-visible:bg-accent/40",
         )}
       >
-        <Icon className="h-4 w-4" />
-      </span>
-      <div className="min-w-0 flex-1">
-        <div className="flex items-start justify-between gap-3">
+        {/* Left edge stripe: cobalt for action+unread, transparent otherwise. */}
+        <span
+          aria-hidden
+          className={cn(
+            "absolute left-0 top-2 bottom-2 w-[2px] rounded-full",
+            isAction && isUnread
+              ? "bg-[var(--color-bb-cobalt)]"
+              : "bg-transparent",
+          )}
+        />
+
+        {/* Glyph badge — small editorial square. */}
+        <span
+          className={cn(
+            "inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-border/60 bg-card/60",
+            isAction && "text-[var(--color-bb-cobalt)]",
+          )}
+        >
+          <Icon className="h-3.5 w-3.5" aria-hidden />
+        </span>
+
+        <div className="min-w-0 flex-1 flex flex-col gap-0.5">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span
+              className={cn(
+                "text-overline whitespace-nowrap",
+                isAction
+                  ? "text-[var(--color-bb-cobalt)]"
+                  : "text-muted-foreground",
+              )}
+            >
+              {isUnread && (
+                <span
+                  aria-label="Unread"
+                  className={cn(
+                    "inline-block mr-1.5 h-1.5 w-1.5 rounded-full align-middle",
+                    isAction
+                      ? "bg-[var(--color-bb-cobalt)]"
+                      : "bg-primary",
+                  )}
+                />
+              )}
+              {label}
+            </span>
+          </div>
           <p
             className={cn(
-              "text-sm",
-              notification.isRead
-                ? "text-muted-foreground"
-                : "text-foreground font-medium"
+              "text-sm leading-snug",
+              isUnread ? "text-foreground" : "text-muted-foreground",
             )}
           >
             {notification.title}
           </p>
-          <span className="shrink-0 text-xs text-muted-foreground whitespace-nowrap">
-            {timeSince(notification.createdAt)}
-          </span>
-        </div>
-        {notification.body && (
-          <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
-            {notification.body}
-          </p>
-        )}
-      </div>
-      {!notification.isRead && (
-        <span
-          className={cn(
-            "mt-2 h-2 w-2 shrink-0 rounded-full",
-            notification.actionRequired
-              ? "bg-warning shadow-[0_0_8px_hsl(38,100%,50%,0.6)]"
-              : "bg-primary shadow-[0_0_8px_hsl(223,94%,53%,0.6)]"
+          {notification.body && (
+            <p className="line-clamp-1 text-xs text-muted-foreground opacity-80">
+              {notification.body}
+            </p>
           )}
-        />
-      )}
-    </button>
+        </div>
+
+        <span className="text-overline text-muted-foreground tabular-nums whitespace-nowrap pt-0.5">
+          {timeSince(notification.createdAt)}
+        </span>
+      </button>
+    </li>
   );
 }

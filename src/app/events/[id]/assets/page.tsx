@@ -1,3 +1,9 @@
+/**
+ * Customer asset review — every asset the customer needs to upload or
+ * approve for this event, rebuilt in the editorial Bright.Experience
+ * design language (EditionShell + RidgeHero + hairline-separated rows).
+ */
+
 import { notFound, redirect } from "next/navigation";
 import {
   Upload,
@@ -8,22 +14,21 @@ import {
   Clock,
   AlertCircle,
 } from "lucide-react";
-import { AppShell } from "@/components/layout/AppShell";
-import { PageHeader } from "@/components/layout/PageHeader";
-import { EventContextBar } from "@/components/events/EventContextBar";
-import { Card } from "@/components/ui/card";
+
+import { EventPageShell } from "@/components/brand";
+import { EditorialEyebrow, Hairline } from "@/components/brand";
 import { AssetStatusBadge } from "@/components/ui/StatusBadge";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { AssetUploadButton } from "@/components/assets/AssetUploadButton";
+import { AssetReviewBadge } from "@/components/assets/AssetReviewBadge";
+
 import { getEventById } from "@/lib/queries/events";
 import { getAssetsByEvent } from "@/lib/queries/assets";
 import { getUnreadCount } from "@/lib/queries/notifications";
 import { getUser } from "@/lib/auth";
-import { isInternalRole } from "@/lib/roles";
-import { AssetUploadButton } from "@/components/assets/AssetUploadButton";
-import { AssetReviewBadge } from "@/components/assets/AssetReviewBadge";
-import type { Asset } from "@/types";
 import { formatDateShort, isOverdue as checkOverdue } from "@/lib/dates";
+import type { Asset } from "@/types";
 
 function formatFileSize(bytes?: number): string {
   if (!bytes) return "";
@@ -32,13 +37,13 @@ function formatFileSize(bytes?: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-function getAssetIcon(assetType: string) {
+function renderAssetIcon(assetType: string, size = 18) {
   switch (assetType) {
     case "logo":
     case "imagery":
-      return FileImage;
+      return <FileImage size={size} />;
     default:
-      return FileText;
+      return <FileText size={size} />;
   }
 }
 
@@ -55,190 +60,199 @@ export default async function AssetsPage({
     getAssetsByEvent(id),
     getUnreadCount(user.id),
   ]);
-  const isInternal = isInternalRole(user.role);
   if (!event) return notFound();
 
   const accepted = assets.filter((a) => a.status === "accepted").length;
   const required = assets.filter((a) => a.status === "required").length;
 
-  if (assets.length === 0) {
-    return (
-      <AppShell
-        eventId={id}
-        user={user}
-        isInternal={isInternal}
-        notificationCount={unread}
-      >
-        <EventContextBar event={event} currentSection="Assets" />
-        <PageHeader
-          eyebrow="Creative & brand"
-          title="Assets"
-          subtitle="Upload your brand materials and creative assets here."
-        />
+  const subtitle =
+    assets.length === 0
+      ? "Asset requirements will appear here once your event reaches the creative stage."
+      : required > 0
+        ? `${required} asset${required === 1 ? "" : "s"} still need uploading. Drop them in below to keep your build on track.`
+        : "All assets accepted. We'll let you know if anything else is needed.";
+
+  return (
+    <EventPageShell
+      event={event}
+      user={user}
+      unreadCount={unread}
+      section="Assets"
+      title="Your creative."
+      subtitle={subtitle}
+      heroRight={
+        assets.length > 0 ? (
+          <div className="text-overline text-muted-foreground tabular-nums">
+            <span className="text-foreground text-base font-semibold">
+              {accepted}
+            </span>
+            <span className="opacity-60"> / {assets.length} </span>
+            accepted
+          </div>
+        ) : null
+      }
+    >
+      {assets.length === 0 ? (
         <EmptyState
           icon={Upload}
           title="No assets required yet"
           description="Asset requirements will appear here once your event reaches the creative stage."
           action={{ label: "View timeline", href: `/events/${id}/timeline` }}
         />
-      </AppShell>
-    );
-  }
+      ) : (
+        <>
+          {/* Progress strip */}
+          <section className="py-6">
+            <div className="flex items-baseline justify-between gap-3 mb-3">
+              <EditorialEyebrow accent>Progress</EditorialEyebrow>
+              <span className="text-overline text-muted-foreground tabular-nums">
+                {accepted} of {assets.length} accepted · {required} still needed
+              </span>
+            </div>
+            <ProgressBar value={accepted} max={assets.length} size="md" />
+          </section>
 
-  return (
-    <AppShell
-      eventId={id}
-      user={user}
-      isInternal={isInternal}
-      notificationCount={unread}
-    >
-      <EventContextBar event={event} currentSection="Assets" />
-      <PageHeader
-        eyebrow="Creative & brand"
-        title="Assets"
-        subtitle={
-          required > 0
-            ? `${required} asset${required === 1 ? "" : "s"} still need uploading. Drop them in below to keep your build on track.`
-            : "All assets accepted. We'll let you know if anything else is needed."
-        }
-      />
+          <Hairline className="opacity-60" />
 
-      <Card tone="subtle" className="mb-6 p-6">
-        <div className="flex items-center justify-between mb-3">
-          <div>
-            <h2 className="text-heading text-base font-semibold text-foreground">
-              Asset progress
-            </h2>
-            <p className="text-sm text-muted-foreground mt-0.5">
-              {required} item{required === 1 ? "" : "s"} still needed
-            </p>
-          </div>
-          <span className="text-heading text-2xl font-bold tabular-nums text-primary">
-            {accepted}
-            <span className="text-muted-foreground text-base font-normal">
-              /{assets.length}
-            </span>
-          </span>
-        </div>
-        <ProgressBar value={accepted} max={assets.length} size="md" />
-      </Card>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {assets.map((asset, i) => (
-          <AssetCard key={asset.id} asset={asset} index={i} />
-        ))}
-      </div>
-    </AppShell>
+          {/* Asset list */}
+          <section className="py-10">
+            <div className="flex items-baseline justify-between gap-3 mb-4">
+              <EditorialEyebrow>Every asset</EditorialEyebrow>
+              <span className="text-overline text-muted-foreground tabular-nums">
+                {assets.length} item{assets.length === 1 ? "" : "s"}
+              </span>
+            </div>
+            <ul className="flex flex-col divide-y divide-border/40 border-t border-b border-border/40">
+              {assets.map((asset) => (
+                <AssetRow key={asset.id} asset={asset} />
+              ))}
+            </ul>
+          </section>
+        </>
+      )}
+    </EventPageShell>
   );
 }
 
-function AssetCard({ asset, index }: { asset: Asset; index: number }) {
-  const Icon = getAssetIcon(asset.assetType);
-  const isUploaded = asset.status !== "required";
+function AssetRow({ asset }: { asset: Asset }) {
   const overdue =
     asset.status === "required" &&
     asset.dueDate &&
     checkOverdue(asset.dueDate);
+  const needsAction =
+    asset.status === "required" ||
+    asset.reviewStatus === "revision_requested";
 
   return (
-    <Card
-      tone="subtle"
-      className={`stagger-item p-5 ${overdue ? "border-destructive/40 shadow-[inset_3px_0_0_0_hsl(0,84%,60%)]" : ""}`}
-      style={{ "--stagger-index": index } as React.CSSProperties}
-    >
-      <div className="flex items-start gap-4">
+    <li className="relative">
+      <div className="grid grid-cols-1 md:grid-cols-[auto_1fr_auto] gap-4 py-5 pl-3 pr-2">
+        {/* Left accent stripe */}
+        <span
+          aria-hidden
+          className={`absolute left-0 top-3 bottom-3 w-[2px] rounded-full ${
+            overdue
+              ? "bg-destructive"
+              : needsAction
+                ? "bg-[var(--color-bb-cobalt)]"
+                : asset.status === "accepted"
+                  ? "bg-success/50"
+                  : "bg-transparent"
+          }`}
+        />
+
+        {/* Glyph */}
         <div
-          className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-[var(--radius-control)] ${
-            isUploaded
-              ? "bg-success/10 border border-success/20"
-              : "bg-white/[0.04] border border-white/[0.06]"
+          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-md border ${
+            asset.status === "accepted"
+              ? "border-success/30 bg-success/10 text-success"
+              : asset.status === "rejected"
+                ? "border-destructive/30 bg-destructive/10 text-destructive"
+                : "border-border/60 bg-card/40 text-muted-foreground"
           }`}
         >
           {asset.status === "accepted" ? (
-            <CheckCircle2 size={20} className="text-success" />
+            <CheckCircle2 size={18} />
           ) : asset.status === "rejected" ? (
-            <XCircle size={20} className="text-destructive" />
+            <XCircle size={18} />
           ) : (
-            <Icon size={20} className="text-text-muted" />
+            renderAssetIcon(asset.assetType)
           )}
         </div>
 
-        {/* Content */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center justify-between gap-3 mb-1">
-            <h3 className="text-sm font-semibold text-text-primary truncate">
+        {/* Body */}
+        <div className="min-w-0">
+          <div className="flex items-center gap-2 flex-wrap mb-1">
+            <h3 className="text-sm font-semibold text-foreground truncate">
               {asset.name}
             </h3>
-            <div className="flex shrink-0 items-center gap-2">
-              <AssetReviewBadge
-                reviewStatus={asset.reviewStatus}
-                hasUpload={Boolean(asset.fileUrl)}
-              />
-              <AssetStatusBadge status={asset.status} />
-            </div>
+            <AssetReviewBadge
+              reviewStatus={asset.reviewStatus}
+              hasUpload={Boolean(asset.fileUrl)}
+            />
+            <AssetStatusBadge status={asset.status} />
           </div>
 
           {asset.description && (
-            <p className="text-xs text-text-muted mb-2 line-clamp-2">
+            <p className="text-sm text-muted-foreground line-clamp-2 mt-0.5">
               {asset.description}
             </p>
           )}
 
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-            {asset.requiredFormat && (
-              <span className="text-xs text-text-secondary">
-                Format: {asset.requiredFormat}
-              </span>
+          <p className="mt-1.5 text-overline text-muted-foreground">
+            {asset.requiredFormat && <>Format · {asset.requiredFormat}</>}
+            {asset.requiredFormat && asset.requiredDimensions && (
+              <span className="opacity-60"> · </span>
             )}
             {asset.requiredDimensions && (
-              <span className="text-xs text-text-secondary">
-                Size: {asset.requiredDimensions}
-              </span>
+              <>Size · {asset.requiredDimensions}</>
             )}
-          </div>
-
-          <div className="flex items-center gap-4 mt-2">
             {asset.dueDate && (
-              <span
-                className={`flex items-center gap-1 text-xs ${
-                  overdue ? "text-destructive" : "text-text-muted"
-                }`}
-              >
-                {overdue ? (
-                  <AlertCircle size={11} />
-                ) : (
-                  <Clock size={11} />
-                )}
-                {overdue ? "Overdue: " : "Due: "}
-                {formatDateShort(asset.dueDate!)}
-              </span>
+              <>
+                <span className="opacity-60"> · </span>
+                <span
+                  className={
+                    overdue ? "text-destructive" : "text-muted-foreground"
+                  }
+                >
+                  {overdue ? (
+                    <AlertCircle className="inline size-3 -mt-0.5 mr-0.5" />
+                  ) : (
+                    <Clock className="inline size-3 -mt-0.5 mr-0.5" />
+                  )}
+                  {overdue ? "Overdue " : "Due "}
+                  {formatDateShort(asset.dueDate)}
+                </span>
+              </>
             )}
-            {asset.fileName && (
-              <span className="text-xs text-text-muted truncate">
-                {asset.fileName}
-                {asset.fileSize ? ` (${formatFileSize(asset.fileSize)})` : ""}
-              </span>
-            )}
-          </div>
+          </p>
+
+          {asset.fileName && (
+            <p className="mt-1 text-xs text-muted-foreground truncate opacity-80">
+              {asset.fileName}
+              {asset.fileSize ? ` (${formatFileSize(asset.fileSize)})` : ""}
+            </p>
+          )}
 
           {asset.reviewFeedback &&
             asset.reviewStatus === "revision_requested" && (
-              <div className="mt-3 rounded-xl border border-amber-300/20 bg-amber-300/[0.06] p-3">
-                <p className="text-[11px] uppercase tracking-wider text-amber-300/90 font-semibold mb-1">
-                  Note from Bright.Blue creative
+              <div className="mt-3 border-l-2 border-warning/60 pl-3 py-1">
+                <p className="text-overline text-warning mb-1">
+                  Note from creative
                 </p>
-                <p className="text-xs text-foreground/90 whitespace-pre-line">
+                <p className="text-sm text-foreground/90 whitespace-pre-line leading-snug">
                   {asset.reviewFeedback}
                 </p>
               </div>
             )}
+        </div>
 
-          {(asset.status === "required" ||
-            asset.reviewStatus === "revision_requested") && (
+        {/* Action */}
+        <div className="flex md:justify-end md:items-start">
+          {needsAction && (
             <AssetUploadButton assetId={asset.id} eventId={asset.eventId} />
           )}
         </div>
       </div>
-    </Card>
+    </li>
   );
 }

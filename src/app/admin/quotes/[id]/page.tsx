@@ -1,12 +1,14 @@
-/** Internal proposal builder — add line items and send proposal */
+/** Internal proposal builder — add line items and send proposal. */
 import { redirect, notFound } from "next/navigation";
+
+import { AdminPageShell } from "@/components/brand";
+import { QuoteStatusBadge } from "@/components/quotes/QuoteStatusBadge";
+import { ProposalBuilder } from "./ProposalBuilder";
+
 import { getUser } from "@/lib/auth";
 import { isInternalRole } from "@/lib/roles";
 import { getQuoteById } from "@/lib/queries/quotes";
-import { AppShell } from "@/components/layout/AppShell";
-import { PageHeader } from "@/components/layout/PageHeader";
-import { QuoteStatusBadge } from "@/components/quotes/QuoteStatusBadge";
-import { ProposalBuilder } from "./ProposalBuilder";
+import { getUnreadCount } from "@/lib/queries/notifications";
 
 export default async function QuoteDetailPage({
   params,
@@ -16,24 +18,34 @@ export default async function QuoteDetailPage({
   const { id } = await params;
   const user = await getUser();
   if (!user) redirect("/login");
-  const isInternal = isInternalRole(user.role);
-  if (!isInternal) redirect("/");
+  if (!isInternalRole(user.role)) redirect("/");
 
-  const quote = await getQuoteById(id);
+  const [quote, unread] = await Promise.all([
+    getQuoteById(id),
+    getUnreadCount(user.id),
+  ]);
   if (!quote) notFound();
 
   return (
-    <AppShell user={user} isInternal={isInternal}>
-      <PageHeader
-        title={`Quote — ${quote.contact_name}`}
-        subtitle={quote.company_name ?? quote.contact_email}
-        breadcrumbs={[
-          { label: "Quotes", href: "/admin/quotes" },
-          { label: quote.contact_name },
-        ]}
-        actions={<QuoteStatusBadge status={quote.status} />}
-      />
-      <ProposalBuilder quote={quote} />
-    </AppShell>
+    <AdminPageShell
+      user={user}
+      unreadCount={unread}
+      section={quote.contact_name}
+      breadcrumbs={[
+        { label: "Home", href: "/" },
+        { label: "Quotes", href: "/admin/quotes" },
+        { label: quote.contact_name },
+      ]}
+      eyebrow={`Internal · ${quote.company_name ?? quote.contact_email}`}
+      title={`Proposal for ${quote.contact_name}.`}
+      subtitle="Build the line items, sanity-check the totals, and ship a proposal in under an hour."
+      heroRight={<QuoteStatusBadge status={quote.status} />}
+      backHref="/admin/quotes"
+      backLabel="Back to queue"
+    >
+      <div className="py-8">
+        <ProposalBuilder quote={quote} />
+      </div>
+    </AdminPageShell>
   );
 }

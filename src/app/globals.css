@@ -9,59 +9,94 @@
    ─────────────────────────────────────────────────────────── */
 
 @theme {
-	/* ── Brand & semantic colors (shadcn semantic + Bright.Blue alias) ── */
-	--color-brand: hsl(223, 94%, 53%);
-	--color-brand-soft: hsl(189, 100%, 75%);
-	--color-brand-deep: hsl(225, 78%, 28%);
+	/* ── Brand palette (canonical) ───────────────────────────────
+	   The locked Bright.Blue brand palette. Hex equivalents are
+	   noted for clarity but Tailwind tokens stay in HSL so opacity
+	   modifiers (`bg-primary/50`) keep working.
+
+	     --bb-cobalt  → #1E47F0   primary brand blue
+	     --bb-cyan    → #80E8FF   the "hero thread" accent
+	     --bb-ink     → #060720   deep blue-ink (dark surfaces)
+	     --bb-linen   → #F2EDE0   warm cream paper (light surfaces)
+	     --bb-paper   → #FAF7F0   raised paper (light cards / popovers) */
+	--color-bb-cobalt: hsl(223, 94%, 53%);
+	--color-bb-cobalt-soft: hsl(223, 94%, 68%);
+	--color-bb-cobalt-deep: hsl(225, 78%, 28%);
+	--color-bb-cyan: hsl(189, 100%, 75%);
+	--color-bb-ink: hsl(233, 70%, 8%);
+	--color-bb-ink-soft: hsl(233, 56%, 12%);
+	--color-bb-linen: hsl(40, 30%, 91%);
+	--color-bb-paper: hsl(40, 30%, 95%);
+	--color-bb-linen-deep: hsl(40, 22%, 84%);
+
+	--color-brand: var(--color-bb-cobalt);
+	--color-brand-soft: var(--color-bb-cyan);
+	--color-brand-deep: var(--color-bb-cobalt-deep);
 
 	--color-success: hsl(143, 72%, 42%);
 	--color-warning: hsl(43, 90%, 56%);
 	--color-info: hsl(199, 89%, 58%);
 
-	--color-dark-bg: hsl(233, 66%, 7%);
-	--color-card-dark: hsl(233, 56%, 11%);
+	/* Legacy dark-only aliases (still consumed by un-migrated code) */
+	--color-dark-bg: var(--color-bb-ink);
+	--color-card-dark: var(--color-bb-ink-soft);
 	--color-surface-glass: hsl(233, 48%, 15%);
 	--color-glass-border: hsl(222, 24%, 68%);
 	--color-text-primary: hsl(220, 20%, 90%);
 	--color-text-secondary: hsl(222, 15%, 55%);
 	--color-text-muted: hsl(222, 12%, 40%);
 
-	/* shadcn semantic */
-	--color-background: hsl(233, 66%, 7%);
-	--color-foreground: hsl(220, 20%, 90%);
-	--color-card: hsl(233, 56%, 11%);
-	--color-card-foreground: hsl(220, 20%, 90%);
+	/* ── Semantic surface tokens (default = Deep Ink / dark) ───────
+	   The `.theme-light` selector below remaps every one of these to
+	   the Linen palette so every consumer (cards, buttons, badges)
+	   inherits the mode switch automatically without code changes. */
+	--color-background: var(--color-bb-ink);
+	--color-foreground: hsl(40, 28%, 92%);
+	--color-card: var(--color-bb-ink-soft);
+	--color-card-foreground: hsl(40, 28%, 92%);
 	--color-popover: hsl(233, 56%, 13%);
-	--color-popover-foreground: hsl(220, 20%, 90%);
-	--color-primary: hsl(223, 94%, 53%);
-	--color-primary-foreground: hsl(0, 0%, 100%);
+	--color-popover-foreground: hsl(40, 28%, 92%);
+	--color-primary: var(--color-bb-cobalt);
+	--color-primary-foreground: hsl(40, 28%, 96%);
 	--color-secondary: hsl(233, 48%, 15%);
-	--color-secondary-foreground: hsl(220, 20%, 90%);
+	--color-secondary-foreground: hsl(40, 28%, 92%);
 	--color-muted: hsl(233, 48%, 15%);
-	--color-muted-foreground: hsl(222, 15%, 55%);
+	--color-muted-foreground: hsl(222, 15%, 60%);
 	--color-accent: hsl(233, 48%, 18%);
-	--color-accent-foreground: hsl(220, 20%, 96%);
+	--color-accent-foreground: hsl(40, 28%, 96%);
 	--color-destructive: hsl(0, 84%, 60%);
 	--color-destructive-foreground: hsl(0, 0%, 100%);
-	--color-border: hsl(222, 24%, 68% / 0.12);
-	--color-input: hsl(222, 24%, 68% / 0.12);
-	--color-ring: hsl(223, 94%, 53%);
+	--color-border: hsl(40, 28%, 92% / 0.12);
+	--color-input: hsl(40, 28%, 92% / 0.12);
+	--color-ring: var(--color-bb-cobalt);
 
 	--color-sidebar: hsl(233, 56%, 9%);
-	--color-sidebar-foreground: hsl(220, 20%, 90%);
-	--color-sidebar-primary: hsl(223, 94%, 53%);
-	--color-sidebar-primary-foreground: hsl(0, 0%, 100%);
+	--color-sidebar-foreground: hsl(40, 28%, 92%);
+	--color-sidebar-primary: var(--color-bb-cobalt);
+	--color-sidebar-primary-foreground: hsl(40, 28%, 96%);
 	--color-sidebar-accent: hsl(233, 48%, 15%);
-	--color-sidebar-accent-foreground: hsl(220, 20%, 96%);
-	--color-sidebar-border: hsl(222, 24%, 68% / 0.08);
-	--color-sidebar-ring: hsl(223, 94%, 53%);
+	--color-sidebar-accent-foreground: hsl(40, 28%, 96%);
+	--color-sidebar-border: hsl(40, 28%, 92% / 0.08);
+	--color-sidebar-ring: var(--color-bb-cobalt);
 
-	/* ── Typography ── */
-	--font-heading: 'Plus Jakarta Sans', system-ui, sans-serif;
-	--font-body: 'Inter', system-ui, sans-serif;
-	--font-sans: 'Inter', system-ui, sans-serif;
-	--font-overline: 'JetBrains Mono', ui-monospace, monospace;
-	--font-mono: 'JetBrains Mono', ui-monospace, monospace;
+	/* ── Typography ──────────────────────────────────────────────
+	   Canonical Bright.Blue brand fonts. The `--font-bright-*`
+	   variables are injected by `next/font/local` in
+	   `src/lib/fonts/index.ts`. The `.ttf` files ship with the
+	   bundle in `src/lib/fonts/` so there is no CDN dependency and
+	   no FOUT.
+
+	   - Heading  → Nunito Bold (rounded humanist sans, 700)
+	   - Body     → DM Sans Regular (geometric sans, 400)
+	   - Overline → DM Sans Medium (500, used uppercase + tracked)
+	   - Mono     → kept as a system fallback for code blocks /
+	                tabular numerals only; brand surfaces should
+	                prefer the overline token. */
+	--font-heading: var(--font-bright-headings), system-ui, sans-serif;
+	--font-body: var(--font-bright-body), system-ui, sans-serif;
+	--font-sans: var(--font-bright-body), system-ui, sans-serif;
+	--font-overline: var(--font-bright-overline), system-ui, sans-serif;
+	--font-mono: ui-monospace, SFMono-Regular, "SF Mono", Consolas, monospace;
 
 	/* ── Radius ── */
 	--radius: 1rem;
@@ -93,9 +128,9 @@
 	--bb-text-primary: hsl(220, 20%, 90%);
 	--bb-text-secondary: hsl(222, 15%, 55%);
 	--bb-text-muted: hsl(222, 12%, 40%);
-	--bb-font-heading: 'Plus Jakarta Sans', system-ui, sans-serif;
-	--bb-font-body: 'Inter', system-ui, sans-serif;
-	--bb-font-overline: 'JetBrains Mono', ui-monospace, monospace;
+	--bb-font-heading: var(--font-bright-headings), system-ui, sans-serif;
+	--bb-font-body: var(--font-bright-body), system-ui, sans-serif;
+	--bb-font-overline: var(--font-bright-overline), system-ui, sans-serif;
 	--bb-radius-shell: 2rem;
 	--bb-radius-card: 1.25rem;
 	--bb-radius-control: 0.75rem;
@@ -131,6 +166,60 @@ html {
 	color-scheme: dark;
 }
 
+html.theme-light {
+	color-scheme: light;
+}
+
+/* ───────────────────────────────────────────────────────────────
+   Light mode (Linen) — applied via `<html class="theme-light">`.
+
+   The dark (Deep Ink) palette in @theme above is the default. This
+   selector remaps every semantic surface token to the warm cream
+   paper palette. Brand cobalt and cyan stay the same in both modes
+   so the brand mark, the ridges, and the cobalt CTAs read the same
+   regardless of theme. Editorial surfaces (Customer Home, public
+   proposal, marketing) tend to live in light; operational surfaces
+   (Inbox, Review Queue, internal Library) tend to live in dark.
+   ─────────────────────────────────────────────────────────────── */
+html.theme-light {
+	--color-background: var(--color-bb-linen);
+	--color-foreground: hsl(233, 50%, 8%);
+	--color-card: var(--color-bb-paper);
+	--color-card-foreground: hsl(233, 50%, 8%);
+	--color-popover: var(--color-bb-paper);
+	--color-popover-foreground: hsl(233, 50%, 8%);
+	--color-primary: var(--color-bb-cobalt);
+	--color-primary-foreground: hsl(40, 30%, 96%);
+	--color-secondary: var(--color-bb-linen-deep);
+	--color-secondary-foreground: hsl(233, 50%, 8%);
+	--color-muted: var(--color-bb-linen-deep);
+	--color-muted-foreground: hsl(233, 22%, 32%);
+	--color-accent: var(--color-bb-linen-deep);
+	--color-accent-foreground: hsl(233, 50%, 8%);
+	--color-destructive: hsl(0, 72%, 48%);
+	--color-destructive-foreground: hsl(40, 30%, 96%);
+	--color-border: hsl(233, 50%, 8% / 0.12);
+	--color-input: hsl(233, 50%, 8% / 0.12);
+	--color-ring: var(--color-bb-cobalt);
+
+	--color-sidebar: var(--color-bb-linen);
+	--color-sidebar-foreground: hsl(233, 50%, 8%);
+	--color-sidebar-primary: var(--color-bb-cobalt);
+	--color-sidebar-primary-foreground: hsl(40, 30%, 96%);
+	--color-sidebar-accent: var(--color-bb-linen-deep);
+	--color-sidebar-accent-foreground: hsl(233, 50%, 8%);
+	--color-sidebar-border: hsl(233, 50%, 8% / 0.08);
+
+	/* Legacy aliases keep working under light mode */
+	--color-dark-bg: var(--color-bb-linen);
+	--color-card-dark: var(--color-bb-paper);
+	--color-surface-glass: var(--color-bb-paper);
+	--color-glass-border: hsl(233, 50%, 8%);
+	--color-text-primary: hsl(233, 50%, 8%);
+	--color-text-secondary: hsl(233, 22%, 32%);
+	--color-text-muted: hsl(233, 18%, 45%);
+}
+
 body {
 	font-family: var(--font-body);
 	background-color: var(--color-background);
@@ -142,6 +231,13 @@ body {
 	margin: 0;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
+}
+
+/* In light mode pull back the radial gradient — the cobalt glow is
+   beautiful on ink but reads as a smudge on cream. */
+html.theme-light body {
+	background-image:
+		radial-gradient(ellipse 1200px 800px at 50% -300px, hsl(223 94% 53% / 0.05), transparent 70%);
 }
 
 /* ───────────────────────────────────────────────────────────
@@ -160,10 +256,13 @@ body {
 }
 
 .text-overline {
+	/* DM Sans Medium, uppercase + tracked. We deliberately use the
+	   brand sans (not monospace) so eyebrows feel like part of the
+	   editorial system rather than a code comment. */
 	font-family: var(--font-overline);
 	font-size: 0.6875rem;
 	font-weight: 500;
-	letter-spacing: 0.1em;
+	letter-spacing: 0.14em;
 	text-transform: uppercase;
 	font-variant-numeric: tabular-nums;
 }
@@ -202,126 +301,6 @@ body {
 	-webkit-backdrop-filter: blur(24px) saturate(140%);
 	background-color: hsl(233 56% 11% / 0.88);
 	border: 1px solid hsl(222 24% 68% / 0.16);
-}
-
-/* ───────────────────────────────────────────────────────────
-   Legacy utility classes — preserved for un-migrated surfaces.
-   New code should use shadcn primitives:
-     .btn → <Button>          .card → <Card>
-     .input → <Input>         .badge-* → <Badge>/<StatusBadge>
-   These classes are token-aligned with the shadcn variants and
-   will be removed once all consumers are migrated.
-   ─────────────────────────────────────────────────────────── */
-
-.card {
-	backdrop-filter: blur(16px) saturate(120%);
-	-webkit-backdrop-filter: blur(16px) saturate(120%);
-	background-color: hsl(233 56% 11% / 0.72);
-	border: 1px solid hsl(222 24% 68% / 0.12);
-	border-radius: var(--radius-card);
-	box-shadow: var(--bb-shadow-card);
-	transition:
-		border-color var(--bb-duration-base) var(--bb-ease-standard),
-		box-shadow var(--bb-duration-slow) var(--bb-ease-emphasized),
-		transform var(--bb-duration-base) var(--bb-ease-emphasized);
-}
-
-.card-interactive {
-	cursor: pointer;
-}
-
-.card-interactive:hover {
-	border-color: hsl(222 24% 68% / 0.24);
-	box-shadow: var(--bb-shadow-premium);
-	transform: translateY(-2px);
-}
-
-.btn {
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	gap: 0.5rem;
-	padding: 0.5rem 1.125rem;
-	font-family: var(--font-body);
-	font-size: 0.8125rem;
-	font-weight: 550;
-	line-height: 1.25;
-	border-radius: var(--radius-control);
-	border: 1px solid transparent;
-	cursor: pointer;
-	user-select: none;
-	white-space: nowrap;
-	transition:
-		background-color var(--bb-duration-fast) var(--bb-ease-standard),
-		border-color var(--bb-duration-fast) var(--bb-ease-standard),
-		box-shadow var(--bb-duration-base) var(--bb-ease-emphasized),
-		transform var(--bb-duration-micro) var(--bb-ease-spring),
-		opacity var(--bb-duration-fast);
-}
-
-.btn:active { transform: scale(0.97); }
-.btn:disabled { opacity: 0.45; pointer-events: none; }
-
-.btn-primary {
-	background: linear-gradient(135deg, var(--bb-brand), hsl(223, 94%, 60%));
-	color: #fff;
-	box-shadow: var(--bb-shadow-premium);
-}
-.btn-primary:hover {
-	box-shadow: var(--bb-shadow-float);
-	filter: brightness(1.08);
-}
-
-.btn-ghost {
-	background-color: transparent;
-	color: var(--bb-text-primary);
-	border-color: hsl(222 24% 68% / 0.15);
-}
-.btn-ghost:hover {
-	background-color: hsl(233 48% 15% / 0.55);
-	border-color: hsl(222 24% 68% / 0.25);
-}
-
-.badge {
-	display: inline-flex;
-	align-items: center;
-	gap: 0.25rem;
-	padding: 0.125rem 0.5rem;
-	font-family: var(--font-overline);
-	font-size: 0.625rem;
-	font-weight: 600;
-	border-radius: var(--radius-chip);
-	text-transform: uppercase;
-	letter-spacing: 0.04em;
-	line-height: 1.6;
-	white-space: nowrap;
-}
-
-.badge-green { background-color: hsl(143 72% 42% / 0.12); color: hsl(143 72% 60%); border: 1px solid hsl(143 72% 42% / 0.25); }
-.badge-amber { background-color: hsl(43 90% 56% / 0.12); color: hsl(43 90% 68%); border: 1px solid hsl(43 90% 56% / 0.25); }
-.badge-red { background-color: hsl(0 84% 60% / 0.12); color: hsl(0 84% 70%); border: 1px solid hsl(0 84% 60% / 0.25); }
-.badge-blue { background-color: hsl(223 94% 53% / 0.12); color: hsl(223 94% 72%); border: 1px solid hsl(223 94% 53% / 0.25); }
-.badge-muted { background-color: hsl(222 12% 40% / 0.15); color: var(--bb-text-secondary); border: 1px solid hsl(222 12% 40% / 0.25); }
-
-.input {
-	background-color: var(--bb-surface-glass);
-	border: 1px solid hsl(222 24% 68% / 0.12);
-	color: var(--bb-text-primary);
-	font-family: var(--font-body);
-	font-size: 0.8125rem;
-	padding: 0.5rem 0.75rem;
-	border-radius: var(--radius-control);
-	outline: none;
-	width: 100%;
-	transition:
-		border-color var(--bb-duration-base) var(--bb-ease-standard),
-		box-shadow var(--bb-duration-base) var(--bb-ease-emphasized);
-}
-
-.input::placeholder { color: var(--bb-text-muted); }
-.input:focus {
-	border-color: var(--bb-brand);
-	box-shadow: 0 0 0 2px hsl(223 94% 53% / 0.18);
 }
 
 /* ───────────────────────────────────────────────────────────
@@ -461,7 +440,7 @@ body {
 .print-break-inside-avoid { break-inside: avoid; page-break-inside: avoid; }
 
 @media print {
-	body {
+body {
 		background: white !important;
 		color: black !important;
 	}

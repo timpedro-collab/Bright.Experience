@@ -1,0 +1,60 @@
+---
+description: Enforce test-as-you-code workflow for Bright.Experience
+alwaysApply: true
+---
+
+# Testing standards
+
+Tests are part of the work, not an afterthought. Anyone who reads `docs/testing.md` will know exactly what to write — these rules enforce that you write it.
+
+## Hard rules (CI will fail without these)
+
+1. **New pure function in `src/lib/`** → ship a `*.test.ts` next to it. Target ≥90% lines, ≥80% branches.
+2. **New server action in `src/app/actions/`** → ship a `*.test.ts` next to it with at least one happy-path test. Branch-heavy actions (RBAC, validation, dispatcher fan-out) need a test per branch.
+3. **New RLS policy on an existing table** → update or add a `supabase/tests/rls_<table>.sql` covering customer / internal access.
+4. **New interactive client component** (`onClick`, form state, optimistic update) → ship a Testing Library spec.
+5. **Never drop coverage** below the thresholds enforced in `vitest.config.ts`.
+
+## File layout
+
+```
+src/lib/foo.ts
+src/lib/foo.test.ts        ← right next to the source
+
+src/app/actions/bar.ts
+src/app/actions/bar.test.ts
+
+src/components/widgets/Baz.tsx
+src/components/widgets/Baz.test.tsx
+```
+
+Never put tests under `__tests__/` or in a separate top-level `test/`.
+
+## Test naming
+
+Describe behaviour, not implementation:
+
+- Bad: `it("calls supabase.from with 'tasks'")`
+- Good: `it("returns zero counts when no events are provided")`
+- Good: `it("rejects non-internal users from /admin/quotes")`
+
+## Mocking layer
+
+Mock at the client boundary, not at the function level:
+
+- Supabase: use `createMockSupabase()` from `@/test/supabase`.
+- Resend: `vi.mock("resend", () => ({ Resend: class { emails = { send: vi.fn() } } }))`
+- Pipedrive HTTP: use the MSW handlers from `@/test/handlers`.
+
+## When unsure
+
+1. Pick the smallest existing test file in the same shape (`src/lib/dates.test.ts` for pure helpers, `src/app/actions/events.test.ts` for actions) and copy its structure.
+2. Run `npm test -- --reporter=verbose` to see the output as you iterate.
+3. Read `docs/testing.md` for the full conventions and template snippets.
+
+## Don't
+
+- Snapshot React markup — assert behaviour with role-based queries instead.
+- Test framework internals (Next.js, React, Radix).
+- Test pure presentation components (shadcn primitives are tested upstream).
+- Write E2E for things unit/integration tests can already prove.

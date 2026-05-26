@@ -1,11 +1,11 @@
-/** Event QA checklist page — quality assurance checks with pass/fail tracking */
+/** Event QA checklist — quality assurance checks with pass/fail tracking. */
 import { notFound, redirect } from "next/navigation";
 import { ShieldCheck } from "lucide-react";
-import { AppShell } from "@/components/layout/AppShell";
-import { PageHeader } from "@/components/layout/PageHeader";
-import { EventContextBar } from "@/components/events/EventContextBar";
+
+import { EventPageShell } from "@/components/brand";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { QAChecklist } from "@/components/qa/QAChecklist";
+
 import { getEventById } from "@/lib/queries/events";
 import { getQAItemsByEvent } from "@/lib/queries/qa-items";
 import { getUnreadCount } from "@/lib/queries/notifications";
@@ -29,28 +29,27 @@ export default async function QAPage({
   if (!event) return notFound();
 
   return (
-    <AppShell
-      eventId={id}
+    <EventPageShell
+      event={event}
       user={user}
-      isInternal={isInternal}
-      notificationCount={unread}
+      unreadCount={unread}
+      section="Quality assurance"
+      slug="qa"
+      title="Pre-event readiness."
+      subtitle="A final, opinionated checklist so we ship a flawless experience on the day."
     >
-      <EventContextBar event={event} currentSection="Quality assurance" />
-      <PageHeader
-        eyebrow="Pre-event readiness"
-        title="Quality assurance"
-        subtitle="A final, opinionated checklist so we ship a flawless experience on the day."
-      />
-      {qaItems.length === 0 ? (
-        <EmptyState
-          icon={ShieldCheck}
-          title="No QA items yet"
-          description="Quality assurance checks will appear here when the event reaches the QA stage."
-          action={{ label: "View timeline", href: `/events/${id}/timeline` }}
-        />
-      ) : (
-        <QAChecklist eventId={id} items={qaItems} isInternal={isInternal} />
-      )}
-    </AppShell>
+      <section className="py-8">
+        {qaItems.length === 0 ? (
+          <EmptyState
+            icon={ShieldCheck}
+            title="No QA items yet"
+            description="Quality assurance checks will appear here when the event reaches the QA stage."
+            action={{ label: "View timeline", href: `/events/${id}/timeline` }}
+          />
+        ) : (
+          <QAChecklist eventId={id} items={qaItems} isInternal={isInternal} />
+        )}
+      </section>
+    </EventPageShell>
   );
 }

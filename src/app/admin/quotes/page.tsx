@@ -1,27 +1,47 @@
-/** Internal quote queue dashboard — all quotes with filter/sort */
+/** Internal quote queue dashboard — all quotes with filter/sort. */
 import { redirect } from "next/navigation";
+
+import { AdminPageShell } from "@/components/brand";
+import { QuoteQueueTable } from "@/components/quotes/QuoteQueueTable";
+
 import { getUser } from "@/lib/auth";
 import { isInternalRole } from "@/lib/roles";
 import { getQuotes } from "@/lib/queries/quotes";
-import { AppShell } from "@/components/layout/AppShell";
-import { PageHeader } from "@/components/layout/PageHeader";
-import { QuoteQueueTable } from "@/components/quotes/QuoteQueueTable";
+import { getUnreadCount } from "@/lib/queries/notifications";
 
 export default async function QuotesPage() {
   const user = await getUser();
   if (!user) redirect("/login");
-  const isInternal = isInternalRole(user.role);
-  if (!isInternal) redirect("/");
+  if (!isInternalRole(user.role)) redirect("/");
 
-  const quotes = await getQuotes();
+  const [quotes, unread] = await Promise.all([
+    getQuotes(),
+    getUnreadCount(user.id),
+  ]);
 
   return (
-    <AppShell user={user} isInternal={isInternal}>
-      <PageHeader
-        title="Quote Queue"
-        subtitle="Manage all Book Now and Proposal requests"
-      />
-      <QuoteQueueTable quotes={quotes as Parameters<typeof QuoteQueueTable>[0]["quotes"]} />
-    </AppShell>
+    <AdminPageShell
+      user={user}
+      unreadCount={unread}
+      section="Quote queue"
+      title="The quote queue."
+      subtitle="Every Book Now and proposal request — assign, work, and ship."
+      heroRight={
+        quotes.length > 0 ? (
+          <div className="text-overline text-muted-foreground tabular-nums">
+            <span className="text-foreground text-base font-semibold">
+              {quotes.length}
+            </span>{" "}
+            in flight
+          </div>
+        ) : null
+      }
+    >
+      <div className="py-8">
+        <QuoteQueueTable
+          quotes={quotes as Parameters<typeof QuoteQueueTable>[0]["quotes"]}
+        />
+      </div>
+    </AdminPageShell>
   );
 }

@@ -3,9 +3,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { CalendarPlus } from "lucide-react";
 
-import { AppShell } from "@/components/layout/AppShell";
-import { PageHeader } from "@/components/layout/PageHeader";
-import { Card, CardContent } from "@/components/ui/card";
+import { AdminPageShell, EditorialEyebrow } from "@/components/brand";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -27,19 +25,20 @@ export default async function NewEventPage() {
   ]);
 
   return (
-    <AppShell isInternal user={user} notificationCount={unread}>
-      <PageHeader
-        eyebrow="New event"
-        title="Create a new event"
-        subtitle="Add a new event for an existing account. Templates and assets can be applied after creation."
-        breadcrumbs={[
-          { label: "Dashboard", href: "/" },
-          { label: "New event" },
-        ]}
-      />
-
-      <Card tone="subtle" className="max-w-3xl">
-        <CardContent className="p-6 md:p-8">
+    <AdminPageShell
+      user={user}
+      unreadCount={unread}
+      section="New event"
+      breadcrumbs={[
+        { label: "Home", href: "/" },
+        { label: "New event" },
+      ]}
+      title="Create a new event."
+      subtitle="Add a new event for an existing account. Templates and assets can be applied after creation."
+    >
+      <section className="py-8 max-w-3xl">
+        <EditorialEyebrow accent>The basics</EditorialEyebrow>
+        <div className="mt-6 border border-border/60 bg-card/30 rounded-md p-6 md:p-8">
           <form action={createEventFromForm} className="space-y-5">
             <div>
               <Label htmlFor="accountId" className="text-overline mb-1.5 block">
@@ -160,7 +159,7 @@ export default async function NewEventPage() {
               </p>
             </div>
 
-            <div className="flex flex-wrap items-center justify-end gap-3 border-t border-white/[0.06] pt-5">
+            <div className="flex flex-wrap items-center justify-end gap-3 border-t border-border/40 pt-5">
               <Button asChild variant="glass">
                 <Link href="/">Cancel</Link>
               </Button>
@@ -170,8 +169,8 @@ export default async function NewEventPage() {
               </Button>
             </div>
           </form>
-        </CardContent>
-      </Card>
-    </AppShell>
+        </div>
+      </section>
+    </AdminPageShell>
   );
 }

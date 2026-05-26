@@ -1,9 +1,15 @@
-/** Public layout — catalog, quiz, book, proposal, partner public surfaces */
+/**
+ * Public layout — catalog, quiz, book, proposal, partner public surfaces.
+ *
+ * Uses the editorial Bright.Experience design language (deep ink palette,
+ * tracked uppercase eyebrows, hairline rules) but keeps the marketing
+ * navigation (Catalog, Case Studies, Find Your Match, Book Now, Proposal)
+ * since cold visitors need explicit wayfinding.
+ */
 import Link from "next/link";
 import { ArrowUpRight, Mail } from "lucide-react";
 
 import { BrandLockup } from "@/components/ui/brand-mark";
-import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/section";
 import { PublicMobileMenu } from "@/components/public/PublicMobileMenu";
 import { PartnerAttributionBanner } from "@/components/public/PartnerAttributionBanner";
@@ -44,45 +50,53 @@ const FOOTER_GROUPS = [
   },
 ];
 
-export default function PublicLayout({ children }: { children: React.ReactNode }) {
+const LOCATIONS = ["London", "Milton Keynes", "Minneapolis", "Prague", "Dubai"];
+
+export default function PublicLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
       <PartnerAttributionBanner />
-      <header className="sticky top-0 z-50 border-b border-white/[0.06] bg-background/70 backdrop-blur-xl">
-        <Container className="flex h-16 items-center justify-between">
+
+      {/* Editorial chrome — tracked uppercase nav, hairline rule below */}
+      <header className="sticky top-0 z-50 bg-background/85 backdrop-blur-md border-b border-border/40">
+        <Container className="flex h-16 items-center justify-between gap-6">
           <Link
             href="/catalog"
-            className="flex items-center gap-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-md"
+            className="flex items-center gap-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-md"
           >
             <BrandLockup />
           </Link>
+
           <nav className="hidden lg:flex items-center gap-1">
             {PRIMARY_LINKS.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className="rounded-md px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-white/[0.04] hover:text-foreground"
+                className="rounded-sm px-3 py-1.5 text-overline text-muted-foreground transition-colors hover:bg-accent/40 hover:text-foreground"
               >
                 {link.label}
               </Link>
             ))}
           </nav>
-          <div className="flex items-center gap-2">
+
+          <div className="flex items-center gap-3">
             <Link
-              href="/partners/join"
-              className="hidden md:inline-flex text-xs text-muted-foreground hover:text-foreground transition-colors"
+              href="/login"
+              className="hidden md:inline-flex text-overline text-muted-foreground hover:text-foreground transition-colors"
             >
-              Become a partner
+              Sign in
             </Link>
-            <Button asChild variant="glass" size="sm" className="hidden md:inline-flex">
-              <Link href="/login">Sign in</Link>
-            </Button>
-            <Button asChild variant="brand" size="sm" className="hidden md:inline-flex">
-              <Link href="/quiz">
-                Find your fit
-                <ArrowUpRight className="h-3.5 w-3.5" />
-              </Link>
-            </Button>
+            <Link
+              href="/quiz"
+              className="hidden md:inline-flex items-center gap-1.5 bg-[var(--color-bb-cobalt)] text-white px-4 py-2 rounded-sm text-sm font-medium hover:opacity-90 transition-opacity"
+            >
+              Find your fit
+              <ArrowUpRight className="h-3.5 w-3.5" />
+            </Link>
             <PublicMobileMenu links={PRIMARY_LINKS} />
           </div>
         </Container>
@@ -90,18 +104,22 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
 
       <main className="flex-1">{children}</main>
 
-      <footer className="border-t border-white/[0.06] bg-[hsl(233,66%,5%)]">
+      {/* Editorial footer — bright.blue lockup, locations strip, link columns */}
+      <footer className="border-t border-border/40 bg-[hsl(233,66%,5%)]">
         <Container className="py-16">
           <div className="grid gap-10 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
             <div>
-              <BrandLockup size="md" tagline="ACTIVATIONS · DELIVERY · INTELLIGENCE" />
-              <p className="mt-4 max-w-sm text-sm text-muted-foreground">
-                Bright.Blue interactive activations &mdash; from booking and
+              <BrandLockup
+                size="md"
+                tagline="ACTIVATIONS · DELIVERY · INTELLIGENCE"
+              />
+              <p className="mt-4 max-w-sm text-sm text-muted-foreground leading-relaxed">
+                Bright.Blue interactive activations — from booking and
                 delivery to live telemetry and proof of performance.
               </p>
               <a
                 href="mailto:hello@brightblue.com"
-                className="mt-6 inline-flex items-center gap-2 text-sm text-foreground hover:text-primary transition-colors"
+                className="mt-6 inline-flex items-center gap-2 text-sm text-foreground hover:text-[var(--color-bb-cobalt)] transition-colors"
               >
                 <Mail className="h-4 w-4" /> hello@brightblue.com
               </a>
@@ -126,14 +144,31 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
               </div>
             ))}
           </div>
-          <div className="mt-12 flex flex-col items-start justify-between gap-4 border-t border-white/[0.06] pt-6 md:flex-row md:items-center">
-            <p className="text-xs text-muted-foreground">
-              © {new Date().getFullYear()} Bright.Blue Events. All rights reserved.
+
+          {/* Locations strip */}
+          <div className="mt-12 pt-6 border-t border-border/40">
+            <p className="text-overline text-muted-foreground">
+              <span className="text-foreground">bright.blue</span>
+              <span className="mx-2 opacity-50">/</span>
+              <span>{LOCATIONS.join(" · ")}</span>
             </p>
-            <div className="flex items-center gap-4 text-xs text-muted-foreground">
-              <Link href="/terms" className="hover:text-foreground transition-colors">Terms</Link>
-              <Link href="/privacy" className="hover:text-foreground transition-colors">Privacy</Link>
-              <Link href="/partners/join" className="hover:text-foreground transition-colors">Partners</Link>
+          </div>
+
+          <div className="mt-6 flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
+            <p className="text-xs text-muted-foreground">
+              © {new Date().getFullYear()} Bright.Blue Events. All rights
+              reserved.
+            </p>
+            <div className="flex items-center gap-4 text-overline text-muted-foreground">
+              <Link href="/terms" className="hover:text-foreground transition-colors">
+                Terms
+              </Link>
+              <Link href="/privacy" className="hover:text-foreground transition-colors">
+                Privacy
+              </Link>
+              <Link href="/partners/join" className="hover:text-foreground transition-colors">
+                Partners
+              </Link>
             </div>
           </div>
         </Container>

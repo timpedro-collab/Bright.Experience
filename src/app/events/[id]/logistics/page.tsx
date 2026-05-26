@@ -1,11 +1,11 @@
-/** Event logistics page — delivery, setup, and collection tracking */
+/** Event logistics — delivery, setup, and collection tracking. */
 import { notFound, redirect } from "next/navigation";
 import { Truck } from "lucide-react";
-import { AppShell } from "@/components/layout/AppShell";
-import { PageHeader } from "@/components/layout/PageHeader";
-import { EventContextBar } from "@/components/events/EventContextBar";
+
+import { EventPageShell } from "@/components/brand";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { LogisticsTimeline } from "@/components/logistics/LogisticsTimeline";
+
 import { getEventById } from "@/lib/queries/events";
 import { getLogisticsByEvent } from "@/lib/queries/logistics";
 import { getUnreadCount } from "@/lib/queries/notifications";
@@ -29,28 +29,30 @@ export default async function LogisticsPage({
   if (!event) return notFound();
 
   return (
-    <AppShell
-      eventId={id}
+    <EventPageShell
+      event={event}
       user={user}
-      isInternal={isInternal}
-      notificationCount={unread}
+      unreadCount={unread}
+      section="Logistics"
+      title="On the day."
+      subtitle="Delivery, setup, and collection — everything that makes the experience land smoothly."
     >
-      <EventContextBar event={event} currentSection="Logistics" />
-      <PageHeader
-        eyebrow="On the day"
-        title="Logistics"
-        subtitle="Delivery, setup, and collection — everything that makes the experience land smoothly."
-      />
-      {entries.length === 0 ? (
-        <EmptyState
-          icon={Truck}
-          title="No logistics entries yet"
-          description="Delivery, setup, and collection details will appear here once logistics are confirmed."
-          action={{ label: "View timeline", href: `/events/${id}/timeline` }}
-        />
-      ) : (
-        <LogisticsTimeline eventId={id} entries={entries} isInternal={isInternal} />
-      )}
-    </AppShell>
+      <section className="py-8">
+        {entries.length === 0 ? (
+          <EmptyState
+            icon={Truck}
+            title="No logistics entries yet"
+            description="Delivery, setup, and collection details will appear here once logistics are confirmed."
+            action={{ label: "View timeline", href: `/events/${id}/timeline` }}
+          />
+        ) : (
+          <LogisticsTimeline
+            eventId={id}
+            entries={entries}
+            isInternal={isInternal}
+          />
+        )}
+      </section>
+    </EventPageShell>
   );
 }

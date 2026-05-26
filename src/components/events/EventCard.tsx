@@ -40,7 +40,12 @@ export function EventCard({
   return (
     <Link
       href={href}
-      className="card card-interactive group block p-6 transition-all"
+      className={cn(
+        "group block p-6 rounded-[var(--radius-card)] border bg-card text-card-foreground",
+        "shadow-[var(--bb-shadow-card)] transition-all duration-200",
+        "border-border hover:border-white/24 hover:-translate-y-0.5 hover:shadow-[var(--bb-shadow-premium)]",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+      )}
     >
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">

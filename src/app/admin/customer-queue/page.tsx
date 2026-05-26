@@ -14,9 +14,7 @@
 import { redirect } from "next/navigation";
 import { ArrowRight, Clock } from "lucide-react";
 
-import { AppShell } from "@/components/layout/AppShell";
-import { PageHeader } from "@/components/layout/PageHeader";
-import { Card, CardContent } from "@/components/ui/card";
+import { AdminPageShell } from "@/components/brand";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { timeSince } from "@/lib/dates";
 
@@ -56,9 +54,10 @@ export default async function CustomerQueuePage() {
   if (!isInternal) redirect("/");
 
   const supabase = await createClient();
-  const cutoff = new Date(
-    Date.now() - STALE_DAYS * 24 * 60 * 60 * 1000
-  ).toISOString();
+  // Server Components run once per request; reading the current time here
+  // is intentional — the cutoff is a per-request boundary, not render state.
+  // eslint-disable-next-line react-hooks/purity
+  const cutoff = new Date(Date.now() - STALE_DAYS * 24 * 60 * 60 * 1000).toISOString();
 
   const [approvalsRes, briefingsRes, revisionsRes, unread] = await Promise.all([
     supabase
@@ -135,17 +134,28 @@ export default async function CustomerQueuePage() {
   items.sort((a, b) => a.anchor.localeCompare(b.anchor));
 
   return (
-    <AppShell user={user} isInternal={isInternal} notificationCount={unread}>
-      <PageHeader
-        eyebrow="Account managers"
-        title="Customer queue"
-        subtitle={
-          items.length === 0
-            ? "Nothing has gone stale. Every customer-side item is inside the reminder window."
-            : `${items.length} item${items.length === 1 ? "" : "s"} sitting > ${STALE_DAYS} days. Time to pick up the phone — the reminders have already gone out.`
-        }
-      />
-
+    <AdminPageShell
+      user={user}
+      unreadCount={unread}
+      section="Customer queue"
+      eyebrow="Internal · Account managers"
+      title="Time to pick up the phone."
+      subtitle={
+        items.length === 0
+          ? "Nothing has gone stale. Every customer-side item is inside the reminder window."
+          : `${items.length} item${items.length === 1 ? "" : "s"} sitting > ${STALE_DAYS} days. Time to pick up the phone — the reminders have already gone out.`
+      }
+      heroRight={
+        items.length > 0 ? (
+          <div className="text-overline text-muted-foreground tabular-nums">
+            <span className="text-foreground text-base font-semibold">
+              {items.length}
+            </span>{" "}
+            stale
+          </div>
+        ) : null
+      }
+    >
       {items.length === 0 ? (
         <EmptyState
           icon={Clock}
@@ -154,42 +164,42 @@ export default async function CustomerQueuePage() {
           size="lg"
         />
       ) : (
-        <div className="space-y-3">
-          {items.map((item) => (
-            <a
-              key={item.id}
-              href={item.link}
-              className="group block"
-            >
-              <Card
-                tone="subtle"
-                className="transition-colors hover:border-white/16"
-              >
-                <CardContent className="flex items-center gap-4 p-4">
+        <div className="py-8">
+          <ul className="flex flex-col divide-y divide-border/40 border-t border-b border-border/40">
+            {items.map((item) => (
+              <li key={item.id} className="relative">
+                <a
+                  href={item.link}
+                  className="group flex items-center gap-4 py-4 pl-3 pr-2 transition-colors hover:bg-accent/30"
+                >
+                  <span
+                    aria-hidden
+                    className="absolute left-0 top-3 bottom-3 w-[2px] rounded-full bg-warning/60"
+                  />
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-semibold text-foreground truncate">
                       {item.title}
                     </p>
-                    <p className="mt-1 text-xs text-muted-foreground truncate">
+                    <p className="mt-0.5 text-overline text-muted-foreground truncate">
                       {item.accountName ? `${item.accountName} · ` : ""}
                       {item.eventName ?? "Account-level"}
                     </p>
                   </div>
                   <div className="shrink-0 text-right">
-                    <p className="text-xs text-muted-foreground">
-                      {ageDays(item.anchor)} days stale
+                    <p className="text-sm text-warning font-semibold tabular-nums">
+                      {ageDays(item.anchor)} days
                     </p>
-                    <p className="text-[11px] text-muted-foreground/70">
+                    <p className="text-overline text-muted-foreground">
                       Since {timeSince(item.anchor)}
                     </p>
                   </div>
                   <ArrowRight className="h-4 w-4 text-muted-foreground shrink-0 transition-transform group-hover:translate-x-0.5" />
-                </CardContent>
-              </Card>
-            </a>
-          ))}
+                </a>
+              </li>
+            ))}
+          </ul>
         </div>
       )}
-    </AppShell>
+    </AdminPageShell>
   );
 }
