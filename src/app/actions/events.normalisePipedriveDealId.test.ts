@@ -6,7 +6,7 @@
  */
 
 import { describe, it, expect } from "vitest";
-import { normalisePipedriveDealId } from "./events";
+import { normalisePipedriveDealId } from "@/lib/pipedrive/normalise";
 
 describe("normalisePipedriveDealId", () => {
   it("returns null for undefined input", () => {

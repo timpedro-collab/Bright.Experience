@@ -1,8 +1,24 @@
 "use server";
 
+/**
+ * Asset upload + review server actions.
+ *
+ * Uploads land in the private `event-assets` Supabase Storage bucket;
+ * every read is signed on demand. The asset row stores the storage
+ * `file_path` (not a URL) so renderers can re-sign whenever they need
+ * a fresh URL.
+ */
+
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { dispatchNotification } from "@/lib/notifications/dispatch";
+import {
+  storagePathFor,
+  validateUpload,
+  type StorageBucket,
+} from "@/lib/storage/signed-url";
+
+const ASSET_BUCKET: StorageBucket = "event-assets";
 
 export async function uploadAsset(formData: FormData) {
   const supabase = await createClient();
@@ -15,25 +31,44 @@ export async function uploadAsset(formData: FormData) {
   const eventId = formData.get("eventId") as string;
   const file = formData.get("file") as File;
 
-  if (!file || !assetId || !eventId) throw new Error("Missing required fields");
+  if (!file || !assetId || !eventId) {
+    throw new Error("Missing required fields");
+  }
 
-  const ext = file.name.split(".").pop();
-  const path = `${eventId}/${assetId}/${Date.now()}.${ext}`;
+  const check = validateUpload(ASSET_BUCKET, {
+    type: file.type,
+    size: file.size,
+    name: file.name,
+  });
+  if (!check.ok) {
+    throw new Error(check.detail);
+  }
+
+  const path = storagePathFor({
+    eventId,
+    entityType: "asset",
+    entityId: assetId,
+    filename: file.name,
+  });
 
   const { error: uploadError } = await supabase.storage
-    .from("event-assets")
-    .upload(path, file);
+    .from(ASSET_BUCKET)
+    .upload(path, file, {
+      contentType: file.type,
+      upsert: false,
+    });
 
-  if (uploadError) throw new Error(`Upload failed: ${uploadError.message}`);
+  if (uploadError) {
+    throw new Error(`Upload failed: ${uploadError.message}`);
+  }
 
-  const {
-    data: { publicUrl },
-  } = supabase.storage.from("event-assets").getPublicUrl(path);
-
+  // We store the *path* on the row, not the URL. Read surfaces sign
+  // on demand via createSignedReadUrl. This keeps URLs short-lived
+  // and prevents any accidental "leaked link" failure mode.
   const { error: updateError } = await supabase
     .from("assets")
     .update({
-      file_url: publicUrl,
+      file_url: path,
       file_name: file.name,
       file_size: file.size,
       file_type: file.type,
@@ -43,7 +78,9 @@ export async function uploadAsset(formData: FormData) {
     })
     .eq("id", assetId);
 
-  if (updateError) throw new Error(`Update failed: ${updateError.message}`);
+  if (updateError) {
+    throw new Error(`Update failed: ${updateError.message}`);
+  }
 
   await supabase.from("audit_entries").insert({
     event_id: eventId,
@@ -51,11 +88,13 @@ export async function uploadAsset(formData: FormData) {
     action: "asset_uploaded",
     entity_type: "asset",
     entity_id: assetId,
-    metadata: { file_name: file.name, file_size: file.size },
+    metadata: {
+      file_name: file.name,
+      file_size: file.size,
+      file_path: path,
+    },
   });
 
-  // Fetch context for the notification — the creative lead needs to see
-  // the asset name + uploader to route the review.
   const [{ data: assetRow }, { data: uploaderProfile }, { data: eventRow }] =
     await Promise.all([
       supabase.from("assets").select("name").eq("id", assetId).single(),

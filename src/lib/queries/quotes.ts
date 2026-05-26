@@ -8,7 +8,7 @@ export async function getQuotes() {
     .from("quotes")
     .select(
       `id, track, status, contact_name, contact_email, company_name,
-       package_id, event_type, venue_name, postcode,
+       package_id, event_type, venue_name, postcode, location_postcode,
        event_date_start, event_date_end, total_amount,
        created_at, updated_at`
     )

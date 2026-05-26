@@ -44,12 +44,19 @@ Requirements:
 
 ## What we cover today
 
-| File                                  | Tables                                |
-| ------------------------------------- | ------------------------------------- |
-| `rls_events.sql`                      | `events` (read + write)               |
-| `rls_assets.sql`                      | `assets`                              |
-| `rls_approvals.sql`                   | `approvals` (read + customer update)  |
-| `rls_tasks.sql`                       | `tasks`                               |
-| `rls_notifications.sql`               | `notifications`                       |
-| `rls_notification_preferences.sql`    | `notification_preferences`            |
-| `rls_pipedrive.sql`                   | `pipedrive_outbox`, `pipedrive_config` |
+| File                                  | Tables                                                |
+| ------------------------------------- | ----------------------------------------------------- |
+| `rls_events.sql`                      | `events` (read + write)                               |
+| `rls_assets.sql`                      | `assets`                                              |
+| `rls_approvals.sql`                   | `approvals` (read + customer update)                  |
+| `rls_tasks.sql`                       | `tasks`                                               |
+| `rls_notifications.sql`               | `notifications`                                       |
+| `rls_notification_preferences.sql`    | `notification_preferences`                            |
+| `rls_pipedrive.sql`                   | `pipedrive_outbox`, `pipedrive_config`                |
+| `rls_profiles.sql`                    | `profiles`, `accounts`                                |
+| `rls_partners.sql`                    | `partners`, `partner_users`, `partner_attributions`   |
+| `rls_venues.sql`                      | `venues`, `placements`, `sponsorship_slots`           |
+| `rls_quotes.sql`                      | `quotes`, `quote_line_items`                          |
+| `rls_catalog.sql`                     | `machines`, `games`, `packages`, `case_studies`       |
+| `rls_reports.sql`                     | `event_reports`, `benchmarks`                         |
+| `rls_telemetry.sql`                   | `machine_instances`, `telemetry_events`, `leads`, `event_metrics_snapshot` |

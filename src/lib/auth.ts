@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { ensureProfile } from "@/lib/auth/bootstrap";
 import type { User } from "@/types";
 
 export async function getUser(): Promise<User | null> {
@@ -15,9 +16,32 @@ export async function getUser(): Promise<User | null> {
     .from("profiles")
     .select("*")
     .eq("id", authUser.id)
-    .single();
+    .maybeSingle();
 
-  if (!profile) return null;
+  // Lazy bootstrap — covers password-based logins that bypass the
+  // OAuth callback. The DB trigger is the primary path; this is the
+  // safety net.
+  if (!profile) {
+    await ensureProfile(supabase, {
+      id: authUser.id,
+      email: authUser.email,
+      user_metadata: authUser.user_metadata,
+    });
+    const { data: created } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", authUser.id)
+      .single();
+    if (!created) return null;
+    return {
+      id: created.id,
+      name: created.name,
+      email: created.email,
+      avatarUrl: created.avatar_url,
+      role: created.role,
+      accountId: created.account_id,
+    };
+  }
 
   return {
     id: profile.id,

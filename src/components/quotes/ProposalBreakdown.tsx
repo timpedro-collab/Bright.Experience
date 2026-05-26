@@ -26,7 +26,7 @@ export function ProposalBreakdown({
   return (
     <Card tone="subtle">
       <CardHeader className="px-10 pt-10 pb-3 md:px-12 md:pt-12 print-break-inside-avoid">
-        <p className="text-overline text-muted-foreground mb-1">What's included</p>
+        <p className="text-overline text-muted-foreground mb-1">What&apos;s included</p>
         <CardTitle className="text-2xl">Investment breakdown</CardTitle>
       </CardHeader>
       <CardContent className="space-y-6 px-10 pb-10 md:px-12 md:pb-12">

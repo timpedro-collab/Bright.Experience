@@ -55,7 +55,7 @@ export function ProposalROIPanel({
         <p className="text-overline text-muted-foreground mb-1">Return on investment</p>
         <CardTitle className="text-2xl">What you can expect to earn back</CardTitle>
         <p className="mt-2 text-sm text-muted-foreground">
-          A quick view of the financial return, based on the leads we've
+          A quick view of the financial return, based on the leads we&apos;ve
           modelled for this activation. Adjust the average lead value to match
           how your team prices a converted customer.
         </p>

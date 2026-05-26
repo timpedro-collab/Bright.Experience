@@ -44,6 +44,7 @@ export type NotificationKind =
   | "proposal.delivered"
   // Internal-actionable
   | "proposal.intake_received"
+  | "booking.received"
   | "quote.accepted"
   | "asset.review_needed"
   | "briefing.submitted"
@@ -287,6 +288,24 @@ export const ARCHETYPES: Record<NotificationKind, Archetype> = {
     subjectTemplate: "New proposal intake — {contactName}",
     bodyTemplate:
       "{contactName} just submitted a proposal intake. Capabilities are pre-tagged on the quote — first response within four hours.",
+    linkTemplate: "/admin/quotes/{quoteId}",
+    ownerResolver: "event_account_executive",
+    reminderCadence: {
+      firstAfterHours: 4,
+      intervalHours: 4,
+      maxEscalations: 3,
+    },
+    defaults: { inPortal: true, emailMode: "immediate" },
+    audience: "internal",
+  },
+  "booking.received": {
+    kind: "booking.received",
+    classOf: "action_required",
+    priority: "high",
+    eyebrow: "Action required",
+    subjectTemplate: "New booking — {contactName}",
+    bodyTemplate:
+      "{contactName} just booked through the configurator. Confirm payment intent, kick off the event, and acknowledge within four hours.",
     linkTemplate: "/admin/quotes/{quoteId}",
     ownerResolver: "event_account_executive",
     reminderCadence: {

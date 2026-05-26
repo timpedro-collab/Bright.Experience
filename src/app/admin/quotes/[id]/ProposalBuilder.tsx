@@ -111,7 +111,12 @@ function IntakeDataCard({ quote }: { quote: Record<string, unknown> }) {
         <Row label="Dates" value={quote.event_date_start ? `${quote.event_date_start} – ${quote.event_date_end ?? "TBD"}` : "—"} />
         <Row label="Machine" value={String(quote.machine_preference ?? "—")} />
         <Row label="Game" value={String(quote.game_preference ?? "—")} />
-        <Row label="Footfall" value={String(quote.footfall_estimate ?? "—")} />
+        <Row
+          label="Footfall"
+          value={String(
+            quote.footfall_estimate_text ?? quote.footfall_estimate ?? "—"
+          )}
+        />
         <Row label="Creative" value={String(quote.creative_needs ?? "—")} />
         <Row label="Budget" value={String(quote.budget_indication ?? "—")} />
         <Separator />

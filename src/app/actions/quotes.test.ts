@@ -74,6 +74,32 @@ describe("submitBookNowQuote", () => {
     const row = insertCall!.args[0] as { addons: string[] };
     expect(row.addons).toEqual(["live-telemetry", "survey-layer"]);
   });
+
+  it("dispatches booking.received once the row is in", async () => {
+    supabase.setTableResponse("quotes", { data: { id: "q1" }, error: null });
+    const { submitBookNowQuote } = await import("./quotes");
+    await submitBookNowQuote({
+      packageId: "p1",
+      contactName: "Casey",
+      contactEmail: "casey@x",
+    });
+    expect(dispatchNotification).toHaveBeenCalledWith(
+      "booking.received",
+      expect.objectContaining({ quoteId: "q1", contactName: "Casey" })
+    );
+  });
+
+  it("does not blow up if the booking notification fails", async () => {
+    supabase.setTableResponse("quotes", { data: { id: "q1" }, error: null });
+    dispatchNotification.mockRejectedValueOnce(new Error("queue down"));
+    const { submitBookNowQuote } = await import("./quotes");
+    const result = await submitBookNowQuote({
+      packageId: "p1",
+      contactName: "Casey",
+      contactEmail: "casey@x",
+    });
+    expect(result.success).toBe(true);
+  });
 });
 
 describe("submitProposalIntake", () => {

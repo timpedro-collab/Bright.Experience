@@ -48,7 +48,7 @@ export default function TermsPage() {
             recommendation purposes only.
           </Block>
           <Block heading="6. Liability">
-            Bright.Blue's liability is limited to the value of the booking. We
+            Bright.Blue&apos;s liability is limited to the value of the booking. We
             do not accept liability for indirect or consequential losses.
           </Block>
           <Block heading="7. Contact">

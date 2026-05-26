@@ -30,10 +30,10 @@ export function ProposalAssetRequirements() {
         <p className="text-overline text-muted-foreground">
           So we can prep your portal
         </p>
-        <CardTitle className="text-2xl">What we'll need from you</CardTitle>
+        <CardTitle className="text-2xl">What we&apos;ll need from you</CardTitle>
         <p className="mt-2 text-sm text-muted-foreground">
-          Have a creative team in-house? Build to these specs and we'll plug
-          them in. Don't? Bright.Studio designs portal activations every working
+          Have a creative team in-house? Build to these specs and we&apos;ll plug
+          them in. Don&apos;t? Bright.Studio designs portal activations every working
           day of the year — pick the tier that fits per asset, or hand the lot
           to us.
         </p>
@@ -152,7 +152,7 @@ export function ProposalAssetRequirements() {
             <span className="text-foreground">
               {STUDIO_TURNAROUND.expressUpliftPercent}% express fee
             </span>
-            . Tell your account manager which tiers you want and they'll fold
+            . Tell your account manager which tiers you want and they&apos;ll fold
             them into the line items above.
           </p>
         </div>

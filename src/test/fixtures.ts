@@ -115,6 +115,7 @@ export function makeAsset(overrides: Partial<Asset> = {}): Asset {
     eventId: uuid("eeeeeeee-eeee-eeee-eeee"),
     name: "Hero image",
     assetType: "image",
+    filePath: "evt/asset/a1/hero.png",
     fileUrl: "https://test.local/hero.png",
     fileName: "hero.png",
     fileSize: 12345,

@@ -81,7 +81,7 @@ export function PostIntakeCard({
               {first}, your proposal is being crafted.
             </h2>
             <p className="text-muted-foreground">
-              Here's the experience we'll price for you:
+              Here&apos;s the experience we&apos;ll price for you:
             </p>
           </div>
 

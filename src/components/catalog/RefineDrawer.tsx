@@ -43,7 +43,10 @@ export function RefineDrawer({
   // Re-sync the draft each time the drawer opens, so the customer sees their
   // last committed choices — not an in-progress edit they abandoned.
   useEffect(() => {
-    if (open) setDraft([...selected]);
+    if (open) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setDraft([...selected]);
+    }
   }, [open, selected]);
 
   function toggle(slug: string) {
@@ -63,7 +66,7 @@ export function RefineDrawer({
             Tailor the experience
           </SheetTitle>
           <SheetDescription>
-            Toggle off anything that doesn't fit. We'll only price what stays on.
+            Toggle off anything that doesn&apos;t fit. We&apos;ll only price what stays on.
           </SheetDescription>
         </SheetHeader>
 

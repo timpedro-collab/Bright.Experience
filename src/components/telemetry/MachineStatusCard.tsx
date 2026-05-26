@@ -36,6 +36,7 @@ export function MachineStatusCard({ machine }: MachineStatusCardProps) {
   const style = STATUS_STYLES[machine.status] ?? STATUS_STYLES.retired;
   const isOnline =
     machine.lastHeartbeat &&
+    // eslint-disable-next-line react-hooks/purity -- heartbeat freshness is a transient UI signal that re-renders on parent revalidation; not a derived hook dependency
     Date.now() - new Date(machine.lastHeartbeat).getTime() < 5 * 60 * 1000;
 
   return (

@@ -27,7 +27,12 @@ process.env.FROM_EMAIL ??= "test@brightblue.test";
 process.env.SALES_TEAM_EMAIL ??= "sales@brightblue.test";
 process.env.STUDIO_TEAM_EMAIL ??= "studio@brightblue.test";
 process.env.CRON_SECRET ??= "test-cron-secret";
-process.env.NODE_ENV ??= "test";
+if (!process.env.NODE_ENV) {
+  // NODE_ENV is readonly under @types/node v22+, so we assign through
+  // bracket notation to keep the setup file compile-clean. The test
+  // runner only ever reads this value, never mutates it again.
+  (process.env as Record<string, string>).NODE_ENV = "test";
+}
 
 // --- next/navigation -------------------------------------------------
 // Components that import these expect them to exist; we stub them with

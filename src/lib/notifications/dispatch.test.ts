@@ -158,8 +158,10 @@ describe("dispatchNotification — Class A (action_required)", () => {
       }
     );
     expect(resendSend).toHaveBeenCalledTimes(1);
-    const call = resendSend.mock.calls[0][0] as { cc?: string[] };
-    expect(call.cc).toEqual(["ae@brightblue.test"]);
+    const firstCall = resendSend.mock.calls[0] as unknown as [
+      { cc?: string[] },
+    ];
+    expect(firstCall[0].cc).toEqual(["ae@brightblue.test"]);
   });
 });
 

@@ -18,7 +18,8 @@ vi.mock("@/lib/supabase/service-role", () => ({
 }));
 
 vi.mock("./drain", () => ({
-  drainOutbox: (...args: unknown[]) => drainOutbox(...args),
+  drainOutbox: (...args: unknown[]) =>
+    (drainOutbox as unknown as (...inner: unknown[]) => unknown)(...args),
 }));
 
 vi.mock("./client", () => ({
@@ -95,7 +96,9 @@ describe("enqueueDealKickoff", () => {
 describe("enqueueStageAdvance", () => {
   it("does nothing for stages that are not customer-visible", async () => {
     const { enqueueStageAdvance } = await import("./triggers");
-    await enqueueStageAdvance("evt-1", "discovery");
+    // `confirmed` is intentionally not in the customer-visible stage
+    // set; the helper should early-return without touching Supabase.
+    await enqueueStageAdvance("evt-1", "confirmed");
     expect(supabase.callsFor("events")).toHaveLength(0);
   });
 

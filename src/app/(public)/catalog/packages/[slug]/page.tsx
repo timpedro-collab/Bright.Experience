@@ -82,7 +82,7 @@ export default async function PackageDetailPage({ params }: PageProps) {
               </div>
             </div>
             <div className="rounded-[var(--radius-card)] border border-white/[0.06] bg-white/[0.02] p-6 backdrop-blur-md">
-              <p className="text-overline text-muted-foreground mb-3">What's included</p>
+              <p className="text-overline text-muted-foreground mb-3">What&apos;s included</p>
               {features.length === 0 ? (
                 <p className="text-sm text-muted-foreground">Details available on request.</p>
               ) : (

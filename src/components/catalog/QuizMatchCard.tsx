@@ -181,7 +181,7 @@ export function QuizMatchCard({
             {capabilities.length === 0 ? (
               <p className="text-sm text-muted-foreground">
                 A turnkey activation — branded build, GDPR lead capture, and
-                live engagement metrics. Add layers below if you'd like.
+                live engagement metrics. Add layers below if you&apos;d like.
               </p>
             ) : (
               <ul className="flex flex-wrap gap-2">
@@ -213,7 +213,7 @@ export function QuizMatchCard({
               <Link href={proposalHref}>Get my tailored proposal</Link>
             </Button>
             <p className="text-center text-xs text-muted-foreground">
-              We'll price it together — no commitment yet.
+              We&apos;ll price it together — no commitment yet.
             </p>
           </div>
 

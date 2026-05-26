@@ -162,6 +162,13 @@ export interface Asset {
   assetType: string;
   requiredFormat?: string;
   requiredDimensions?: string;
+  /**
+   * Internal Supabase Storage path the upload lives at (e.g.
+   * `eventId/asset/assetId/<ts>-file.png`). Renderers receive a
+   * short-lived signed URL under `fileUrl` instead.
+   */
+  filePath?: string;
+  /** Short-lived signed URL resolved by `attachSignedUrls`. */
   fileUrl?: string;
   fileName?: string;
   fileSize?: number;

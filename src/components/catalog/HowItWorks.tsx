@@ -37,7 +37,7 @@ export function HowItWorks() {
             From discovery to ROI in three moves
           </h2>
           <p className="mt-3 text-muted-foreground">
-            We've reimagined the experiential delivery journey end-to-end so
+            We&apos;ve reimagined the experiential delivery journey end-to-end so
             you can focus on the brand story, not the logistics.
           </p>
         </div>

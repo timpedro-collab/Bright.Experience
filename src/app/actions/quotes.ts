@@ -43,7 +43,23 @@ export async function submitBookNowQuote(data: {
     .select("id")
     .single();
 
-  if (error) return { success: false as const, error: "Failed to submit booking" };
+  if (error) {
+    console.error("[submitBookNowQuote] insert failed", error);
+    return { success: false as const, error: "Failed to submit booking" };
+  }
+
+  try {
+    await dispatchNotification("booking.received", {
+      quoteId: quote.id,
+      contactName: data.contactName,
+      contactEmail: data.contactEmail,
+      companyName: data.companyName ?? null,
+      entityType: "quote",
+      entityId: quote.id,
+    });
+  } catch (notifyError) {
+    console.error("[submitBookNowQuote] notification failed", notifyError);
+  }
 
   revalidatePath("/admin/quotes");
   return { success: true as const, data: { id: quote.id } };
@@ -90,7 +106,7 @@ export async function submitProposalIntake(data: {
       event_date_end: data.eventDateEnd ?? null,
       machine_preference: data.machinePreference ?? null,
       game_preference: data.gamePreference ?? null,
-      footfall_estimate: data.footfallEstimate ?? null,
+      footfall_estimate_text: data.footfallEstimate ?? null,
       creative_needs: data.creativeNeeds ?? null,
       special_requirements: data.specialRequirements ?? null,
       budget_indication: data.budgetIndication ?? null,
@@ -103,7 +119,10 @@ export async function submitProposalIntake(data: {
     .select("id")
     .single();
 
-  if (error) return { success: false as const, error: "Failed to submit intake" };
+  if (error) {
+    console.error("[submitProposalIntake] insert failed", error);
+    return { success: false as const, error: "Failed to submit intake" };
+  }
 
   // Fire-and-forget AE handoff email. Capability slugs travel as structured
   // data so the AE sees the customer's outcome lines (not just slugs).
@@ -192,17 +211,22 @@ export async function prepareProposal(
 
   if (itemsError) return { success: false as const, error: "Failed to add line items" };
 
+  const expiresAt = new Date(Date.now() + 14 * 86_400_000).toISOString();
   const { error: updateError } = await supabase
     .from("quotes")
     .update({
       status: "proposal_sent",
       total_amount: totalAmount,
       proposal_notes: data.proposalNotes ?? null,
-      expires_at: new Date(Date.now() + 14 * 86_400_000).toISOString(),
+      expires_at: expiresAt,
+      valid_until: expiresAt,
     })
     .eq("id", quoteId);
 
-  if (updateError) return { success: false as const, error: "Failed to send proposal" };
+  if (updateError) {
+    console.error("[prepareProposal] update failed", updateError);
+    return { success: false as const, error: "Failed to send proposal" };
+  }
 
   revalidatePath(`/admin/quotes/${quoteId}`);
   revalidatePath("/admin/quotes");

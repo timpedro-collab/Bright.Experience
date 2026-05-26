@@ -9,6 +9,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getUser } from "@/lib/auth";
 import { isInternalRole } from "@/lib/roles";
 import { enqueueDealKickoff } from "@/lib/pipedrive/triggers";
+import { normalisePipedriveDealId } from "@/lib/pipedrive/normalise";
 
 const createEventSchema = z.object({
   accountId: z.string().uuid("Select a customer account"),
@@ -23,20 +24,6 @@ const createEventSchema = z.object({
   templateId: z.string().uuid().optional(),
   pipedriveDealId: z.string().optional(),
 });
-
-/**
- * Normalise a Pipedrive deal reference. Accepts either a numeric ID
- * (`"1234"`), a full deal URL (`https://acme.pipedrive.com/deal/1234`),
- * or the empty string. Returns the numeric ID as a string, or null.
- */
-export function normalisePipedriveDealId(raw?: string): string | null {
-  if (!raw) return null;
-  const trimmed = raw.trim();
-  if (trimmed === "") return null;
-  // Match the trailing numeric segment of a Pipedrive URL or a bare ID.
-  const match = trimmed.match(/(\d+)\/?$/);
-  return match ? match[1] : null;
-}
 
 export type CreateEventInput = z.infer<typeof createEventSchema>;
 

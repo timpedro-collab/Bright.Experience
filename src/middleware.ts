@@ -16,6 +16,14 @@ const PUBLIC_PREFIXES = [
   "/how-it-works",
 ];
 
+/**
+ * Application-level auth gate. Public routes pass through; everything
+ * else requires a session. We deliberately do *not* run the profile-
+ * bootstrap inside middleware (it would add a DB roundtrip to every
+ * request) — the DB trigger handles new auth.users rows, the auth
+ * callback handles the post-OAuth path, and `getUser()` server-side
+ * actions re-check the profile on demand.
+ */
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
 
@@ -45,10 +53,9 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const pathname = request.nextUrl.pathname;
-  const isPublicRoute =
-    pathname === "/" && false
-      ? true
-      : PUBLIC_PREFIXES.some((prefix) => pathname.startsWith(prefix));
+  const isPublicRoute = PUBLIC_PREFIXES.some((prefix) =>
+    pathname.startsWith(prefix)
+  );
 
   if (!user && !isPublicRoute) {
     const url = request.nextUrl.clone();

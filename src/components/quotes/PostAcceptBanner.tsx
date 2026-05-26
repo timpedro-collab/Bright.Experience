@@ -50,7 +50,7 @@ export function PostAcceptBanner({
               : `${first}, your Experience Portal is locked in.`}
           </h2>
           <p className="mt-3 text-muted-foreground md:text-lg">
-            {ae.firstName}'s working on your kickoff — you'll hear from{" "}
+            {ae.firstName}&apos;s working on your kickoff — you&apos;ll hear from{" "}
             {ae.firstName} within the hour.
           </p>
         </div>

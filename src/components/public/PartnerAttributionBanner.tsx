@@ -22,9 +22,9 @@ export async function PartnerAttributionBanner() {
             <Handshake className="h-3.5 w-3.5" />
           </span>
           <span className="truncate text-sm text-foreground">
-            You're browsing with{" "}
+            You&apos;re browsing with{" "}
             <strong className="text-foreground">{partner.name}</strong>{" "}
-            — they'll receive credit for any booking you make.
+            — they&apos;ll receive credit for any booking you make.
           </span>
         </div>
         <Link

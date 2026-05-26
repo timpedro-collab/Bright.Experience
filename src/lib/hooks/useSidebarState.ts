@@ -12,7 +12,10 @@ export function useSidebarState() {
   useEffect(() => {
     try {
       const v = window.localStorage.getItem(STORAGE_KEY);
-      if (v === "1") setCollapsedState(true);
+      if (v === "1") {
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- one-shot hydration from localStorage; we must sync the persisted value into state on mount
+        setCollapsedState(true);
+      }
     } catch {
       /* ignore */
     }

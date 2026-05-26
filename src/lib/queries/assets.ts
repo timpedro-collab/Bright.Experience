@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { createSignedReadUrl } from "@/lib/storage/signed-url";
 import type { Asset, AssetReviewStatus } from "@/types";
 
 function mapAsset(row: Record<string, unknown>): Asset {
@@ -11,7 +12,10 @@ function mapAsset(row: Record<string, unknown>): Asset {
     requiredFormat: (row.required_format as string | null) ?? undefined,
     requiredDimensions:
       (row.required_dimensions as string | null) ?? undefined,
-    fileUrl: (row.file_url as string | null) ?? undefined,
+    // The DB column stores a storage path; renderers receive a signed
+    // URL (resolved below) under `fileUrl`.
+    filePath: (row.file_url as string | null) ?? undefined,
+    fileUrl: undefined,
     fileName: (row.file_name as string | null) ?? undefined,
     fileSize: (row.file_size as number | null) ?? undefined,
     version: (row.version as number | null) ?? 1,
@@ -30,6 +34,36 @@ function mapAsset(row: Record<string, unknown>): Asset {
   };
 }
 
+/**
+ * Looks the storage path on each asset and resolves a short-lived
+ * signed URL. Failures swallowed so a single missing object never
+ * breaks the page; the row simply renders without an "open" link.
+ *
+ * For legacy rows whose `file_url` is an absolute URL (the pre-
+ * migration shape), we treat that as already-signed and pass it
+ * through unchanged.
+ */
+async function attachSignedUrls<T extends Asset>(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  assets: T[]
+): Promise<T[]> {
+  return Promise.all(
+    assets.map(async (asset) => {
+      if (!asset.filePath) return asset;
+      // Legacy or test-fixture rows that wrote an absolute URL.
+      if (/^https?:|^\//.test(asset.filePath)) {
+        return { ...asset, fileUrl: asset.filePath };
+      }
+      const signed = await createSignedReadUrl(
+        supabase,
+        "event-assets",
+        asset.filePath
+      );
+      return { ...asset, fileUrl: signed ?? undefined };
+    })
+  );
+}
+
 export async function getAssetsByEvent(eventId: string): Promise<Asset[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -39,7 +73,8 @@ export async function getAssetsByEvent(eventId: string): Promise<Asset[]> {
     .order("created_at");
 
   if (error || !data) return [];
-  return data.map((row) => mapAsset(row as Record<string, unknown>));
+  const assets = data.map((row) => mapAsset(row as Record<string, unknown>));
+  return attachSignedUrls(supabase, assets);
 }
 
 /**
@@ -58,7 +93,7 @@ export async function getAssetsPendingReview(): Promise<
     .order("updated_at", { ascending: true });
 
   if (error || !data) return [];
-  return data.map((row) => {
+  const enriched = data.map((row) => {
     const r = row as Record<string, unknown>;
     const events = r.events as { name?: string } | null;
     const uploader = r.uploader as { name?: string } | null;
@@ -68,6 +103,7 @@ export async function getAssetsPendingReview(): Promise<
       uploaderName: uploader?.name ?? null,
     };
   });
+  return attachSignedUrls(supabase, enriched);
 }
 
 export async function getAssetById(assetId: string): Promise<Asset | null> {
@@ -78,5 +114,8 @@ export async function getAssetById(assetId: string): Promise<Asset | null> {
     .eq("id", assetId)
     .single();
   if (error || !data) return null;
-  return mapAsset(data as Record<string, unknown>);
+  const [withUrl] = await attachSignedUrls(supabase, [
+    mapAsset(data as Record<string, unknown>),
+  ]);
+  return withUrl;
 }

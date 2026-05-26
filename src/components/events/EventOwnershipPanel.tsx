@@ -53,10 +53,10 @@ export function EventOwnershipPanel({
       <Card tone="subtle">
         <CardContent className="py-6 text-center">
           <p className="text-sm text-foreground font-medium">
-            Everyone's caught up.
+            Everyone&apos;s caught up.
           </p>
           <p className="mt-1 text-xs text-muted-foreground">
-            There's no open work waiting on anyone right now.
+            There&apos;s no open work waiting on anyone right now.
           </p>
         </CardContent>
       </Card>
@@ -66,7 +66,7 @@ export function EventOwnershipPanel({
   return (
     <Card tone="subtle">
       <CardHeader className="pb-3">
-        <CardTitle>Right now, here's where things sit</CardTitle>
+        <CardTitle>Right now, here&apos;s where things sit</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-2">
