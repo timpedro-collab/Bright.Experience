@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { PackageTierCard } from "@/components/catalog/PackageTierCard";
+import { CatalogFilters } from "@/components/catalog/CatalogFilters";
 import { Container, Section } from "@/components/ui/section";
 import { Button } from "@/components/ui/button";
 import { RidgeArtwork, EditorialEyebrow } from "@/components/brand";
@@ -14,15 +15,24 @@ export const metadata: Metadata = {
     "Compare Bright.Blue activation packages — Standard, Premium, and Custom — with transparent base pricing for trade shows and events.",
 };
 
-export default async function PackagesIndexPage() {
-  const packages = await getPackages();
+const TIER_FILTERS = [
+  { label: "All tiers", value: "" },
+  { label: "Standard", value: "standard" },
+  { label: "Premium", value: "premium" },
+  { label: "Custom", value: "custom" },
+];
 
-  // Group by tier
-  const tiered = {
-    standard: packages.filter((p) => p.tier === "standard"),
-    premium: packages.filter((p) => p.tier === "premium"),
-    custom: packages.filter((p) => p.tier === "custom"),
-  };
+export default async function PackagesIndexPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ tier?: string }>;
+}) {
+  const { tier } = await searchParams;
+  const packages = await getPackages();
+  const filtered =
+    tier && ["standard", "premium", "custom"].includes(tier)
+      ? packages.filter((p) => p.tier === tier)
+      : packages;
 
   return (
     <>
@@ -66,13 +76,22 @@ export default async function PackagesIndexPage() {
 
       <Section>
         <Container>
-          {packages.length === 0 ? (
+          <div className="mb-8">
+            <CatalogFilters
+              param="tier"
+              options={TIER_FILTERS}
+              label="Filter packages by tier"
+            />
+          </div>
+          {filtered.length === 0 ? (
             <div className="rounded-[var(--radius-card)] border border-white/[0.06] bg-white/[0.02] p-12 text-center text-muted-foreground">
-              Package pricing is being finalised. Please request a proposal for tailored pricing.
+              {tier
+                ? `No ${tier} packages are available right now. Try removing the filter, or request a tailored proposal.`
+                : "Package pricing is being finalised. Please request a proposal for tailored pricing."}
             </div>
           ) : (
             <div className="grid gap-6 md:grid-cols-3">
-              {[...tiered.standard, ...tiered.premium, ...tiered.custom].map((p, i) => (
+              {filtered.map((p, i) => (
                 <PackageTierCard
                   key={p.id}
                   pkg={{

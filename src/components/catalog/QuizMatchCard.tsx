@@ -136,6 +136,7 @@ export function QuizMatchCard({
     event: signals.eventType ?? "",
     objective: signals.objective ?? "",
     audience: signals.audience ?? "",
+    industry: signals.industry ?? "",
     addons: encodeCapabilityParam(selected),
   }).toString()}`;
 

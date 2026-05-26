@@ -4,6 +4,49 @@ All notable changes to the Bright.Experience platform are documented here.
 
 ---
 
+## [Phase 1 — Public funnel feature-complete] - 2026-05-26
+
+The public marketing & acquisition funnel is now end-to-end real. A guest can land on the home page, take the quiz, request a tailored proposal **or** book a packaged moment, hit a confirmation, and (separately) view a shareable post-event report — all wired to real Supabase data, all server-side validated, all priced from the catalogue rather than the client.
+
+### Catalog
+- Reusable URL-param-driven filters (`src/components/catalog/CatalogFilters.tsx`): `/catalog/packages?tier=`, `/catalog/case-studies?filter=`, brand new `/catalog/games?category=`.
+- Shared catalog `loading.tsx` + `error.tsx` boundaries.
+- `case-studies/[slug]` now renders stats + testimonial; `packages/[slug]` shows description + linked parent machine.
+- Every catalog query logs Supabase errors (no more silent empty pages).
+- Public nav extended: Machines · Games · Packages.
+
+### Quiz → proposal
+- 6th brand-signal step on the quiz; recommendation engine uses real seed slugs.
+- `submitProposalIntake` now resolves `packageSlug` → `package_id` server-side, records `bb_partner` attribution, and ring-fences notification dispatch with try/catch.
+- `IntakeWizard` surfaces server-side validation errors inline.
+
+### Booking → confirmation
+- `book/configure` rewritten as a Server Component that hydrates a client wizard with the chosen package, add-ons (keyed by `capability_slug`), machines, and games.
+- `submitBookNowQuote` re-validates the package is bookable and recomputes the total on the server (no client-trusted pricing).
+- New `getBookingReceipt` (service-role) helper lets the confirmation page render a receipt-safe view for anonymous customers.
+- Stripe `paymentIntent.create` is a clearly-labelled `STUB:` for now (Phase 8 to wire live keys).
+
+### Legal & static
+- New `src/components/public/LegalShell.tsx` — shared ridge hero + "REPLACE BEFORE LAUNCH" banner.
+- `/privacy` and `/terms` rebuilt onto it with static last-updated dates.
+
+### Partner landing
+- `/p/[code]` rewritten as a co-branded landing (was a redirect). Pulls partner config, sets `bb_partner` httpOnly cookie (30-day, `path:/`), renders ridge artwork in partner brand colour. Friendly not-found for inactive/unknown codes.
+- `recordAttribution` accepts either `partnerId` or `partnerCode`; resolves and status-checks before writing.
+- New RLS policy lets `anon` `SELECT` active partners (narrow column list) via `supabase/migrations/20260403000013_partner_public_read.sql`.
+
+### Public report share
+- New `src/lib/reports/normalise.ts` — single normaliser for `metrics_json`, `predictions_json`, `highlights_json`. Reads both camelCase and snake_case keys so the action's output and the seed's snake-shaped writes both produce identical KPI numbers. 13 new unit tests.
+- `/report/[token]` and `/events/[id]/reports` both routed through it. No more KPI tiles silently landing on zero.
+
+### Tests
+- Three new Playwright specs (`public-quiz-to-booking`, `public-partner-attribution`, `public-report-share`) — all guest-only, no test-mode endpoints required.
+- 594/594 vitest tests green. Typecheck, lint, and `next build` all green.
+
+See `docs/phase-1-summary.md` for the full breakdown and `STUBS-TO-REPLACE.md` for the new stub list.
+
+---
+
 ## [World-class editorial design pass] - 2026-05-26
 
 A months-long visual overhaul that takes Bright.Experience from "polished build" to "world-class portal". The product still does the same things — every route is the same route, every server action is the same server action — but it now feels like the bright.blue brand. Three workstreams: build the editorial design language, rebuild every surface against it, and strip the dead code that the rebuild made obsolete.

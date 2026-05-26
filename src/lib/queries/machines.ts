@@ -10,11 +10,14 @@ export async function getMachines() {
     .eq("is_active", true)
     .order("sort_order");
 
-  if (error || !data) return [];
-  return data;
+  if (error) {
+    console.error("[getMachines] query failed", error);
+    return [];
+  }
+  return data ?? [];
 }
 
-/** Fetch a single machine by slug with its games (via junction) and packages. */
+/** Fetch a single active machine by slug with its games and bookable packages. */
 export async function getMachineBySlug(slug: string) {
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -22,12 +25,16 @@ export async function getMachineBySlug(slug: string) {
     .select(
       `id, name, slug, tagline, description, hero_image_url, video_url,
        is_active, sort_order, created_at,
-       machine_games ( game_id, games ( id, name, slug, thumbnail_url, category ) ),
+       machine_games ( game_id, games ( id, name, slug, thumbnail_url, category, is_active ) ),
        packages ( id, name, slug, tier, base_price, duration_days, is_bookable )`
     )
     .eq("slug", slug)
-    .single();
+    .eq("is_active", true)
+    .maybeSingle();
 
-  if (error || !data) return null;
+  if (error) {
+    console.error("[getMachineBySlug] query failed", { slug, error });
+    return null;
+  }
   return data;
 }

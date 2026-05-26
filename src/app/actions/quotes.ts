@@ -1,18 +1,32 @@
 /** Server actions for the two-track quoting engine. */
 "use server";
 
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
+import { getServiceRoleClient } from "@/lib/supabase/service-role";
 import { revalidatePath } from "next/cache";
 import { sanitiseCapabilitySlugs } from "@/lib/capabilities";
 import { sendProposalIntakeNotification } from "@/lib/email";
 import { dispatchNotification } from "@/lib/notifications/dispatch";
+import { recordAttribution } from "@/app/actions/partners";
 
-/** Submit a Track 1 (Book Now) quote from the configurator checkout. */
+const PARTNER_ATTRIBUTION_COOKIE = "bb_partner";
+
+/**
+ * Submit a Track 1 (Book Now) quote.
+ *
+ * Trusts only `packageId` (UUID) and the capability slugs from the client —
+ * everything that affects price is re-read from the database here, so a
+ * tampered URL can't change what the customer is charged.
+ */
 export async function submitBookNowQuote(data: {
+  /** UUID of the chosen package, resolved server-side on the configure page. */
   packageId: string;
-  machinePreference?: string;
-  gamePreference?: string;
+  /** Optional UUID of a chosen machine; validated against catalogue. */
+  machineId?: string;
+  /** Optional UUID of a chosen game; validated against catalogue. */
+  gameId?: string;
+  /** Canonical capability slugs the customer toggled on. */
   addons?: string[];
   eventDateStart?: string;
   eventDateEnd?: string;
@@ -22,23 +36,52 @@ export async function submitBookNowQuote(data: {
   companyName?: string;
 }) {
   const supabase = await createClient();
-  const addons = sanitiseCapabilitySlugs(data.addons);
+  const capabilitySlugs = sanitiseCapabilitySlugs(data.addons);
+
+  // Re-read the package + addons from the DB so pricing is authoritative.
+  // The `packages` table is publicly selectable for is_bookable rows.
+  const { data: pkg, error: pkgError } = await supabase
+    .from("packages")
+    .select(
+      `id, name, base_price, is_bookable,
+       package_addons ( id, name, price, capability_slug )`
+    )
+    .eq("id", data.packageId)
+    .eq("is_bookable", true)
+    .maybeSingle();
+
+  if (pkgError) {
+    console.error("[submitBookNowQuote] package lookup failed", pkgError);
+    return { success: false as const, error: "Failed to look up package" };
+  }
+  if (!pkg) {
+    return { success: false as const, error: "Package not found or not bookable" };
+  }
+
+  // Match selected capability slugs back to addon rows and total their price.
+  type AddonRow = { id: string; name: string; price: number; capability_slug: string | null };
+  const addonRows = ((pkg as { package_addons?: AddonRow[] }).package_addons ?? []).filter(
+    (a) => a.capability_slug && capabilitySlugs.includes(a.capability_slug)
+  );
+  const addonTotal = addonRows.reduce((sum, a) => sum + (a.price ?? 0), 0);
+  const totalAmount = (pkg.base_price ?? 0) + addonTotal;
 
   const { data: quote, error } = await supabase
     .from("quotes")
     .insert({
       track: "book_now",
       status: "submitted",
-      package_id: data.packageId,
-      machine_preference: data.machinePreference ?? null,
-      game_preference: data.gamePreference ?? null,
-      addons,
+      package_id: pkg.id,
+      machine_id: data.machineId ?? null,
+      game_id: data.gameId ?? null,
+      addons: capabilitySlugs,
       event_date_start: data.eventDateStart ?? null,
       event_date_end: data.eventDateEnd ?? null,
       contact_name: data.contactName,
       contact_email: data.contactEmail,
       contact_phone: data.contactPhone ?? null,
       company_name: data.companyName ?? null,
+      total_amount: totalAmount,
     })
     .select("id")
     .single();
@@ -46,6 +89,16 @@ export async function submitBookNowQuote(data: {
   if (error) {
     console.error("[submitBookNowQuote] insert failed", error);
     return { success: false as const, error: "Failed to submit booking" };
+  }
+
+  // Wire partner attribution if a partner cookie is set.
+  const partnerCode = (await cookies()).get(PARTNER_ATTRIBUTION_COOKIE)?.value;
+  if (partnerCode) {
+    try {
+      await recordAttribution({ partnerCode, quoteId: quote.id });
+    } catch (attrError) {
+      console.error("[submitBookNowQuote] attribution failed", attrError);
+    }
   }
 
   try {
@@ -62,7 +115,37 @@ export async function submitBookNowQuote(data: {
   }
 
   revalidatePath("/admin/quotes");
-  return { success: true as const, data: { id: quote.id } };
+  return {
+    success: true as const,
+    data: { id: quote.id, totalAmount },
+  };
+}
+
+/**
+ * Server-side helper for the booking confirmation page.
+ *
+ * Anon users can insert a quote but the `quotes` RLS does not let them
+ * select it back. Rather than loosen the RLS, we expose a narrow service-
+ * role read here that returns only the receipt-safe fields. Pages calling
+ * this must validate the id is a UUID before invoking.
+ */
+export async function getBookingReceipt(quoteId: string) {
+  const supabase = getServiceRoleClient();
+  const { data, error } = await supabase
+    .from("quotes")
+    .select(
+      `id, contact_name, contact_email, company_name,
+       event_date_start, event_date_end, total_amount,
+       package_id, addons, status,
+       packages ( name, slug ),
+       machines ( name )`
+    )
+    .eq("id", quoteId)
+    .eq("track", "book_now")
+    .maybeSingle();
+
+  if (error || !data) return null;
+  return data;
 }
 
 /** Submit a Track 2 (Proposal) intake from the guided wizard.
@@ -80,6 +163,8 @@ export async function submitProposalIntake(data: {
   eventDateEnd?: string;
   machinePreference?: string;
   gamePreference?: string;
+  /** Optional package slug carried from the quiz match (we resolve to UUID). */
+  packageSlug?: string;
   footfallEstimate?: string;
   creativeNeeds?: string;
   specialRequirements?: string;
@@ -92,6 +177,17 @@ export async function submitProposalIntake(data: {
 }) {
   const supabase = await createClient();
   const addons = sanitiseCapabilitySlugs(data.addons);
+
+  // Resolve the package slug → UUID up-front so we can store a real FK.
+  let packageId: string | null = null;
+  if (data.packageSlug) {
+    const { data: pkg } = await supabase
+      .from("packages")
+      .select("id")
+      .eq("slug", data.packageSlug)
+      .maybeSingle();
+    packageId = pkg?.id ?? null;
+  }
 
   const { data: quote, error } = await supabase
     .from("quotes")
@@ -106,6 +202,7 @@ export async function submitProposalIntake(data: {
       event_date_end: data.eventDateEnd ?? null,
       machine_preference: data.machinePreference ?? null,
       game_preference: data.gamePreference ?? null,
+      package_id: packageId,
       footfall_estimate_text: data.footfallEstimate ?? null,
       creative_needs: data.creativeNeeds ?? null,
       special_requirements: data.specialRequirements ?? null,
@@ -122,6 +219,16 @@ export async function submitProposalIntake(data: {
   if (error) {
     console.error("[submitProposalIntake] insert failed", error);
     return { success: false as const, error: "Failed to submit intake" };
+  }
+
+  // Partner attribution from the cookie set by /p/[code].
+  const partnerCode = (await cookies()).get(PARTNER_ATTRIBUTION_COOKIE)?.value;
+  if (partnerCode) {
+    try {
+      await recordAttribution({ partnerCode, quoteId: quote.id });
+    } catch (attrError) {
+      console.error("[submitProposalIntake] attribution failed", attrError);
+    }
   }
 
   // Fire-and-forget AE handoff email. Capability slugs travel as structured
@@ -147,14 +254,19 @@ export async function submitProposalIntake(data: {
   // In-portal AE ping — the existing email handoff above remains as the
   // structured outcomes-with-slugs reference; this gives the AE a row on
   // the bell + notifications page that ties back to the quote.
-  await dispatchNotification("proposal.intake_received", {
-    quoteId: quote.id,
-    contactName: data.contactName,
-    entityType: "quote",
-    entityId: quote.id,
-  });
+  try {
+    await dispatchNotification("proposal.intake_received", {
+      quoteId: quote.id,
+      contactName: data.contactName,
+      entityType: "quote",
+      entityId: quote.id,
+    });
+  } catch (notifyError) {
+    console.error("[submitProposalIntake] in-portal notify failed", notifyError);
+  }
 
   revalidatePath("/admin/quotes");
+  revalidatePath("/admin/customer-queue");
   return { success: true as const, data: { id: quote.id } };
 }
 

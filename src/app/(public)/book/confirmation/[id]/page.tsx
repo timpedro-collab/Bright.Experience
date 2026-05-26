@@ -1,10 +1,19 @@
-/** Track 1 booking confirmation page */
+/**
+ * Book Now confirmation receipt.
+ *
+ * Anon users can insert a quote but cannot select it back through public
+ * RLS. We use a narrow service-role read (`getBookingReceipt`) that returns
+ * only receipt-safe fields — never the full quote row.
+ */
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { CheckCircle2, ArrowRight } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { EditorialEyebrow, RidgeArtwork } from "@/components/brand";
-import { getQuoteById } from "@/lib/queries/quotes";
+import { getBookingReceipt } from "@/app/actions/quotes";
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export default async function ConfirmationPage({
   params,
@@ -12,7 +21,15 @@ export default async function ConfirmationPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const quote = await getQuoteById(id);
+  if (!UUID_RE.test(id)) notFound();
+
+  const receipt = await getBookingReceipt(id);
+  if (!receipt) notFound();
+
+  type Package = { name?: string };
+  type Machine = { name?: string };
+  const pkg = receipt.packages as Package | null;
+  const machine = receipt.machines as Machine | null;
 
   return (
     <>
@@ -36,46 +53,67 @@ export default async function ConfirmationPage({
         <div className="relative mx-auto max-w-2xl px-6 pt-16 md:pt-20 pb-10 text-center">
           <div className="mb-6 flex justify-center">
             <div className="h-14 w-14 rounded-full bg-[hsl(150,60%,50%)]/10 flex items-center justify-center">
-              <CheckCircle2 size={32} className="text-[hsl(150,60%,50%)]" strokeWidth={1.5} />
+              <CheckCircle2
+                size={32}
+                className="text-[hsl(150,60%,50%)]"
+                strokeWidth={1.5}
+              />
             </div>
           </div>
           <EditorialEyebrow accent>Booking received</EditorialEyebrow>
           <h1 className="mt-2 text-display text-[clamp(2rem,3.5vw,3rem)] leading-[1.1] text-foreground">
-            Thank you.
+            Thank you{receipt.contact_name ? `, ${receipt.contact_name.split(" ")[0]}` : ""}.
           </h1>
           <p className="mt-3 text-base text-muted-foreground leading-relaxed">
-            Your booking is in. Our team will be in touch shortly with confirmation.
+            Your booking is in. Our team will be in touch shortly with
+            confirmation and next steps.
           </p>
         </div>
       </section>
 
       <section className="mx-auto max-w-2xl px-6 py-12">
-        {quote && (
-          <div className="space-y-1 text-sm">
-            <div className="text-overline text-muted-foreground mb-2">Receipt</div>
-            <div className="h-px bg-border/60" />
-            <Row label="Booking reference" value={id.slice(0, 8).toUpperCase()} />
-            {quote.contact_name && <Row label="Name" value={quote.contact_name} />}
-            {quote.contact_email && <Row label="Email" value={quote.contact_email} />}
-            {quote.event_date_start && <Row label="Event start" value={quote.event_date_start} />}
-            {quote.machine_preference && <Row label="Machine" value={quote.machine_preference} />}
-          </div>
-        )}
+        <div className="space-y-1 text-sm">
+          <div className="text-overline text-muted-foreground mb-2">Receipt</div>
+          <div className="h-px bg-border/60" />
+          <Row label="Booking reference" value={id.slice(0, 8).toUpperCase()} />
+          {pkg?.name && <Row label="Package" value={pkg.name} />}
+          {machine?.name && <Row label="Machine" value={machine.name} />}
+          {receipt.event_date_start && (
+            <Row label="Event start" value={receipt.event_date_start} />
+          )}
+          {receipt.event_date_end && (
+            <Row label="Event end" value={receipt.event_date_end} />
+          )}
+          {typeof receipt.total_amount === "number" && (
+            <Row
+              label="Estimated total"
+              value={`£${(receipt.total_amount / 100).toLocaleString("en-GB", {
+                minimumFractionDigits: 2,
+              })}`}
+            />
+          )}
+          {Array.isArray(receipt.addons) && receipt.addons.length > 0 && (
+            <Row label="Add-ons" value={receipt.addons.join(", ")} />
+          )}
+        </div>
 
         <div className="mt-10 space-y-3">
-          <div className="text-overline text-muted-foreground">What happens next</div>
+          <div className="text-overline text-muted-foreground">
+            What happens next
+          </div>
           <div className="h-px bg-border/60" />
           <ol className="text-sm text-muted-foreground space-y-3 pt-2 list-decimal list-inside leading-relaxed">
             <li>We&apos;ll confirm your dates and availability.</li>
-            <li>You&apos;ll receive a detailed event brief.</li>
+            <li>You&apos;ll receive a detailed event brief from your account exec.</li>
             <li>Our creative team begins your build.</li>
           </ol>
         </div>
 
         <div className="mt-10 flex flex-col gap-3">
           <Button asChild variant="brand" size="lg">
-            <Link href="/login">
-              Sign in / create account <ArrowRight className="ml-1 h-4 w-4" />
+            <Link href={`/login?redirect=/events`}>
+              Sign in to track your booking
+              <ArrowRight className="ml-1 h-4 w-4" />
             </Link>
           </Button>
           <Button variant="ghost" asChild>

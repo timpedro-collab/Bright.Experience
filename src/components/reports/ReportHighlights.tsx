@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Image as ImageIcon } from "lucide-react";
 
 interface Highlight {
-  url: string;
+  url?: string;
   caption?: string;
   stat?: string;
 }

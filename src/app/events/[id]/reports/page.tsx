@@ -27,6 +27,12 @@ import { getBenchmarkForComparison } from "@/lib/queries/benchmarks";
 import { generateEventReport } from "@/app/actions/reports";
 import { getUser } from "@/lib/auth";
 import { isInternalRole } from "@/lib/roles";
+import {
+  costPerLeadPence,
+  normaliseHighlights,
+  normaliseMetrics,
+  normalisePredictions,
+} from "@/lib/reports/normalise";
 
 export default async function ReportsPage({
   params,
@@ -77,16 +83,39 @@ export default async function ReportsPage({
     getBenchmarkForComparison(event.eventType ?? "experiential"),
   ]);
 
-  const totalPlays = Number(latestMetrics?.total_plays ?? 0);
-  const totalLeads = Number(latestMetrics?.total_leads ?? 0);
+  // Prefer live telemetry snapshot over the report blob when both exist —
+  // the snapshot keeps refreshing during/after the event.
+  const liveMetrics = normaliseMetrics(latestMetrics ?? {});
+  const reportMetrics = normaliseMetrics(report.metricsJson);
+  const metrics = {
+    ...reportMetrics,
+    totalPlays: liveMetrics.totalPlays || reportMetrics.totalPlays,
+    totalLeads: liveMetrics.totalLeads || reportMetrics.totalLeads,
+    totalInteractions:
+      liveMetrics.totalInteractions || reportMetrics.totalInteractions,
+    mediaImpressions:
+      liveMetrics.mediaImpressions || reportMetrics.mediaImpressions,
+  };
+  const predictions = normalisePredictions(report.predictionsJson);
+  const highlights = normaliseHighlights(report.highlightsJson);
+  const cpl = costPerLeadPence(metrics);
 
-  const metricsData = (report.metricsJson ?? {}) as Record<string, number>;
-  const predictionsData = (report.predictionsJson ?? {}) as Record<string, number>;
-  const highlights = (report.highlightsJson ?? []) as Array<{
-    url: string;
-    caption?: string;
-    stat?: string;
-  }>;
+  // Shape the metric records consumed by PredictedVsActual + BenchmarkComparison.
+  const metricsRecord: Record<string, number> = {
+    interactions: metrics.totalInteractions,
+    leads: metrics.totalLeads,
+    impressions: metrics.mediaImpressions,
+  };
+  const predictionsRecord: Record<string, number> = {};
+  if (predictions.estimatedInteractions !== null) {
+    predictionsRecord.interactions = predictions.estimatedInteractions;
+  }
+  if (predictions.estimatedLeads !== null) {
+    predictionsRecord.leads = predictions.estimatedLeads;
+  }
+  if (predictions.estimatedImpressions !== null) {
+    predictionsRecord.impressions = predictions.estimatedImpressions;
+  }
 
   const benchmarkMap: Record<string, number> = {};
   for (const b of benchmarkList) {
@@ -108,15 +137,15 @@ export default async function ReportsPage({
           <MetricCard
             icon={Users}
             label="Total plays"
-            value={totalPlays.toLocaleString()}
+            value={metrics.totalPlays.toLocaleString()}
           />
           <MetricCard
             icon={Target}
             label="Total leads"
-            value={totalLeads.toLocaleString()}
+            value={metrics.totalLeads.toLocaleString()}
             delta={
-              totalPlays > 0
-                ? `${((totalLeads / totalPlays) * 100).toFixed(0)}% conversion`
+              metrics.totalPlays > 0
+                ? `${((metrics.totalLeads / metrics.totalPlays) * 100).toFixed(0)}% conversion`
                 : undefined
             }
             positive={true}
@@ -124,16 +153,12 @@ export default async function ReportsPage({
           <MetricCard
             icon={Eye}
             label="Interactions"
-            value={Number(latestMetrics?.total_interactions ?? 0).toLocaleString()}
+            value={metrics.totalInteractions.toLocaleString()}
           />
           <MetricCard
             icon={DollarSign}
             label="Cost per lead"
-            value={
-              totalLeads > 0
-                ? `£${(Number(metricsData.total_cost ?? 0) / totalLeads).toFixed(2)}`
-                : "—"
-            }
+            value={cpl !== null ? `£${(cpl / 100).toFixed(2)}` : "—"}
           />
         </div>
       </section>
@@ -141,13 +166,13 @@ export default async function ReportsPage({
       <Hairline className="opacity-60" />
 
       <section className="py-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {Object.keys(predictionsData).length > 0 && (
+        {Object.keys(predictionsRecord).length > 0 && (
           <div>
             <EditorialEyebrow>Predicted vs actual</EditorialEyebrow>
             <div className="mt-4">
               <PredictedVsActual
-                predictions={predictionsData}
-                actuals={metricsData}
+                predictions={predictionsRecord}
+                actuals={metricsRecord}
               />
             </div>
           </div>
@@ -157,7 +182,7 @@ export default async function ReportsPage({
             <EditorialEyebrow>Vs benchmark</EditorialEyebrow>
             <div className="mt-4">
               <BenchmarkComparison
-                eventMetrics={metricsData}
+                eventMetrics={metricsRecord}
                 benchmarks={benchmarkMap}
               />
             </div>

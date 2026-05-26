@@ -93,6 +93,9 @@ export default async function CaseStudyDetailPage({ params }: Props) {
         )}
       </div>
 
+      {/* Stats (rendered from stats_json if present) */}
+      <StatsRow stats={cs.stats_json as Record<string, unknown> | null} />
+
       {/* Description */}
       {cs.description && (
         <Card className="mt-10">
@@ -102,15 +105,61 @@ export default async function CaseStudyDetailPage({ params }: Props) {
         </Card>
       )}
 
+      {/* Testimonial */}
+      {cs.testimonial_quote && (
+        <Card className="mt-10 border-primary/20 bg-primary/[0.03]">
+          <CardContent className="p-8">
+            <blockquote className="text-display text-xl text-foreground md:text-2xl leading-snug">
+              &ldquo;{cs.testimonial_quote}&rdquo;
+            </blockquote>
+            {cs.testimonial_author && (
+              <p className="mt-4 text-sm text-muted-foreground">
+                — {cs.testimonial_author}
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
       {/* CTA */}
       <div className="mt-12 text-center">
         <p className="text-muted-foreground">
           Want similar results for your brand?
         </p>
-        <Button size="lg" className="mt-4" asChild>
-          <Link href="/proposal">Get a Proposal</Link>
-        </Button>
+        <div className="mt-4 flex justify-center gap-3">
+          <Button size="lg" variant="brand" asChild>
+            <Link href="/proposal">Get a proposal</Link>
+          </Button>
+          <Button size="lg" variant="glass" asChild>
+            <Link href="/quiz">Take the quiz</Link>
+          </Button>
+        </div>
       </div>
+    </div>
+  );
+}
+
+function StatsRow({ stats }: { stats: Record<string, unknown> | null }) {
+  if (!stats || typeof stats !== "object") return null;
+  const entries = Object.entries(stats).filter(
+    ([, v]) => v !== null && v !== undefined && v !== ""
+  );
+  if (entries.length === 0) return null;
+  return (
+    <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      {entries.map(([key, value]) => (
+        <div
+          key={key}
+          className="rounded-[var(--radius-card)] border border-white/[0.06] bg-white/[0.02] p-5"
+        >
+          <p className="text-heading text-2xl font-bold text-primary tabular-nums">
+            {String(value)}
+          </p>
+          <p className="mt-1 text-xs uppercase tracking-widest text-muted-foreground">
+            {key}
+          </p>
+        </div>
+      ))}
     </div>
   );
 }

@@ -15,26 +15,27 @@ import { PublicMobileMenu } from "@/components/public/PublicMobileMenu";
 import { PartnerAttributionBanner } from "@/components/public/PartnerAttributionBanner";
 
 const PRIMARY_LINKS = [
-  { label: "Catalog", href: "/catalog" },
+  { label: "Machines", href: "/catalog/machines" },
+  { label: "Games", href: "/catalog/games" },
+  { label: "Packages", href: "/catalog/packages" },
   { label: "Case Studies", href: "/catalog/case-studies" },
   { label: "Find Your Match", href: "/quiz" },
-  { label: "Book Now", href: "/book" },
-  { label: "Get a Proposal", href: "/proposal" },
 ];
 
 const FOOTER_GROUPS = [
   {
-    heading: "Platform",
+    heading: "Catalog",
     links: [
-      { label: "Catalog", href: "/catalog" },
+      { label: "Machines", href: "/catalog/machines" },
+      { label: "Games", href: "/catalog/games" },
+      { label: "Packages", href: "/catalog/packages" },
       { label: "Case Studies", href: "/catalog/case-studies" },
-      { label: "Find Your Match", href: "/quiz" },
-      { label: "How It Works", href: "/how-it-works" },
     ],
   },
   {
     heading: "Order",
     links: [
+      { label: "Find Your Match", href: "/quiz" },
       { label: "Book Now", href: "/book" },
       { label: "Get a Proposal", href: "/proposal" },
       { label: "Become a Partner", href: "/partners/join" },
@@ -43,6 +44,7 @@ const FOOTER_GROUPS = [
   {
     heading: "Company",
     links: [
+      { label: "How It Works", href: "/how-it-works" },
       { label: "Sign in", href: "/login" },
       { label: "Terms", href: "/terms" },
       { label: "Privacy", href: "/privacy" },

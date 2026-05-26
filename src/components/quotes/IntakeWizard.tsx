@@ -99,9 +99,10 @@ export function IntakeWizard(_props: IntakeWizardProps = {}) {
 
   const [step, setStep] = useState(0);
   const [data, setData] = useState<IntakeFormData>(initial);
-  const [addons, setAddons] = useState<string[]>(initialAddons);
+  const [addons] = useState<string[]>(initialAddons);
   const [submitted, setSubmitted] = useState<null | { quoteId: string }>(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   function handleChange(field: string, value: string) {
     setData((prev) => ({ ...prev, [field]: value }));
@@ -109,10 +110,17 @@ export function IntakeWizard(_props: IntakeWizardProps = {}) {
 
   async function handleSubmit() {
     setLoading(true);
-    const result = await submitProposalIntake({ ...data, addons });
+    setError(null);
+    const result = await submitProposalIntake({
+      ...data,
+      addons,
+      packageSlug: initialPackageSlug || undefined,
+    });
     setLoading(false);
     if (result.success) {
       setSubmitted({ quoteId: result.data.id });
+    } else {
+      setError(result.error ?? "Something went wrong. Please try again.");
     }
   }
 
@@ -199,6 +207,12 @@ export function IntakeWizard(_props: IntakeWizardProps = {}) {
         />
       )}
 
+      {error && (
+        <p role="alert" className="text-sm text-destructive">
+          {error}
+        </p>
+      )}
+
       <div className="flex justify-between">
         <Button variant="outline" onClick={() => setStep((s) => s - 1)} disabled={step === 0}>
           Back
@@ -217,19 +231,23 @@ export function IntakeWizard(_props: IntakeWizardProps = {}) {
   );
 }
 
-/** Translate a known package slug into a readable name. */
+/**
+ * Translate a known package slug into a readable name for the post-intake
+ * card. Slugs come from the live catalogue (see `supabase/seed.sql`), so
+ * if you add a new bookable package add a friendly name here too.
+ */
 function friendlyPackageFromSlug(slug: string): string | undefined {
   switch (slug) {
-    case "claw-starter":
-      return "Starter";
-    case "claw-professional":
-      return "Professional";
-    case "claw-sampling":
-      return "Sampling";
-    case "spin-starter":
-      return "Starter";
-    case "grab-experience":
-      return "Experience";
+    case "bright-vend-single-day":
+      return "Single day";
+    case "bright-vend-pro-weekend":
+      return "Weekend";
+    case "bright-play-five-day":
+      return "Five-day activation";
+    case "bright-play-tour":
+      return "Tour edition";
+    case "bespoke":
+      return "Bespoke";
     default:
       return undefined;
   }

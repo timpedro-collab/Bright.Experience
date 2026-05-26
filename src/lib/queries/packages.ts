@@ -14,8 +14,11 @@ export async function getPackages() {
     .order("tier")
     .order("base_price");
 
-  if (error || !data) return [];
-  return data;
+  if (error) {
+    console.error("[getPackages] query failed", error);
+    return [];
+  }
+  return data ?? [];
 }
 
 /** Fetch bookable packages scoped to a specific machine. */
@@ -39,8 +42,9 @@ export async function getPackageBySlug(slug: string) {
     .from("packages")
     .select(
       `id, name, slug, machine_id, tier, base_price, duration_days,
-       features_json, is_bookable, created_at,
-       package_addons ( id, name, price, description )`
+       features_json, is_bookable, description, created_at,
+       package_addons ( id, name, price, description, capability_slug ),
+       machines ( id, name, slug )`
     )
     .eq("slug", slug)
     .single();

@@ -11,6 +11,7 @@ import { createMockSupabase, type MockSupabase } from "@/test/supabase";
 let supabase: MockSupabase;
 const sendProposalIntakeNotification = vi.fn();
 const dispatchNotification = vi.fn();
+const recordAttribution = vi.fn();
 
 vi.mock("@/lib/supabase/server", () => ({
   createClient: vi.fn(async () => supabase),
@@ -22,15 +23,48 @@ vi.mock("@/lib/email", () => ({
 vi.mock("@/lib/notifications/dispatch", () => ({
   dispatchNotification: (...args: unknown[]) => dispatchNotification(...args),
 }));
+vi.mock("@/app/actions/partners", () => ({
+  recordAttribution: (...args: unknown[]) => recordAttribution(...args),
+}));
+
+/** Convenience: seed the packages table with a bookable row so the
+ *  `submitBookNowQuote` server-side re-read passes. */
+function seedBookablePackage(id = "p1", basePrice = 100_000) {
+  supabase.setTableResponse("packages", {
+    data: {
+      id,
+      name: "Test package",
+      base_price: basePrice,
+      is_bookable: true,
+      package_addons: [
+        {
+          id: "a1",
+          name: "Live telemetry",
+          price: 10_000,
+          capability_slug: "live-telemetry",
+        },
+        {
+          id: "a2",
+          name: "Survey layer",
+          price: 5_000,
+          capability_slug: "survey-layer",
+        },
+      ],
+    },
+    error: null,
+  });
+}
 
 beforeEach(() => {
   supabase = createMockSupabase();
   sendProposalIntakeNotification.mockReset().mockResolvedValue(undefined);
   dispatchNotification.mockReset();
+  recordAttribution.mockReset().mockResolvedValue({ success: true, data: { id: "att" } });
 });
 
 describe("submitBookNowQuote", () => {
-  it("inserts a quote with track=book_now and returns the id", async () => {
+  it("inserts a quote with track=book_now and returns the id + total", async () => {
+    seedBookablePackage("p1", 100_000);
     supabase.setTableResponse("quotes", { data: { id: "q1" }, error: null });
     const { submitBookNowQuote } = await import("./quotes");
     const result = await submitBookNowQuote({
@@ -38,14 +72,30 @@ describe("submitBookNowQuote", () => {
       contactName: "Casey",
       contactEmail: "casey@x",
     });
-    expect(result).toEqual({ success: true, data: { id: "q1" } });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.id).toBe("q1");
+      expect(result.data.totalAmount).toBe(100_000);
+    }
     const insertCall = supabase
       .callsFor("quotes")
       .find((c) => c.method === "insert");
     expect((insertCall!.args[0] as { track: string }).track).toBe("book_now");
   });
 
+  it("rejects a non-bookable / missing package", async () => {
+    supabase.setTableResponse("packages", { data: null, error: null });
+    const { submitBookNowQuote } = await import("./quotes");
+    const result = await submitBookNowQuote({
+      packageId: "nope",
+      contactName: "Casey",
+      contactEmail: "casey@x",
+    });
+    expect(result.success).toBe(false);
+  });
+
   it("returns failure on insert error", async () => {
+    seedBookablePackage("p1");
     supabase.setTableResponse("quotes", {
       data: null,
       error: { message: "boom" },
@@ -59,10 +109,11 @@ describe("submitBookNowQuote", () => {
     expect(result.success).toBe(false);
   });
 
-  it("sanitises addons before insert", async () => {
+  it("sanitises addons before insert and prices only known capabilities", async () => {
+    seedBookablePackage("p1", 100_000);
     supabase.setTableResponse("quotes", { data: { id: "q1" }, error: null });
     const { submitBookNowQuote } = await import("./quotes");
-    await submitBookNowQuote({
+    const result = await submitBookNowQuote({
       packageId: "p1",
       contactName: "Casey",
       contactEmail: "casey@x",
@@ -71,11 +122,15 @@ describe("submitBookNowQuote", () => {
     const insertCall = supabase
       .callsFor("quotes")
       .find((c) => c.method === "insert");
-    const row = insertCall!.args[0] as { addons: string[] };
+    const row = insertCall!.args[0] as { addons: string[]; total_amount: number };
     expect(row.addons).toEqual(["live-telemetry", "survey-layer"]);
+    // 100_000 base + 10_000 (live-telemetry) + 5_000 (survey-layer)
+    expect(row.total_amount).toBe(115_000);
+    expect(result.success).toBe(true);
   });
 
   it("dispatches booking.received once the row is in", async () => {
+    seedBookablePackage("p1");
     supabase.setTableResponse("quotes", { data: { id: "q1" }, error: null });
     const { submitBookNowQuote } = await import("./quotes");
     await submitBookNowQuote({
@@ -90,6 +145,7 @@ describe("submitBookNowQuote", () => {
   });
 
   it("does not blow up if the booking notification fails", async () => {
+    seedBookablePackage("p1");
     supabase.setTableResponse("quotes", { data: { id: "q1" }, error: null });
     dispatchNotification.mockRejectedValueOnce(new Error("queue down"));
     const { submitBookNowQuote } = await import("./quotes");

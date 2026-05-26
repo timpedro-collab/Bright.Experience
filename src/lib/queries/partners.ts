@@ -33,17 +33,24 @@ export async function getPartnerBySlug(slug: string) {
   return data;
 }
 
-/** Look up a partner by its unique partner code. */
+/**
+ * Look up a partner by its unique partner code.
+ *
+ * Returns the **public, co-brand-safe** projection — no contact details.
+ * This is the only partner query that runs anon-side (e.g. on `/p/[code]`
+ * or {@link PartnerAttributionBanner}), and the matching anon SELECT RLS
+ * is scoped to exactly these columns + `status = 'active'`.
+ */
 export async function getPartnerByCode(code: string) {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("partners")
     .select(
-      `id, name, slug, type, contact_name, contact_email,
-       partner_code, status`
+      `id, name, slug, type, logo_url, brand_color, partner_code, status`
     )
     .eq("partner_code", code)
-    .single();
+    .eq("status", "active")
+    .maybeSingle();
 
   if (error || !data) return null;
   return data;

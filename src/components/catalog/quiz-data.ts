@@ -179,6 +179,49 @@ export const QUIZ_STEPS: QuizStep[] = [
       },
     ],
   },
+  {
+    question: "Anything regulated or industry-specific?",
+    multi: false,
+    hint: "We use this to switch on age-gating and compliance defaults — no surprises later.",
+    options: [
+      {
+        label: "Nothing specific",
+        value: "general",
+        icon: "✨",
+        description: "Standard FMCG, retail, tech, lifestyle.",
+      },
+      {
+        label: "Alcohol",
+        value: "alcohol",
+        icon: "🥂",
+        description: "Beer, wine, spirits — age verification on.",
+      },
+      {
+        label: "Tobacco / vape",
+        value: "tobacco",
+        icon: "🌬️",
+        description: "Compliance-heavy. Age + creative review.",
+      },
+      {
+        label: "Gambling / betting",
+        value: "gambling",
+        icon: "🎰",
+        description: "Regulated promo, age-gated.",
+      },
+      {
+        label: "Financial services",
+        value: "financial",
+        icon: "🏦",
+        description: "FCA-aware copy and disclosures.",
+      },
+      {
+        label: "Healthcare / pharma",
+        value: "healthcare",
+        icon: "🩺",
+        description: "Medical compliance + extra creative review.",
+      },
+    ],
+  },
 ];
 
 /** A single match recommendation: which machine and (optionally) which package. */
@@ -205,73 +248,118 @@ export interface QuizRecommendation {
 /**
  * Resolve answers into a recommendation.
  *
- * Selects a machine + package pairing based on the primary objective and space,
- * then asks `preSelectCapabilities` for the 3–5 outcome chips the match card
- * should show as already-included.
+ * Selects a machine + package pairing based on the primary objective and
+ * space, then asks `preSelectCapabilities` for the 3–5 outcome chips the
+ * match card should show as already-included.
+ *
+ * Slug contract: the machine/package slugs returned here MUST exist in
+ * `supabase/seed.sql`. If you add a new machine or rename a package,
+ * update the mapping here in the same PR.
  */
 export function getRecommendation(
   answers: Record<number, string[]>
 ): QuizRecommendation {
   const objectives = answers[0] ?? [];
-  const eventType = answers[1]?.[0];
+  const eventType = answers[1]?.[0] ?? null;
+  const footfall = answers[2]?.[0] ?? null;
   const spaces = answers[3] ?? [];
-  const audience = answers[4]?.[0];
+  const audience = answers[4]?.[0] ?? null;
+  const industryAnswer = answers[5]?.[0] ?? null;
+
+  const wantsLeads = objectives.includes("lead-generation");
+  const wantsSampling = objectives.includes("sampling");
+  const wantsAwareness = objectives.includes("brand-awareness");
+  const wantsEntertainment =
+    objectives.includes("entertainment") ||
+    objectives.includes("employee-engagement");
+  const isLargeCrowd =
+    footfall === "2000-5000" || footfall === "5000-plus";
+  const isOpenSpace =
+    spaces.includes("open-space") || spaces.includes("stage-area");
 
   let match: QuizMatch;
 
-  if (objectives.includes("lead-generation")) {
-    match = {
-      machineSlug: "the-claw",
-      packageSlug: "claw-professional",
-      machineName: "The Claw",
-      packageName: "Professional",
-    };
-  } else if (
-    objectives.includes("brand-awareness") &&
-    (spaces.includes("open-space") || spaces.includes("stage-area"))
-  ) {
-    match = {
-      machineSlug: "the-spin",
-      packageSlug: "spin-starter",
-      machineName: "The Spin",
-      packageName: "Starter",
-    };
-  } else if (
-    objectives.includes("entertainment") ||
-    objectives.includes("employee-engagement")
-  ) {
-    match = {
-      machineSlug: "the-grab",
-      packageSlug: "grab-experience",
-      machineName: "The Grab",
-      packageName: "Experience",
-    };
-  } else if (objectives.includes("sampling")) {
-    match = {
-      machineSlug: "the-claw",
-      packageSlug: "claw-professional",
-      machineName: "The Claw",
-      packageName: "Sampling",
-    };
+  if (wantsSampling) {
+    // Sampling moments are the bread and butter of the Vend family.
+    match = isLargeCrowd
+      ? {
+          machineSlug: "bright-vend-pro",
+          packageSlug: "bright-vend-pro-weekend",
+          machineName: "Bright.Vend Pro",
+          packageName: "Weekend",
+        }
+      : {
+          machineSlug: "bright-vend",
+          packageSlug: "bright-vend-single-day",
+          machineName: "Bright.Vend",
+          packageName: "Single day",
+        };
+  } else if (wantsLeads || wantsAwareness || wantsEntertainment) {
+    // Lead, awareness and entertainment plays all land best on Bright.Play
+    // — the big interactive cabinet. Pick the right package for the scale.
+    const tourScale = isLargeCrowd && isOpenSpace;
+    match = tourScale
+      ? {
+          machineSlug: "bright-play",
+          packageSlug: "bright-play-tour",
+          machineName: "Bright.Play",
+          packageName: "Tour edition",
+        }
+      : {
+          machineSlug: "bright-play",
+          packageSlug: "bright-play-five-day",
+          machineName: "Bright.Play",
+          packageName: "Five-day activation",
+        };
   } else {
+    // No strong signal — bespoke discovery call so the AE can shape it.
     match = {
-      machineSlug: "the-claw",
-      packageSlug: "claw-starter",
-      machineName: "The Claw",
-      packageName: "Starter",
+      machineSlug: "bright-play",
+      packageSlug: "bespoke",
+      machineName: "Bright.Play",
+      packageName: "Bespoke",
     };
   }
 
-  const signals: QuizSignals = {
+  const industry =
+    industryAnswer && industryAnswer !== "general" ? industryAnswer : null;
+
+  // The pre-select predicates handle one objective at a time, so we union
+  // the hits across every selected objective. Audience and event type are
+  // single-pick so a single signals bundle is enough — we feed `null`
+  // through for the others and merge results.
+  const baseSignals: QuizSignals = {
+    objective: null,
+    eventType,
+    audience,
+    industry,
+  };
+  const seen = new Set<string>();
+  if (objectives.length === 0) {
+    for (const slug of preSelectCapabilities(baseSignals)) seen.add(slug);
+  } else {
+    for (const objective of objectives) {
+      for (const slug of preSelectCapabilities({
+        ...baseSignals,
+        objective,
+      })) {
+        seen.add(slug);
+      }
+    }
+  }
+  // Cap to 5 to keep the match card calm — order by canonical catalogue.
+  const preSelected = Array.from(seen).slice(0, 5);
+
+  const primarySignals: QuizSignals = {
     objective: objectives[0] ?? null,
-    eventType: eventType ?? null,
-    audience: audience ?? null,
-    industry: null,
+    eventType,
+    audience,
+    industry,
   };
 
   return {
     match,
-    preSelectedCapabilities: preSelectCapabilities(signals),
-    signals,
+    preSelectedCapabilities: preSelected,
+    signals: primarySignals,
   };
 }

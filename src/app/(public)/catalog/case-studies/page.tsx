@@ -5,6 +5,7 @@ import { ArrowLeft } from "lucide-react";
 
 import { Container, Section } from "@/components/ui/section";
 import { CaseStudyCard } from "@/components/catalog/CaseStudyCard";
+import { CatalogFilters } from "@/components/catalog/CatalogFilters";
 import { RidgeArtwork, EditorialEyebrow } from "@/components/brand";
 import { getCaseStudies } from "@/lib/queries/case-studies";
 
@@ -14,8 +15,37 @@ export const metadata: Metadata = {
     "Real activations, real results. Browse Bright.Blue case studies from train stations, shopping centres, and brand launches.",
 };
 
-export default async function CaseStudiesPage() {
+export default async function CaseStudiesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ filter?: string }>;
+}) {
+  const { filter } = await searchParams;
   const caseStudies = await getCaseStudies();
+
+  // Build the event-type filter set from the data we actually have, so the
+  // pill row never offers a filter that nukes the grid.
+  const eventTypes = Array.from(
+    new Set(
+      caseStudies
+        .map((c) => (c.event_type ?? "").toLowerCase().trim())
+        .filter(Boolean)
+    )
+  ).sort();
+  const filterOptions = [
+    { label: "All", value: "" },
+    ...eventTypes.map((t) => ({
+      label: t.charAt(0).toUpperCase() + t.slice(1),
+      value: t,
+    })),
+  ];
+
+  const filtered =
+    filter && eventTypes.includes(filter.toLowerCase())
+      ? caseStudies.filter(
+          (c) => (c.event_type ?? "").toLowerCase() === filter.toLowerCase()
+        )
+      : caseStudies;
 
   return (
     <>
@@ -57,15 +87,38 @@ export default async function CaseStudiesPage() {
 
       <Section>
         <Container>
-          {caseStudies.length > 0 ? (
+          {filterOptions.length > 1 && (
+            <div className="mb-8">
+              <CatalogFilters
+                param="filter"
+                options={filterOptions}
+                label="Filter case studies by event type"
+              />
+            </div>
+          )}
+          {filtered.length > 0 ? (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {caseStudies.map((cs) => (
-                <CaseStudyCard key={cs.slug} caseStudy={cs} />
+              {filtered.map((cs, i) => (
+                <CaseStudyCard
+                  key={cs.slug}
+                  caseStudy={{
+                    title: cs.title,
+                    slug: cs.slug,
+                    clientName: cs.client_name ?? undefined,
+                    location: cs.location ?? undefined,
+                    heroImageUrl: cs.hero_image_url ?? undefined,
+                    statsJson:
+                      (cs.stats_json as Record<string, unknown>) ?? undefined,
+                  }}
+                  index={i}
+                />
               ))}
             </div>
           ) : (
             <p className="text-center text-muted-foreground py-12">
-              Case studies coming soon.
+              {filter
+                ? `No case studies match "${filter}" yet — try removing the filter.`
+                : "Case studies coming soon."}
             </p>
           )}
         </Container>

@@ -113,21 +113,55 @@ export async function addPartnerUser(
   return { success: true as const, data: { id: membership.id } };
 }
 
-/** Record a partner attribution for a quote. */
-export async function recordAttribution(partnerId: string, quoteId: string) {
+/**
+ * Record a partner attribution for a quote.
+ *
+ * Callers pass *either* a `partnerId` (UUID) or a `partnerCode` (the short
+ * grep-able code stored in the cookie set on `/p/[code]`). Passing the code
+ * is the common path from the public funnel; passing the id is the common
+ * path from internal tooling.
+ */
+export async function recordAttribution(input: {
+  partnerId?: string;
+  partnerCode?: string;
+  quoteId: string;
+}) {
+  if (!input.partnerId && !input.partnerCode) {
+    return { success: false as const, error: "Need partnerId or partnerCode" };
+  }
+
   const supabase = await createClient();
+
+  let partnerId = input.partnerId ?? null;
+  if (!partnerId && input.partnerCode) {
+    const { data: partner } = await supabase
+      .from("partners")
+      .select("id, status")
+      .eq("partner_code", input.partnerCode)
+      .maybeSingle();
+    if (!partner || partner.status !== "active") {
+      return {
+        success: false as const,
+        error: "Partner not found or not active",
+      };
+    }
+    partnerId = partner.id;
+  }
 
   const { data: attribution, error } = await supabase
     .from("partner_attributions")
     .insert({
       partner_id: partnerId,
-      quote_id: quoteId,
+      quote_id: input.quoteId,
       commission_status: "pending",
     })
     .select("id")
     .single();
 
-  if (error) return { success: false as const, error: "Failed to record attribution" };
+  if (error) {
+    console.error("[recordAttribution] insert failed", error);
+    return { success: false as const, error: "Failed to record attribution" };
+  }
 
   revalidatePath(`/admin/partners/${partnerId}`);
   return { success: true as const, data: { id: attribution.id } };

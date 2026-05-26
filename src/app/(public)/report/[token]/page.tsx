@@ -1,36 +1,65 @@
-/** Public shareable report page — viewable without auth via share token */
+/**
+ * Public, share-token-gated post-event report.
+ *
+ * Renders the customer-safe view of a published `event_reports` row. We
+ * deliberately normalise every metric through `lib/reports/normalise.ts`
+ * so seed/legacy/camel/snake variations all produce the same KPI numbers.
+ * Internal-only metadata (cost basis, raw comparison_json, full prediction
+ * estimate breakdown) stays out of this surface.
+ */
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Users, Target, Eye, DollarSign } from "lucide-react";
+
 import { getEventReportByShareToken } from "@/lib/queries/event-reports";
 import { MetricCard } from "@/components/reports/MetricCard";
 import { PredictedVsActual } from "@/components/reports/PredictedVsActual";
 import { ReportHighlights } from "@/components/reports/ReportHighlights";
+import {
+  costPerLeadPence,
+  normaliseHighlights,
+  normaliseMetrics,
+  normalisePredictions,
+} from "@/lib/reports/normalise";
 
-export default async function PublicReportPage({
-  params,
-}: {
+interface Props {
   params: Promise<{ token: string }>;
-}) {
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { token } = await params;
+  const report = await getEventReportByShareToken(token);
+  if (!report || !report.isPublished) {
+    return { title: "Report not found" };
+  }
+  return {
+    title: report.title ?? "Event Report",
+    description: "Bright.Experience post-event proof of performance.",
+  };
+}
+
+export default async function PublicReportPage({ params }: Props) {
   const { token } = await params;
   const report = await getEventReportByShareToken(token);
 
   if (!report || !report.isPublished) return notFound();
 
-  const metrics = (report.metricsJson ?? {}) as Record<string, number>;
-  const predictions = (report.predictionsJson ?? {}) as Record<string, number>;
-  const highlights = (report.highlightsJson ?? []) as Array<{ url: string; caption?: string; stat?: string }>;
+  const metrics = normaliseMetrics(report.metricsJson);
+  const predictions = normalisePredictions(report.predictionsJson);
+  const highlights = normaliseHighlights(report.highlightsJson);
 
-  const totalPlays = metrics.total_plays ?? 0;
-  const totalLeads = metrics.total_leads ?? 0;
-  const mediaImpressions = metrics.media_impressions ?? 0;
-  const totalCost = metrics.total_cost ?? 0;
+  const cpl = costPerLeadPence(metrics);
+  const conversion =
+    metrics.totalPlays > 0
+      ? `${((metrics.totalLeads / metrics.totalPlays) * 100).toFixed(0)}% conversion`
+      : undefined;
 
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-5xl px-6 py-12">
         <div className="flex items-center gap-3 mb-10">
-          <Link href="/" className="flex items-center gap-3">
+          <Link href="/catalog" className="flex items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand text-white font-bold text-sm">
               B
             </div>
@@ -38,35 +67,57 @@ export default async function PublicReportPage({
               Bright.Experience
             </span>
           </Link>
-          <span className="text-xs text-muted-foreground ml-auto">Proof of Performance</span>
+          <span className="text-xs text-muted-foreground ml-auto">
+            Proof of Performance
+          </span>
         </div>
 
         <div className="mb-8">
-          <h1 className="text-heading text-2xl font-bold text-foreground mb-1">
+          <h1 className="text-display text-3xl text-foreground mb-1 md:text-4xl">
             {report.title ?? "Event Report"}
           </h1>
         </div>
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <MetricCard icon={Users} label="Total Plays" value={totalPlays.toLocaleString()} />
+          <MetricCard
+            icon={Users}
+            label="Total plays"
+            value={metrics.totalPlays.toLocaleString()}
+          />
           <MetricCard
             icon={Target}
-            label="Total Leads"
-            value={totalLeads.toLocaleString()}
-            delta={totalPlays > 0 ? `${((totalLeads / totalPlays) * 100).toFixed(0)}% conversion` : undefined}
-            positive={true}
+            label="Total leads"
+            value={metrics.totalLeads.toLocaleString()}
+            delta={conversion}
+            positive
           />
-          <MetricCard icon={Eye} label="Media Impressions" value={mediaImpressions.toLocaleString()} />
+          <MetricCard
+            icon={Eye}
+            label="Media impressions"
+            value={metrics.mediaImpressions.toLocaleString()}
+          />
           <MetricCard
             icon={DollarSign}
-            label="Cost Per Lead"
-            value={totalLeads > 0 ? `£${(totalCost / totalLeads).toFixed(2)}` : "—"}
+            label="Cost per lead"
+            value={cpl !== null ? `£${(cpl / 100).toFixed(2)}` : "—"}
           />
         </div>
 
-        {Object.keys(predictions).length > 0 && (
+        {(predictions.estimatedInteractions !== null ||
+          predictions.estimatedLeads !== null) && (
           <div className="mb-8">
-            <PredictedVsActual predictions={predictions} actuals={metrics} />
+            <PredictedVsActual
+              predictions={{
+                interactions: predictions.estimatedInteractions ?? 0,
+                leads: predictions.estimatedLeads ?? 0,
+                impressions: predictions.estimatedImpressions ?? 0,
+              }}
+              actuals={{
+                interactions: metrics.totalInteractions,
+                leads: metrics.totalLeads,
+                impressions: metrics.mediaImpressions,
+              }}
+            />
           </div>
         )}
 
@@ -78,11 +129,14 @@ export default async function PublicReportPage({
 
         <footer className="mt-12 pt-6 border-t border-glass-border/10 text-center">
           <p className="text-xs text-muted-foreground">
-            &copy; {new Date().getFullYear()} Bright.Blue Events. All rights reserved.
+            &copy; {new Date().getFullYear()} Bright.Blue Events. All rights
+            reserved.
           </p>
           <p className="text-xs text-muted-foreground mt-1">
             Powered by{" "}
-            <Link href="/catalog" className="text-brand hover:underline">Bright.Experience</Link>
+            <Link href="/catalog" className="text-brand hover:underline">
+              Bright.Experience
+            </Link>
           </p>
         </footer>
       </div>

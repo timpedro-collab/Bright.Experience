@@ -23,6 +23,18 @@ Each row tells you:
 
 ---
 
+## Phase 1 — Public funnel
+
+| What | Where | Why stubbed | Replace in |
+| --- | --- | --- | --- |
+| Stripe checkout intent | `src/app/(public)/book/checkout/page.tsx`, `src/app/actions/quotes.ts::submitBookNowQuote` | The submit creates a `quotes` row with `status='booked'` and skips the actual `paymentIntent.create()` call until Stripe keys are live. Server-side pricing is already in place so swap-in is a one-function change. | Phase 8 (Stripe wire-up) — replace the `STUB: Stripe payment` block with the live SDK call |
+| Legal copy banner | `src/components/public/LegalShell.tsx` "REPLACE BEFORE LAUNCH" notice | Marker so we never accidentally ship lorem | Phase 9 (final polish) — remove once legal counsel signs off on copy |
+| Catalog hero photography | `/public/catalog/*.jpg` paths in seed | Stand-in monogram tiles; not the brand photoshoot | Phase 9 (final polish) — replace with the signed-off media kit |
+| `/api/test/login`, `/api/test/reset` Playwright endpoints | Referenced by `e2e/fixtures/auth.ts` + `e2e/fixtures/data.ts` | The three new Phase 1 specs (`public-quiz-to-booking`, `public-partner-attribution`, `public-report-share`) are intentionally guest-only and don't need these endpoints. Internal-persona specs still do. | Phase 2 (internal ops) — the first phase that *needs* a logged-in persona end-to-end |
+| Booking confirmation copy | `src/app/(public)/book/confirmation/[id]/page.tsx` | Headline + next-steps body are placeholder customer voice | Phase 9 (microcopy) — final copy pass |
+
+---
+
 ## How to use this file
 
 1. Each phase appends a section like the one above when it ships.

@@ -1,78 +1,139 @@
-/** Step content panels for the Track 1 configurator */
+/**
+ * Step content panels for the Book Now configurator.
+ *
+ * These are pure presentational pieces — all parent state is owned by
+ * {@link ConfigureClient}. Machine and Game steps are catalogue-backed; the
+ * addon step keys off `capability_slug` (the canonical vocabulary) so the
+ * server action can re-price and validate without ambiguity.
+ */
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-
-interface Addon {
-  id: string;
-  name: string;
-  price: number;
-  description?: string;
-}
+import { cn } from "@/lib/utils";
+import type {
+  AddonForConfig,
+  GameForConfig,
+  MachineForConfig,
+} from "@/components/quotes/ConfigureClient";
 
 interface MachineStepProps {
-  machine: string;
-  onChange: (v: string) => void;
+  machines: MachineForConfig[];
+  value: string;
+  onChange: (id: string) => void;
 }
 
-/** Step 1: machine selection input. */
-export function MachineStep({ machine, onChange }: MachineStepProps) {
+export function MachineStep({ machines, value, onChange }: MachineStepProps) {
   return (
     <Card>
-      <CardHeader><CardTitle>Select Machine</CardTitle></CardHeader>
-      <CardContent className="space-y-3">
-        <Label htmlFor="machine">Machine Type</Label>
-        <Input id="machine" placeholder="e.g. Claw Machine" value={machine} onChange={(e) => onChange(e.target.value)} />
+      <CardHeader>
+        <CardTitle>Pick your machine</CardTitle>
+      </CardHeader>
+      <CardContent className="grid gap-3 sm:grid-cols-2">
+        {machines.map((m) => (
+          <CataloguePill
+            key={m.id}
+            selected={value === m.id}
+            onSelect={() => onChange(m.id)}
+            title={m.name}
+            subtitle={m.tagline ?? undefined}
+          />
+        ))}
+        {machines.length === 0 && (
+          <p className="text-sm text-muted-foreground">
+            The machine catalogue is being prepared.
+          </p>
+        )}
       </CardContent>
     </Card>
   );
 }
 
 interface GameStepProps {
-  game: string;
-  onChange: (v: string) => void;
+  games: GameForConfig[];
+  value: string;
+  onChange: (id: string) => void;
 }
 
-/** Step 2: game selection input. */
-export function GameStep({ game, onChange }: GameStepProps) {
+export function GameStep({ games, value, onChange }: GameStepProps) {
   return (
     <Card>
-      <CardHeader><CardTitle>Choose Game</CardTitle></CardHeader>
-      <CardContent className="space-y-3">
-        <Label htmlFor="game">Game Software</Label>
-        <Input id="game" placeholder="e.g. Spin to Win" value={game} onChange={(e) => onChange(e.target.value)} />
+      <CardHeader>
+        <CardTitle>Choose a game</CardTitle>
+      </CardHeader>
+      <CardContent className="grid gap-3 sm:grid-cols-2">
+        {games.map((g) => (
+          <CataloguePill
+            key={g.id}
+            selected={value === g.id}
+            onSelect={() => onChange(g.id)}
+            title={g.name}
+            subtitle={g.category ?? undefined}
+          />
+        ))}
+        {games.length === 0 && (
+          <p className="text-sm text-muted-foreground">
+            The game catalogue is being prepared.
+          </p>
+        )}
       </CardContent>
     </Card>
   );
 }
 
 interface AddonStepProps {
-  addons: Addon[];
-  selected: string[];
-  onToggle: (id: string) => void;
+  addons: AddonForConfig[];
+  selectedSlugs: string[];
+  onToggle: (capabilitySlug: string) => void;
 }
 
-/** Step 3: add-on checkbox list. */
-export function AddonStep({ addons, selected, onToggle }: AddonStepProps) {
+export function AddonStep({
+  addons,
+  selectedSlugs,
+  onToggle,
+}: AddonStepProps) {
   return (
     <Card>
-      <CardHeader><CardTitle>Add-ons</CardTitle></CardHeader>
+      <CardHeader>
+        <CardTitle>Add-on capabilities</CardTitle>
+      </CardHeader>
       <CardContent className="space-y-3">
-        {addons.map((addon) => (
-          <label key={addon.id} className="flex items-center gap-3 rounded-lg border border-border p-3 cursor-pointer hover:bg-muted/20">
-            <Checkbox checked={selected.includes(addon.id)} onCheckedChange={() => onToggle(addon.id)} />
-            <div className="flex-1">
-              <p className="text-sm font-medium text-foreground">{addon.name}</p>
-              {addon.description && <p className="text-xs text-muted-foreground">{addon.description}</p>}
-            </div>
-            <span className="text-sm font-semibold text-foreground">£{(addon.price / 100).toFixed(2)}</span>
-          </label>
-        ))}
+        {addons.map((addon) => {
+          const checked = selectedSlugs.includes(addon.capabilitySlug);
+          return (
+            <label
+              key={addon.id}
+              className="flex items-center gap-3 rounded-lg border border-border p-3 cursor-pointer hover:bg-muted/20 transition-colors"
+            >
+              <Checkbox
+                checked={checked}
+                onCheckedChange={() => onToggle(addon.capabilitySlug)}
+              />
+              <div className="flex-1">
+                <p className="text-sm font-medium text-foreground">
+                  {addon.name}
+                </p>
+                {addon.description && (
+                  <p className="text-xs text-muted-foreground">
+                    {addon.description}
+                  </p>
+                )}
+              </div>
+              <span className="text-sm font-semibold text-foreground tabular-nums">
+                +£
+                {(addon.price / 100).toLocaleString("en-GB", {
+                  minimumFractionDigits: 2,
+                })}
+              </span>
+            </label>
+          );
+        })}
         {addons.length === 0 && (
-          <p className="text-sm text-muted-foreground">No add-ons available for this package.</p>
+          <p className="text-sm text-muted-foreground">
+            No add-ons available for this package.
+          </p>
         )}
       </CardContent>
     </Card>
@@ -86,21 +147,72 @@ interface DateStepProps {
   onChangeEnd: (v: string) => void;
 }
 
-/** Step 4: event date range inputs. */
-export function DateStep({ dateStart, dateEnd, onChangeStart, onChangeEnd }: DateStepProps) {
+export function DateStep({
+  dateStart,
+  dateEnd,
+  onChangeStart,
+  onChangeEnd,
+}: DateStepProps) {
   return (
     <Card>
-      <CardHeader><CardTitle>Event Dates</CardTitle></CardHeader>
+      <CardHeader>
+        <CardTitle>When&apos;s the event?</CardTitle>
+      </CardHeader>
       <CardContent className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="dateStart">Start Date</Label>
-          <Input id="dateStart" type="date" value={dateStart} onChange={(e) => onChangeStart(e.target.value)} />
+          <Label htmlFor="dateStart">Start date *</Label>
+          <Input
+            id="dateStart"
+            type="date"
+            value={dateStart}
+            onChange={(e) => onChangeStart(e.target.value)}
+            required
+          />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="dateEnd">End Date</Label>
-          <Input id="dateEnd" type="date" value={dateEnd} onChange={(e) => onChangeEnd(e.target.value)} />
+          <Label htmlFor="dateEnd">End date</Label>
+          <Input
+            id="dateEnd"
+            type="date"
+            value={dateEnd}
+            onChange={(e) => onChangeEnd(e.target.value)}
+          />
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+interface CataloguePillProps {
+  selected: boolean;
+  onSelect: () => void;
+  title: string;
+  subtitle?: string;
+}
+
+function CataloguePill({
+  selected,
+  onSelect,
+  title,
+  subtitle,
+}: CataloguePillProps) {
+  return (
+    <button
+      type="button"
+      onClick={onSelect}
+      className={cn(
+        "rounded-lg border p-4 text-left transition-all hover:border-foreground/40",
+        selected
+          ? "border-primary bg-primary/5 ring-2 ring-primary/30"
+          : "border-border"
+      )}
+    >
+      <p className="text-sm font-semibold text-foreground">{title}</p>
+      {subtitle && (
+        <p className="mt-0.5 text-xs text-muted-foreground line-clamp-2">
+          {subtitle}
+        </p>
+      )}
+    </button>
   );
 }

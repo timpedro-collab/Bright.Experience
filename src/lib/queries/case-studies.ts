@@ -1,7 +1,7 @@
 /** Supabase read queries for the case studies catalog entity */
 import { createClient } from "@/lib/supabase/server";
 
-/** Fetch all published case studies, newest first */
+/** Fetch all published case studies, newest first. */
 export async function getCaseStudies() {
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -12,11 +12,14 @@ export async function getCaseStudies() {
     .eq("is_published", true)
     .order("published_at", { ascending: false });
 
-  if (error || !data) return [];
-  return data;
+  if (error) {
+    console.error("[getCaseStudies] query failed", error);
+    return [];
+  }
+  return data ?? [];
 }
 
-/** Fetch a single published case study by slug */
+/** Fetch a single published case study by slug. */
 export async function getCaseStudyBySlug(slug: string) {
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -24,8 +27,11 @@ export async function getCaseStudyBySlug(slug: string) {
     .select("*")
     .eq("slug", slug)
     .eq("is_published", true)
-    .single();
+    .maybeSingle();
 
-  if (error || !data) return null;
+  if (error) {
+    console.error("[getCaseStudyBySlug] query failed", { slug, error });
+    return null;
+  }
   return data;
 }

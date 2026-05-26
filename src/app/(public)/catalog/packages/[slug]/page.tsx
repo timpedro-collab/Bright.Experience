@@ -34,7 +34,14 @@ export default async function PackageDetailPage({ params }: PageProps) {
   if (!pkg) notFound();
 
   const features = (pkg.features_json as string[]) ?? [];
-  const addons = (pkg.package_addons as { id: string; name: string; price?: number; description?: string }[]) ?? [];
+  const addons =
+    (pkg.package_addons as {
+      id: string;
+      name: string;
+      price?: number;
+      description?: string;
+    }[]) ?? [];
+  const parentMachine = pkg.machines as { name?: string; slug?: string } | null;
 
   return (
     <>
@@ -53,8 +60,26 @@ export default async function PackageDetailPage({ params }: PageProps) {
               <h1 className="text-display text-4xl md:text-5xl font-bold text-foreground">
                 {pkg.name}
               </h1>
+              {parentMachine && (
+                <p className="mt-3 text-sm text-muted-foreground">
+                  Built on{" "}
+                  <Link
+                    href={`/catalog/machines/${parentMachine.slug}`}
+                    className="text-foreground underline underline-offset-4 hover:no-underline"
+                  >
+                    {parentMachine.name}
+                  </Link>
+                </p>
+              )}
               {pkg.duration_days && (
-                <p className="mt-3 text-muted-foreground">{pkg.duration_days}-day activation</p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {pkg.duration_days}-day activation
+                </p>
+              )}
+              {pkg.description && (
+                <p className="mt-5 text-base text-muted-foreground leading-relaxed">
+                  {pkg.description}
+                </p>
               )}
               <p className="mt-5 text-2xl text-foreground">
                 <span className="text-heading font-bold">{formatPrice(pkg.base_price)}</span>
