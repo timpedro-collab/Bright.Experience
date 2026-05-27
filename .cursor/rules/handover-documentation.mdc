@@ -1,11 +1,12 @@
 ---
-description: Keep all documentation current with every code change for clean handover
+description: CTO-handoff-ready documentation — every change must be obvious to a new engineer
 alwaysApply: true
 ---
 
-# Documentation & Handover Standards
+# Documentation & CTO Handoff Standards
 
-Every code change must leave the codebase ready for a new developer to pick up without explanation.
+Every code change must leave the codebase ready for a senior engineer to pick up cold.
+The target audience is the incoming CTO — assume they have zero project context.
 
 ## After Every Feature or Phase
 
@@ -13,12 +14,20 @@ Every code change must leave the codebase ready for a new developer to pick up w
 - Update relevant `docs/*.md` files if the data model, lifecycle, roles, or architecture changed
 - If a new environment variable is introduced, add it to `.env.example` with a comment explaining its purpose
 - If a new database migration is created, ensure `docs/04-data-model.md` reflects the new/changed entities
+- If a new external integration point is added (API, webhook, cron), document it in `docs/10-integrations.md`
+
+## External Integration Points
+
+- Every inbound webhook / API route must have a JSDoc block explaining the expected caller, auth mechanism, and payload shape
+- Every outbound integration (Pipedrive, Resend, Bright.Blue Cloud) must have a clearly-labelled stub with `// INTEGRATION: <service>` and a link to the relevant handler
+- Stubs for unconnected integrations must throw a descriptive error or return a typed placeholder — never silently no-op without logging
+- Document all integration contracts in `docs/10-integrations.md` so the CTO can wire real endpoints without reading implementation code
 
 ## File-Level Documentation
 
 - Every new file must have a one-line JSDoc comment at the top explaining what it does
 - Every exported function must have a brief JSDoc explaining its purpose and return value
-- Complex business logic (pricing calculations, tier lookups, template expansion) must have inline comments explaining the "why," not the "what"
+- Complex business logic (pricing, tier lookups, template expansion, telemetry aggregation) must have inline comments explaining the "why," not the "what"
 
 ## Changelog
 

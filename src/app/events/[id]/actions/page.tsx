@@ -10,6 +10,7 @@ import { getEventById } from "@/lib/queries/events";
 import { getTasksByEvent } from "@/lib/queries/tasks";
 import { getUnreadCount } from "@/lib/queries/notifications";
 import { getUser } from "@/lib/auth";
+import { isInternalRole } from "@/lib/roles";
 
 export default async function ActionsPage({
   params,
@@ -26,10 +27,13 @@ export default async function ActionsPage({
   ]);
   if (!event) return notFound();
 
-  const customerTasks = tasks.filter((t) => t.customerVisible);
-  const completed = customerTasks.filter((t) => t.status === "complete").length;
-  const total = customerTasks.length;
-  const blocking = customerTasks.filter(
+  const isInternal = isInternalRole(user.role);
+  const visibleTasks = isInternal
+    ? tasks
+    : tasks.filter((t) => t.customerVisible);
+  const completed = visibleTasks.filter((t) => t.status === "complete").length;
+  const total = visibleTasks.length;
+  const blocking = visibleTasks.filter(
     (t) => t.isBlocking && t.status !== "complete",
   ).length;
   const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
@@ -82,7 +86,7 @@ export default async function ActionsPage({
         </>
       )}
 
-      {customerTasks.length === 0 ? (
+      {visibleTasks.length === 0 ? (
         <EmptyState
           icon={CheckCircle2}
           title="All clear"
@@ -93,7 +97,11 @@ export default async function ActionsPage({
         <section className="py-10">
           <EditorialEyebrow>Every action</EditorialEyebrow>
           <div className="mt-6">
-            <TaskChecklist tasks={customerTasks} />
+            <TaskChecklist
+              tasks={visibleTasks}
+              showInternalTasks={isInternal}
+              isInternal={isInternal}
+            />
           </div>
         </section>
       )}

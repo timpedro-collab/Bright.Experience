@@ -51,6 +51,7 @@ export type NotificationKind =
   | "studio.request_submitted"
   | "studio.status_changed"
   | "task.assigned"
+  | "task.completed"
   | "task.overdue"
   // FYI
   | "lead.captured_live"
@@ -408,6 +409,19 @@ export const ARCHETYPES: Record<NotificationKind, Archetype> = {
     },
     defaults: { inPortal: true, emailMode: "immediate" },
     audience: "both",
+  },
+  "task.completed": {
+    kind: "task.completed",
+    classOf: "fyi",
+    priority: "normal",
+    eyebrow: "Progress update",
+    subjectTemplate: "{taskTitle} completed",
+    bodyTemplate:
+      "A blocking action on {eventName} has been marked as complete. The event may now be eligible to advance to the next stage.",
+    linkTemplate: "/events/{eventId}/actions",
+    ownerResolver: "event_account_executive",
+    defaults: { inPortal: true, emailMode: "digest" },
+    audience: "internal",
   },
   "task.overdue": {
     kind: "task.overdue",

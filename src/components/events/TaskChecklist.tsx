@@ -1,5 +1,15 @@
 "use client";
 
+/**
+ * Interactive task checklist — grouped by overdue / active / completed.
+ *
+ * Both customers and internal users can mark tasks as complete via
+ * `completeTask`. Internal users additionally see a "Skip" option
+ * and can start pending tasks. The UI is optimistic — the check
+ * toggles instantly while the server action resolves in the background.
+ */
+
+import { useTransition } from "react";
 import {
   CheckCircle2,
   Circle,
@@ -7,11 +17,17 @@ import {
   Clock,
   ArrowRight,
   User,
+  SkipForward,
+  Loader2,
 } from "lucide-react";
+import { toast } from "sonner";
+
 import type { Task } from "@/types";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { TaskStatusBadge } from "@/components/ui/StatusBadge";
 import { formatDateShort, isOverdue } from "@/lib/dates";
+import { completeTask, skipTask, startTask } from "@/app/actions/tasks";
 
 function priorityAccent(priority: string): string {
   switch (priority) {
@@ -27,16 +43,21 @@ function priorityAccent(priority: string): string {
 export function TaskChecklist({
   tasks,
   showInternalTasks = false,
+  isInternal = false,
 }: {
   tasks: Task[];
   showInternalTasks?: boolean;
+  isInternal?: boolean;
 }) {
   const visibleTasks = showInternalTasks
     ? tasks
     : tasks.filter((t) => t.customerVisible);
 
   const overdue = visibleTasks.filter(
-    (t) => t.status !== "complete" && t.status !== "skipped" && isOverdue(t.dueDate)
+    (t) =>
+      t.status !== "complete" &&
+      t.status !== "skipped" &&
+      isOverdue(t.dueDate)
   );
   const active = visibleTasks.filter(
     (t) =>
@@ -51,13 +72,28 @@ export function TaskChecklist({
   return (
     <div className="space-y-6">
       {overdue.length > 0 && (
-        <TaskGroup title="Overdue" tasks={overdue} variant="overdue" />
+        <TaskGroup
+          title="Overdue"
+          tasks={overdue}
+          variant="overdue"
+          isInternal={isInternal}
+        />
       )}
       {active.length > 0 && (
-        <TaskGroup title="In Progress & Upcoming" tasks={active} variant="active" />
+        <TaskGroup
+          title="In Progress & Upcoming"
+          tasks={active}
+          variant="active"
+          isInternal={isInternal}
+        />
       )}
       {completed.length > 0 && (
-        <TaskGroup title="Completed" tasks={completed} variant="completed" />
+        <TaskGroup
+          title="Completed"
+          tasks={completed}
+          variant="completed"
+          isInternal={isInternal}
+        />
       )}
     </div>
   );
@@ -67,10 +103,12 @@ function TaskGroup({
   title,
   tasks,
   variant,
+  isInternal,
 }: {
   title: string;
   tasks: Task[];
   variant: "overdue" | "active" | "completed";
+  isInternal: boolean;
 }) {
   return (
     <div>
@@ -95,6 +133,7 @@ function TaskGroup({
             task={task}
             index={i}
             isCompleted={variant === "completed"}
+            isInternal={isInternal}
           />
         ))}
       </div>
@@ -106,13 +145,57 @@ function TaskItem({
   task,
   index,
   isCompleted,
+  isInternal,
 }: {
   task: Task;
   index: number;
   isCompleted: boolean;
+  isInternal: boolean;
 }) {
-  const overdue =
-    !isCompleted && task.dueDate && isOverdue(task.dueDate);
+  const [pending, startTransition] = useTransition();
+  const overdue = !isCompleted && task.dueDate && isOverdue(task.dueDate);
+
+  function handleComplete() {
+    startTransition(async () => {
+      try {
+        await completeTask(task.id);
+        toast.success("Task completed", {
+          description: task.isBlocking
+            ? "Blocking item cleared — stage may now advance."
+            : undefined,
+        });
+      } catch (err) {
+        toast.error(
+          err instanceof Error ? err.message : "Could not complete task"
+        );
+      }
+    });
+  }
+
+  function handleSkip() {
+    startTransition(async () => {
+      try {
+        await skipTask(task.id);
+        toast.info("Task skipped");
+      } catch (err) {
+        toast.error(
+          err instanceof Error ? err.message : "Could not skip task"
+        );
+      }
+    });
+  }
+
+  function handleStart() {
+    startTransition(async () => {
+      try {
+        await startTask(task.id);
+      } catch (err) {
+        toast.error(
+          err instanceof Error ? err.message : "Could not start task"
+        );
+      }
+    });
+  }
 
   return (
     <div
@@ -123,14 +206,22 @@ function TaskItem({
     >
       <div className="flex items-start gap-3">
         <div className="mt-0.5 shrink-0">
-          {isCompleted ? (
+          {pending ? (
+            <Loader2 size={18} className="animate-spin text-muted-foreground" />
+          ) : isCompleted ? (
             <CheckCircle2 size={18} className="text-success" />
           ) : task.status === "blocked" ? (
             <AlertCircle size={18} className="text-destructive" />
           ) : task.status === "in_progress" ? (
             <Clock size={18} className="text-brand" />
           ) : (
-            <Circle size={18} className="text-text-muted" />
+            <button
+              onClick={handleComplete}
+              className="hover:text-success transition-colors text-text-muted"
+              title="Mark as complete"
+            >
+              <Circle size={18} />
+            </button>
           )}
         </div>
 
@@ -173,9 +264,58 @@ function TaskItem({
               </span>
             )}
             {task.isBlocking && (
-              <Badge variant="destructive" className="text-[0.55rem]">Blocking</Badge>
+              <Badge variant="destructive" className="text-[0.55rem]">
+                Blocking
+              </Badge>
             )}
           </div>
+
+          {!isCompleted && !pending && (
+            <div className="flex items-center gap-2 mt-3 opacity-0 group-hover:opacity-100 transition-opacity">
+              {task.status !== "in_progress" &&
+                task.status !== "complete" &&
+                task.status !== "skipped" && (
+                  <Button
+                    variant="brand"
+                    size="sm"
+                    className="h-7 text-xs"
+                    onClick={handleComplete}
+                  >
+                    <CheckCircle2 size={12} /> Complete
+                  </Button>
+                )}
+              {task.status === "in_progress" && (
+                <Button
+                  variant="brand"
+                  size="sm"
+                  className="h-7 text-xs"
+                  onClick={handleComplete}
+                >
+                  <CheckCircle2 size={12} /> Done
+                </Button>
+              )}
+              {task.status === "pending" && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-7 text-xs"
+                  onClick={handleStart}
+                >
+                  <ArrowRight size={12} /> Start
+                </Button>
+              )}
+              {isInternal && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 text-xs text-muted-foreground"
+                  onClick={handleSkip}
+                >
+                  <SkipForward size={12} /> Skip
+                </Button>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>

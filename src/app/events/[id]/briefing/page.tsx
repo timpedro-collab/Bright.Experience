@@ -1,11 +1,13 @@
 /**
- * Customer creative briefing — the editorial-language version of the
- * "tell us your story" intake form. Replaces the old AppShell + gradient
- * info card with the editorial chrome and a clean two-column reading
- * layout (form on the left, guidance on the right).
+ * Unified briefing page — creative + ops tabs.
+ *
+ * Both forms share the same editorial layout. The active tab is
+ * driven by the `?tab=` search param so URLs are shareable and the
+ * browser back button works. Creative is the default.
  */
 
 import { notFound, redirect } from "next/navigation";
+import { Suspense } from "react";
 import Link from "next/link";
 import { FileText, ArrowLeft } from "lucide-react";
 
@@ -22,6 +24,8 @@ import {
   Hairline,
 } from "@/components/brand";
 import { BriefingForm } from "@/components/briefing/BriefingForm";
+import { OpsBriefingForm } from "@/components/briefing/OpsBriefingForm";
+import { BriefingTabs } from "@/components/briefing/BriefingTabs";
 import { getEventById } from "@/lib/queries/events";
 import { getUnreadCount } from "@/lib/queries/notifications";
 import { getUser } from "@/lib/auth";
@@ -29,12 +33,17 @@ import { createClient } from "@/lib/supabase/server";
 
 export default async function BriefingPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const user = await getUser();
   if (!user) redirect("/login");
   const { id } = await params;
+  const sp = await searchParams;
+  const activeTab = sp.tab === "ops" ? "ops" : "creative";
+
   const [event, unread] = await Promise.all([
     getEventById(id),
     getUnreadCount(user.id),
@@ -42,14 +51,33 @@ export default async function BriefingPage({
   if (!event) return notFound();
 
   const supabase = await createClient();
-  const { data: briefing } = await supabase
-    .from("briefing_responses")
-    .select("*")
-    .eq("event_id", id)
-    .eq("form_type", "creative")
-    .maybeSingle();
+  const [{ data: creativeBrief }, { data: opsBrief }] = await Promise.all([
+    supabase
+      .from("briefing_responses")
+      .select("*")
+      .eq("event_id", id)
+      .eq("form_type", "creative")
+      .maybeSingle(),
+    supabase
+      .from("briefing_responses")
+      .select("*")
+      .eq("event_id", id)
+      .eq("form_type", "ops")
+      .maybeSingle(),
+  ]);
 
-  const isSubmitted = briefing?.is_submitted ?? false;
+  const creativeSubmitted = creativeBrief?.is_submitted ?? false;
+  const opsSubmitted = opsBrief?.is_submitted ?? false;
+  const bothSubmitted = creativeSubmitted && opsSubmitted;
+
+  const heroTitle =
+    activeTab === "ops"
+      ? "The logistics."
+      : "Tell us your story.";
+  const heroSubtitle =
+    activeTab === "ops"
+      ? "Help our ops team plan the perfect build by sharing your venue and logistics details."
+      : "A few prompts help our creative team design something that actually feels like your brand.";
 
   return (
     <EditionShell>
@@ -57,7 +85,7 @@ export default async function BriefingPage({
         breadcrumbs={[
           { label: "Home", href: "/" },
           { label: event.name, href: `/events/${id}` },
-          { label: "Creative briefing" },
+          { label: "Briefing" },
         ]}
         rightSlot={
           <>
@@ -73,85 +101,123 @@ export default async function BriefingPage({
 
       <RidgeHero
         seed={`${event.id}::briefing`}
-        eyebrow={`${event.account.name} · Creative briefing`}
-        title="Tell us your story."
-        subtitle="A few prompts help our creative team design something that actually feels like your brand. You can save and come back to anything that needs more thought."
+        eyebrow={`${event.account.name} · Briefing`}
+        title={heroTitle}
+        subtitle={heroSubtitle}
         rightSlot={
           <div className="inline-flex items-center gap-1.5">
             <FileText className="size-3" />
             <span
               className={
-                isSubmitted
+                bothSubmitted
                   ? "text-success"
                   : "text-[var(--color-bb-cobalt)]"
               }
             >
-              {isSubmitted ? "Submitted" : "In progress"}
+              {bothSubmitted
+                ? "Both submitted"
+                : creativeSubmitted || opsSubmitted
+                  ? "1 of 2 submitted"
+                  : "In progress"}
             </span>
           </div>
         }
       />
 
       <EditionBody>
+        <div className="pt-6 pb-2">
+          <Suspense>
+            <BriefingTabs />
+          </Suspense>
+        </div>
+
         <section className="grid grid-cols-1 lg:grid-cols-[1fr_18rem] gap-x-12 gap-y-8 py-10">
-          {/* The form — clean editorial spread */}
           <div>
-            <EditorialEyebrow accent>Your brief</EditorialEyebrow>
+            <EditorialEyebrow accent>
+              {activeTab === "ops" ? "Your logistics" : "Your brief"}
+            </EditorialEyebrow>
             <p className="mt-2 text-sm text-muted-foreground max-w-[58ch]">
-              Answer what you can. Anything you skip we&apos;ll ask about
-              on the kickoff call.
+              {activeTab === "ops"
+                ? "Fill in what you know now. We'll confirm the rest on a planning call."
+                : "Answer what you can. Anything you skip we'll ask about on the kickoff call."}
             </p>
             <div className="mt-6">
-              <BriefingForm
-                eventId={id}
-                initialResponses={briefing?.responses ?? {}}
-                isSubmitted={isSubmitted}
-              />
+              {activeTab === "ops" ? (
+                <OpsBriefingForm
+                  eventId={id}
+                  initialResponses={opsBrief?.responses ?? {}}
+                  isSubmitted={opsSubmitted}
+                />
+              ) : (
+                <BriefingForm
+                  eventId={id}
+                  initialResponses={creativeBrief?.responses ?? {}}
+                  isSubmitted={creativeSubmitted}
+                />
+              )}
             </div>
           </div>
 
-          {/* Sidebar guidance */}
           <aside className="space-y-8 lg:border-l lg:border-border/40 lg:pl-8">
-            <div>
-              <EditorialEyebrow>Why we ask</EditorialEyebrow>
-              <p className="mt-3 text-sm text-muted-foreground leading-relaxed">
-                Every great experience starts with a clear point of view.
-                Your answers shape the creative direction, the copy on
-                screen, and the cues we use to surprise your audience.
-              </p>
-            </div>
-
-            <Hairline />
-
-            <div>
-              <EditorialEyebrow>What we&apos;ll do with it</EditorialEyebrow>
-              <ul className="mt-3 flex flex-col divide-y divide-border/40 border-t border-b border-border/40">
-                <li className="flex items-baseline gap-3 py-2.5">
-                  <span className="text-overline text-muted-foreground tabular-nums">
-                    01
-                  </span>
-                  <span className="text-sm text-foreground">
-                    Match your brand voice across the experience
-                  </span>
-                </li>
-                <li className="flex items-baseline gap-3 py-2.5">
-                  <span className="text-overline text-muted-foreground tabular-nums">
-                    02
-                  </span>
-                  <span className="text-sm text-foreground">
-                    Tune the creative to your audience and the room
-                  </span>
-                </li>
-                <li className="flex items-baseline gap-3 py-2.5">
-                  <span className="text-overline text-muted-foreground tabular-nums">
-                    03
-                  </span>
-                  <span className="text-sm text-foreground">
-                    Bring the right ideas to your kickoff call
-                  </span>
-                </li>
-              </ul>
-            </div>
+            {activeTab === "creative" ? (
+              <>
+                <div>
+                  <EditorialEyebrow>Why we ask</EditorialEyebrow>
+                  <p className="mt-3 text-sm text-muted-foreground leading-relaxed">
+                    Every great experience starts with a clear point of view.
+                    Your answers shape the creative direction, the copy on
+                    screen, and the cues we use to surprise your audience.
+                  </p>
+                </div>
+                <Hairline />
+                <div>
+                  <EditorialEyebrow>What we&apos;ll do with it</EditorialEyebrow>
+                  <ul className="mt-3 flex flex-col divide-y divide-border/40 border-t border-b border-border/40">
+                    {[
+                      "Match your brand voice across the experience",
+                      "Tune the creative to your audience and the room",
+                      "Bring the right ideas to your kickoff call",
+                    ].map((item, i) => (
+                      <li key={i} className="flex items-baseline gap-3 py-2.5">
+                        <span className="text-overline text-muted-foreground tabular-nums">
+                          {String(i + 1).padStart(2, "0")}
+                        </span>
+                        <span className="text-sm text-foreground">{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </>
+            ) : (
+              <>
+                <div>
+                  <EditorialEyebrow>Why this matters</EditorialEyebrow>
+                  <p className="mt-3 text-sm text-muted-foreground leading-relaxed">
+                    Getting logistics right means a smooth build day and zero
+                    surprises. The more detail you give us now, the less
+                    back-and-forth later.
+                  </p>
+                </div>
+                <Hairline />
+                <div>
+                  <EditorialEyebrow>What happens next</EditorialEyebrow>
+                  <ul className="mt-3 flex flex-col divide-y divide-border/40 border-t border-b border-border/40">
+                    {[
+                      "We verify venue access and power supply",
+                      "Risk assessment and H&S documentation",
+                      "Logistics team confirms the delivery plan",
+                    ].map((item, i) => (
+                      <li key={i} className="flex items-baseline gap-3 py-2.5">
+                        <span className="text-overline text-muted-foreground tabular-nums">
+                          {String(i + 1).padStart(2, "0")}
+                        </span>
+                        <span className="text-sm text-foreground">{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </>
+            )}
 
             <Hairline />
 

@@ -4,6 +4,46 @@ All notable changes to the Bright.Experience platform are documented here.
 
 ---
 
+## [10/10 World-Class Pass — Live Data + Task Lifecycle + Ops Briefing] - 2026-05-27
+
+Comprehensive quality pass addressing every gap identified in the post-audit review, with a focus on CTO handoff readiness and Bright.Blue Cloud integration.
+
+### Task Lifecycle (Complete → Skip → Start)
+- New server actions: `completeTask`, `skipTask`, `startTask` (`src/app/actions/tasks.ts`) with audit trail entries and notification dispatch for blocking tasks.
+- `TaskChecklist` now fully interactive — hover reveals Complete/Start/Skip buttons with optimistic transitions.
+- Internal users see all tasks (including non-customer-visible); external users see only customer tasks.
+- Blocking task completion triggers `task.completed` notification archetype.
+
+### Bright.Blue Cloud Integration
+- **Inbound webhooks** (`POST /api/webhooks/brightblue`): HMAC-SHA256 verified, handles `telemetry.batch`, `lead.captured`, `machine.heartbeat`, `report.ready`.
+- **Outbound API client** (`src/lib/brightblue/client.ts`): pulls live snapshots, post-show reports, and validates machine serials. Gracefully returns `null` when unconfigured.
+- **Webhook verification** (`src/lib/webhooks/verify.ts`): timing-safe HMAC comparison with comprehensive test coverage.
+- New env vars: `BRIGHTBLUE_API_URL`, `BRIGHTBLUE_API_KEY`, `BRIGHTBLUE_WEBHOOK_SECRET`.
+
+### Live Dashboard — Real-Time Polling
+- New client component `LiveDashboardClient` polls `/api/events/:id/live` every 10 seconds.
+- API route tries Bright.Blue Cloud first, falls back to local DB data from webhooks.
+- Hourly chart now aggregates real telemetry data (was previously zeroed).
+- Live feed shows human-readable event labels (e.g. "Game session started", "New lead captured").
+- Pause/resume toggle, Cloud vs Local source badge, last-refresh timestamp.
+
+### Ops Briefing Form
+- New `OpsBriefingForm` component with venue, power, WiFi, H&S, staffing, and logistics fields.
+- Briefing page now has Creative + Operations tabs via `BriefingTabs` (URL-param driven, shareable).
+- Progress indicator shows "Both submitted" / "1 of 2 submitted" / "In progress".
+
+### CTO Handoff Documentation
+- New `docs/10-integrations.md`: comprehensive integration contracts covering all webhooks, APIs, crons, and env vars.
+- Updated `.cursor/rules/handover-documentation.mdc` with CTO-handoff-first documentation standards.
+- Updated `.env.example` with all Bright.Blue Cloud variables.
+
+### Quality
+- 616 tests passing across 57 files.
+- Zero TypeScript errors, zero lint errors.
+- Production build clean.
+
+---
+
 ## [Phase 1 — Public funnel feature-complete] - 2026-05-26
 
 The public marketing & acquisition funnel is now end-to-end real. A guest can land on the home page, take the quiz, request a tailored proposal **or** book a packaged moment, hit a confirmation, and (separately) view a shareable post-event report — all wired to real Supabase data, all server-side validated, all priced from the catalogue rather than the client.
