@@ -28,8 +28,14 @@ import { getEventById } from "@/lib/queries/events";
 import { getMilestonesByEvent } from "@/lib/queries/milestones";
 import { getTasksByEvent } from "@/lib/queries/tasks";
 import { getUnreadCount } from "@/lib/queries/notifications";
+import { getStageTransitions } from "@/lib/queries/stage-transitions";
 import { getUser } from "@/lib/auth";
+import { isInternalRole } from "@/lib/roles";
+import { canAdvanceStage } from "@/app/actions/stages";
+import { AdvanceStageButton } from "@/components/events/AdvanceStageButton";
+import { StageTransitions } from "@/components/timeline/StageTransitions";
 import { STAGE_CONFIG } from "@/types";
+import { isOverdue } from "@/lib/dates";
 
 export default async function TimelinePage({
   params,
@@ -39,16 +45,28 @@ export default async function TimelinePage({
   const user = await getUser();
   if (!user) redirect("/login");
   const { id } = await params;
-  const [event, milestones, tasks, unread] = await Promise.all([
+  const [event, milestones, tasks, unread, transitions] = await Promise.all([
     getEventById(id),
     getMilestonesByEvent(id),
     getTasksByEvent(id),
     getUnreadCount(user.id),
+    getStageTransitions(id),
   ]);
   if (!event) return notFound();
 
+  const isInternal = isInternalRole(user.role);
+  const stageGate = isInternal
+    ? await canAdvanceStage(id)
+    : { canAdvance: false, blockers: [] };
+
   const completedMilestones = milestones.filter(
     (m) => m.status === "complete",
+  ).length;
+  const missedMilestones = milestones.filter(
+    (m) =>
+      m.status !== "complete" &&
+      m.status !== "skipped" &&
+      isOverdue(m.targetDate),
   ).length;
   const stageConfig = STAGE_CONFIG[event.currentStage];
 
@@ -76,7 +94,7 @@ export default async function TimelinePage({
         seed={`${event.id}::timeline`}
         eyebrow={`${event.account.name} · Delivery plan`}
         title="The timeline."
-        subtitle={`Currently in ${stageConfig.label}. ${completedMilestones} of ${milestones.length} milestones complete.`}
+        subtitle={`Currently in ${stageConfig.label}. ${completedMilestones} of ${milestones.length} milestones complete${missedMilestones > 0 ? ` · ${missedMilestones} missed` : ""}.`}
         rightSlot={
           <div className="flex items-center gap-2">
             <HealthBadge status={event.healthStatus} />
@@ -110,6 +128,16 @@ export default async function TimelinePage({
               that needs your eyes lives in your inbox and on the event
               page.
             </p>
+            {isInternal && (
+              <div className="mt-5 max-w-md">
+                <AdvanceStageButton
+                  eventId={id}
+                  currentStage={event.currentStage}
+                  canAdvance={stageGate.canAdvance}
+                  blockers={stageGate.blockers}
+                />
+              </div>
+            )}
           </div>
           <div className="text-right">
             <p className="text-display text-foreground text-[clamp(3rem,6vw,4.5rem)] leading-none tabular-nums">
@@ -122,6 +150,11 @@ export default async function TimelinePage({
             <p className="text-overline text-muted-foreground mt-1">
               Milestones complete
             </p>
+            {missedMilestones > 0 && (
+              <p className="text-overline text-warning mt-1 tabular-nums">
+                {missedMilestones} missed
+              </p>
+            )}
           </div>
         </section>
 
@@ -140,6 +173,20 @@ export default async function TimelinePage({
               tasks={tasks}
               viewerRole={user.role}
             />
+          </div>
+        </section>
+
+        <Hairline className="opacity-60" />
+
+        {/* Stage transition log */}
+        <section className="py-10">
+          <EditorialEyebrow>Stage history</EditorialEyebrow>
+          <p className="mt-2 text-sm text-muted-foreground max-w-[58ch]">
+            Every time this event advances to the next stage, we record
+            who pushed it forward and when.
+          </p>
+          <div className="mt-6">
+            <StageTransitions transitions={transitions} />
           </div>
         </section>
       </EditionBody>

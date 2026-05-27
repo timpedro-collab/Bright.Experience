@@ -46,8 +46,10 @@ import { getUnreadCount } from "@/lib/queries/notifications";
 import { getUser } from "@/lib/auth";
 import { isInternalRole } from "@/lib/roles";
 import { STAGE_CONFIG } from "@/types";
-import { formatDateLong, daysUntilDate } from "@/lib/dates";
+import { formatDateLong, daysUntilDate, isOverdue } from "@/lib/dates";
 import { resolveEventNextStep } from "@/lib/event-next-step";
+import { canAdvanceStage } from "@/app/actions/stages";
+import { AdvanceStageButton } from "@/components/events/AdvanceStageButton";
 
 export default async function EventOverviewPage({
   params,
@@ -86,6 +88,17 @@ export default async function EventOverviewPage({
     approvals,
     isInternal,
   });
+
+  const stageGate = isInternal
+    ? await canAdvanceStage(id)
+    : { canAdvance: false, blockers: [] };
+
+  const missedMilestones = milestones.filter(
+    (m) =>
+      m.status !== "complete" &&
+      m.status !== "skipped" &&
+      isOverdue(m.targetDate)
+  ).length;
 
   const heroSubtitle = (() => {
     if (days > 0) {
@@ -140,12 +153,16 @@ export default async function EventOverviewPage({
       />
 
       <EditionBody>
-        {/* Next-step editorial callout — flat, typographic, no glass orbs */}
+        {/* Next-step editorial callout — flat, typographic, no glass orbs.
+            Tone drives the accent colour on the eyebrow + primary CTA so
+            "warning" reads visually different to "success". */}
         {nextStep && (
           <section className="py-10 md:py-12">
             <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] md:gap-12 items-end">
               <div>
-                <EditorialEyebrow accent>{nextStep.eyebrow}</EditorialEyebrow>
+                <EditorialEyebrow accent={nextStep.tone !== "warning"}>
+                  {nextStep.eyebrow}
+                </EditorialEyebrow>
                 <h2 className="text-heading text-foreground text-[clamp(1.5rem,3vw,2.25rem)] leading-tight mt-2 max-w-[32ch]">
                   {nextStep.title}
                 </h2>
@@ -158,7 +175,13 @@ export default async function EventOverviewPage({
               <div className="flex flex-col md:items-end gap-2 mt-4 md:mt-0">
                 <Link
                   href={nextStep.primaryAction.href}
-                  className="inline-flex items-center gap-2 bg-[var(--color-bb-cobalt)] text-white px-5 py-2.5 rounded-sm text-sm font-medium hover:opacity-90 transition-opacity"
+                  className={`inline-flex items-center gap-2 text-white px-5 py-2.5 rounded-sm text-sm font-medium hover:opacity-90 transition-opacity ${
+                    nextStep.tone === "warning"
+                      ? "bg-warning"
+                      : nextStep.tone === "success"
+                        ? "bg-success"
+                        : "bg-[var(--color-bb-cobalt)]"
+                  }`}
                 >
                   {nextStep.primaryAction.label}
                   <ArrowRight className="h-4 w-4" />
@@ -173,6 +196,19 @@ export default async function EventOverviewPage({
                 )}
               </div>
             </div>
+            {isInternal && (
+              <div className="mt-6 max-w-md">
+                <EditorialEyebrow>Internal · stage gate</EditorialEyebrow>
+                <div className="mt-2">
+                  <AdvanceStageButton
+                    eventId={id}
+                    currentStage={event.currentStage}
+                    canAdvance={stageGate.canAdvance}
+                    blockers={stageGate.blockers}
+                  />
+                </div>
+              </div>
+            )}
           </section>
         )}
 
@@ -332,6 +368,11 @@ export default async function EventOverviewPage({
                       ? "warning"
                       : "muted"
                   }
+                />
+                <MetricRow
+                  label="Missed milestones"
+                  value={missedMilestones.toString()}
+                  tone={missedMilestones > 0 ? "destructive" : "muted"}
                 />
               </ul>
             </div>

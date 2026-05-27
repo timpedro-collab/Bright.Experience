@@ -1,6 +1,6 @@
-import { Check, Circle, Clock, ArrowRight } from "lucide-react";
+import { Check, Circle, Clock, ArrowRight, AlertTriangle } from "lucide-react";
 import type { Milestone, Task, UserRole } from "@/types";
-import { formatDateShort } from "@/lib/dates";
+import { formatDateShort, isOverdue } from "@/lib/dates";
 import { ownerForMilestone, ownerLabelFor } from "@/lib/ownership";
 
 export function MilestoneTimeline({
@@ -22,6 +22,10 @@ export function MilestoneTimeline({
         const isComplete = milestone.status === "complete";
         const isActive = milestone.status === "in_progress";
         const isPending = milestone.status === "pending";
+        const isMissed =
+          !isComplete &&
+          milestone.status !== "skipped" &&
+          isOverdue(milestone.targetDate);
 
         const owner =
           tasks && !isComplete ? ownerForMilestone(milestone.id, tasks) : null;
@@ -57,6 +61,10 @@ export function MilestoneTimeline({
               {isComplete ? (
                 <div className="flex h-[30px] w-[30px] items-center justify-center rounded-full bg-success/15 ring-2 ring-success/20">
                   <Check size={14} className="text-success" />
+                </div>
+              ) : isMissed ? (
+                <div className="flex h-[30px] w-[30px] items-center justify-center rounded-full bg-warning/15 ring-2 ring-warning/30">
+                  <AlertTriangle size={14} className="text-warning" />
                 </div>
               ) : isActive ? (
                 <div className="flex h-[30px] w-[30px] items-center justify-center rounded-full bg-brand/15 ring-2 ring-brand/30">
@@ -107,8 +115,13 @@ export function MilestoneTimeline({
                 )}
               </div>
 
-              {waitingLabel && (
-                <div className="mt-1.5">
+              <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                {isMissed && (
+                  <span className="inline-flex items-center gap-1 rounded-full border border-warning/30 bg-warning/10 px-2 py-0.5 text-[10px] font-medium leading-none text-warning">
+                    <AlertTriangle size={10} /> Missed
+                  </span>
+                )}
+                {waitingLabel && (
                   <span
                     className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium leading-none ${
                       waitingLabel === "Waiting on you"
@@ -118,8 +131,8 @@ export function MilestoneTimeline({
                   >
                     {waitingLabel}
                   </span>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </div>
         );

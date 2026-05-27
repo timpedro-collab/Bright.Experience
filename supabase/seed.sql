@@ -369,10 +369,10 @@ insert into briefing_responses (event_id, form_type, responses, is_submitted, su
   ('e1111111-1111-1111-1111-111111111111', 'ops',      '{"venueContact":"James Chen","onSiteHours":"08:00-22:00","accessNotes":"Vehicle entry via Park Lane gate"}'::jsonb, false, null, null);
 
 insert into qa_items (event_id, category, title, description, status, sort_order) values
-  ('e1111111-1111-1111-1111-111111111111', 'hardware',  'Touchscreen calibration',         'Confirm touch accuracy after wrap install.',     'pending', 0),
-  ('e1111111-1111-1111-1111-111111111111', 'software',  'Lead capture form submission',    'End-to-end test of submitting a lead.',          'pending', 1),
-  ('e1111111-1111-1111-1111-111111111111', 'creative',  'Wrap colour calibration',         'Pantone match against approved sample.',         'pending', 2),
-  ('e1111111-1111-1111-1111-111111111111', 'connectivity', 'On-site 4G fallback',          'Confirm cellular failover when wifi drops.',     'pending', 3);
+  ('e1111111-1111-1111-1111-111111111111', 'machine',     'Touchscreen calibration',         'Confirm touch accuracy after wrap install.',     'pending', 0),
+  ('e1111111-1111-1111-1111-111111111111', 'game_logic',  'Lead capture form submission',    'End-to-end test of submitting a lead.',          'pending', 1),
+  ('e1111111-1111-1111-1111-111111111111', 'wrap',        'Wrap colour calibration',         'Pantone match against approved sample.',         'pending', 2),
+  ('e1111111-1111-1111-1111-111111111111', 'machine',     'On-site 4G fallback',             'Confirm cellular failover when wifi drops.',     'pending', 3);
 
 insert into logistics_entries (event_id, entry_type, title, description, scheduled_date, scheduled_time, status, contact_name, contact_phone, sort_order) values
   ('e1111111-1111-1111-1111-111111111111', 'delivery', 'Hardware delivery',  'Two Bright.Vend Pro machines + wrap.',  '2026-07-14', '08:00', 'pending', 'Tom Parker', '+44 7700 900123', 0),

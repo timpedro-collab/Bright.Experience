@@ -1,14 +1,16 @@
 /** Per-event message thread with chronological messages and compose area */
 "use client";
 
-import { useState } from "react";
-import { Send, Lock } from "lucide-react";
+import { useState, useTransition, useRef, useEffect } from "react";
+import { Send, Lock, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { timeSince } from "@/lib/dates";
+import { sendMessage } from "@/app/actions/messages";
 import type { Message } from "@/types";
 
 interface MessageThreadProps {
@@ -26,6 +28,12 @@ export function MessageThread({
 }: MessageThreadProps) {
   const [body, setBody] = useState("");
   const [internalOnly, setInternalOnly] = useState(false);
+  const [pending, startTransition] = useTransition();
+  const bottomRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages.length]);
 
   function getInitials(name?: string) {
     if (!name) return "?";
@@ -38,8 +46,19 @@ export function MessageThread({
   }
 
   function handleSend() {
-    if (!body.trim()) return;
+    if (!body.trim() || pending) return;
+    const text = body;
     setBody("");
+    startTransition(async () => {
+      try {
+        await sendMessage(eventId, text, internalOnly);
+      } catch (err) {
+        setBody(text);
+        toast.error(
+          err instanceof Error ? err.message : "Failed to send message"
+        );
+      }
+    });
   }
 
   function handleKeyDown(e: React.KeyboardEvent) {
@@ -96,12 +115,14 @@ export function MessageThread({
             </div>
           );
         })}
+        <div ref={bottomRef} />
       </div>
 
       <ComposeArea
         body={body}
         internalOnly={internalOnly}
         isInternal={isInternal}
+        pending={pending}
         onBodyChange={setBody}
         onToggleInternal={() => setInternalOnly((v) => !v)}
         onSend={handleSend}
@@ -115,6 +136,7 @@ function ComposeArea({
   body,
   internalOnly,
   isInternal,
+  pending,
   onBodyChange,
   onToggleInternal,
   onSend,
@@ -123,6 +145,7 @@ function ComposeArea({
   body: string;
   internalOnly: boolean;
   isInternal: boolean;
+  pending: boolean;
   onBodyChange: (v: string) => void;
   onToggleInternal: () => void;
   onSend: () => void;
@@ -152,8 +175,8 @@ function ComposeArea({
           onKeyDown={onKeyDown}
           className="flex-1"
         />
-        <Button onClick={onSend} disabled={!body.trim()} size="icon">
-          <Send size={16} />
+        <Button onClick={onSend} disabled={!body.trim() || pending} size="icon">
+          {pending ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
         </Button>
       </div>
     </div>
