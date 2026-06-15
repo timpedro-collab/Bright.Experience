@@ -1,9 +1,10 @@
 /** Embed code generator page — provides venue operators with widget code. */
 import { redirect } from "next/navigation";
-import { AppShell } from "@/components/layout/AppShell";
-import { PageHeader } from "@/components/layout/PageHeader";
+import { PortalPageShell, venueTabs } from "@/components/brand";
 import { getUser } from "@/lib/auth";
+import { getPartnerForUser } from "@/lib/queries/partners";
 import { getVenueBySlug } from "@/lib/queries/venues";
+import { getUnreadCount } from "@/lib/queries/notifications";
 import { EmbedCodeGenerator } from "@/components/venues/EmbedCodeGenerator";
 
 interface Props {
@@ -18,19 +19,23 @@ export default async function EmbedPage({ params }: Props) {
   const venue = await getVenueBySlug(slug);
   if (!venue) redirect("/");
 
-  return (
-    <AppShell user={user} isInternal={false}>
-      <PageHeader
-        title="Embed Widget"
-        subtitle={`Generate embeddable booking widget for ${venue.name}`}
-        breadcrumbs={[
-          { label: "Venues", href: "/" },
-          { label: venue.name, href: `/venues/${slug}/dashboard` },
-          { label: "Embed" },
-        ]}
-      />
+  const partner = await getPartnerForUser(user.id);
+  if (!partner || venue.partner_id !== partner.id) redirect("/");
 
+  const unread = await getUnreadCount(user.id);
+
+  return (
+    <PortalPageShell
+      user={user}
+      unreadCount={unread}
+      scope={venue.name}
+      section="Embed"
+      slug={slug}
+      tabs={venueTabs(slug)}
+      title="Embed widget"
+      subtitle={`Generate embeddable booking widget for ${venue.name}`}
+    >
       <EmbedCodeGenerator venueSlug={slug} />
-    </AppShell>
+    </PortalPageShell>
   );
 }

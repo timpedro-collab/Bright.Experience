@@ -15,7 +15,7 @@ import { RidgeArtwork, EditorialEyebrow } from "@/components/brand";
 const STAT_PILLS = [
   { label: "Live in 12 markets" },
   { label: "92% rebook rate" },
-  { label: "1,200+ leads / event" },
+  { label: "1,200+ avg. leads per event" },
 ];
 
 export function CatalogHero() {
@@ -35,7 +35,7 @@ export function CatalogHero() {
           seed="catalog::landing"
           lines={36}
           amplitude={110}
-          className="text-[hsl(223,94%,53%)]"
+          className="text-[hsl(230,93%,53%)]"
         />
         <div
           aria-hidden

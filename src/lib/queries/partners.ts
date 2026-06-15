@@ -1,5 +1,6 @@
 /** Supabase read queries for partner entities. */
 import { createClient } from "@/lib/supabase/server";
+import { PAGE_SIZE, paginateQuery, totalPages } from "@/lib/pagination";
 
 /** Fetch all partners, ordered by name (internal use). */
 export async function getPartners() {
@@ -16,6 +17,30 @@ export async function getPartners() {
 
   if (error || !data) return [];
   return data;
+}
+
+/** Paginated partner list for admin views. */
+export async function getPartnersPaginated(
+  page: number = 1,
+  pageSize: number = PAGE_SIZE
+) {
+  const supabase = await createClient();
+  const query = supabase
+    .from("partners")
+    .select(
+      `id, name, slug, type, contact_name, contact_email,
+       logo_url, brand_color, partner_code,
+       commission_model_json, status, onboarded_at,
+       created_at, updated_at`,
+      { count: "exact" }
+    )
+    .order("name", { ascending: true });
+
+  const { data, error, count } = await paginateQuery(query, page, pageSize);
+  if (error || !data) return { data: [], totalCount: 0, totalPages: 1 };
+
+  const total = count ?? 0;
+  return { data, totalCount: total, totalPages: totalPages(total, pageSize) };
 }
 
 /** Fetch a single partner by slug with its users. */

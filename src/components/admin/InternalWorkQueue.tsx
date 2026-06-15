@@ -29,6 +29,7 @@ interface InternalWorkQueueProps {
     newStudioOrders: number;
     blockedEvents: number;
     assetReviews: number;
+    overdueAssetReviews?: number;
     stuckCustomerActions: number;
   };
 }
@@ -53,11 +54,19 @@ export function InternalWorkQueue({ queues }: InternalWorkQueueProps) {
     },
     {
       label: "Asset reviews",
-      description: "Customer uploads awaiting Bright.Blue creative sign-off",
+      description:
+        (queues.overdueAssetReviews ?? 0) > 0
+          ? `${queues.overdueAssetReviews} past the 2-day reviewer SLA — sign off now`
+          : "Customer uploads awaiting Bright.Blue creative sign-off",
       count: queues.assetReviews,
       href: "/admin/asset-reviews",
       icon: Clock,
-      tone: queues.assetReviews > 0 ? "info" : "default",
+      tone:
+        (queues.overdueAssetReviews ?? 0) > 0
+          ? "warning"
+          : queues.assetReviews > 0
+            ? "info"
+            : "default",
     },
     {
       label: "Stuck customers",

@@ -8,7 +8,7 @@
 -- =====================================================================
 
 begin;
-\i tests/_fixtures.sql
+\ir _fixtures.psql
 
 insert into assets (id, event_id, name, asset_type, status, customer_visible)
 values

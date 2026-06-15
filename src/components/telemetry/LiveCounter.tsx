@@ -58,17 +58,17 @@ export function LiveCounter({
         <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-brand/10 text-brand">
           {icon}
         </div>
-        <p className="text-heading text-3xl font-bold tabular-nums text-text-primary">
+        <p className="text-heading text-3xl font-bold tabular-nums text-foreground">
           {displayValue.toLocaleString()}
         </p>
-        <p className="mt-1 text-sm text-text-secondary">{label}</p>
+        <p className="mt-1 text-sm text-muted-foreground">{label}</p>
         {trend !== undefined && (
           <p
             className={cn(
               "mt-2 text-xs font-medium tabular-nums",
               trend > 0 && "text-success",
               trend < 0 && "text-destructive",
-              trend === 0 && "text-text-muted"
+              trend === 0 && "text-muted-foreground"
             )}
           >
             {trend > 0 ? "+" : ""}

@@ -86,6 +86,7 @@ export interface User {
   avatarUrl?: string;
   role: UserRole;
   accountId?: string;
+  hasCompletedOnboarding: boolean;
 }
 
 export interface Event {
@@ -136,6 +137,8 @@ export interface Task {
   status: TaskStatus;
   priority: TaskPriority;
   assignedTo?: User;
+  assignedRole?: UserRole;
+  targetPath?: string;
   dueDate?: string;
   completedAt?: string;
   isBlocking: boolean;
@@ -183,6 +186,56 @@ export interface Asset {
   reviewDecidedAt?: string;
   revisionCount: number;
   uploadedBy?: string;
+  /** Extended spec metadata (WS2: Asset Spec Intelligence). */
+  requiredResolutionMin?: string;
+  requiredDurationRange?: string;
+  requiredFileTypes?: string[];
+  animationRequirements?: string;
+  safeZoneDescription?: string;
+  referenceUrl?: string;
+  isPhysical?: boolean;
+  specDocumentUrl?: string;
+  uploadWarnings?: string[];
+}
+
+/** One retained upload of an asset — the revision-round history. */
+export interface AssetVersion {
+  id: string;
+  assetId: string;
+  eventId: string;
+  version: number;
+  filePath?: string;
+  /** Short-lived signed URL resolved on read. */
+  fileUrl?: string;
+  fileName?: string;
+  fileSize?: number;
+  fileType?: string;
+  uploadedBy?: string;
+  uploaderName?: string;
+  uploadWarnings?: string[];
+  reviewStatus: AssetReviewStatus;
+  reviewFeedback?: string;
+  reviewDecidedBy?: string;
+  reviewDecidedAt?: string;
+  createdAt: string;
+}
+
+/** A region-anchored note on a specific asset version. */
+export interface AssetAnnotation {
+  id: string;
+  assetId: string;
+  assetVersionId?: string;
+  eventId: string;
+  authorId: string;
+  authorName?: string;
+  /** Anchor rect as a percentage of the rendered preview (0-100). */
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  body: string;
+  resolved: boolean;
+  createdAt: string;
 }
 
 export interface Approval {
@@ -262,6 +315,17 @@ export interface AuditEntry {
   createdAt: string;
 }
 
+export interface Comment {
+  id: string;
+  eventId: string;
+  assetId?: string;
+  authorId: string;
+  authorName?: string;
+  body: string;
+  parentId?: string;
+  createdAt: string;
+}
+
 export const STAGE_CONFIG: Record<
   Stage,
   { label: string; shortLabel: string; order: number }
@@ -299,6 +363,25 @@ export const HEALTH_CONFIG: Record<HealthStatus, { label: string }> = {
   amber: { label: "At Risk" },
   red: { label: "Blocked" },
 };
+
+/** Team member request status */
+export type TeamMemberStatus = "pending" | "approved" | "removed";
+
+/** A team member linked (or requested) for a specific event */
+export interface EventTeamMember {
+  id: string;
+  eventId: string;
+  profileId?: string;
+  email: string;
+  roleLabel: string;
+  status: TeamMemberStatus;
+  requestedBy?: string;
+  approvedBy?: string;
+  /** Joined profile data, if resolved. */
+  profile?: { name: string; avatarUrl?: string };
+  createdAt: string;
+  updatedAt: string;
+}
 
 // ============================================================
 // Delivery Lifecycle Types — Phase 1
@@ -498,14 +581,15 @@ export interface QuoteLineItem {
   sortOrder: number;
 }
 
-/** Postcode prefix → pricing tier mapping */
+/** Postcode prefix → pricing tier mapping (matches `locations` table) */
 export interface LocationTier {
-  id: string;
   postcodePrefix: string;
   name: string;
   region: string;
   tier: string;
-  multiplier: number;
+  footfallIndex: number | null;
+  mediaValueMultiplier: number;
+  notes: string | null;
 }
 
 // ============================================================

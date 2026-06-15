@@ -4,6 +4,7 @@ import { NextResponse, type NextRequest } from "next/server";
 const PUBLIC_PREFIXES = [
   "/login",
   "/auth",
+  "/forgot-password",
   "/catalog",
   "/quiz",
   "/book",
@@ -14,6 +15,9 @@ const PUBLIC_PREFIXES = [
   "/terms",
   "/privacy",
   "/how-it-works",
+  "/help",
+  "/api/test",
+  "/help",
 ];
 
 /**
@@ -57,7 +61,8 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith(prefix)
   );
 
-  if (!user && !isPublicRoute) {
+  const isRoot = pathname === "/";
+  if (!user && !isPublicRoute && !isRoot) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     url.searchParams.set("redirect", pathname);

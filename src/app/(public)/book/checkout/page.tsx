@@ -1,8 +1,9 @@
 /**
  * Book Now checkout.
  *
- * Collects contact details + a clearly-labelled Stripe TEST-MODE intent
- * stub, then submits the booking via {@link submitBookNowQuote}. The action
+ * Collects contact details, then submits the booking via
+ * {@link submitBookNowQuote}. No payment is taken here — bookings are
+ * confirmed and invoiced by an account manager afterwards. The action
  * re-reads the package and addons from the database to compute the
  * authoritative total — the on-screen total is a display estimate only.
  */
@@ -16,7 +17,6 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Separator } from "@/components/ui/separator";
 import { EditorialEyebrow } from "@/components/brand";
 import { submitBookNowQuote } from "@/app/actions/quotes";
 
@@ -154,19 +154,17 @@ export default function CheckoutPage({ searchParams }: CheckoutPageProps) {
           </div>
         </section>
 
-        {/* STUB: Stripe test-mode intent — replace with real payment element in Phase 8 */}
-        <section className="rounded-lg border border-dashed border-amber-500/40 bg-amber-500/5 p-4">
+        <section className="rounded-lg border border-border/40 bg-card/40 p-4">
           <div className="flex items-start gap-3">
-            <ShieldCheck className="h-5 w-5 shrink-0 text-amber-500/80" />
+            <ShieldCheck className="h-5 w-5 shrink-0 text-primary" />
             <div className="space-y-1 text-sm">
               <p className="font-semibold text-foreground">
-                Payment — TEST MODE
+                Payment
               </p>
               <p className="text-muted-foreground">
-                A real Stripe payment element drops in here once we provision
-                production keys. For now no card is captured and no charge is
-                made; your booking is confirmed on submit and the AE will
-                invoice manually.
+                No card is required at this stage. Submit your booking request
+                and your account manager will be in touch to confirm the
+                details and arrange invoicing.
               </p>
             </div>
           </div>

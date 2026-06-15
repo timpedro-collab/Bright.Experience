@@ -11,7 +11,24 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowLeft, ArrowRight, Check } from "lucide-react";
+import {
+  ArrowLeft, ArrowRight, Check, Megaphone, Target, Gift, Gamepad2,
+  Users, Building2, Tent, Sparkles, Music, Briefcase, Mic,
+  User, UsersRound, Ruler, Warehouse, Globe, Theater,
+  Handshake, ShoppingBag, CircleDot, Wine, Wind, Dice5,
+  Landmark, Stethoscope, type LucideIcon,
+} from "lucide-react";
+
+const QUIZ_ICONS: Record<string, LucideIcon> = {
+  megaphone: Megaphone, target: Target, gift: Gift, "gamepad-2": Gamepad2,
+  users: Users, "building-2": Building2, tent: Tent, sparkles: Sparkles,
+  music: Music, briefcase: Briefcase, mic: Mic, user: User,
+  "users-round": UsersRound, stadium: Globe, ruler: Ruler,
+  warehouse: Warehouse, globe: Globe, theater: Theater,
+  handshake: Handshake, "shopping-bag": ShoppingBag, "circle-dot": CircleDot,
+  wine: Wine, wind: Wind, "dice-5": Dice5, landmark: Landmark,
+  stethoscope: Stethoscope,
+};
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -90,7 +107,7 @@ export function RecommendationQuiz({ machines }: RecommendationQuizProps) {
           className="h-1 w-full overflow-hidden rounded-full bg-white/[0.04]"
         >
           <div
-            className="h-full rounded-full bg-[linear-gradient(90deg,hsl(223,94%,53%),hsl(189,100%,75%))] transition-[width] duration-500"
+            className="h-full rounded-full bg-[linear-gradient(90deg,hsl(230,93%,53%),hsl(189,100%,75%))] transition-[width] duration-500"
             style={{ width: `${pct}%` }}
           />
         </div>
@@ -126,7 +143,7 @@ export function RecommendationQuiz({ machines }: RecommendationQuizProps) {
                   "hover:border-primary/40 hover:bg-primary/8",
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                   isSelected &&
-                    "border-primary bg-primary/10 shadow-[0_0_0_1px_hsl(223,94%,53%,0.5),var(--bb-shadow-premium)]"
+                    "border-primary bg-primary/10 shadow-[0_0_0_1px_hsl(230,93%,53%,0.5),var(--bb-shadow-premium)]"
                 )}
               >
                 <span
@@ -140,7 +157,10 @@ export function RecommendationQuiz({ machines }: RecommendationQuizProps) {
                       : "group-hover:border-primary/20 group-hover:bg-primary/10"
                   )}
                 >
-                  {opt.icon}
+                  {(() => {
+                    const IconComp = QUIZ_ICONS[opt.icon];
+                    return IconComp ? <IconComp size={20} /> : <Sparkles size={20} />;
+                  })()}
                 </span>
                 <span className="flex-1 min-w-0 self-center">
                   <span className="block text-sm font-semibold text-foreground">

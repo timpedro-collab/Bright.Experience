@@ -51,10 +51,10 @@ export function EventCard({
         <div className="flex items-center gap-3">
           <HealthDot status={event.healthStatus} pulse size="md" />
           <div>
-            <h3 className="text-heading text-base font-semibold text-text-primary group-hover:text-brand transition-colors">
+            <h3 className="text-heading text-base font-semibold text-foreground group-hover:text-brand transition-colors">
               {event.name}
             </h3>
-            <p className="text-sm text-text-secondary mt-0.5">
+            <p className="text-sm text-muted-foreground mt-0.5">
               {event.account.name}
             </p>
           </div>
@@ -65,7 +65,7 @@ export function EventCard({
           )}
           <ArrowRight
             size={16}
-            className="text-text-muted opacity-0 group-hover:opacity-100 transition-opacity mt-1"
+            className="text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity mt-1"
           />
         </div>
       </div>
@@ -76,22 +76,22 @@ export function EventCard({
       </div>
 
       <div className="space-y-2 mb-4">
-        <div className="flex items-center gap-2 text-sm text-text-secondary">
-          <Calendar size={14} className="text-text-muted shrink-0" />
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Calendar size={14} className="text-muted-foreground shrink-0" />
           <span>
             {formatDateMedium(event.eventDateStart)}
             {event.eventDateEnd && ` – ${formatDateMedium(event.eventDateEnd)}`}
           </span>
         </div>
         {event.venueName && (
-          <div className="flex items-center gap-2 text-sm text-text-secondary">
-            <MapPin size={14} className="text-text-muted shrink-0" />
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <MapPin size={14} className="text-muted-foreground shrink-0" />
             <span className="truncate">{event.venueName}</span>
           </div>
         )}
         {event.machineType && (
-          <div className="flex items-center gap-2 text-sm text-text-secondary">
-            <Monitor size={14} className="text-text-muted shrink-0" />
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Monitor size={14} className="text-muted-foreground shrink-0" />
             <span>{event.machineType}</span>
           </div>
         )}

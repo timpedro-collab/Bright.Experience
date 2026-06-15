@@ -10,16 +10,16 @@
 -- =====================================================================
 
 begin;
-\i tests/_fixtures.sql
+\ir _fixtures.psql
 
 insert into event_reports (id, event_id, report_type, title, is_published, share_token) values
-  ('00000000-0000-4000-8000-0000000000r1', '00000000-0000-4000-8000-0000000000e1', 'post_event', 'Acme report (private)', false, null),
-  ('00000000-0000-4000-8000-0000000000r2', '00000000-0000-4000-8000-0000000000e1', 'post_event', 'Acme report (public)',  true,  'share-acme'),
-  ('00000000-0000-4000-8000-0000000000r3', '00000000-0000-4000-8000-0000000000e2', 'post_event', 'Other report',          false, null)
+  ('00000000-0000-4000-8000-0000000000da', '00000000-0000-4000-8000-0000000000e1', 'post_event', 'Acme report (private)', false, null),
+  ('00000000-0000-4000-8000-0000000000db', '00000000-0000-4000-8000-0000000000e1', 'post_event', 'Acme report (public)',  true,  'share-acme'),
+  ('00000000-0000-4000-8000-0000000000dc', '00000000-0000-4000-8000-0000000000e2', 'post_event', 'Other report',          false, null)
 on conflict (id) do nothing;
 
 insert into benchmarks (id, event_type, metric_name, avg_value, sample_size) values
-  ('00000000-0000-4000-8000-0000000000bm', 'activation', 'plays_per_day', 250, 24)
+  ('00000000-0000-4000-8000-0000000000dd', 'activation', 'plays_per_day', 250, 24)
 on conflict (id) do nothing;
 
 select plan(5);
@@ -43,7 +43,7 @@ select is(
 select _rls_test_anon();
 select is(
   (select array_agg(id order by id)::uuid[] from event_reports),
-  array['00000000-0000-4000-8000-0000000000r2'::uuid],
+  array['00000000-0000-4000-8000-0000000000db'::uuid],
   'anon sees only published shared reports'
 );
 

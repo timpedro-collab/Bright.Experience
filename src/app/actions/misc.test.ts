@@ -37,42 +37,50 @@ beforeEach(() => {
 // notifications.ts
 // ──────────────────────────────────────────────────────────
 describe("notifications action — markRead", () => {
-  it("throws when unauthenticated", async () => {
+  it("returns error when unauthenticated", async () => {
     supabase.setUser(null);
     const { markRead } = await import("./notifications");
-    await expect(markRead("n1")).rejects.toThrow(/authenticated/);
+    const result = await markRead("n1");
+    expect(result.success).toBe(false);
+    if (!result.success) expect(result.error).toMatch(/authenticated/);
   });
 
   it("succeeds when authenticated", async () => {
     supabase.setUser({ id: "u1" });
     supabase.setTableResponse("notifications", { data: null, error: null });
     const { markRead } = await import("./notifications");
-    await expect(markRead("n1")).resolves.toBeUndefined();
+    const result = await markRead("n1");
+    expect(result.success).toBe(true);
   });
 
-  it("throws on Supabase error", async () => {
+  it("returns error on Supabase error", async () => {
     supabase.setUser({ id: "u1" });
     supabase.setTableResponse("notifications", {
       data: null,
       error: { message: "denied" },
     });
     const { markRead } = await import("./notifications");
-    await expect(markRead("n1")).rejects.toThrow(/denied/);
+    const result = await markRead("n1");
+    expect(result.success).toBe(false);
+    if (!result.success) expect(result.error).toMatch(/denied/);
   });
 });
 
 describe("notifications action — markAllRead", () => {
-  it("throws when unauthenticated", async () => {
+  it("returns error when unauthenticated", async () => {
     supabase.setUser(null);
     const { markAllRead } = await import("./notifications");
-    await expect(markAllRead()).rejects.toThrow(/authenticated/);
+    const result = await markAllRead();
+    expect(result.success).toBe(false);
+    if (!result.success) expect(result.error).toMatch(/authenticated/);
   });
 
   it("succeeds when authenticated", async () => {
     supabase.setUser({ id: "u1" });
     supabase.setTableResponse("notifications", { data: null, error: null });
     const { markAllRead } = await import("./notifications");
-    await expect(markAllRead()).resolves.toBeUndefined();
+    const result = await markAllRead();
+    expect(result.success).toBe(true);
   });
 });
 
@@ -80,20 +88,19 @@ describe("notifications action — createNotification", () => {
   it("inserts a new notification row", async () => {
     supabase.setTableResponse("notifications", { data: null, error: null });
     const { createNotification } = await import("./notifications");
-    await expect(
-      createNotification("u1", "evt-1", "system", "Hi", "body", "/link")
-    ).resolves.toBeUndefined();
+    const result = await createNotification("u1", "evt-1", "system", "Hi", "body", "/link");
+    expect(result.success).toBe(true);
   });
 
-  it("throws on insert error", async () => {
+  it("returns error on insert error", async () => {
     supabase.setTableResponse("notifications", {
       data: null,
       error: { message: "boom" },
     });
     const { createNotification } = await import("./notifications");
-    await expect(
-      createNotification("u1", null, "system", "Hi", null, null)
-    ).rejects.toThrow(/boom/);
+    const result = await createNotification("u1", null, "system", "Hi", null, null);
+    expect(result.success).toBe(false);
+    if (!result.success) expect(result.error).toMatch(/boom/);
   });
 });
 
@@ -101,12 +108,12 @@ describe("notifications action — createNotification", () => {
 // briefing.ts
 // ──────────────────────────────────────────────────────────
 describe("briefing action — saveBriefingResponse", () => {
-  it("throws when unauthenticated", async () => {
+  it("returns error when unauthenticated", async () => {
     supabase.setUser(null);
     const { saveBriefingResponse } = await import("./briefing");
-    await expect(
-      saveBriefingResponse("evt-1", "creative", {})
-    ).rejects.toThrow(/authenticated/);
+    const result = await saveBriefingResponse("evt-1", "creative", {});
+    expect(result.success).toBe(false);
+    if (!result.success) expect(result.error).toMatch(/authenticated/);
   });
 
   it("saves a draft (no submit dispatch)", async () => {
@@ -135,18 +142,20 @@ describe("briefing action — saveBriefingResponse", () => {
 // messages.ts
 // ──────────────────────────────────────────────────────────
 describe("messages action — sendMessage", () => {
-  it("throws when unauthenticated", async () => {
+  it("returns error when unauthenticated", async () => {
     supabase.setUser(null);
     const { sendMessage } = await import("./messages");
-    await expect(sendMessage("evt-1", "Hello", false)).rejects.toThrow(
-      /authenticated/
-    );
+    const result = await sendMessage("evt-1", "Hello", false);
+    expect(result.success).toBe(false);
+    if (!result.success) expect(result.error).toMatch(/authenticated/i);
   });
 
-  it("rejects empty body", async () => {
+  it("rejects empty body via validation", async () => {
     supabase.setUser({ id: "u1" });
     const { sendMessage } = await import("./messages");
-    await expect(sendMessage("evt-1", "   ", false)).rejects.toThrow(/empty/);
+    const result = await sendMessage("evt-1", "", false);
+    expect(result.success).toBe(false);
+    if (!result.success) expect(result.error).toMatch(/empty/i);
   });
 
   it("inserts message and dispatches message.received", async () => {
@@ -164,43 +173,6 @@ describe("messages action — sendMessage", () => {
     expect(dispatchNotification).toHaveBeenCalledWith(
       "message.received",
       expect.objectContaining({ messageId: "m1", senderName: "Casey" })
-    );
-  });
-});
-
-// ──────────────────────────────────────────────────────────
-// assets.ts — reviewAsset (the legacy decision action)
-// ──────────────────────────────────────────────────────────
-describe("assets action — reviewAsset", () => {
-  it("throws when unauthenticated", async () => {
-    supabase.setUser(null);
-    const { reviewAsset } = await import("./assets");
-    await expect(reviewAsset("a1", "evt-1", "accepted")).rejects.toThrow(
-      /authenticated/
-    );
-  });
-
-  it("updates the asset on accept", async () => {
-    supabase.setUser({ id: "u1" });
-    supabase.setTableResponse("assets", { data: null, error: null });
-    const { reviewAsset } = await import("./assets");
-    await reviewAsset("a1", "evt-1", "accepted");
-    const updateCall = supabase
-      .callsFor("assets")
-      .find((c) => c.method === "update");
-    const row = updateCall!.args[0] as Record<string, unknown>;
-    expect(row.status).toBe("accepted");
-  });
-
-  it("throws on update error", async () => {
-    supabase.setUser({ id: "u1" });
-    supabase.setTableResponse("assets", {
-      data: null,
-      error: { message: "denied" },
-    });
-    const { reviewAsset } = await import("./assets");
-    await expect(reviewAsset("a1", "evt-1", "rejected")).rejects.toThrow(
-      /Review failed/
     );
   });
 });

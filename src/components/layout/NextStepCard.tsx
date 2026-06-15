@@ -25,7 +25,7 @@ interface NextStepCardProps {
 
 const toneStyles: Record<NonNullable<NextStepCardProps["tone"]>, string> = {
   brand:
-    "border-primary/30 bg-[linear-gradient(135deg,hsl(223,94%,53%,0.16),hsl(189,100%,75%,0.06)_60%,hsl(233,56%,11%,0.55))]",
+    "border-primary/30 bg-[linear-gradient(135deg,hsl(230,93%,53%,0.16),hsl(189,100%,75%,0.06)_60%,hsl(233,56%,11%,0.55))]",
   warning:
     "border-warning/30 bg-[linear-gradient(135deg,hsl(43,90%,56%,0.18),hsl(233,56%,11%,0.55))]",
   success:

@@ -1,7 +1,7 @@
 /** Server actions for venue and runway management. */
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
+import { requireInternalUser } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 
 /** Create a new venue record. */
@@ -13,7 +13,7 @@ export async function createVenue(data: {
   venueType?: string;
   capacity?: number;
 }) {
-  const supabase = await createClient();
+  const { supabase } = await requireInternalUser();
 
   const slug = data.name
     .toLowerCase()
@@ -53,7 +53,7 @@ export async function updateVenue(
     contactInfoJson?: Record<string, unknown>;
   }
 ) {
-  const supabase = await createClient();
+  const { supabase } = await requireInternalUser();
 
   const updates: Record<string, unknown> = {};
   if (data.name !== undefined) updates.name = data.name;
@@ -82,7 +82,7 @@ export async function createPlacement(data: {
   startDate: string;
   endDate?: string;
 }) {
-  const supabase = await createClient();
+  const { supabase } = await requireInternalUser();
 
   const { data: placement, error } = await supabase
     .from("placements")
@@ -104,7 +104,7 @@ export async function createPlacement(data: {
 
 /** Update the status of an existing placement. */
 export async function updatePlacementStatus(id: string, status: string) {
-  const supabase = await createClient();
+  const { supabase } = await requireInternalUser();
 
   const { error } = await supabase
     .from("placements")
@@ -124,7 +124,7 @@ export async function createSponsorshipSlot(data: {
   endDate: string;
   price?: number;
 }) {
-  const supabase = await createClient();
+  const { supabase } = await requireInternalUser();
 
   const { data: slot, error } = await supabase
     .from("sponsorship_slots")
@@ -146,7 +146,7 @@ export async function createSponsorshipSlot(data: {
 
 /** Reserve a sponsorship slot for a sponsor account. */
 export async function reserveSlot(slotId: string, sponsorAccountId: string) {
-  const supabase = await createClient();
+  const { supabase } = await requireInternalUser();
 
   const { error } = await supabase
     .from("sponsorship_slots")

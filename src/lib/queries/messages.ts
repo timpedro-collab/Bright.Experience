@@ -22,6 +22,7 @@ export async function getMessagesByEvent(eventId: string) {
       body: row.body as string,
       attachments: (row.attachments as string[]) ?? [],
       isInternal: row.is_internal as boolean,
+      topic: (row.topic as string | null) ?? "general",
       createdAt: row.created_at as string,
     };
   });

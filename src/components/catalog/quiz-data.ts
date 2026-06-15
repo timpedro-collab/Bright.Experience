@@ -43,31 +43,31 @@ export const QUIZ_STEPS: QuizStep[] = [
       {
         label: "Make us memorable",
         value: "brand-awareness",
-        icon: "📢",
+        icon: "megaphone",
         description: "Eyes on the brand. Dwell time, share-worthy moments.",
       },
       {
         label: "Build a pipeline",
         value: "lead-generation",
-        icon: "🎯",
+        icon: "target",
         description: "Opted-in contacts straight into your CRM.",
       },
       {
         label: "Put product in hands",
         value: "sampling",
-        icon: "🎁",
+        icon: "gift",
         description: "Win-to-unlock sampling that earns its sticker price.",
       },
       {
         label: "Throw a crowd-pleaser",
         value: "entertainment",
-        icon: "🎮",
+        icon: "gamepad-2",
         description: "Pure delight. Queues that move themselves.",
       },
       {
         label: "Recharge the team",
         value: "employee-engagement",
-        icon: "🤝",
+        icon: "users",
         description: "Internal play with branded prizes — morale you can measure.",
       },
     ],
@@ -79,37 +79,37 @@ export const QUIZ_STEPS: QuizStep[] = [
       {
         label: "Trade show",
         value: "trade-show",
-        icon: "🏢",
+        icon: "building-2",
         description: "Fast hook plus lead capture for focused industry buyers.",
       },
       {
         label: "Exhibition",
         value: "exhibition",
-        icon: "🎪",
+        icon: "tent",
         description: "Deeper browse and storytelling for mixed audiences.",
       },
       {
         label: "Experiential activation",
         value: "experiential-activation",
-        icon: "✨",
+        icon: "sparkles",
         description: "An out-of-home brand moment in a high-footfall public space.",
       },
       {
         label: "Festival",
         value: "festival",
-        icon: "🎶",
+        icon: "music",
         description: "Outdoor, high-energy crowds with peak attention windows.",
       },
       {
         label: "Corporate",
         value: "corporate",
-        icon: "💼",
+        icon: "briefcase",
         description: "Internal teams or VIP clients — bespoke branded delight.",
       },
       {
         label: "Conference",
         value: "conference",
-        icon: "🎤",
+        icon: "mic",
         description: "Quick filler-moments between sessions and coffee breaks.",
       },
     ],
@@ -121,25 +121,25 @@ export const QUIZ_STEPS: QuizStep[] = [
       {
         label: "Under 500",
         value: "under-500",
-        icon: "👤",
+        icon: "user",
         description: "Intimate audience — every interaction counts.",
       },
       {
         label: "500–2,000",
         value: "500-2000",
-        icon: "👥",
+        icon: "users",
         description: "Balanced footfall — one activation handles the flow.",
       },
       {
         label: "2,000–5,000",
         value: "2000-5000",
-        icon: "🧑‍🤝‍🧑",
+        icon: "users-round",
         description: "High volume — consider express play modes.",
       },
       {
         label: "5,000+",
         value: "5000-plus",
-        icon: "🏟️",
+        icon: "stadium",
         description: "Crowd scale — queue management or multiple stations.",
       },
     ],
@@ -148,10 +148,10 @@ export const QUIZ_STEPS: QuizStep[] = [
     question: "What's your footprint?",
     multi: false,
     options: [
-      { label: "Small booth", value: "small-booth", icon: "📐" },
-      { label: "Large booth", value: "large-booth", icon: "🏗️" },
-      { label: "Open space", value: "open-space", icon: "🌐" },
-      { label: "Stage area", value: "stage-area", icon: "🎭" },
+      { label: "Small booth", value: "small-booth", icon: "ruler" },
+      { label: "Large booth", value: "large-booth", icon: "warehouse" },
+      { label: "Open space", value: "open-space", icon: "globe" },
+      { label: "Stage area", value: "stage-area", icon: "theater" },
     ],
   },
   {
@@ -162,19 +162,19 @@ export const QUIZ_STEPS: QuizStep[] = [
       {
         label: "Business buyers",
         value: "B2B",
-        icon: "🤝",
+        icon: "handshake",
         description: "Decision-makers, procurement, partner crowds.",
       },
       {
         label: "Consumers",
         value: "B2C",
-        icon: "🛍️",
+        icon: "shopping-bag",
         description: "The public — friends, families, shoppers, fans.",
       },
       {
         label: "A bit of both",
         value: "mixed",
-        icon: "🌗",
+        icon: "circle-dot",
         description: "Mixed crowd — we'll balance the layers accordingly.",
       },
     ],
@@ -187,37 +187,37 @@ export const QUIZ_STEPS: QuizStep[] = [
       {
         label: "Nothing specific",
         value: "general",
-        icon: "✨",
+        icon: "sparkles",
         description: "Standard FMCG, retail, tech, lifestyle.",
       },
       {
         label: "Alcohol",
         value: "alcohol",
-        icon: "🥂",
+        icon: "wine",
         description: "Beer, wine, spirits — age verification on.",
       },
       {
         label: "Tobacco / vape",
         value: "tobacco",
-        icon: "🌬️",
+        icon: "wind",
         description: "Compliance-heavy. Age + creative review.",
       },
       {
         label: "Gambling / betting",
         value: "gambling",
-        icon: "🎰",
+        icon: "dice-5",
         description: "Regulated promo, age-gated.",
       },
       {
         label: "Financial services",
         value: "financial",
-        icon: "🏦",
+        icon: "landmark",
         description: "FCA-aware copy and disclosures.",
       },
       {
         label: "Healthcare / pharma",
         value: "healthcare",
-        icon: "🩺",
+        icon: "stethoscope",
         description: "Medical compliance + extra creative review.",
       },
     ],
@@ -280,43 +280,39 @@ export function getRecommendation(
   let match: QuizMatch;
 
   if (wantsSampling) {
-    // Sampling moments are the bread and butter of the Vend family.
     match = isLargeCrowd
       ? {
-          machineSlug: "bright-vend-pro",
+          machineSlug: "experience-portal",
           packageSlug: "bright-vend-pro-weekend",
-          machineName: "Bright.Vend Pro",
+          machineName: "Experience Portal",
           packageName: "Weekend",
         }
       : {
-          machineSlug: "bright-vend",
+          machineSlug: "experience-portal-compact",
           packageSlug: "bright-vend-single-day",
-          machineName: "Bright.Vend",
+          machineName: "Experience Portal Compact",
           packageName: "Single day",
         };
   } else if (wantsLeads || wantsAwareness || wantsEntertainment) {
-    // Lead, awareness and entertainment plays all land best on Bright.Play
-    // — the big interactive cabinet. Pick the right package for the scale.
     const tourScale = isLargeCrowd && isOpenSpace;
     match = tourScale
       ? {
-          machineSlug: "bright-play",
+          machineSlug: "experience-portal-xl",
           packageSlug: "bright-play-tour",
-          machineName: "Bright.Play",
+          machineName: "Experience Portal XL",
           packageName: "Tour edition",
         }
       : {
-          machineSlug: "bright-play",
+          machineSlug: "experience-portal-xl",
           packageSlug: "bright-play-five-day",
-          machineName: "Bright.Play",
+          machineName: "Experience Portal XL",
           packageName: "Five-day activation",
         };
   } else {
-    // No strong signal — bespoke discovery call so the AE can shape it.
     match = {
-      machineSlug: "bright-play",
+      machineSlug: "experience-portal-xl",
       packageSlug: "bespoke",
-      machineName: "Bright.Play",
+      machineName: "Experience Portal XL",
       packageName: "Bespoke",
     };
   }

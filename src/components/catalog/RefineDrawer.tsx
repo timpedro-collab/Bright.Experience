@@ -132,7 +132,7 @@ function CapabilityRow({ capability, on, onToggle }: CapabilityRowProps) {
         className={cn(
           "relative h-6 w-11 shrink-0 rounded-full border transition-colors",
           on
-            ? "border-primary/60 bg-[linear-gradient(90deg,hsl(223,94%,53%),hsl(189,100%,75%))]"
+            ? "border-primary/60 bg-[linear-gradient(90deg,hsl(230,93%,53%),hsl(189,100%,75%))]"
             : "border-white/15 bg-white/[0.04]"
         )}
       >

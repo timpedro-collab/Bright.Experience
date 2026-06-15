@@ -14,10 +14,10 @@ Each row tells you:
 
 | What | Where | Why stubbed | Replace in |
 | --- | --- | --- | --- |
-| Stripe API keys / webhook secret | `.env.example` placeholders; checkout flow uses fake intent IDs prefixed `pi_stub_` | Real Stripe account / Connect setup is a business onboarding decision, not a code decision | Phase 1 (booking flow) once the live Stripe account is provisioned |
+| ~~Stripe API keys / webhook secret~~ | ~~`.env.example` placeholders; checkout flow uses fake intent IDs prefixed `pi_stub_`~~ | ~~Real Stripe account / Connect setup is a business onboarding decision~~ | **REMOVED** — business decision: no in-portal payments. Bookings are confirmed + invoiced separately by an account manager. All Stripe code/env/webhooks deleted. |
 | Customer / partner logos in seed data | `supabase/seed.sql` — references monogram SVGs at `/public/brand/logos/*.svg` | We don't have rights to real customer logos until contracts are signed | Phase 1 (catalog) + Phase 5 (partner portal) — replace with the signed-off brand kit |
-| Legal copy on `/privacy`, `/terms` | `src/app/(public)/privacy/page.tsx`, `src/app/(public)/terms/page.tsx` | Lorem-shaped placeholder; needs legal review | Phase 1 (legal pages task) — copy delivered by Bright legal counsel |
-| Virus scan on uploaded assets | `src/lib/storage/signed-url.ts` — `validateUpload` only checks MIME + size; no AV stage yet | We don't have a chosen AV provider (ClamAV vs Cloudmersive vs S3 Object Lambda); deciding it is out of scope for Phase 0 | Phase 8 (infra hardening) — wire chosen AV scanner into the upload pipeline |
+| ~~Legal copy on `/privacy`, `/terms`~~ | ~~`src/app/(public)/privacy/page.tsx`, `src/app/(public)/terms/page.tsx`~~ | ~~Lorem-shaped placeholder; needs legal review~~ | ~~Done — pages built with `LegalShell`~~ |
+| Virus scan on uploaded assets | `src/lib/storage/scan.ts` — `scanUpload` hook is wired into all upload actions but is a graceful no-op until `FILE_SCAN_URL`/`FILE_SCAN_TOKEN` are set | We don't have a chosen AV provider (ClamAV vs Cloudmersive vs S3 Object Lambda) yet; the integration point is built and tested, just unconfigured | Point `FILE_SCAN_URL` at a ClamAV REST shim / cloud AV endpoint once chosen |
 | Real auth callback redirect domain | `src/app/auth/callback/route.ts` — uses `request.nextUrl.origin` which trusts the incoming host | Fine for local + Vercel previews; production deploy may need an allow-list | Phase 8 (auth hardening) — pin to `NEXT_PUBLIC_SITE_URL` once domain is locked |
 | `pg_prove` not run locally | `package.json` `test:rls` script + `.github/workflows/test.yml` | Docker not running on the dev machine during Phase 0 implementation; pgTAP tests do run in CI on every PR | Already wired in CI — no replacement needed, just a heads-up |
 
@@ -27,8 +27,8 @@ Each row tells you:
 
 | What | Where | Why stubbed | Replace in |
 | --- | --- | --- | --- |
-| Stripe checkout intent | `src/app/(public)/book/checkout/page.tsx`, `src/app/actions/quotes.ts::submitBookNowQuote` | The submit creates a `quotes` row with `status='booked'` and skips the actual `paymentIntent.create()` call until Stripe keys are live. Server-side pricing is already in place so swap-in is a one-function change. | Phase 8 (Stripe wire-up) — replace the `STUB: Stripe payment` block with the live SDK call |
-| Legal copy banner | `src/components/public/LegalShell.tsx` "REPLACE BEFORE LAUNCH" notice | Marker so we never accidentally ship lorem | Phase 9 (final polish) — remove once legal counsel signs off on copy |
+| ~~Stripe checkout intent~~ | ~~`src/app/(public)/book/checkout/page.tsx`, `src/app/actions/quotes.ts::submitBookNowQuote`~~ | ~~The submit creates a `quotes` row and skips `paymentIntent.create()` until keys are live~~ | **REMOVED** — `submitBookNowQuote` now creates a `submitted` quote and auto-provisions the event; checkout collects details only and routes to invoicing. No payment is taken in-portal. |
+| ~~Legal copy banner~~ | ~~`src/components/public/LegalShell.tsx` "REPLACE BEFORE LAUNCH" notice~~ | ~~Marker so we never accidentally ship lorem~~ | ~~Done — legal copy in place~~ |
 | Catalog hero photography | `/public/catalog/*.jpg` paths in seed | Stand-in monogram tiles; not the brand photoshoot | Phase 9 (final polish) — replace with the signed-off media kit |
 | `/api/test/login`, `/api/test/reset` Playwright endpoints | Referenced by `e2e/fixtures/auth.ts` + `e2e/fixtures/data.ts` | The three new Phase 1 specs (`public-quiz-to-booking`, `public-partner-attribution`, `public-report-share`) are intentionally guest-only and don't need these endpoints. Internal-persona specs still do. | Phase 2 (internal ops) — the first phase that *needs* a logged-in persona end-to-end |
 | Booking confirmation copy | `src/app/(public)/book/confirmation/[id]/page.tsx` | Headline + next-steps body are placeholder customer voice | Phase 9 (microcopy) — final copy pass |

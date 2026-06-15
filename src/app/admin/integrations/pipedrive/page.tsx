@@ -11,7 +11,7 @@ import { redirect } from "next/navigation";
 import { AdminPageShell, EditorialEyebrow } from "@/components/brand";
 
 import { getUser } from "@/lib/auth";
-import { isInternalRole } from "@/lib/roles";
+import { isAdminRole } from "@/lib/roles";
 import { getServiceRoleClient } from "@/lib/supabase/service-role";
 import { getUnreadCount } from "@/lib/queries/notifications";
 
@@ -50,7 +50,7 @@ export interface OutboxEntry {
 export default async function PipedriveAdminPage() {
   const user = await getUser();
   if (!user) redirect("/login");
-  if (!isInternalRole(user.role)) redirect("/");
+  if (!isAdminRole(user.role)) redirect("/");
 
   const supabase = getServiceRoleClient();
   const [configRes, outboxRes, unread] = await Promise.all([

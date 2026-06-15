@@ -8,7 +8,7 @@
 -- =====================================================================
 
 begin;
-\i tests/_fixtures.sql
+\ir _fixtures.psql
 
 insert into notification_preferences (user_id, kind, in_portal, email_mode)
 values

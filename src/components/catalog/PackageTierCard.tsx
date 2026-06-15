@@ -29,7 +29,7 @@ export function PackageTierCard({ pkg, featured = false }: PackageTierCardProps)
   return (
     <Card className={cn(
       "relative overflow-hidden",
-      featured && "border-brand/40 shadow-[0_0_30px_-10px_hsl(223,94%,53%,0.3)]"
+      featured && "border-brand/40 shadow-[0_0_30px_-10px_hsl(230,93%,53%,0.3)]"
     )}>
       {featured && (
         <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand to-brand-soft" />

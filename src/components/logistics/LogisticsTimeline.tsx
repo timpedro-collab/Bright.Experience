@@ -2,6 +2,8 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { Truck, Package, ArrowDownToLine, MoreHorizontal, MapPin, Phone, Hash } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -48,17 +50,22 @@ function LogisticsCard({ entry, index, isInternal }: {
   index: number;
   isInternal: boolean;
 }) {
+  const router = useRouter();
   const [updating, setUpdating] = useState(false);
   const Icon = TYPE_ICONS[entry.entryType] || MoreHorizontal;
   const statusStyle = STATUS_STYLES[entry.status];
 
   async function handleStatusChange(newStatus: LogisticsStatus) {
     setUpdating(true);
-    try {
-      await updateLogisticsEntry(entry.id, { status: newStatus });
-    } finally {
-      setUpdating(false);
+    const result = await updateLogisticsEntry(entry.id, { status: newStatus });
+    setUpdating(false);
+    if (!result.success) {
+      toast.error(result.error);
+      return;
     }
+    const label = STATUS_STYLES[newStatus]?.label ?? newStatus;
+    toast.success(`Status updated to ${label}`);
+    router.refresh();
   }
 
   return (

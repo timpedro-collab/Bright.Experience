@@ -6,6 +6,8 @@
  */
 
 import type { Metadata } from "next";
+import Link from "next/link";
+import { Sparkles } from "lucide-react";
 
 import { Container } from "@/components/ui/section";
 import { getPackages } from "@/lib/queries/packages";
@@ -36,7 +38,7 @@ export default async function BookPage() {
             seed="book::packages"
             lines={26}
             amplitude={80}
-            className="text-[hsl(223,94%,53%)]"
+            className="text-[hsl(230,93%,53%)]"
           />
           <div
             aria-hidden
@@ -61,6 +63,16 @@ export default async function BookPage() {
       </section>
 
       <Container className="pb-20">
+        <div className="mb-8 flex justify-center">
+          <Link
+            href="/quiz"
+            className="inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/8 px-4 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary/15"
+          >
+            <Sparkles size={14} />
+            Not sure? Take the quiz
+          </Link>
+        </div>
+
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {packages.map((pkg) => (
             <PackageTierCard

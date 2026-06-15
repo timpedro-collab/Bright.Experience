@@ -18,6 +18,8 @@ interface EmptyStateProps {
   };
   className?: string;
   size?: "sm" | "md" | "lg";
+  /** Surface treatment: "glass" for marketing/catalog pages, "flat" for editorial shells */
+  tone?: "glass" | "flat";
 }
 
 export function EmptyState({
@@ -28,6 +30,7 @@ export function EmptyState({
   secondaryAction,
   className,
   size = "md",
+  tone = "glass",
 }: EmptyStateProps) {
   const sizeStyles = {
     sm: "py-10 px-6",
@@ -38,23 +41,32 @@ export function EmptyState({
   return (
     <div
       className={cn(
-        "relative overflow-hidden rounded-[var(--radius-card)] border border-white/[0.06]",
-        "bg-[hsl(233,56%,11%,0.45)] backdrop-blur-md",
+        "relative overflow-hidden rounded-[var(--radius-card)]",
         "flex flex-col items-center justify-center text-center",
+        tone === "glass"
+          ? "border border-white/[0.06] bg-card/45 backdrop-blur-md"
+          : "border border-border/30 bg-transparent",
         sizeStyles[size],
         className
       )}
     >
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -top-20 left-1/2 h-48 w-48 -translate-x-1/2 rounded-full bg-primary/8 blur-3xl"
-      />
+      {tone === "glass" && (
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -top-20 left-1/2 h-48 w-48 -translate-x-1/2 rounded-full bg-primary/8 blur-3xl"
+        />
+      )}
 
-      <div className="relative mb-5 flex h-16 w-16 items-center justify-center rounded-[var(--radius-card)] border border-white/8 bg-white/[0.03] shadow-[inset_0_1px_0_0_hsl(0,0%,100%,0.04)]">
+      <div className={cn(
+        "relative mb-5 flex h-16 w-16 items-center justify-center rounded-[var(--radius-card)]",
+        tone === "glass"
+          ? "border border-white/8 bg-white/[0.03] shadow-[inset_0_1px_0_0_hsl(0,0%,100%,0.04)]"
+          : "border border-border/40 bg-muted/20"
+      )}>
         <Icon size={26} className="text-muted-foreground" />
       </div>
 
-      <h3 className="text-heading text-lg font-semibold text-foreground mb-1.5">
+      <h3 className="text-heading text-lg font-bold text-foreground mb-1.5">
         {title}
       </h3>
       <p className="max-w-md text-sm text-muted-foreground">{description}</p>

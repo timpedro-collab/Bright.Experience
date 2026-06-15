@@ -23,7 +23,7 @@ export async function getMachineBySlug(slug: string) {
   const { data, error } = await supabase
     .from("machines")
     .select(
-      `id, name, slug, tagline, description, hero_image_url, video_url,
+      `id, name, slug, tagline, description, hero_image_url, gallery_urls, video_url,
        is_active, sort_order, created_at,
        machine_games ( game_id, games ( id, name, slug, thumbnail_url, category, is_active ) ),
        packages ( id, name, slug, tier, base_price, duration_days, is_bookable )`

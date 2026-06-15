@@ -4,6 +4,7 @@ import { CheckCircle2, AlertCircle } from "lucide-react";
 
 import { EventPageShell, EditorialEyebrow, Hairline } from "@/components/brand";
 import { TaskChecklist } from "@/components/events/TaskChecklist";
+import { TaskViewToggle } from "@/components/events/TaskViewToggle";
 import { EmptyState } from "@/components/ui/EmptyState";
 
 import { getEventById } from "@/lib/queries/events";
@@ -14,12 +15,15 @@ import { isInternalRole } from "@/lib/roles";
 
 export default async function ActionsPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ view?: string }>;
 }) {
   const user = await getUser();
   if (!user) redirect("/login");
   const { id } = await params;
+  const { view } = await searchParams;
   const [event, tasks, unread] = await Promise.all([
     getEventById(id),
     getTasksByEvent(id),
@@ -28,9 +32,24 @@ export default async function ActionsPage({
   if (!event) return notFound();
 
   const isInternal = isInternalRole(user.role);
-  const visibleTasks = isInternal
+  const showAll = view === "all";
+
+  const allTasks = isInternal
     ? tasks
     : tasks.filter((t) => t.customerVisible);
+
+  const myTasks = isInternal
+    ? tasks.filter(
+        (t) =>
+          t.assignedRole === user.role ||
+          t.assignedTo?.id === user.id
+      )
+    : allTasks;
+
+  const visibleTasks = isInternal && !showAll ? myTasks : allTasks;
+  const allCount = allTasks.length;
+  const myCount = myTasks.length;
+
   const completed = visibleTasks.filter((t) => t.status === "complete").length;
   const total = visibleTasks.length;
   const blocking = visibleTasks.filter(
@@ -44,6 +63,8 @@ export default async function ActionsPage({
       user={user}
       unreadCount={unread}
       section="Actions"
+      isInternal={isInternal}
+      viewerRole={user.role}
       title={
         total === 0
           ? "All clear."
@@ -65,6 +86,17 @@ export default async function ActionsPage({
         ) : null
       }
     >
+      {isInternal && (
+        <section className="py-4">
+          <TaskViewToggle
+            eventId={id}
+            currentView={showAll ? "all" : "mine"}
+            myCount={myCount}
+            allCount={allCount}
+          />
+        </section>
+      )}
+
       {total > 0 && (
         <>
           <section className="py-6">
@@ -95,7 +127,9 @@ export default async function ActionsPage({
         />
       ) : (
         <section className="py-10">
-          <EditorialEyebrow>Every action</EditorialEyebrow>
+          <EditorialEyebrow>
+            {isInternal && !showAll ? "Your actions" : "Every action"}
+          </EditorialEyebrow>
           <div className="mt-6">
             <TaskChecklist
               tasks={visibleTasks}

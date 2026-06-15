@@ -32,6 +32,17 @@ export async function GET(
 
   const { id: eventId } = await params;
 
+  // Event-scoped authorization: verify the user can access this event
+  const { data: eventAccess } = await supabase
+    .from("events")
+    .select("id")
+    .eq("id", eventId)
+    .maybeSingle();
+
+  if (!eventAccess) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
   const cloudSnapshot = await getLiveSnapshot(eventId);
 
   if (cloudSnapshot) {
@@ -73,7 +84,7 @@ export async function GET(
     supabase
       .from("machine_instances")
       .select("id, serial_number, nickname, status, last_heartbeat, firmware_version")
-      .eq("event_id", eventId),
+      .eq("current_event_id", eventId),
 
     supabase
       .from("telemetry_events")

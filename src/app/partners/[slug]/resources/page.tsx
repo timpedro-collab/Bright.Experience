@@ -2,8 +2,8 @@
 import { redirect } from "next/navigation";
 import { getUser } from "@/lib/auth";
 import { getPartnerForUser } from "@/lib/queries/partners";
-import { AppShell } from "@/components/layout/AppShell";
-import { PageHeader } from "@/components/layout/PageHeader";
+import { getUnreadCount } from "@/lib/queries/notifications";
+import { PortalPageShell, partnerTabs } from "@/components/brand";
 import { PartnerResourceCard } from "@/components/partners/PartnerResourceCard";
 
 interface ResourcesPageProps {
@@ -69,19 +69,20 @@ export default async function PartnerResourcesPage({ params }: ResourcesPageProp
   const partner = await getPartnerForUser(user.id);
   if (!partner || partner.slug !== slug) redirect("/");
 
+  const unread = await getUnreadCount(user.id);
   const partnerName = String(partner.name ?? "Partner");
 
   return (
-    <AppShell user={user}>
-      <PageHeader
-        title="Resources"
-        subtitle="Sales collateral, product sheets, and brand assets"
-        breadcrumbs={[
-          { label: "Partners", href: `/partners/${slug}/dashboard` },
-          { label: partnerName, href: `/partners/${slug}/dashboard` },
-          { label: "Resources" },
-        ]}
-      />
+    <PortalPageShell
+      user={user}
+      unreadCount={unread}
+      scope={partnerName}
+      section="Resources"
+      slug={slug}
+      tabs={partnerTabs(slug)}
+      title="Resources"
+      subtitle="Sales collateral, product sheets, and brand assets"
+    >
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {RESOURCES.map((resource) => (
           <PartnerResourceCard
@@ -93,6 +94,6 @@ export default async function PartnerResourcesPage({ params }: ResourcesPageProp
           />
         ))}
       </div>
-    </AppShell>
+    </PortalPageShell>
   );
 }

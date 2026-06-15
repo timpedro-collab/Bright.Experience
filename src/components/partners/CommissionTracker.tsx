@@ -61,7 +61,7 @@ export function CommissionTracker({
               className="border-white/[0.06] bg-white/[0.02] backdrop-blur-sm"
             >
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-text-muted">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
                   {card.label}
                 </CardTitle>
                 <div className={cn("rounded-lg p-2", card.bgAccent)}>
@@ -81,15 +81,15 @@ export function CommissionTracker({
       <Card className="border-white/[0.06] bg-white/[0.02] backdrop-blur-sm">
         <CardContent className="p-6">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-sm font-medium text-text-muted">
+            <span className="text-sm font-medium text-muted-foreground">
               Payout Progress
             </span>
-            <span className="text-sm font-mono text-text-secondary">
+            <span className="text-sm font-mono text-muted-foreground">
               {paidRatio}%
             </span>
           </div>
           <ProgressBar value={paid} max={totalEarned || 1} size="md" />
-          <p className="mt-2 text-xs text-text-muted">
+          <p className="mt-2 text-xs text-muted-foreground">
             {formatCurrency(paid)} of {formatCurrency(totalEarned)} paid out
           </p>
         </CardContent>

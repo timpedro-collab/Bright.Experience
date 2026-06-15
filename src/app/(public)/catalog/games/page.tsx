@@ -50,7 +50,7 @@ export default async function GamesIndexPage({
             seed="catalog::games"
             lines={22}
             amplitude={70}
-            className="text-[hsl(223,94%,53%)]"
+            className="text-[hsl(230,93%,53%)]"
           />
           <div
             aria-hidden

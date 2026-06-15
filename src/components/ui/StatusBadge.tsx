@@ -13,11 +13,11 @@ import { STAGE_CONFIG, HEALTH_CONFIG } from "@/types";
 type BadgeVariant = "green" | "amber" | "red" | "blue" | "muted";
 
 const VARIANT_STYLES: Record<BadgeVariant, string> = {
-  green: "bg-success/12 text-success border-success/25",
-  amber: "bg-warning/12 text-warning border-warning/25",
-  red: "bg-destructive/12 text-destructive border-destructive/25",
-  blue: "bg-brand/12 text-brand border-brand/25",
-  muted: "bg-text-muted/15 text-text-secondary border-text-muted/25",
+  green: "bg-success/15 text-success border-success/30",
+  amber: "bg-warning/15 text-warning border-warning/30",
+  red: "bg-destructive/15 text-destructive border-destructive/30",
+  blue: "bg-primary/15 text-primary border-primary/30",
+  muted: "bg-muted text-muted-foreground border-border",
 };
 
 function StatusBadge({
@@ -32,8 +32,8 @@ function StatusBadge({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 rounded-[var(--radius-chip)] border px-2 py-0.5",
-        "font-[var(--font-overline)] text-[0.625rem] font-semibold uppercase tracking-wider",
+        "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5",
+        "text-[11px] font-medium",
         VARIANT_STYLES[variant],
         className
       )}

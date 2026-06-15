@@ -7,8 +7,17 @@ export interface InternalQueueCounts {
   pendingPartnerApps: number;
   blockedEvents: number;
   assetReviews: number;
+  /** Asset reviews sitting past the reviewer SLA — a subset of assetReviews. */
+  overdueAssetReviews: number;
   stuckCustomerActions: number;
 }
+
+/**
+ * Internal reviewer SLA: creative sign-off should land within this many days
+ * of upload. Mirrors STUCK_CUSTOMER_DAYS but for the Bright.Blue side of the
+ * desk, so a slow review escalates just like a slow customer.
+ */
+export const REVIEWER_SLA_DAYS = 2;
 
 /**
  * Days after which a customer-side action is treated as "stuck". Used
@@ -65,7 +74,8 @@ export async function countStuckCustomerActions(
 export async function getInternalQueueCounts(): Promise<InternalQueueCounts> {
   const supabase = await createClient();
 
-  const [quotes, studio, partners, events, assetReviews, stuck] =
+  const reviewerCutoff = stuckCutoffIso(REVIEWER_SLA_DAYS);
+  const [quotes, studio, partners, events, assetReviews, overdueReviews, stuck] =
     await Promise.all([
       supabase
         .from("quotes")
@@ -87,6 +97,11 @@ export async function getInternalQueueCounts(): Promise<InternalQueueCounts> {
         .from("assets")
         .select("id", { count: "exact", head: true })
         .eq("review_status", "pending_review"),
+      supabase
+        .from("assets")
+        .select("id", { count: "exact", head: true })
+        .eq("review_status", "pending_review")
+        .lt("updated_at", reviewerCutoff),
       countStuckCustomerActions(),
     ]);
 
@@ -96,6 +111,7 @@ export async function getInternalQueueCounts(): Promise<InternalQueueCounts> {
     pendingPartnerApps: partners.count ?? 0,
     blockedEvents: events.count ?? 0,
     assetReviews: assetReviews.count ?? 0,
+    overdueAssetReviews: overdueReviews.count ?? 0,
     stuckCustomerActions: stuck,
   };
 }

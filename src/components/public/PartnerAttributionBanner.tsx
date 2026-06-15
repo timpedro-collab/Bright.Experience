@@ -15,7 +15,7 @@ export async function PartnerAttributionBanner() {
   if (!partner) return null;
 
   return (
-    <div className="border-b border-primary/20 bg-[linear-gradient(90deg,hsl(223,94%,53%,0.18),hsl(189,100%,75%,0.08))] backdrop-blur-md">
+    <div className="border-b border-primary/20 bg-[linear-gradient(90deg,hsl(230,93%,53%,0.18),hsl(189,100%,75%,0.08))] backdrop-blur-md">
       <Container className="flex flex-wrap items-center justify-between gap-3 py-2.5">
         <div className="flex items-center gap-2.5 min-w-0">
           <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-primary/30 bg-primary/15 text-primary">

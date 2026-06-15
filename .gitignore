@@ -46,6 +46,9 @@ next-env.d.ts
 # supabase CLI scratch / cache
 supabase/.temp/
 
+# reference codebase used for the redesign — not part of this app
+/TheoCloudRedesign-main/
+
 # playwright artifacts
 /test-results/
 /playwright-report/

@@ -57,7 +57,7 @@ export default async function PartnerAttributionPage({
     path: "/",
   });
 
-  const accent = partner.brand_color ?? "hsl(223 94% 53%)";
+  const accent = partner.brand_color ?? "hsl(230 93% 53%)";
 
   return (
     <>

@@ -46,22 +46,27 @@ export async function ensureProfile(
     };
   }
 
+  const meta = user.user_metadata ?? {};
   const metaName =
-    (user.user_metadata?.name as string | undefined) ??
-    (user.user_metadata?.full_name as string | undefined) ??
+    (meta.name as string | undefined) ??
+    (meta.full_name as string | undefined) ??
     null;
   const fallbackName =
     metaName ?? (user.email ? user.email.split("@")[0] : "New user");
+
+  const metaRole = (meta.role as UserRole | undefined) ?? "customer_user";
+  const metaAccountId = (meta.account_id as string | undefined) ?? null;
 
   await supabase.from("profiles").insert({
     id: user.id,
     name: fallbackName,
     email: user.email ?? `${user.id}@unknown`,
-    role: "customer_user",
+    role: metaRole,
+    account_id: metaAccountId,
     is_active: true,
   });
 
-  return { role: "customer_user", accountId: null };
+  return { role: metaRole, accountId: metaAccountId };
 }
 
 /**

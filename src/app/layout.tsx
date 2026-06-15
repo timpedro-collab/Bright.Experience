@@ -2,6 +2,10 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { brandFontVariables } from "@/lib/fonts";
+import { checkRequiredEnv } from "@/lib/env";
+import { ThemeProvider, themeInitScript } from "@/components/theme/ThemeProvider";
+
+checkRequiredEnv();
 
 export const metadata: Metadata = {
   metadataBase: new URL(
@@ -53,9 +57,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning className={brandFontVariables}>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
       <body className="antialiased min-h-screen">
-        {children}
-        <Toaster />
+        <ThemeProvider>
+          {children}
+          <Toaster />
+        </ThemeProvider>
       </body>
     </html>
   );

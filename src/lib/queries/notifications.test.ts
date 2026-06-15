@@ -102,19 +102,19 @@ describe("getUnreadCount", () => {
 });
 
 describe("markNotificationRead", () => {
-  it("throws on Supabase error", async () => {
+  it("returns false on Supabase error", async () => {
     supabase.setTableResponse("notifications", {
       data: null,
       error: { message: "denied" },
     });
     const { markNotificationRead } = await import("./notifications");
-    await expect(markNotificationRead("n1")).rejects.toThrow(/denied/);
+    await expect(markNotificationRead("n1")).resolves.toBe(false);
   });
 
-  it("resolves on success", async () => {
+  it("returns true on success", async () => {
     supabase.setTableResponse("notifications", { data: null, error: null });
     const { markNotificationRead } = await import("./notifications");
-    await expect(markNotificationRead("n1")).resolves.toBeUndefined();
+    await expect(markNotificationRead("n1")).resolves.toBe(true);
   });
 });
 

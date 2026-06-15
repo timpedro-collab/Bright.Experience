@@ -60,6 +60,7 @@ describe("requireRole", () => {
       name: "x",
       email: "x@x",
       role: "events_lead",
+      hasCompletedOnboarding: true,
     });
     await expect(requireRole(["events_lead", "admin"])).resolves.toBeUndefined();
   });
@@ -77,6 +78,7 @@ describe("requireRole", () => {
       name: "x",
       email: "x@x",
       role: "customer_user",
+      hasCompletedOnboarding: true,
     });
     await expect(requireRole(["admin"])).rejects.toThrow(/Forbidden/i);
   });
@@ -92,6 +94,7 @@ describe("requirePermission", () => {
       name: "x",
       email: "x@x",
       role: "admin",
+      hasCompletedOnboarding: true,
     });
     await expect(requirePermission("events.create")).resolves.toBeUndefined();
   });
@@ -103,6 +106,7 @@ describe("requirePermission", () => {
       name: "x",
       email: "x@x",
       role: "customer_user",
+      hasCompletedOnboarding: true,
     });
     await expect(requirePermission("events.create")).rejects.toThrow(/Forbidden/i);
   });

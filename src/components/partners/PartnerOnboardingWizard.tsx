@@ -100,10 +100,10 @@ export function PartnerOnboardingWizard() {
           <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500/10">
             <CheckCircle2 size={32} className="text-emerald-400" />
           </div>
-          <h2 className="text-heading text-xl font-semibold text-text-primary">
+          <h2 className="text-heading text-xl font-semibold text-foreground">
             Application Submitted
           </h2>
-          <p className="text-sm text-text-muted">
+          <p className="text-sm text-muted-foreground">
             Thank you for applying to the Bright.Blue Partner Programme.
             Our partnerships team will review your application and be in touch
             within 2 business days.
@@ -133,7 +133,7 @@ export function PartnerOnboardingWizard() {
               variant="outline"
               onClick={() => setStep((s) => s - 1)}
               disabled={step === 0}
-              className="border-white/[0.06] bg-white/[0.02] text-text-primary hover:bg-white/[0.06]"
+              className="border-white/[0.06] bg-white/[0.02] text-foreground hover:bg-white/[0.06]"
             >
               <ArrowLeft size={14} className="mr-2" />
               Back
@@ -178,7 +178,7 @@ function StepIndicator({ currentStep }: { currentStep: number }) {
                   "flex h-10 w-10 items-center justify-center rounded-full border transition-colors",
                   isActive && "border-brand bg-brand/10 text-brand",
                   isComplete && "border-emerald-500/20 bg-emerald-500/10 text-emerald-400",
-                  !isActive && !isComplete && "border-white/[0.06] bg-white/[0.02] text-text-muted"
+                  !isActive && !isComplete && "border-white/[0.06] bg-white/[0.02] text-muted-foreground"
                 )}
               >
                 {isComplete ? <CheckCircle2 size={18} /> : <Icon size={18} />}
@@ -186,7 +186,7 @@ function StepIndicator({ currentStep }: { currentStep: number }) {
               <span
                 className={cn(
                   "text-xs font-medium",
-                  isActive ? "text-brand" : "text-text-muted"
+                  isActive ? "text-brand" : "text-muted-foreground"
                 )}
               >
                 {s.label}
@@ -216,21 +216,21 @@ function StepCompany({
 }) {
   return (
     <div className="space-y-5">
-      <h3 className="text-heading text-lg font-semibold text-text-primary">
+      <h3 className="text-heading text-lg font-semibold text-foreground">
         Company Information
       </h3>
       <FieldGroup label="Company Name" required>
-        <Input value={form.companyName} onChange={(e) => update("companyName", e.target.value)} placeholder="Acme Events Ltd" className="border-white/[0.06] bg-white/[0.02] text-text-primary placeholder:text-text-muted" />
+        <Input value={form.companyName} onChange={(e) => update("companyName", e.target.value)} placeholder="Acme Events Ltd" className="border-white/[0.06] bg-white/[0.02] text-foreground placeholder:text-muted-foreground" />
       </FieldGroup>
       <FieldGroup label="Website">
-        <Input value={form.website} onChange={(e) => update("website", e.target.value)} placeholder="https://example.com" className="border-white/[0.06] bg-white/[0.02] text-text-primary placeholder:text-text-muted" />
+        <Input value={form.website} onChange={(e) => update("website", e.target.value)} placeholder="https://example.com" className="border-white/[0.06] bg-white/[0.02] text-foreground placeholder:text-muted-foreground" />
       </FieldGroup>
       <div className="grid grid-cols-2 gap-4">
         <FieldGroup label="Industry">
-          <Input value={form.industry} onChange={(e) => update("industry", e.target.value)} placeholder="e.g. Marketing, Events" className="border-white/[0.06] bg-white/[0.02] text-text-primary placeholder:text-text-muted" />
+          <Input value={form.industry} onChange={(e) => update("industry", e.target.value)} placeholder="e.g. Marketing, Events" className="border-white/[0.06] bg-white/[0.02] text-foreground placeholder:text-muted-foreground" />
         </FieldGroup>
         <FieldGroup label="Company Size">
-          <Input value={form.companySize} onChange={(e) => update("companySize", e.target.value)} placeholder="e.g. 10-50" className="border-white/[0.06] bg-white/[0.02] text-text-primary placeholder:text-text-muted" />
+          <Input value={form.companySize} onChange={(e) => update("companySize", e.target.value)} placeholder="e.g. 10-50" className="border-white/[0.06] bg-white/[0.02] text-foreground placeholder:text-muted-foreground" />
         </FieldGroup>
       </div>
     </div>
@@ -246,22 +246,22 @@ function StepContact({
 }) {
   return (
     <div className="space-y-5">
-      <h3 className="text-heading text-lg font-semibold text-text-primary">
+      <h3 className="text-heading text-lg font-semibold text-foreground">
         Contact Details
       </h3>
       <div className="grid grid-cols-2 gap-4">
         <FieldGroup label="Full Name" required>
-          <Input value={form.contactName} onChange={(e) => update("contactName", e.target.value)} placeholder="Jane Smith" className="border-white/[0.06] bg-white/[0.02] text-text-primary placeholder:text-text-muted" />
+          <Input value={form.contactName} onChange={(e) => update("contactName", e.target.value)} placeholder="Jane Smith" className="border-white/[0.06] bg-white/[0.02] text-foreground placeholder:text-muted-foreground" />
         </FieldGroup>
         <FieldGroup label="Job Title">
-          <Input value={form.contactRole} onChange={(e) => update("contactRole", e.target.value)} placeholder="e.g. Partnerships Manager" className="border-white/[0.06] bg-white/[0.02] text-text-primary placeholder:text-text-muted" />
+          <Input value={form.contactRole} onChange={(e) => update("contactRole", e.target.value)} placeholder="e.g. Partnerships Manager" className="border-white/[0.06] bg-white/[0.02] text-foreground placeholder:text-muted-foreground" />
         </FieldGroup>
       </div>
       <FieldGroup label="Email" required>
-        <Input type="email" value={form.contactEmail} onChange={(e) => update("contactEmail", e.target.value)} placeholder="jane@example.com" className="border-white/[0.06] bg-white/[0.02] text-text-primary placeholder:text-text-muted" />
+        <Input type="email" value={form.contactEmail} onChange={(e) => update("contactEmail", e.target.value)} placeholder="jane@example.com" className="border-white/[0.06] bg-white/[0.02] text-foreground placeholder:text-muted-foreground" />
       </FieldGroup>
       <FieldGroup label="Phone">
-        <Input type="tel" value={form.contactPhone} onChange={(e) => update("contactPhone", e.target.value)} placeholder="+27 12 345 6789" className="border-white/[0.06] bg-white/[0.02] text-text-primary placeholder:text-text-muted" />
+        <Input type="tel" value={form.contactPhone} onChange={(e) => update("contactPhone", e.target.value)} placeholder="+27 12 345 6789" className="border-white/[0.06] bg-white/[0.02] text-foreground placeholder:text-muted-foreground" />
       </FieldGroup>
     </div>
   );
@@ -276,7 +276,7 @@ function StepType({
 }) {
   return (
     <div className="space-y-5">
-      <h3 className="text-heading text-lg font-semibold text-text-primary">
+      <h3 className="text-heading text-lg font-semibold text-foreground">
         Partnership Type
       </h3>
       <div className="grid gap-3">
@@ -292,15 +292,15 @@ function StepType({
                 : "border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04]"
             )}
           >
-            <span className="text-sm font-medium text-text-primary">
+            <span className="text-sm font-medium text-foreground">
               {pt.label}
             </span>
-            <span className="text-xs text-text-muted">{pt.desc}</span>
+            <span className="text-xs text-muted-foreground">{pt.desc}</span>
           </button>
         ))}
       </div>
       <FieldGroup label="How did you hear about us?">
-        <Input value={form.referralSource} onChange={(e) => update("referralSource", e.target.value)} placeholder="e.g. LinkedIn, colleague, event" className="border-white/[0.06] bg-white/[0.02] text-text-primary placeholder:text-text-muted" />
+        <Input value={form.referralSource} onChange={(e) => update("referralSource", e.target.value)} placeholder="e.g. LinkedIn, colleague, event" className="border-white/[0.06] bg-white/[0.02] text-foreground placeholder:text-muted-foreground" />
       </FieldGroup>
       <FieldGroup label="Additional Notes">
         <textarea
@@ -308,7 +308,7 @@ function StepType({
           onChange={(e) => update("notes", e.target.value)}
           rows={3}
           placeholder="Anything else you'd like us to know…"
-          className="w-full rounded-md border border-white/[0.06] bg-white/[0.02] px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="w-full rounded-md border border-white/[0.06] bg-white/[0.02] px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         />
       </FieldGroup>
     </div>
@@ -349,19 +349,19 @@ function StepReview({ form }: { form: FormData }) {
 
   return (
     <div className="space-y-6">
-      <h3 className="text-heading text-lg font-semibold text-text-primary">
+      <h3 className="text-heading text-lg font-semibold text-foreground">
         Review Your Application
       </h3>
       {sections.map((section) => (
         <div key={section.title}>
-          <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-text-muted">
+          <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             {section.title}
           </h4>
           <div className="divide-y divide-white/[0.06] rounded-xl border border-white/[0.06] bg-white/[0.01]">
             {section.items.map(([label, value]) => (
               <div key={label} className="flex items-center justify-between px-4 py-2.5">
-                <span className="text-sm text-text-muted">{label}</span>
-                <span className="text-sm text-text-primary">
+                <span className="text-sm text-muted-foreground">{label}</span>
+                <span className="text-sm text-foreground">
                   {value || "—"}
                 </span>
               </div>
@@ -385,7 +385,7 @@ function FieldGroup({
 }) {
   return (
     <div className="space-y-1.5">
-      <Label className="text-text-secondary">
+      <Label className="text-muted-foreground">
         {label}
         {required && <span className="ml-0.5 text-red-400">*</span>}
       </Label>

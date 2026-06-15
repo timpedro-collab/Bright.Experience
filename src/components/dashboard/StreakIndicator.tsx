@@ -1,0 +1,54 @@
+"use client";
+
+import { motion } from "framer-motion";
+import { Zap } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+interface StreakIndicatorProps {
+  streak: number;
+  className?: string;
+}
+
+export function StreakIndicator({ streak, className }: StreakIndicatorProps) {
+  if (streak <= 0) return null;
+
+  return (
+    <motion.div
+      className={cn(
+        "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1",
+        "bg-white/[0.04] border border-white/[0.08]",
+        "text-xs font-medium tabular-nums",
+        className
+      )}
+      initial={{ scale: 0, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      transition={{ type: "spring", stiffness: 400, damping: 22 }}
+    >
+      <motion.span
+        animate={{
+          rotate: [0, -12, 12, 0],
+          scale: [1, 1.15, 1],
+        }}
+        transition={{
+          duration: 1.5,
+          repeat: Infinity,
+          repeatDelay: 4,
+          ease: "easeInOut",
+        }}
+      >
+        <Zap
+          size={13}
+          className={cn(
+            "fill-current",
+            streak >= 7
+              ? "text-[var(--color-bb-cyan)]"
+              : streak >= 3
+                ? "text-[hsl(43,90%,60%)]"
+                : "text-muted-foreground"
+          )}
+        />
+      </motion.span>
+      <span className="text-foreground">{streak}-day streak</span>
+    </motion.div>
+  );
+}

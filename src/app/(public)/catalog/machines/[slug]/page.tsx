@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { GameCard } from "@/components/catalog/GameCard";
 import { PackageTierCard } from "@/components/catalog/PackageTierCard";
+import { MediaGallery, type MediaItem } from "@/components/catalog/MediaGallery";
 import { getMachineBySlug } from "@/lib/queries/machines";
 
 interface PageProps {
@@ -81,7 +82,7 @@ export default async function MachineDetailPage({ params }: PageProps) {
                 </Button>
               </div>
             </div>
-            <div className="relative aspect-[4/3] overflow-hidden rounded-[var(--radius-card)] border border-white/10 bg-[radial-gradient(ellipse_at_center,hsl(223,94%,53%,0.25),transparent_55%)]">
+            <div className="relative aspect-[4/3] overflow-hidden rounded-[var(--radius-card)] border border-white/10 bg-[radial-gradient(ellipse_at_center,hsl(230,93%,53%,0.25),transparent_55%)]">
               {machine.hero_image_url ? (
                 <Image
                   src={machine.hero_image_url}
@@ -102,6 +103,28 @@ export default async function MachineDetailPage({ params }: PageProps) {
           </div>
         </Container>
       </Section>
+
+      {(() => {
+        const raw = (machine.gallery_urls as string[] | null) ?? [];
+        const galleryItems: MediaItem[] = raw.map((url) => ({
+          url,
+          type: (url.endsWith(".mp4") || url.endsWith(".webm") ? "video" : "image") as "video" | "image",
+        }));
+        if (galleryItems.length === 0) return null;
+        return (
+          <Section className="border-b border-white/[0.06]">
+            <Container>
+              <div className="mb-6">
+                <p className="text-overline text-muted-foreground mb-2">Gallery</p>
+                <h2 className="text-heading text-3xl font-bold text-foreground md:text-4xl">
+                  See it in action
+                </h2>
+              </div>
+              <MediaGallery items={galleryItems} />
+            </Container>
+          </Section>
+        );
+      })()}
 
       {games.length > 0 && (
         <Section className="border-b border-white/[0.06]">

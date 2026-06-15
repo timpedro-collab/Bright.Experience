@@ -57,7 +57,21 @@ export type NotificationKind =
   | "lead.captured_live"
   | "event.metrics_daily"
   | "message.received"
+  | "comment.new"
   | "stage.changed"
+  // System lifecycle
+  | "booking.provisioned"
+  | "report.draft_ready"
+  // Invoicing
+  | "invoice.overdue"
+  // Compliance
+  | "compliance.document_expiring"
+  | "compliance.requirement_unmet"
+  | "compliance.document_uploaded"
+  // Deadline escalation
+  | "deadline.escalation"
+  // Reporting
+  | "report.scheduled_export_ready"
   // Time-driven
   | "event.t_minus_30"
   | "event.t_minus_14"
@@ -75,6 +89,7 @@ export type OwnerResolverKey =
   | "task_assignee"
   | "message_recipients"
   | "asset_uploader"
+  | "asset_comment_participants"
   | "approval_requester";
 
 /** Reminder cadence — when does the cron consider this archetype stale? */
@@ -444,6 +459,36 @@ export const ARCHETYPES: Record<NotificationKind, Archetype> = {
   },
 
   // ─────────────────────────────────────────────────────────
+  // System lifecycle
+  // ─────────────────────────────────────────────────────────
+  "booking.provisioned": {
+    kind: "booking.provisioned",
+    classOf: "fyi",
+    priority: "normal",
+    eyebrow: "FYI",
+    subjectTemplate: "Event provisioned for {companyName}",
+    bodyTemplate:
+      "A new event has been automatically created from an accepted quote. The customer has been invited to the portal.",
+    linkTemplate: "/events/{eventId}",
+    ownerResolver: "event_members_internal",
+    defaults: { inPortal: true, emailMode: "immediate" },
+    audience: "internal",
+  },
+  "report.draft_ready": {
+    kind: "report.draft_ready",
+    classOf: "action_required",
+    priority: "high",
+    eyebrow: "Action required",
+    subjectTemplate: "Draft report ready for {eventName}",
+    bodyTemplate:
+      "A post-event report has been auto-generated for {eventName}. Review the metrics and publish when you're happy.",
+    linkTemplate: "/events/{eventId}/reports",
+    ownerResolver: "event_members_internal",
+    defaults: { inPortal: true, emailMode: "immediate" },
+    audience: "internal",
+  },
+
+  // ─────────────────────────────────────────────────────────
   // FYI
   // ─────────────────────────────────────────────────────────
   "lead.captured_live": {
@@ -483,6 +528,18 @@ export const ARCHETYPES: Record<NotificationKind, Archetype> = {
     defaults: { inPortal: true, emailMode: "digest" },
     audience: "both",
   },
+  "comment.new": {
+    kind: "comment.new",
+    classOf: "fyi",
+    priority: "normal",
+    eyebrow: "FYI",
+    subjectTemplate: "{authorName} commented on {assetName}",
+    bodyTemplate: "{preview}",
+    linkTemplate: "/events/{eventId}/assets",
+    ownerResolver: "asset_comment_participants",
+    defaults: { inPortal: true, emailMode: "digest" },
+    audience: "both",
+  },
   "stage.changed": {
     kind: "stage.changed",
     classOf: "fyi",
@@ -495,6 +552,116 @@ export const ARCHETYPES: Record<NotificationKind, Archetype> = {
     ownerResolver: "event_members_all",
     defaults: { inPortal: true, emailMode: "digest" },
     audience: "both",
+  },
+
+  // ─────────────────────────────────────────────────────────
+  // Invoicing
+  // ─────────────────────────────────────────────────────────
+  "invoice.overdue": {
+    kind: "invoice.overdue",
+    classOf: "action_required",
+    priority: "high",
+    eyebrow: "Action required",
+    subjectTemplate: "Invoice {invoiceNumber} is overdue",
+    bodyTemplate:
+      "Invoice {invoiceNumber} for {eventName} was due on {dueDate} and is now overdue. Follow up with the client.",
+    linkTemplate: "/admin/invoices",
+    ownerResolver: "event_members_internal",
+    reminderCadence: {
+      firstAfterHours: 0,
+      intervalHours: SEVENTY_TWO,
+      maxEscalations: 3,
+    },
+    defaults: { inPortal: true, emailMode: "immediate" },
+    audience: "internal",
+  },
+
+  // ─────────────────────────────────────────────────────────
+  // Compliance
+  // ─────────────────────────────────────────────────────────
+  "compliance.document_expiring": {
+    kind: "compliance.document_expiring",
+    classOf: "action_required",
+    priority: "high",
+    eyebrow: "Action required",
+    subjectTemplate: "{documentTitle} expires on {expiryDate}",
+    bodyTemplate:
+      "A compliance document for {eventName} is expiring soon. Upload a renewed copy to keep the event on track.",
+    linkTemplate: "/events/{eventId}/compliance",
+    ownerResolver: "event_members_internal",
+    reminderCadence: {
+      firstAfterHours: 0,
+      intervalHours: SEVENTY_TWO,
+      maxEscalations: 3,
+    },
+    defaults: { inPortal: true, emailMode: "immediate" },
+    audience: "internal",
+  },
+  "compliance.requirement_unmet": {
+    kind: "compliance.requirement_unmet",
+    classOf: "action_required",
+    priority: "high",
+    eyebrow: "Action required",
+    subjectTemplate: "Compliance requirement missing for {eventName}",
+    bodyTemplate:
+      "{documentTitle} is required by the client but hasn't been uploaded or approved yet. This blocks stage advancement.",
+    linkTemplate: "/events/{eventId}/compliance",
+    ownerResolver: "event_members_internal",
+    defaults: { inPortal: true, emailMode: "immediate" },
+    audience: "internal",
+  },
+  "compliance.document_uploaded": {
+    kind: "compliance.document_uploaded",
+    classOf: "fyi",
+    priority: "normal",
+    eyebrow: "FYI",
+    subjectTemplate: "{documentTitle} uploaded for {eventName}",
+    bodyTemplate:
+      "A compliance document has been uploaded and needs review before the event can advance.",
+    linkTemplate: "/events/{eventId}/compliance",
+    ownerResolver: "event_members_internal",
+    defaults: { inPortal: true, emailMode: "digest" },
+    audience: "internal",
+  },
+
+  // ─────────────────────────────────────────────────────────
+  // Deadline escalation
+  // ─────────────────────────────────────────────────────────
+  "deadline.escalation": {
+    kind: "deadline.escalation",
+    classOf: "action_required",
+    priority: "high",
+    eyebrow: "Action required — deadline",
+    subjectTemplate: "{taskTitle} is {daysOverdue} days overdue",
+    bodyTemplate:
+      "This item was due {dueDate} and is now blocking progress on {eventName}. Please take action or update the timeline.",
+    linkTemplate: "/events/{eventId}/actions",
+    ownerResolver: "task_assignee",
+    reminderCadence: {
+      firstAfterHours: 0,
+      intervalHours: TWENTY_FOUR,
+      maxEscalations: 4,
+      ccAccountManagerAtLevel: 2,
+    },
+    defaults: { inPortal: true, emailMode: "immediate" },
+    audience: "both",
+  },
+
+  // ─────────────────────────────────────────────────────────
+  // Reporting
+  // ─────────────────────────────────────────────────────────
+  "report.scheduled_export_ready": {
+    kind: "report.scheduled_export_ready",
+    classOf: "fyi",
+    priority: "normal",
+    eyebrow: "Report ready",
+    subjectTemplate: "Your scheduled export for {eventName} is ready",
+    bodyTemplate:
+      "The report \"{filename}\" has been generated and is ready for download. The link expires in 7 days.",
+    linkTemplate: "/events/{eventId}/reports",
+    ownerResolver: "event_members_internal",
+    defaults: { inPortal: true, emailMode: "immediate" },
+    audience: "internal",
   },
 
   // ─────────────────────────────────────────────────────────

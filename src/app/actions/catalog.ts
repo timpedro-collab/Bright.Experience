@@ -1,26 +1,9 @@
-/** Server actions for managing the game catalog (machines, games, packages, case studies). */
+/** Server actions for catalog machines & games. */
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
+import { requireInternalUser } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-/** Verify the current user is authenticated; throws if not. */
-async function requireAuth() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) throw new Error("Not authenticated");
-  return { supabase, user };
-}
-
-// ---------------------------------------------------------------------------
-// Machines
-// ---------------------------------------------------------------------------
+import type { ActionResult } from "@/types/actions";
 
 /** Insert a new machine into the catalog. */
 export async function createMachine(data: {
@@ -30,8 +13,8 @@ export async function createMachine(data: {
   description?: string;
   heroImageUrl?: string;
   videoUrl?: string;
-}) {
-  const { supabase } = await requireAuth();
+}): Promise<ActionResult<{ id: string }>> {
+  const { supabase } = await requireInternalUser();
 
   const { data: machine, error } = await supabase
     .from("machines")
@@ -43,13 +26,15 @@ export async function createMachine(data: {
       hero_image_url: data.heroImageUrl ?? null,
       video_url: data.videoUrl ?? null,
     })
-    .select()
+    .select("id")
     .single();
 
-  if (error) throw new Error(`Failed to create machine: ${error.message}`);
+  if (error || !machine) {
+    return { success: false, error: "Could not create machine. Please try again." };
+  }
 
   revalidatePath("/catalog");
-  return machine;
+  return { success: true, data: { id: machine.id as string } };
 }
 
 /** Update an existing machine. */
@@ -62,9 +47,9 @@ export async function updateMachine(
     heroImageUrl: string;
     videoUrl: string;
     isActive: boolean;
-  }>
-) {
-  const { supabase } = await requireAuth();
+  }>,
+): Promise<ActionResult<{ id: string }>> {
+  const { supabase } = await requireInternalUser();
 
   const updates: Record<string, unknown> = {};
   if (data.name !== undefined) updates.name = data.name;
@@ -78,18 +63,16 @@ export async function updateMachine(
     .from("machines")
     .update(updates)
     .eq("id", id)
-    .select()
+    .select("id")
     .single();
 
-  if (error) throw new Error(`Failed to update machine: ${error.message}`);
+  if (error || !machine) {
+    return { success: false, error: "Could not update machine. Please try again." };
+  }
 
   revalidatePath("/catalog");
-  return machine;
+  return { success: true, data: { id: machine.id as string } };
 }
-
-// ---------------------------------------------------------------------------
-// Games
-// ---------------------------------------------------------------------------
 
 /** Insert a new game into the catalog. */
 export async function createGame(data: {
@@ -99,8 +82,8 @@ export async function createGame(data: {
   thumbnailUrl?: string;
   previewVideoUrl?: string;
   category?: string;
-}) {
-  const { supabase } = await requireAuth();
+}): Promise<ActionResult<{ id: string }>> {
+  const { supabase } = await requireInternalUser();
 
   const { data: game, error } = await supabase
     .from("games")
@@ -112,122 +95,99 @@ export async function createGame(data: {
       preview_video_url: data.previewVideoUrl ?? null,
       category: data.category ?? null,
     })
-    .select()
+    .select("id")
     .single();
 
-  if (error) throw new Error(`Failed to create game: ${error.message}`);
+  if (error || !game) {
+    return { success: false, error: "Could not create game. Please try again." };
+  }
 
   revalidatePath("/catalog");
-  return game;
+  return { success: true, data: { id: game.id as string } };
+}
+
+/** Update an existing game by ID. */
+export async function updateGame(
+  id: string,
+  data: Partial<{
+    name: string;
+    description: string;
+    thumbnailUrl: string;
+    previewVideoUrl: string;
+    category: string;
+    isActive: boolean;
+  }>,
+): Promise<ActionResult<{ id: string }>> {
+  const { supabase } = await requireInternalUser();
+
+  const updates: Record<string, unknown> = {};
+  if (data.name !== undefined) updates.name = data.name;
+  if (data.description !== undefined) updates.description = data.description;
+  if (data.thumbnailUrl !== undefined) updates.thumbnail_url = data.thumbnailUrl;
+  if (data.previewVideoUrl !== undefined) updates.preview_video_url = data.previewVideoUrl;
+  if (data.category !== undefined) updates.category = data.category;
+  if (data.isActive !== undefined) updates.is_active = data.isActive;
+
+  const { data: game, error } = await supabase
+    .from("games")
+    .update(updates)
+    .eq("id", id)
+    .select("id")
+    .single();
+
+  if (error || !game) {
+    return { success: false, error: "Could not update game. Please try again." };
+  }
+
+  revalidatePath("/catalog");
+  return { success: true, data: { id: game.id as string } };
 }
 
 /** Link a game to a machine via the junction table. */
-export async function linkGameToMachine(machineId: string, gameId: string) {
-  const { supabase } = await requireAuth();
+export async function linkGameToMachine(
+  machineId: string,
+  gameId: string,
+): Promise<ActionResult<{ id: string }>> {
+  const { supabase } = await requireInternalUser();
 
   const { data: row, error } = await supabase
     .from("machine_games")
     .insert({ machine_id: machineId, game_id: gameId })
-    .select()
+    .select("id")
     .single();
 
-  if (error) throw new Error(`Failed to link game to machine: ${error.message}`);
+  if (error || !row) {
+    return { success: false, error: "Could not link game to machine. Please try again." };
+  }
 
   revalidatePath("/catalog");
-  return row;
+  return { success: true, data: { id: row.id as string } };
 }
 
-// ---------------------------------------------------------------------------
-// Packages
-// ---------------------------------------------------------------------------
+/** Delete a machine from the catalog. */
+export async function deleteCatalogMachine(
+  id: string,
+): Promise<ActionResult> {
+  const { supabase } = await requireInternalUser();
 
-/** Insert a new package into the catalog. */
-export async function createPackage(data: {
-  name: string;
-  slug: string;
-  machineId?: string;
-  tier: string;
-  basePrice?: number;
-  durationDays?: number;
-  featuresJson?: Record<string, unknown>;
-  isBookable?: boolean;
-}) {
-  const { supabase } = await requireAuth();
-
-  const { data: pkg, error } = await supabase
-    .from("packages")
-    .insert({
-      name: data.name,
-      slug: data.slug,
-      machine_id: data.machineId ?? null,
-      tier: data.tier,
-      base_price: data.basePrice ?? null,
-      duration_days: data.durationDays ?? null,
-      features_json: data.featuresJson ?? null,
-      is_bookable: data.isBookable ?? true,
-    })
-    .select()
-    .single();
-
-  if (error) throw new Error(`Failed to create package: ${error.message}`);
+  const { error } = await supabase.from("machines").delete().eq("id", id);
+  if (error) {
+    return { success: false, error: "Could not delete machine. Please try again." };
+  }
 
   revalidatePath("/catalog");
-  return pkg;
+  return { success: true, data: undefined };
 }
 
-// ---------------------------------------------------------------------------
-// Case Studies
-// ---------------------------------------------------------------------------
+/** Delete a game from the catalog. */
+export async function deleteCatalogGame(id: string): Promise<ActionResult> {
+  const { supabase } = await requireInternalUser();
 
-/** Insert a new case study (created as unpublished by default). */
-export async function createCaseStudy(data: {
-  title: string;
-  slug: string;
-  clientName?: string;
-  eventType?: string;
-  location?: string;
-  description?: string;
-  heroImageUrl?: string;
-}) {
-  const { supabase } = await requireAuth();
-
-  const { data: study, error } = await supabase
-    .from("case_studies")
-    .insert({
-      title: data.title,
-      slug: data.slug,
-      client_name: data.clientName ?? null,
-      event_type: data.eventType ?? null,
-      location: data.location ?? null,
-      description: data.description ?? null,
-      hero_image_url: data.heroImageUrl ?? null,
-      is_published: false,
-    })
-    .select()
-    .single();
-
-  if (error) throw new Error(`Failed to create case study: ${error.message}`);
+  const { error } = await supabase.from("games").delete().eq("id", id);
+  if (error) {
+    return { success: false, error: "Could not delete game. Please try again." };
+  }
 
   revalidatePath("/catalog");
-  return study;
-}
-
-/** Publish a case study by setting is_published and published_at. */
-export async function publishCaseStudy(id: string) {
-  const { supabase } = await requireAuth();
-
-  const { data: study, error } = await supabase
-    .from("case_studies")
-    .update({
-      is_published: true,
-      published_at: new Date().toISOString(),
-    })
-    .eq("id", id)
-    .select()
-    .single();
-
-  if (error) throw new Error(`Failed to publish case study: ${error.message}`);
-
-  revalidatePath("/catalog");
-  return study;
+  return { success: true, data: undefined };
 }

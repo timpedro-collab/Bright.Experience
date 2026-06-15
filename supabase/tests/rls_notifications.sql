@@ -8,7 +8,7 @@
 -- =====================================================================
 
 begin;
-\i tests/_fixtures.sql
+\ir _fixtures.psql
 
 insert into notifications (id, user_id, event_id, type, title, kind, action_required, is_read) values
   ('00000000-0000-4000-8000-0000000000c1', '00000000-0000-4000-8000-000000000020', '00000000-0000-4000-8000-0000000000e1', 'stage_change', 'For Casey', 'stage.changed', false, false),

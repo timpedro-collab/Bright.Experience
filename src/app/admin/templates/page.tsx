@@ -1,5 +1,6 @@
 /** Internal page for managing event templates. */
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { FileStack, Plus } from "lucide-react";
 
 import { AdminPageShell } from "@/components/brand";
@@ -30,8 +31,10 @@ export default async function TemplatesPage() {
       title="Event templates."
       subtitle="Reusable templates for bootstrapping new events — milestones, tasks, assets, QA checklists in one drop."
       heroRight={
-        <Button>
-          <Plus size={16} /> New template
+        <Button asChild size="sm">
+          <Link href="/admin/templates/new">
+            <Plus size={14} className="mr-1.5" /> Create template
+          </Link>
         </Button>
       }
     >
@@ -45,9 +48,10 @@ export default async function TemplatesPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {templates.map((template) => (
-              <div
+              <Link
                 key={template.id}
-                className="border border-border/60 bg-card/40 rounded-md p-5 space-y-3"
+                href={`/admin/templates/${template.id}/edit`}
+                className="border border-border/60 bg-card/40 rounded-md p-5 space-y-3 block hover:border-[var(--color-bb-cobalt)]/40 transition-colors"
               >
                 <div className="flex items-center justify-between gap-2">
                   <h3 className="text-sm font-semibold text-foreground truncate">
@@ -69,7 +73,7 @@ export default async function TemplatesPage() {
                   <span>·</span>
                   <span>{template.assets_json?.length ?? 0} assets</span>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         )}

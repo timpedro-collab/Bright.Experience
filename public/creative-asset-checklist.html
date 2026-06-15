@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bright.Studio — Creative Asset Requirements Checklist</title>
+<style>
+  :root{
+    --brand:#1a52f0; --brand-d:#1140c4; --ink:#0e1422; --muted:#5b6478;
+    --line:#e4e8f0; --bg:#f5f7fb; --card:#ffffff; --ok:#138a4e; --okbg:#e7f6ee;
+    --warn:#b4690e; --shadow:0 1px 2px rgba(16,22,40,.04),0 8px 24px rgba(16,22,40,.06);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    color:var(--ink);background:var(--bg);-webkit-font-smoothing:antialiased}
+  .wrap{max-width:880px;margin:0 auto;padding:32px 22px 140px}
+
+  header.top{background:linear-gradient(135deg,var(--brand),#0b2f9c);color:#fff;border-radius:18px;
+    padding:30px 30px 26px;box-shadow:var(--shadow);margin-bottom:22px}
+  header.top h1{margin:0 0 6px;font-size:25px;letter-spacing:-.4px}
+  header.top .sub{opacity:.92;font-size:14.5px;max-width:640px}
+  .how{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:12px;
+    padding:13px 15px;margin-top:18px;font-size:13.5px;line-height:1.5}
+  .how b{color:#fff}
+  .meta{display:flex;gap:12px;flex-wrap:wrap;margin-top:16px}
+  .meta label{flex:1;min-width:160px;font-size:12px;font-weight:600;opacity:.9;display:block}
+  .meta input{width:100%;margin-top:4px;border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.14);
+    color:#fff;border-radius:9px;padding:9px 11px;font-size:14px}
+  .meta input::placeholder{color:rgba(255,255,255,.65)}
+
+  section.sec{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:8px 24px 22px;
+    margin-bottom:18px;box-shadow:var(--shadow)}
+  section.sec h2{font-size:13px;letter-spacing:.6px;text-transform:uppercase;color:var(--brand);
+    border-bottom:2px solid var(--line);padding:18px 0 12px;margin:0 0 6px}
+  .lead{color:var(--muted);font-size:13.5px;margin:10px 0 4px}
+
+  .q{padding:16px 0;border-bottom:1px dashed var(--line)}
+  .q:last-child{border-bottom:0}
+  .qhead{font-weight:650;font-size:15.5px;display:flex;align-items:baseline;gap:9px}
+  .qid{display:inline-flex;align-items:center;justify-content:center;min-width:30px;height:21px;padding:0 7px;
+    background:#eef2fe;color:var(--brand-d);border-radius:7px;font-size:11.5px;font-weight:700;letter-spacing:.3px}
+  .ask{margin:7px 0 11px;color:#2c3445;font-size:14px}
+  .ask b{color:var(--ink);background:#fff3d6;padding:0 3px;border-radius:3px}
+  .ask .ex{color:var(--muted);font-style:italic}
+
+  .chk{display:inline-flex;align-items:center;gap:9px;cursor:pointer;font-size:14px;padding:7px 12px;
+    border:1px solid var(--line);border-radius:10px;background:#fbfcfe;margin:0 8px 8px 0;user-select:none;transition:.12s}
+  .chk:hover{border-color:#c3ccdd}
+  .chk input{width:19px;height:19px;accent-color:var(--brand);cursor:pointer;margin:0}
+  .chk:has(input:checked){background:var(--okbg);border-color:#9bd9b6;color:var(--ok);font-weight:600}
+  .yn{display:flex;flex-wrap:wrap;gap:0;margin-bottom:4px}
+
+  input.txt{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px;
+    background:#fff;margin-top:2px}
+  textarea{width:100%;min-height:62px;border:1px solid var(--line);border-radius:10px;padding:10px 12px;
+    font-size:14px;font-family:inherit;background:#fff;resize:vertical}
+  input.txt:focus,textarea:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px rgba(26,82,240,.12)}
+
+  table.kt{width:100%;border-collapse:collapse;margin-top:6px;font-size:13.5px}
+  table.kt td{padding:8px 6px;border-bottom:1px solid var(--line);vertical-align:middle}
+  table.kt td:first-child{font-weight:600;width:38%}
+  .kpill{display:inline-flex;gap:0;border:1px solid var(--line);border-radius:9px;overflow:hidden}
+  .kpill label{padding:6px 11px;font-size:12.5px;cursor:pointer;background:#fbfcfe}
+  .kpill label:has(input:checked){background:var(--brand);color:#fff;font-weight:600}
+  .kpill input{display:none}
+
+  /* sticky action bar */
+  .bar{position:fixed;left:0;right:0;bottom:0;background:rgba(255,255,255,.92);backdrop-filter:blur(10px);
+    border-top:1px solid var(--line);padding:12px 18px;display:flex;align-items:center;gap:12px;z-index:30;
+    box-shadow:0 -6px 20px rgba(16,22,40,.06)}
+  .bar .prog{flex:1;min-width:120px}
+  .ptrack{height:8px;background:#e7ebf3;border-radius:99px;overflow:hidden}
+  .pfill{height:100%;width:0;background:linear-gradient(90deg,var(--brand),#37c0ff);transition:width .25s}
+  .plabel{font-size:12px;color:var(--muted);margin-top:5px;font-weight:600}
+  .btn{border:0;border-radius:11px;padding:11px 16px;font-size:13.5px;font-weight:650;cursor:pointer;
+    background:#eef1f7;color:var(--ink)}
+  .btn:hover{filter:brightness(.97)}
+  .btn.primary{background:var(--brand);color:#fff}
+  .btn.ghost{background:transparent;color:var(--muted)}
+
+  #readout{display:none;margin-top:16px;white-space:pre-wrap;background:#0e1422;color:#d7e2ff;border-radius:14px;
+    padding:18px;font:12.5px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace}
+  .toast{position:fixed;bottom:86px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);
+    color:#fff;padding:11px 18px;border-radius:11px;font-size:13.5px;opacity:0;pointer-events:none;transition:.25s;z-index:40}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  @media print{
+    .bar,.how,.toast,.btn{display:none!important}
+    body{background:#fff}.wrap{padding:0}
+    section.sec,header.top{box-shadow:none;break-inside:avoid}
+    header.top{background:#1a52f0!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .chk:has(input:checked){-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="top">
+  <h1>Creative Asset Requirements — Bright.Studio Review</h1>
+  <div class="sub">Help us build a customer-facing requirements page that's 100% accurate, so customers can self-serve and stop sending the wrong files. For each item: tick the box if our assumption is right, or type the correction. Answer the open questions in the boxes. You know this better than anyone — correct anything freely.</div>
+  <div class="how">
+    <b>How to use:</b> Your answers save automatically as you type — you can close and come back.
+    When you're done, scroll to the bottom and click <b>“Copy all answers”</b>, then paste into your reply to Tim.
+    (Or use <b>“Print / Save as PDF”</b> for a clean copy.)
+  </div>
+  <div class="meta">
+    <label>Filled in by<input type="text" id="meta-name" placeholder="Your name"></label>
+    <label>Role / team<input type="text" id="meta-role" placeholder="e.g. Creative Lead"></label>
+    <label>Date<input type="text" id="meta-date" placeholder="DD/MM/YYYY"></label>
+  </div>
+</header>
+
+<!-- ============ A ============ -->
+<section class="sec">
+  <h2>A · Brand Foundation (collected once per brand)</h2>
+  <p class="lead">The basics every project starts from. Getting these nailed up front kills the “that's the wrong logo / it has a white box behind it” problem.</p>
+
+  <div class="q" data-q="A1 — Logo files required">
+    <div class="qhead"><span class="qid">A1</span> Logo files</div>
+    <p class="ask">What logo file <b>formats</b> and <b>minimum size</b> do you need the customer to provide, so it's always usable? <span class="ex">e.g. “Transparent PNG, min 1000px wide, + vector .SVG/.AI/.EPS”.</span> Do you also need a <b>white / reversed</b> version for dark backgrounds?</p>
+    <textarea data-prefix="Answer" placeholder="Formats needed, min size, and whether a reversed/white version is required…"></textarea>
+  </div>
+
+  <div class="q" data-q="A2 — Brand fonts">
+    <div class="qhead"><span class="qid">A2</span> Brand fonts</div>
+    <p class="ask">Do you need the actual <b>font files</b> (.otf/.ttf) supplied by the customer, or is knowing the <b>font name</b> enough for you to source it?</p>
+    <textarea data-prefix="Answer" placeholder="Font files needed? Or just names?"></textarea>
+  </div>
+
+  <div class="q" data-q="A3 — Colour format">
+    <div class="qhead"><span class="qid">A3</span> Brand colours</div>
+    <p class="ask">What <b>format</b> do you need brand colours in? Tick all that apply, and add anything else.</p>
+    <label class="chk"><input type="checkbox" data-on="HEX"> HEX (#1428A0)</label>
+    <label class="chk"><input type="checkbox" data-on="RGB"> RGB</label>
+    <label class="chk"><input type="checkbox" data-on="CMYK"> CMYK</label>
+    <label class="chk"><input type="checkbox" data-on="Pantone"> Pantone</label>
+    <input class="txt" type="text" data-prefix="Other / notes" placeholder="anything else?">
+  </div>
+
+  <div class="q" data-q="A4 — Brand guidelines doc">
+    <div class="qhead"><span class="qid">A4</span> Brand guidelines document</div>
+    <p class="ask">Do you <b>require</b> the brand's full guidelines document, or is logo + colours + fonts enough to work from?</p>
+    <div class="yn">
+      <label class="chk"><input type="radio" name="a4" data-on="Required"> Required</label>
+      <label class="chk"><input type="radio" name="a4" data-on="Nice to have"> Nice to have</label>
+      <label class="chk"><input type="radio" name="a4" data-on="Not needed"> Not needed</label>
+    </div>
+  </div>
+
+  <div class="q" data-q="A5 — Anything else at brand kickoff">
+    <div class="qhead"><span class="qid">A5</span> Anything else up front?</div>
+    <p class="ask">Anything you <b>always</b> ask for at the start of a brand's first event that isn't listed above?</p>
+    <textarea data-prefix="Answer" placeholder="…"></textarea>
+  </div>
+</section>
+
+<!-- ============ B ============ -->
+<section class="sec">
+  <h2>B · Machine &amp; Game Surfaces (we believe these are always required)</h2>
+  <p class="lead">The core branded surfaces on the machine and in the game. Confirm each spec is right.</p>
+
+  <div class="q" data-q="B1 — Payment Terminal Screen spec">
+    <div class="qhead"><span class="qid">B1</span> Payment Terminal Screen</div>
+    <p class="ask"><span class="ex">What it is: the static image shown on the card-payment screen on the machine.</span> Our current spec: <b>PNG or JPG · 1080 × 1920 px (portrait) · under 150 kb</b>. We tell customers to place their logo here because the screen stays lit even when idle. Is this correct?</p>
+    <label class="chk"><input type="checkbox" data-on="Spec correct as-is"> Spec is correct as-is</label>
+    <input class="txt" type="text" data-prefix="Correction" placeholder="…or type the correction">
+  </div>
+
+  <div class="q" data-q="B2 — Product Packshot spec">
+    <div class="qhead"><span class="qid">B2</span> Product Packshot</div>
+    <p class="ask"><span class="ex">A clean cut-out image of the product.</span> Spec: <b>PNG · 428 × 600 px · under 150 kb</b>, with ~30 px right padding on wide items. Customers may <i>optionally</i> also send a decorative “hero” version, but a plain standard packshot is <b>always</b> required because the game uses it. Is this correct?</p>
+    <label class="chk"><input type="checkbox" data-on="Spec correct as-is"> Spec is correct as-is</label>
+    <input class="txt" type="text" data-prefix="Correction" placeholder="…or type the correction">
+  </div>
+
+  <div class="q" data-q="B2b — Packshot transparent background?">
+    <div class="qhead"><span class="qid">B2b</span> Must packshots have a transparent background?</div>
+    <p class="ask">Does the standard packshot <b>have to</b> be supplied on a transparent background (no white box)?</p>
+    <div class="yn">
+      <label class="chk"><input type="radio" name="b2b" data-on="YES — must be transparent"> Yes, must be transparent</label>
+      <label class="chk"><input type="radio" name="b2b" data-on="NO — not required"> No</label>
+    </div>
+  </div>
+
+  <div class="q" data-q="B3 — Negative Icons spec + maximum">
+    <div class="qhead"><span class="qid">B3</span> Negative Icons</div>
+    <p class="ask"><span class="ex">The “wrong” icons players must avoid tapping (the distractors).</span> Spec: <b>PNG · 300 × 300 px · under 50 kb each</b>, on-brand and themed. Minimum is <b>6</b>. Is the spec correct, and <b>what is the maximum number</b> we'll accept?</p>
+    <label class="chk"><input type="checkbox" data-on="Spec correct as-is"> Spec correct as-is</label>
+    <input class="txt" type="text" data-prefix="Maximum number of negative icons" placeholder="e.g. 6, 10, no limit…">
+    <input class="txt" type="text" data-prefix="Spec correction (if any)" placeholder="any correction to size/format?">
+  </div>
+
+  <div class="q" data-q="B4 — Game Page Banner spec">
+    <div class="qhead"><span class="qid">B4</span> Game Page Banner</div>
+    <p class="ask"><span class="ex">The header strip across the top of the gameplay screen.</span> Spec: <b>PNG · 1080 × 216 px · under 150 kb</b>. Correct?</p>
+    <label class="chk"><input type="checkbox" data-on="Spec correct as-is"> Spec is correct as-is</label>
+    <input class="txt" type="text" data-prefix="Correction" placeholder="…or type the correction">
+  </div>
+</section>
+
+<!-- ============ C ============ -->
+<section class="sec">
+  <h2>C · Videos</h2>
+  <p class="lead">The frames give us dimensions but several videos are missing file type, max size and length — please fill those gaps.</p>
+
+  <div class="q" data-q="C1 — Idle Screen / Looping video spec">
+    <div class="qhead"><span class="qid">C1</span> Idle Screen Advert spec</div>
+    <p class="ask"><span class="ex">The video that plays on the machine when nobody's using it (the attract loop).</span> Spec: <b>MP4 · 9:16 · 1080 × 1920 px · under 20 mb · 15–30 sec</b>. Is this correct?</p>
+    <label class="chk"><input type="checkbox" data-on="Spec correct as-is"> Spec is correct as-is</label>
+    <input class="txt" type="text" data-prefix="Correction" placeholder="…or type the correction">
+  </div>
+
+  <div class="q" data-q="C1b — Is idle advert the same asset as the in-game looping video?">
+    <div class="qhead"><span class="qid">C1b</span> Is this the same asset as the in-game “looping video”?</div>
+    <p class="ask">We believe the idle/attract video and the in-game looping video are the <b>same single upload</b> (not two separate files). Is that right?</p>
+    <div class="yn">
+      <label class="chk"><input type="radio" name="c1b" data-on="YES — one shared asset"> Yes — one shared asset</label>
+      <label class="chk"><input type="radio" name="c1b" data-on="NO — they are separate"> No — they're separate</label>
+    </div>
+    <input class="txt" type="text" data-prefix="Notes" placeholder="notes (optional)">
+  </div>
+
+  <div class="q" data-q="C2 — Game Prompt Video missing specs">
+    <div class="qhead"><span class="qid">C2</span> Game Prompt Video — fill the gaps</div>
+    <p class="ask"><span class="ex">Short animated “Play now to win” teaser.</span> The frame gives the size (<b>900 × 1600 px</b>, with an 804 × 682 px safe area) but <b>does not state file type, max file size, or length</b>. Please fill those in.</p>
+    <input class="txt" type="text" data-prefix="File type" placeholder="e.g. MP4">
+    <input class="txt" type="text" data-prefix="Max file size" placeholder="e.g. under 20 mb">
+    <input class="txt" type="text" data-prefix="Length" placeholder="e.g. 5–10 sec">
+  </div>
+
+  <div class="q" data-q="C3 — Game Initial Video spec">
+    <div class="qhead"><span class="qid">C3</span> Game Initial Video</div>
+    <p class="ask"><span class="ex">The “how to play” clip (e.g. “tap the can when you see it”).</span> We assume <b>same dimensions as the Prompt Video</b>. Confirm, or give its own spec — and add file type / max size / length.</p>
+    <label class="chk"><input type="checkbox" data-on="Same as Prompt Video"> Same as Prompt Video</label>
+    <input class="txt" type="text" data-prefix="Spec / file type / size / length" placeholder="if different, or to add type/size/length…">
+  </div>
+
+  <div class="q" data-q="C4 — Showcase (spinning-wheel) Video spec">
+    <div class="qhead"><span class="qid">C4</span> Showcase Video (the “spinning wheel” of prizes)</div>
+    <p class="ask"><span class="ex">Used only when there are multiple prizes and the player picks which one they're playing for.</span> We have <b>no spec recorded</b> — please give file type, dimensions, max size and length.</p>
+    <input class="txt" type="text" data-prefix="File type" placeholder="e.g. MP4">
+    <input class="txt" type="text" data-prefix="Dimensions" placeholder="e.g. 1080 × 1920 px">
+    <input class="txt" type="text" data-prefix="Max size" placeholder="e.g. under 20 mb">
+    <input class="txt" type="text" data-prefix="Length" placeholder="e.g. 10–20 sec">
+  </div>
+
+  <div class="q" data-q="C4b — One showcase video for all prizes?">
+    <div class="qhead"><span class="qid">C4b</span> One showcase video for all prizes?</div>
+    <p class="ask">Confirm there's only <b>ONE</b> showcase video covering all the prizes together — not one per prize.</p>
+    <div class="yn">
+      <label class="chk"><input type="radio" name="c4b" data-on="YES — one video, all prizes"> Yes — one for all</label>
+      <label class="chk"><input type="radio" name="c4b" data-on="NO — see notes"> No</label>
+    </div>
+    <input class="txt" type="text" data-prefix="Notes" placeholder="notes (optional)">
+  </div>
+</section>
+
+<!-- ============ D ============ -->
+<section class="sec">
+  <h2>D · Storefront / Homepage (only if the storefront is used)</h2>
+
+  <div class="q" data-q="D1 — Home Banner Ad spec">
+    <div class="qhead"><span class="qid">D1</span> Home Banner Ad</div>
+    <p class="ask"><span class="ex">The big banner at the top of the storefront homepage.</span> Spec: <b>JPG/PNG · total canvas 2160 × 816 px · safe area 2064 × 600 px</b> (keep all text/logos inside it) · 48 px padding · under 150 kb. Correct?</p>
+    <label class="chk"><input type="checkbox" data-on="Spec correct as-is"> Spec is correct as-is</label>
+    <input class="txt" type="text" data-prefix="Correction" placeholder="…or type the correction">
+  </div>
+
+  <div class="q" data-q="D1b — Optional View Offer button">
+    <div class="qhead"><span class="qid">D1b</span> The optional “View Offer” button</div>
+    <p class="ask">Should we ask the customer, per event, whether they want this button — plus its <b>label text</b> and <b>where it links</b> (a product or a category)?</p>
+    <div class="yn">
+      <label class="chk"><input type="radio" name="d1b" data-on="YES — ask on/off + label + link"> Yes — ask all three</label>
+      <label class="chk"><input type="radio" name="d1b" data-on="NO / different"> No / different</label>
+    </div>
+    <input class="txt" type="text" data-prefix="Notes" placeholder="notes (optional)">
+  </div>
+
+  <div class="q" data-q="D2 — Category Image spec">
+    <div class="qhead"><span class="qid">D2</span> Category Image</div>
+    <p class="ask"><span class="ex">The thumbnail for a product-category tile.</span> Spec: <b>PNG · 800 × 512 px · under 150 kb</b>. Only needed if the customer uses the category view (otherwise it defaults to “All Products”). Correct?</p>
+    <label class="chk"><input type="checkbox" data-on="Spec correct as-is"> Spec is correct as-is</label>
+    <input class="txt" type="text" data-prefix="Correction" placeholder="…or type the correction">
+  </div>
+
+  <div class="q" data-q="D3 — Product Details media (3 per item)">
+    <div class="qhead"><span class="qid">D3</span> Product Details page media</div>
+    <p class="ask">Each product detail page needs <b>3 pieces of media</b>: Top slot <b>16:9 (1920 × 1080 px)</b>; Left + Right slots <b>1:1 (1080 × 1080 px)</b>. Any can be image or video (JPG/PNG/MP4/WEBP/WEBM) — images under 150 kb, videos under 10 mb &amp; 30 sec. Is “3 media per product” correct?</p>
+    <label class="chk"><input type="checkbox" data-on="Correct — 3 media per product"> Correct — 3 per product</label>
+    <input class="txt" type="text" data-prefix="Correction" placeholder="…or type the correction">
+  </div>
+</section>
+
+<!-- ============ E ============ -->
+<section class="sec">
+  <h2>E · Physical Branding / Machine Wrap</h2>
+  <p class="lead">This is the physical print side that lives outside the on-screen game flow — and it has totally different specs (bleed, CMYK, print resolution). We have almost nothing recorded here, so this section is the most important to fill.</p>
+
+  <div class="q" data-q="E1 — Machine models &amp; wrap templates">
+    <div class="qhead"><span class="qid">E1</span> Which machines do we wrap?</div>
+    <p class="ask">Which machine <b>models</b> do we physically wrap, and does each model have its <b>own</b> wrap template and dimensions? List the models if you can.</p>
+    <textarea data-prefix="Answer" placeholder="e.g. Bright.Vend Pro — 2400×1800mm; Bright.Vend Mini — …"></textarea>
+  </div>
+
+  <div class="q" data-q="E2 — Wrap artwork print spec">
+    <div class="qhead"><span class="qid">E2</span> Wrap artwork spec</div>
+    <p class="ask">What's the exact spec for wrap artwork? Please cover <b>file format</b> (.AI / print-ready PDF / EPS?), <b>bleed</b> (mm), <b>colour profile</b> (CMYK?), and <b>resolution/DPI</b>.</p>
+    <textarea data-prefix="Answer" placeholder="Format, bleed, colour profile, DPI…"></textarea>
+  </div>
+
+  <div class="q" data-q="E3 — Wrap dieline / template provided?">
+    <div class="qhead"><span class="qid">E3</span> Do you give customers a wrap dieline/template?</div>
+    <p class="ask">Do you provide the customer's designer a <b>dieline/template</b> to design on top of? If yes, can we attach that file in the portal so it auto-downloads with the request?</p>
+    <div class="yn">
+      <label class="chk"><input type="radio" name="e3" data-on="YES — and we can attach it"> Yes — we have one</label>
+      <label class="chk"><input type="radio" name="e3" data-on="NO"> No</label>
+    </div>
+    <input class="txt" type="text" data-prefix="Notes (where the file lives, etc.)" placeholder="notes…">
+  </div>
+
+  <div class="q" data-q="E4 — Other physical/print deliverables">
+    <div class="qhead"><span class="qid">E4</span> Other physical / print items</div>
+    <p class="ask">Any <b>other</b> physical or printed items the customer provides artwork for (pull-up banners, plinth wrap, signage, vinyl, etc.)? List each with its spec.</p>
+    <textarea data-prefix="Answer" placeholder="Item — spec; item — spec…"></textarea>
+  </div>
+
+  <div class="q" data-q="E5 — Touring / multi-venue wraps">
+    <div class="qhead"><span class="qid">E5</span> Touring across venues</div>
+    <p class="ask">For events that <b>tour multiple venues</b> — is the same wrap reused everywhere, or do some customers want different artwork per location?</p>
+    <textarea data-prefix="Answer" placeholder="…"></textarea>
+  </div>
+</section>
+
+<!-- ============ F ============ -->
+<section class="sec">
+  <h2>F · Game Logic &amp; Prize Delivery (confirm our understanding)</h2>
+  <p class="lead">This logic decides which assets a customer is even asked for, so it's important we have it exactly right.</p>
+
+  <div class="q" data-q="F1 — Key icon logic">
+    <div class="qhead"><span class="qid">F1</span> The “key icon” (what players hunt for)</div>
+    <p class="ask">Confirm how the key icon — the thing players try to spot and tap — is chosen:<br>
+      • <b>1 product</b> → use the product itself.<br>
+      • <b>Multiple products, won randomly</b> → use a separate brand icon (not a specific product).<br>
+      • <b>Multiple products, player picks their prize</b> → the key icon swaps to match their chosen prize.<br>
+      Is this right?</p>
+    <label class="chk"><input type="checkbox" data-on="Correct"> Correct</label>
+    <input class="txt" type="text" data-prefix="Correction" placeholder="…or type the correction">
+  </div>
+
+  <div class="q" data-q="F2 — Prize delivery mode (random vs player-select)">
+    <div class="qhead"><span class="qid">F2</span> Prize delivery mode</div>
+    <p class="ask">For multi-prize events, we want to ask the customer up front: should prizes be awarded <b>randomly</b>, or should the <b>player choose</b> which prize they're playing for before the game starts? Does that match how it actually works?</p>
+    <label class="chk"><input type="checkbox" data-on="Correct"> Correct</label>
+    <input class="txt" type="text" data-prefix="Notes / correction" placeholder="…">
+  </div>
+
+  <div class="q" data-q="F3 — Max number of products/prizes">
+    <div class="qhead"><span class="qid">F3</span> Maximum number of prizes</div>
+    <p class="ask">We're assuming a machine can be set up for up to <b>6</b> prizes/products, with more than 6 only by special request. Is 6 the right ceiling?</p>
+    <div class="yn">
+      <label class="chk"><input type="radio" name="f3" data-on="Yes — 6 is correct"> Yes — 6 is correct</label>
+      <label class="chk"><input type="radio" name="f3" data-on="No — different"> No — different</label>
+    </div>
+    <input class="txt" type="text" data-prefix="If different, the right number" placeholder="…">
+  </div>
+
+  <div class="q" data-q="F4 — Per-prize scaling (only packshots scale)">
+    <div class="qhead"><span class="qid">F4</span> What scales with more prizes?</div>
+    <p class="ask">Confirm: no matter how many prizes there are, the <b>videos stay one generic set</b> — the only thing that increases per prize is the <b>packshots</b> (plus optionally the one showcase video). Right?</p>
+    <label class="chk"><input type="checkbox" data-on="Correct"> Correct</label>
+    <input class="txt" type="text" data-prefix="Correction" placeholder="…or type the correction">
+  </div>
+</section>
+
+<!-- ============ G ============ -->
+<section class="sec">
+  <h2>G · Settings &amp; Choices (not file uploads)</h2>
+  <p class="lead">These are decisions the customer makes, not files they upload. Confirm we're collecting the right ones — and tell us the format you need them in.</p>
+
+  <div class="q" data-q="G1 — Tile colour format">
+    <div class="qhead"><span class="qid">G1</span> Tile colour</div>
+    <p class="ask">The game uses one chosen colour for its tiles (rendered at 10% opacity with an inner shadow). What format do you need this in?</p>
+    <label class="chk"><input type="checkbox" data-on="HEX"> HEX</label>
+    <input class="txt" type="text" data-prefix="Other format / notes" placeholder="…">
+  </div>
+
+  <div class="q" data-q="G2 — Two-tone gradient hex codes">
+    <div class="qhead"><span class="qid">G2</span> Two-tone background</div>
+    <p class="ask">The background is a two-tone gradient — we need <b>two HEX codes</b> from the customer. Confirm that's how you want it captured.</p>
+    <label class="chk"><input type="checkbox" data-on="Correct — two HEX codes"> Correct — two HEX codes</label>
+    <input class="txt" type="text" data-prefix="Notes / correction" placeholder="…">
+  </div>
+
+  <div class="q" data-q="G3 — Homepage button decision">
+    <div class="qhead"><span class="qid">G3</span> Homepage button (on/off + label + link)</div>
+    <p class="ask">Same as D1b — confirm here that we should capture the button on/off, its label, and its link destination as customer settings.</p>
+    <label class="chk"><input type="checkbox" data-on="Correct"> Correct</label>
+    <input class="txt" type="text" data-prefix="Notes" placeholder="…">
+  </div>
+
+  <div class="q" data-q="G4 — Category view on/off">
+    <div class="qhead"><span class="qid">G4</span> Category view on/off</div>
+    <p class="ask">Do you need a simple <b>on/off</b> from the customer for whether they want the category view?</p>
+    <div class="yn">
+      <label class="chk"><input type="radio" name="g4" data-on="Yes"> Yes</label>
+      <label class="chk"><input type="radio" name="g4" data-on="No"> No</label>
+    </div>
+  </div>
+
+  <div class="q" data-q="G5 — Show prizes in flow on/off">
+    <div class="qhead"><span class="qid">G5</span> Show prizes in the flow on/off</div>
+    <p class="ask">Do you need an <b>on/off</b> for whether products/prizes are actually shown in the flow (since sometimes they're hidden)?</p>
+    <div class="yn">
+      <label class="chk"><input type="radio" name="g5" data-on="Yes"> Yes</label>
+      <label class="chk"><input type="radio" name="g5" data-on="No"> No</label>
+    </div>
+  </div>
+
+  <div class="q" data-q="G6 — CTA copy: customer or standard?">
+    <div class="qhead"><span class="qid">G6</span> Call-to-action wording</div>
+    <p class="ask">Does the customer write their own CTA wording (e.g. “Play now to win!”), or is that <b>standard copy</b> you control?</p>
+    <div class="yn">
+      <label class="chk"><input type="radio" name="g6" data-on="Customer provides it"> Customer provides</label>
+      <label class="chk"><input type="radio" name="g6" data-on="Standard (we control)"> Standard / we control</label>
+    </div>
+    <input class="txt" type="text" data-prefix="Notes" placeholder="…">
+  </div>
+
+  <div class="q" data-q="G7 — Lead-capture form fields + branding">
+    <div class="qhead"><span class="qid">G7</span> Lead-capture form</div>
+    <p class="ask">Which form fields can the customer choose (first name, last name, email, company, marketing opt-in, custom questions)? And is there any <b>branding</b> on that form screen?</p>
+    <textarea data-prefix="Answer" placeholder="Configurable fields + any branding on the form screen…"></textarea>
+  </div>
+
+  <div class="q" data-q="G8 — Leaderboard / score screens">
+    <div class="qhead"><span class="qid">G8</span> Leaderboard &amp; score screens</div>
+    <p class="ask">Is the leaderboard/score display optional (customer on/off)? And do the win/lose/score screens carry any <b>custom branding</b>, or are they standard?</p>
+    <textarea data-prefix="Answer" placeholder="…"></textarea>
+  </div>
+
+  <div class="q" data-q="G9 — Other settings we've missed">
+    <div class="qhead"><span class="qid">G9</span> Any other settings we've missed?</div>
+    <p class="ask">Any other choice the customer makes (that isn't a file upload) we should be collecting?</p>
+    <textarea data-prefix="Answer" placeholder="…"></textarea>
+  </div>
+</section>
+
+<!-- ============ H ============ -->
+<section class="sec">
+  <h2>H · Animation, Safe Zones &amp; Technical Standards</h2>
+  <p class="lead">The “rules” behind the assets that customers most often get wrong. Nailing these lets the portal auto-catch bad files.</p>
+
+  <div class="q" data-q="H1 — Burn-in / animate in &amp; out">
+    <div class="qhead"><span class="qid">H1</span> Burn-in / animation requirement</div>
+    <p class="ask">Must video elements <b>animate in and out</b> (to stop static images burning into the screen)? If so, which assets does this apply to?</p>
+    <textarea data-prefix="Answer" placeholder="Yes/no, and which assets…"></textarea>
+  </div>
+
+  <div class="q" data-q="H2 — Which assets have obstructed areas">
+    <div class="qhead"><span class="qid">H2</span> Obstructed / safe-zone areas</div>
+    <p class="ask">Which assets have an <b>obstructed area</b> where key content/logos must NOT go? We know the <b>Home Banner</b> and <b>Prompt Video</b> do — are there others?</p>
+    <textarea data-prefix="Answer" placeholder="List assets with obstructed areas…"></textarea>
+  </div>
+
+  <div class="q" data-q="H3 — Colour profile RGB vs CMYK">
+    <div class="qhead"><span class="qid">H3</span> Colour profile</div>
+    <p class="ask">Confirm: digital/screen assets should be <b>RGB</b>, and print/wrap artwork should be <b>CMYK</b>. Correct?</p>
+    <label class="chk"><input type="checkbox" data-on="Correct (RGB screen / CMYK print)"> Correct</label>
+    <input class="txt" type="text" data-prefix="Correction" placeholder="…or type the correction">
+  </div>
+
+  <div class="q" data-q="H4 — Which assets need transparency">
+    <div class="qhead"><span class="qid">H4</span> Transparent backgrounds</div>
+    <p class="ask">Which assets must be supplied with a <b>transparent background</b>? We assume packshots, negative icons and logo — confirm and add any others.</p>
+    <textarea data-prefix="Answer" placeholder="…"></textarea>
+  </div>
+
+  <div class="q" data-q="H5 — Video codec / frame rate">
+    <div class="qhead"><span class="qid">H5</span> Video codec / frame rate</div>
+    <p class="ask">Any required codec or frame rate (e.g. H.264, 30 fps)? Or is “MP4 under the size limit” enough?</p>
+    <textarea data-prefix="Answer" placeholder="…"></textarea>
+  </div>
+</section>
+
+<!-- ============ I ============ -->
+<section class="sec">
+  <h2>I · Reference Materials &amp; Spec Templates</h2>
+
+  <div class="q" data-q="I1 — Existing design templates per asset">
+    <div class="qhead"><span class="qid">I1</span> Do design templates already exist?</div>
+    <p class="ask">For which assets do you already have a ready-made <b>design template</b> (Figma/Illustrator/PSD) a customer's designer could build on? List the ones that exist today — we can attach them to each slot.</p>
+    <textarea data-prefix="Answer" placeholder="…"></textarea>
+  </div>
+
+  <div class="q" data-q="I2 — Good-example reference files">
+    <div class="qhead"><span class="qid">I2</span> “Good example” references</div>
+    <p class="ask">Do you have <b>good example</b> files we could show next to each upload slot, so customers see what “right” looks like?</p>
+    <div class="yn">
+      <label class="chk"><input type="radio" name="i2" data-on="Yes"> Yes</label>
+      <label class="chk"><input type="radio" name="i2" data-on="No"> No</label>
+    </div>
+    <input class="txt" type="text" data-prefix="Notes" placeholder="which ones / where they live…">
+  </div>
+
+  <div class="q" data-q="I3 — Design in our templates or just hit specs?">
+    <div class="qhead"><span class="qid">I3</span> Templates vs. just specs</div>
+    <p class="ask">Would you prefer customers design <b>inside your templates</b>, or is hitting the correct dimensions/specs good enough?</p>
+    <div class="yn">
+      <label class="chk"><input type="radio" name="i3" data-on="Prefer they use our templates"> Use our templates</label>
+      <label class="chk"><input type="radio" name="i3" data-on="Hitting specs is enough"> Specs are enough</label>
+    </div>
+    <input class="txt" type="text" data-prefix="Notes" placeholder="…">
+  </div>
+</section>
+
+<!-- ============ J ============ -->
+<section class="sec">
+  <h2>J · Creative Process &amp; Quality</h2>
+  <p class="lead">Straight from the revision-cycle pain — this is what we most want the portal to fix.</p>
+
+  <div class="q" data-q="J1 — #1 reason assets get rejected">
+    <div class="qhead"><span class="qid">J1</span> The #1 reason assets get sent back</div>
+    <p class="ask">What is the <b>single most common reason</b> an asset gets rejected or sent back to a customer today? <span class="ex">(This is the top thing we want the portal to catch automatically.)</span></p>
+    <textarea data-prefix="Answer" placeholder="…"></textarea>
+  </div>
+
+  <div class="q" data-q="J2 — Standard revision rounds">
+    <div class="qhead"><span class="qid">J2</span> Revision rounds</div>
+    <p class="ask">How many revision rounds are “normal” before it becomes a problem or chargeable?</p>
+    <input class="txt" type="text" data-prefix="Answer" placeholder="e.g. 2 included, then chargeable">
+  </div>
+
+  <div class="q" data-q="J3 — Asset lead time before event">
+    <div class="qhead"><span class="qid">J3</span> Lead time</div>
+    <p class="ask">How far <b>before the event date</b> do you need all final assets in hand?</p>
+    <input class="txt" type="text" data-prefix="Answer" placeholder="e.g. 10 working days before">
+  </div>
+
+  <div class="q" data-q="J4 — File delivery method &amp; naming">
+    <div class="qhead"><span class="qid">J4</span> Delivery method &amp; naming</div>
+    <p class="ask">How do you prefer to receive files (portal upload, WeTransfer, etc.), and is there a <b>file-naming convention</b> customers should follow?</p>
+    <textarea data-prefix="Answer" placeholder="…"></textarea>
+  </div>
+
+  <div class="q" data-q="J5 — Single creative point of contact">
+    <div class="qhead"><span class="qid">J5</span> Point of contact</div>
+    <p class="ask">Who is the <b>single creative contact</b> a customer should deal with for asset questions?</p>
+    <input class="txt" type="text" data-prefix="Answer" placeholder="name / role">
+  </div>
+
+  <div class="q" data-q="J6 — Assets Bright.Studio should always make">
+    <div class="qhead"><span class="qid">J6</span> What should we always make in-house?</div>
+    <p class="ask">Are there assets you'd honestly rather <b>Bright.Studio always create</b> instead of relying on the customer? Which ones?</p>
+    <textarea data-prefix="Answer" placeholder="…"></textarea>
+  </div>
+</section>
+
+<!-- ============ K ============ -->
+<section class="sec">
+  <h2>K · Required vs. Optional (so the checklist is smart)</h2>
+  <p class="lead">For each asset, is it <b>always</b> required, or only needed <b>if a feature is used</b>? If conditional, say what triggers it.</p>
+
+  <div class="q" data-q="K1 — Required vs conditional per asset">
+    <div class="qhead"><span class="qid">K1</span> Mark each asset</div>
+    <table class="kt">
+      <tr><td>Payment Terminal Screen</td><td>
+        <span class="kpill"><label><input type="radio" name="k_pay" data-on="Always">Always</label><label><input type="radio" name="k_pay" data-on="Conditional">Conditional</label></span>
+        <input class="txt" type="text" data-prefix="Pay screen — only if" placeholder="if conditional, only when…"></td></tr>
+      <tr><td>Machine Wrap</td><td>
+        <span class="kpill"><label><input type="radio" name="k_wrap" data-on="Always">Always</label><label><input type="radio" name="k_wrap" data-on="Conditional">Conditional</label></span>
+        <input class="txt" type="text" data-prefix="Wrap — only if" placeholder="if conditional, only when…"></td></tr>
+      <tr><td>Home Banner Ad</td><td>
+        <span class="kpill"><label><input type="radio" name="k_banner" data-on="Always">Always</label><label><input type="radio" name="k_banner" data-on="Conditional">Conditional</label></span>
+        <input class="txt" type="text" data-prefix="Banner — only if" placeholder="if conditional, only when…"></td></tr>
+      <tr><td>Category Image</td><td>
+        <span class="kpill"><label><input type="radio" name="k_cat" data-on="Always">Always</label><label><input type="radio" name="k_cat" data-on="Conditional">Conditional</label></span>
+        <input class="txt" type="text" data-prefix="Category image — only if" placeholder="if conditional, only when…"></td></tr>
+      <tr><td>Product Details media</td><td>
+        <span class="kpill"><label><input type="radio" name="k_pdp" data-on="Always">Always</label><label><input type="radio" name="k_pdp" data-on="Conditional">Conditional</label></span>
+        <input class="txt" type="text" data-prefix="Product details — only if" placeholder="if conditional, only when…"></td></tr>
+      <tr><td>Showcase video</td><td>
+        <span class="kpill"><label><input type="radio" name="k_show" data-on="Always">Always</label><label><input type="radio" name="k_show" data-on="Conditional">Conditional</label></span>
+        <input class="txt" type="text" data-prefix="Showcase video — only if" placeholder="if conditional, only when…"></td></tr>
+      <tr><td>Idle Screen Advert</td><td>
+        <span class="kpill"><label><input type="radio" name="k_idle" data-on="Always">Always</label><label><input type="radio" name="k_idle" data-on="Conditional">Conditional</label></span>
+        <input class="txt" type="text" data-prefix="Idle advert — only if" placeholder="if conditional, only when…"></td></tr>
+      <tr><td>Prompt / Initial videos</td><td>
+        <span class="kpill"><label><input type="radio" name="k_pv" data-on="Always">Always</label><label><input type="radio" name="k_pv" data-on="Conditional">Conditional</label></span>
+        <input class="txt" type="text" data-prefix="Prompt/Initial — only if" placeholder="if conditional, only when…"></td></tr>
+    </table>
+  </div>
+
+  <div class="q" data-q="K2 — Post-game flow needs no asset?">
+    <div class="qhead"><span class="qid">K2</span> Post-game screens</div>
+    <p class="ask">We believe the post-game screens (QR code, score, leaderboard) need <b>no custom asset</b> — they reuse colours/elements from earlier screens. Confirm?</p>
+    <div class="yn">
+      <label class="chk"><input type="radio" name="k2" data-on="Confirmed — no asset needed"> Confirmed — no asset</label>
+      <label class="chk"><input type="radio" name="k2" data-on="No — something is needed"> No — something's needed</label>
+    </div>
+    <input class="txt" type="text" data-prefix="If something's needed, what" placeholder="…">
+  </div>
+</section>
+
+<!-- ============ L ============ -->
+<section class="sec">
+  <h2>L · Catch-all</h2>
+
+  <div class="q" data-q="L1 — Any surface not on this list">
+    <div class="qhead"><span class="qid">L1</span> Anything missing?</div>
+    <p class="ask">Is there <b>any</b> brandable surface — digital or physical — in the standard game flow that we haven't listed above?</p>
+    <textarea data-prefix="Answer" placeholder="…"></textarea>
+  </div>
+
+  <div class="q" data-q="L2 — Varies by game type / machine model">
+    <div class="qhead"><span class="qid">L2</span> Anything that varies by game/machine?</div>
+    <p class="ask">Does anything change depending on the <b>game type or machine model</b> that we should be asking about conditionally?</p>
+    <textarea data-prefix="Answer" placeholder="…"></textarea>
+  </div>
+
+  <div class="q" data-q="L3 — What customers get confused about">
+    <div class="qhead"><span class="qid">L3</span> Common confusion</div>
+    <p class="ask">What do customers most often get <b>confused</b> about that a well-designed portal could prevent?</p>
+    <textarea data-prefix="Answer" placeholder="…"></textarea>
+  </div>
+</section>
+
+<div id="readout"></div>
+
+</div><!-- /wrap -->
+
+<div class="bar">
+  <div class="prog">
+    <div class="ptrack"><div class="pfill" id="pfill"></div></div>
+    <div class="plabel" id="plabel">0 / 0 answered</div>
+  </div>
+  <button class="btn primary" id="copyBtn">Copy all answers</button>
+  <button class="btn" id="dlBtn">Download .txt</button>
+  <button class="btn" id="printBtn">Print / Save as PDF</button>
+  <button class="btn ghost" id="clearBtn">Clear</button>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  var KEY = 'bb-creative-checklist-v2';
+  var controls = Array.prototype.slice.call(document.querySelectorAll('input,textarea'));
+  controls.forEach(function(el,i){ el.dataset.k = 'c'+i; });
+  var pfill = document.getElementById('pfill');
+  var plabel = document.getElementById('plabel');
+  var toastEl = document.getElementById('toast');
+
+  function save(){
+    var d = {};
+    controls.forEach(function(el){
+      d[el.dataset.k] = (el.type==='checkbox'||el.type==='radio') ? el.checked : el.value;
+    });
+    try{ localStorage.setItem(KEY, JSON.stringify(d)); }catch(e){}
+    updateProgress();
+  }
+  function load(){
+    try{
+      var d = JSON.parse(localStorage.getItem(KEY)||'{}');
+      controls.forEach(function(el){
+        if(el.dataset.k in d){
+          if(el.type==='checkbox'||el.type==='radio') el.checked = d[el.dataset.k];
+          else el.value = d[el.dataset.k];
+        }
+      });
+    }catch(e){}
+  }
+  function updateProgress(){
+    var qs = Array.prototype.slice.call(document.querySelectorAll('.q'));
+    var done = 0;
+    qs.forEach(function(q){
+      var answered = false;
+      q.querySelectorAll('input,textarea').forEach(function(el){
+        if((el.type==='checkbox'||el.type==='radio') && el.checked) answered = true;
+        if(el.type!=='checkbox' && el.type!=='radio' && el.value.trim()) answered = true;
+      });
+      if(answered) done++;
+    });
+    var pct = qs.length ? Math.round(done/qs.length*100) : 0;
+    pfill.style.width = pct+'%';
+    plabel.textContent = done+' / '+qs.length+' answered ('+pct+'%)';
+  }
+  function val(id){ var e=document.getElementById(id); return e? e.value.trim() : ''; }
+
+  function compile(){
+    var out = [];
+    out.push('BRIGHT.STUDIO — CREATIVE ASSET CHECKLIST · ANSWERS');
+    out.push('Filled in by: '+(val('meta-name')||'—')+'   |   Role: '+(val('meta-role')||'—')+'   |   Date: '+(val('meta-date')||'—'));
+    out.push('========================================================');
+    out.push('');
+    document.querySelectorAll('section.sec').forEach(function(sec){
+      var h = sec.querySelector('h2');
+      out.push('### '+(h?h.textContent.trim():''));
+      sec.querySelectorAll('.q').forEach(function(q){
+        var parts = [];
+        q.querySelectorAll('input,textarea').forEach(function(el){
+          if(el.type==='checkbox'){ if(el.checked) parts.push(el.dataset.on||'checked'); }
+          else if(el.type==='radio'){ if(el.checked) parts.push(el.dataset.on||el.value); }
+          else { var v=el.value.trim(); if(v) parts.push((el.dataset.prefix? el.dataset.prefix+': ':'')+v); }
+        });
+        out.push('• '+(q.dataset.q||''));
+        if(parts.length){ parts.forEach(function(p){ out.push('     → '+p); }); }
+        else { out.push('     → (left blank)'); }
+      });
+      out.push('');
+    });
+    return out.join('\n');
+  }
+
+  function toast(msg){
+    toastEl.textContent = msg; toastEl.classList.add('show');
+    setTimeout(function(){ toastEl.classList.remove('show'); }, 2200);
+  }
+
+  document.getElementById('copyBtn').addEventListener('click', function(){
+    var text = compile();
+    var ro = document.getElementById('readout');
+    ro.textContent = text; ro.style.display = 'block';
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(
+        function(){ toast('Answers copied — paste them into your reply to Tim.'); },
+        function(){ toast('Select the text below and copy it manually.'); }
+      );
+    } else { toast('Select the text below and copy it manually.'); }
+    ro.scrollIntoView({behavior:'smooth'});
+  });
+
+  document.getElementById('dlBtn').addEventListener('click', function(){
+    var blob = new Blob([compile()], {type:'text/plain'});
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'bright-studio-creative-checklist-answers.txt';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    toast('Downloaded.');
+  });
+
+  document.getElementById('printBtn').addEventListener('click', function(){ window.print(); });
+
+  document.getElementById('clearBtn').addEventListener('click', function(){
+    if(confirm('Clear all answers on this device? This cannot be undone.')){
+      try{ localStorage.removeItem(KEY); }catch(e){}
+      controls.forEach(function(el){
+        if(el.type==='checkbox'||el.type==='radio') el.checked=false; else el.value='';
+      });
+      document.getElementById('readout').style.display='none';
+      updateProgress();
+      toast('Cleared.');
+    }
+  });
+
+  document.addEventListener('input', save);
+  document.addEventListener('change', save);
+  load();
+  updateProgress();
+})();
+</script>
+</body>
+</html>

@@ -1,9 +1,10 @@
 /** Venue package management page — create and manage event packages. */
 import { redirect } from "next/navigation";
-import { AppShell } from "@/components/layout/AppShell";
-import { PageHeader } from "@/components/layout/PageHeader";
+import { PortalPageShell, venueTabs } from "@/components/brand";
 import { getUser } from "@/lib/auth";
+import { getPartnerForUser } from "@/lib/queries/partners";
 import { getVenueBySlug } from "@/lib/queries/venues";
+import { getUnreadCount } from "@/lib/queries/notifications";
 import { VenuePackageBuilder } from "@/components/venues/VenuePackageBuilder";
 import { createClient } from "@/lib/supabase/server";
 
@@ -19,29 +20,34 @@ export default async function PackagesPage({ params }: Props) {
   const venue = await getVenueBySlug(slug);
   if (!venue) redirect("/");
 
+  const partner = await getPartnerForUser(user.id);
+  if (!partner || venue.partner_id !== partner.id) redirect("/");
+
   const supabase = await createClient();
-  const { data: packages } = await supabase
-    .from("venue_packages")
-    .select("id, name, description, price, includes_bright_blue, sort_order")
-    .eq("venue_id", venue.id)
-    .order("sort_order", { ascending: true });
+  const [{ data: packages }, unread] = await Promise.all([
+    supabase
+      .from("venue_packages")
+      .select("id, name, description, price, includes_bright_blue, sort_order")
+      .eq("venue_id", venue.id)
+      .order("sort_order", { ascending: true }),
+    getUnreadCount(user.id),
+  ]);
 
   return (
-    <AppShell user={user} isInternal={false}>
-      <PageHeader
-        title="Packages"
-        subtitle={`Event packages offered by ${venue.name}`}
-        breadcrumbs={[
-          { label: "Venues", href: "/" },
-          { label: venue.name, href: `/venues/${slug}/dashboard` },
-          { label: "Packages" },
-        ]}
-      />
-
+    <PortalPageShell
+      user={user}
+      unreadCount={unread}
+      scope={venue.name}
+      section="Packages"
+      slug={slug}
+      tabs={venueTabs(slug)}
+      title="Packages"
+      subtitle={`Event packages offered by ${venue.name}`}
+    >
       <VenuePackageBuilder
         venueId={venue.id}
         existingPackages={(packages as Array<Record<string, unknown>>) ?? []}
       />
-    </AppShell>
+    </PortalPageShell>
   );
 }

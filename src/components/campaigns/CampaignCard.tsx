@@ -30,7 +30,7 @@ export function CampaignCard({ campaign }: CampaignCardProps) {
     <Link href={`/admin/campaigns/${campaign.id}`}>
       <Card interactive className="h-full">
         <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="text-base font-semibold text-text-primary truncate">
+          <CardTitle className="text-base font-semibold text-foreground truncate">
             {campaign.name}
           </CardTitle>
           <Badge
@@ -43,15 +43,15 @@ export function CampaignCard({ campaign }: CampaignCardProps) {
           </Badge>
         </CardHeader>
         <CardContent className="space-y-3">
-          <div className="flex items-center gap-2 text-sm text-text-secondary">
-            <Layers size={14} className="text-text-muted shrink-0" />
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Layers size={14} className="text-muted-foreground shrink-0" />
             <span>
               {campaign.eventCount} event{campaign.eventCount !== 1 ? "s" : ""}
             </span>
           </div>
           {(campaign.startDate || campaign.endDate) && (
-            <div className="flex items-center gap-2 text-sm text-text-secondary">
-              <Calendar size={14} className="text-text-muted shrink-0" />
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Calendar size={14} className="text-muted-foreground shrink-0" />
               <span>
                 {campaign.startDate ?? "TBD"} — {campaign.endDate ?? "TBD"}
               </span>

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { CheckCircle2, XCircle, Wrench, Minus, Plus, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -8,6 +9,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { updateQAItem, addQAItem } from "@/app/actions/qa";
+import { celebrateFromElement } from "@/lib/celebrate";
+import { CelebrationCheck } from "@/components/ui/CelebrationCheck";
+import { AllClearState } from "@/components/ui/AllClearState";
 import type { QAItem, QACategory } from "@/types";
 
 interface QAChecklistProps {
@@ -53,9 +57,11 @@ export function QAChecklist({ eventId, items, isInternal }: QAChecklistProps) {
         </span>
       </div>
 
+      {readinessScore === 100 && <AllClearState variant="qa" />}
+
       {Object.entries(grouped).map(([category, categoryItems]) => (
         <section key={category}>
-          <h3 className="text-heading text-sm font-semibold text-text-primary mb-3">
+          <h3 className="text-heading text-sm font-semibold text-foreground mb-3">
             {CATEGORY_LABELS[category as QACategory] ?? category}
           </h3>
           <div className="space-y-2">
@@ -73,6 +79,8 @@ export function QAChecklist({ eventId, items, isInternal }: QAChecklistProps) {
 
 function QARow({ item, isInternal }: { item: QAItem; isInternal: boolean }) {
   const [pending, startTransition] = useTransition();
+  const router = useRouter();
+  const passRef = useRef<HTMLButtonElement>(null);
   const [showNotes, setShowNotes] = useState(false);
   const [notes, setNotes] = useState("");
   const cfg = STATUS_CONFIG[item.status];
@@ -84,16 +92,18 @@ function QARow({ item, isInternal }: { item: QAItem; isInternal: boolean }) {
     }
 
     startTransition(async () => {
-      try {
-        await updateQAItem(item.id, status, notes || undefined);
-        setShowNotes(false);
-        setNotes("");
-        toast.success(`Marked as ${status}`);
-      } catch (err) {
-        toast.error(
-          err instanceof Error ? err.message : "Failed to update check"
-        );
+      const result = await updateQAItem(item.id, status, notes || undefined);
+      if (!result.success) {
+        toast.error(result.error);
+        return;
       }
+      setShowNotes(false);
+      setNotes("");
+      if (status === "passed") {
+        celebrateFromElement(passRef.current);
+      }
+      toast.success(`Marked as ${status}`);
+      router.refresh();
     });
   }
 
@@ -102,7 +112,7 @@ function QARow({ item, isInternal }: { item: QAItem; isInternal: boolean }) {
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0">
           <StatusIcon status={item.status} />
-          <span className="text-sm text-text-primary truncate">{item.title}</span>
+          <span className="text-sm text-foreground truncate">{item.title}</span>
           <Badge className={cn("text-[10px] shrink-0", cfg.className)}>
             {cfg.label}
           </Badge>
@@ -112,6 +122,7 @@ function QARow({ item, isInternal }: { item: QAItem; isInternal: boolean }) {
           <div className="flex items-center gap-1 shrink-0">
             {(item.status === "pending" || item.status === "fixed") && (
               <Button
+                ref={passRef}
                 variant="ghost"
                 size="sm"
                 className="h-7 text-xs text-emerald-400"
@@ -173,7 +184,7 @@ function QARow({ item, isInternal }: { item: QAItem; isInternal: boolean }) {
       )}
 
       {item.testedBy && (
-        <p className="text-[11px] text-text-muted mt-2 ml-7">
+        <p className="text-[11px] text-muted-foreground mt-2 ml-7">
           Tested by {item.testedBy}
         </p>
       )}
@@ -192,6 +203,7 @@ function AddQAItemForm({ eventId }: { eventId: string }) {
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState<string>("machine");
   const [pending, startTransition] = useTransition();
+  const router = useRouter();
 
   if (!open) {
     return (
@@ -204,16 +216,15 @@ function AddQAItemForm({ eventId }: { eventId: string }) {
   function handleSubmit() {
     if (!title.trim()) return;
     startTransition(async () => {
-      try {
-        await addQAItem(eventId, title, category);
-        setTitle("");
-        setOpen(false);
-        toast.success("Check added");
-      } catch (err) {
-        toast.error(
-          err instanceof Error ? err.message : "Failed to add check"
-        );
+      const result = await addQAItem(eventId, title, category);
+      if (!result.success) {
+        toast.error(result.error);
+        return;
       }
+      setTitle("");
+      setOpen(false);
+      toast.success("Check added");
+      router.refresh();
     });
   }
 
@@ -250,12 +261,18 @@ function AddQAItemForm({ eventId }: { eventId: string }) {
 }
 
 function StatusIcon({ status }: { status: QAItem["status"] }) {
+  if (status === "passed") {
+    return (
+      <span className="shrink-0">
+        <CelebrationCheck size={14} className="text-emerald-400" />
+      </span>
+    );
+  }
   const map = {
-    pending: <Minus size={14} className="text-text-muted" />,
-    passed: <CheckCircle2 size={14} className="text-emerald-400" />,
+    pending: <Minus size={14} className="text-muted-foreground" />,
     failed: <XCircle size={14} className="text-destructive" />,
     fixed: <Wrench size={14} className="text-brand" />,
-    na: <Minus size={14} className="text-text-muted" />,
+    na: <Minus size={14} className="text-muted-foreground" />,
   };
   return <span className="shrink-0">{map[status]}</span>;
 }

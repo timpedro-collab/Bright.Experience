@@ -30,7 +30,7 @@ export function GameCard({ game, index = 0 }: GameCardProps) {
       )}
       style={{ "--stagger-index": index } as React.CSSProperties}
     >
-      <div className="relative aspect-video overflow-hidden bg-[radial-gradient(circle_at_50%_50%,hsl(223,94%,53%,0.18),transparent_60%)]">
+      <div className="relative aspect-video overflow-hidden bg-[radial-gradient(circle_at_50%_50%,hsl(230,93%,53%,0.18),transparent_60%)]">
         {game.thumbnailUrl ? (
           <Image
             src={game.thumbnailUrl}

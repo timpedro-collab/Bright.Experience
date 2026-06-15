@@ -214,7 +214,7 @@ export const RidgeArtwork = React.forwardRef<SVGSVGElement, RidgeArtworkProps>(
         role="presentation"
         aria-hidden="true"
         className={cn(
-          "block w-full h-full text-[hsl(var(--ridge-color,_223_94%_53%))]",
+          "block w-full h-full text-[hsl(var(--ridge-color,_230_93%_53%))]",
           className,
         )}
         {...props}

@@ -8,7 +8,7 @@
 -- =====================================================================
 
 begin;
-\i tests/_fixtures.sql
+\ir _fixtures.psql
 
 insert into approvals (id, event_id, title, approval_type, status, customer_visible)
 values

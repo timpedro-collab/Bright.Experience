@@ -36,7 +36,7 @@ export default async function QuizPage() {
             seed="quiz::intake"
             lines={26}
             amplitude={80}
-            className="text-[hsl(223,94%,53%)]"
+            className="text-[hsl(230,93%,53%)]"
           />
           <div
             aria-hidden
@@ -46,7 +46,7 @@ export default async function QuizPage() {
         <Container size="sm" className="relative pt-20 md:pt-28 pb-10">
           <div className="text-center">
             <EditorialEyebrow accent className="mb-3 inline-block">
-              Two minutes · Five questions
+              Two minutes · Six questions
             </EditorialEyebrow>
             <h1
               id="quiz-hero"

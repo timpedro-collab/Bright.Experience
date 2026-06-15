@@ -3,8 +3,8 @@ import { redirect } from "next/navigation";
 import { getUser } from "@/lib/auth";
 import { getPartnerForUser } from "@/lib/queries/partners";
 import { getAttributionsByPartner } from "@/lib/queries/partner-attributions";
-import { AppShell } from "@/components/layout/AppShell";
-import { PageHeader } from "@/components/layout/PageHeader";
+import { getUnreadCount } from "@/lib/queries/notifications";
+import { PortalPageShell, partnerTabs } from "@/components/brand";
 import {
   Table,
   TableHeader,
@@ -14,12 +14,18 @@ import {
   TableCell,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
 import { Users } from "lucide-react";
+import { EmptyState } from "@/components/ui/EmptyState";
 
 interface ClientsPageProps {
   params: Promise<{ slug: string }>;
 }
+
+const STATUS_VARIANT: Record<string, "default" | "success" | "warning"> = {
+  paid: "default",
+  approved: "success",
+  pending: "warning",
+};
 
 export default async function PartnerClientsPage({ params }: ClientsPageProps) {
   const { slug } = await params;
@@ -29,80 +35,75 @@ export default async function PartnerClientsPage({ params }: ClientsPageProps) {
   const partner = await getPartnerForUser(user.id);
   if (!partner || partner.slug !== slug) redirect("/");
 
-  const attributions = await getAttributionsByPartner(partner.id);
+  const [attributions, unread] = await Promise.all([
+    getAttributionsByPartner(partner.id),
+    getUnreadCount(user.id),
+  ]);
   const partnerName = String(partner.name ?? "Partner");
 
   const clientAttributions = attributions.filter(
-    (a: Record<string, unknown>) => a.eventId || a.quoteId
+    (a: Record<string, unknown>) => a.event_id || a.quote_id
   );
 
   return (
-    <AppShell user={user}>
-      <PageHeader
-        title="Clients"
-        subtitle="Accounts and events attributed to your referrals"
-        breadcrumbs={[
-          { label: "Partners", href: `/partners/${slug}/dashboard` },
-          { label: partnerName, href: `/partners/${slug}/dashboard` },
-          { label: "Clients" },
-        ]}
-      />
-
+    <PortalPageShell
+      user={user}
+      unreadCount={unread}
+      scope={partnerName}
+      section="Clients"
+      slug={slug}
+      tabs={partnerTabs(slug)}
+      title="Clients"
+      subtitle="Accounts and events attributed to your referrals"
+    >
       {clientAttributions.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-[var(--radius-card)] border border-white/[0.06] bg-white/[0.02] p-16 text-center">
-          <Users size={32} className="mb-3 text-text-muted" />
-          <p className="text-sm text-text-muted">No attributed clients yet</p>
-          <p className="mt-1 text-xs text-text-muted">
-            Clients who sign up through your partner link will appear here
-          </p>
-        </div>
+        <EmptyState
+          icon={Users}
+          title="No attributed clients yet"
+          description="Clients who sign up through your partner link will appear here."
+          size="sm"
+        />
       ) : (
         <div className="rounded-[var(--radius-card)] border border-white/[0.06] bg-white/[0.02] backdrop-blur-sm overflow-hidden">
           <Table>
             <TableHeader>
               <TableRow className="border-white/[0.06] hover:bg-transparent">
-                <TableHead className="text-text-muted">Date</TableHead>
-                <TableHead className="text-text-muted">Type</TableHead>
-                <TableHead className="text-text-muted">Reference</TableHead>
-                <TableHead className="text-text-muted">Status</TableHead>
+                <TableHead className="text-muted-foreground">Date</TableHead>
+                <TableHead className="text-muted-foreground">Type</TableHead>
+                <TableHead className="text-muted-foreground">Reference</TableHead>
+                <TableHead className="text-muted-foreground">Status</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {clientAttributions.map((attr: Record<string, unknown>) => (
-                <TableRow key={String(attr.id)} className="border-white/[0.06]">
-                  <TableCell className="text-text-secondary">
-                    {new Date(String(attr.createdAt)).toLocaleDateString("en-ZA", {
-                      day: "numeric",
-                      month: "short",
-                      year: "numeric",
-                    })}
-                  </TableCell>
-                  <TableCell className="text-text-primary">
-                    {attr.quoteId ? "Quote" : "Event"}
-                  </TableCell>
-                  <TableCell className="font-mono text-xs text-text-muted">
-                    {String(attr.quoteId ?? attr.eventId ?? "—").slice(0, 8)}
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      className={cn(
-                        "border",
-                        attr.commissionStatus === "paid"
-                          ? "bg-brand/10 text-brand border-brand/20"
-                          : attr.commissionStatus === "approved"
-                            ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-                            : "bg-amber-500/10 text-amber-400 border-amber-500/20"
-                      )}
-                    >
-                      {String(attr.commissionStatus ?? "pending")}
-                    </Badge>
-                  </TableCell>
-                </TableRow>
-              ))}
+              {clientAttributions.map((attr: Record<string, unknown>) => {
+                const status = String(attr.commission_status ?? "pending");
+                return (
+                  <TableRow key={String(attr.id)} className="border-white/[0.06]">
+                    <TableCell className="text-muted-foreground">
+                      {new Date(String(attr.created_at)).toLocaleDateString("en-ZA", {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                      })}
+                    </TableCell>
+                    <TableCell className="text-foreground">
+                      {attr.quote_id ? "Quote" : "Event"}
+                    </TableCell>
+                    <TableCell className="font-mono text-xs text-muted-foreground">
+                      {String(attr.quote_id ?? attr.event_id ?? "—").slice(0, 8)}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={STATUS_VARIANT[status] ?? "warning"}>
+                        {status}
+                      </Badge>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </div>
       )}
-    </AppShell>
+    </PortalPageShell>
   );
 }

@@ -37,16 +37,16 @@ export function RebookCTA(props: RebookCTAProps) {
               <RotateCcw size={18} className="text-brand" />
             </div>
             <div>
-              <p className="text-heading text-sm font-semibold text-text-primary">
+              <p className="text-heading text-sm font-semibold text-foreground">
                 Run this again?
               </p>
-              <p className="text-xs text-text-muted">
+              <p className="text-xs text-muted-foreground">
                 Same setup, new venue or date
               </p>
             </div>
           </div>
 
-          <p className="text-sm text-text-secondary mb-4">
+          <p className="text-sm text-muted-foreground mb-4">
             Loved the results? Book the same activation at another location or
             date — your configuration is ready to go.
           </p>

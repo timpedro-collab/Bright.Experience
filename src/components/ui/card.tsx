@@ -11,27 +11,20 @@ const cardVariants = cva(
   {
     variants: {
       tone: {
-        default: "bg-card border-border shadow-[var(--bb-shadow-card)]",
-        glass: cn(
-          "backdrop-blur-xl border-white/10",
-          "bg-[hsl(233,56%,11%,0.72)]",
-          "shadow-[var(--bb-shadow-card)]"
-        ),
-        subtle: cn(
-          "border-white/[0.06]",
-          "bg-[hsl(233,50%,9%)]"
-        ),
-        elevated: cn(
-          "backdrop-blur-xl border-white/10",
-          "bg-[hsl(233,56%,11%,0.85)]",
-          "shadow-[var(--bb-shadow-premium)]"
-        ),
-        outline: "bg-transparent border-white/10",
+        // Crisp Cloud cards: solid surface (white in light / slate-900 in
+        // dark) + theme-aware hairline + soft shadow. No muddy translucency.
+        default: "bg-card border-border shadow-sm",
+        // Cloud signature: 28px solid card.
+        glassCard: "rounded-[var(--radius-glass)] border-border bg-card shadow-sm",
+        glass: "bg-card border-border shadow-sm",
+        subtle: "bg-muted/40 border-border",
+        elevated: "bg-card border-border shadow-[var(--bb-shadow-premium)]",
+        outline: "bg-transparent border-border",
       },
       interactive: {
         true: cn(
           "cursor-pointer",
-          "hover:border-white/24 hover:shadow-[var(--bb-shadow-premium)] hover:-translate-y-0.5",
+          "hover:border-primary/40 hover:shadow-md hover:-translate-y-0.5",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         ),
         false: "",

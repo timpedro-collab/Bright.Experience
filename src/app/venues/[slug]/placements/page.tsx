@@ -1,19 +1,27 @@
 /** Placement management page — calendar view and placement list with create button. */
 import { redirect } from "next/navigation";
 import { Plus } from "lucide-react";
-import { AppShell } from "@/components/layout/AppShell";
-import { PageHeader } from "@/components/layout/PageHeader";
+import { PortalPageShell, venueTabs } from "@/components/brand";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { getUser } from "@/lib/auth";
+import { getPartnerForUser } from "@/lib/queries/partners";
 import { getVenueBySlug } from "@/lib/queries/venues";
 import { getPlacementsByVenue } from "@/lib/queries/placements";
+import { getUnreadCount } from "@/lib/queries/notifications";
 import { PlacementCalendar } from "@/components/venues/PlacementCalendar";
 
 interface Props {
   params: Promise<{ slug: string }>;
 }
+
+const STATUS_VARIANT: Record<string, "success" | "info" | "warning" | "muted"> = {
+  active: "success",
+  planned: "info",
+  completed: "muted",
+  cancelled: "warning",
+};
 
 export default async function PlacementsPage({ params }: Props) {
   const { slug } = await params;
@@ -23,7 +31,13 @@ export default async function PlacementsPage({ params }: Props) {
   const venue = await getVenueBySlug(slug);
   if (!venue) redirect("/");
 
-  const placements = await getPlacementsByVenue(venue.id);
+  const partner = await getPartnerForUser(user.id);
+  if (!partner || venue.partner_id !== partner.id) redirect("/");
+
+  const [placements, unread] = await Promise.all([
+    getPlacementsByVenue(venue.id),
+    getUnreadCount(user.id),
+  ]);
 
   const calendarData = placements.map((p) => ({
     id: p.id,
@@ -35,23 +49,22 @@ export default async function PlacementsPage({ params }: Props) {
   }));
 
   return (
-    <AppShell user={user} isInternal={false}>
-      <PageHeader
-        title="Placements"
-        subtitle={`Machine placements at ${venue.name}`}
-        breadcrumbs={[
-          { label: "Venues", href: "/" },
-          { label: venue.name, href: `/venues/${slug}/dashboard` },
-          { label: "Placements" },
-        ]}
-        actions={
-          <Button size="sm" className="gap-2">
-            <Plus size={14} />
-            New Placement
-          </Button>
-        }
-      />
-
+    <PortalPageShell
+      user={user}
+      unreadCount={unread}
+      scope={venue.name}
+      section="Placements"
+      slug={slug}
+      tabs={venueTabs(slug)}
+      title="Placements"
+      subtitle={`Machine placements at ${venue.name}`}
+      heroRight={
+        <Button size="sm" className="gap-2">
+          <Plus size={14} />
+          New placement
+        </Button>
+      }
+    >
       <div className="space-y-6">
         <PlacementCalendar placements={calendarData} />
 
@@ -90,10 +103,7 @@ export default async function PlacementsPage({ params }: Props) {
                         </p>
                       )}
                     </div>
-                    <Badge
-                      variant="outline"
-                      className="text-xs capitalize"
-                    >
+                    <Badge variant={STATUS_VARIANT[p.status] ?? "muted"}>
                       {p.status}
                     </Badge>
                   </div>
@@ -103,6 +113,6 @@ export default async function PlacementsPage({ params }: Props) {
           </CardContent>
         </Card>
       </div>
-    </AppShell>
+    </PortalPageShell>
   );
 }

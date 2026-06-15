@@ -58,7 +58,7 @@ export function RecommendationCard({ recommendation }: RecommendationCardProps) 
           <Badge className="border-0 bg-muted text-muted-foreground text-xs mb-1">
             {config.label}
           </Badge>
-          <CardTitle className="text-sm font-semibold text-text-primary leading-snug">
+          <CardTitle className="text-sm font-semibold text-foreground leading-snug">
             {recommendation.summary}
           </CardTitle>
         </div>
@@ -66,8 +66,8 @@ export function RecommendationCard({ recommendation }: RecommendationCardProps) 
       <CardContent className="space-y-3">
         <div>
           <div className="flex items-center justify-between mb-1.5">
-            <span className="text-xs text-text-muted">Confidence</span>
-            <span className="text-xs font-medium text-text-secondary tabular-nums">
+            <span className="text-xs text-muted-foreground">Confidence</span>
+            <span className="text-xs font-medium text-muted-foreground tabular-nums">
               {confidencePct}%
             </span>
           </div>
@@ -75,7 +75,7 @@ export function RecommendationCard({ recommendation }: RecommendationCardProps) 
         </div>
 
         {recommendation.details.sampleSize !== undefined && (
-          <p className="text-xs text-text-muted">
+          <p className="text-xs text-muted-foreground">
             Based on {String(recommendation.details.sampleSize)} events
           </p>
         )}

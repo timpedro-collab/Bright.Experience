@@ -66,7 +66,7 @@ export function ShareableReportBanner({
           <div className="space-y-3">
             <div className="flex items-center gap-2">
               <Globe size={16} className="text-success" />
-              <span className="text-sm font-medium text-text-primary">
+              <span className="text-sm font-medium text-foreground">
                 Report is live
               </span>
               <Badge variant="success" className="ml-auto">Published</Badge>
@@ -74,8 +74,8 @@ export function ShareableReportBanner({
 
             <div className="flex items-center gap-2">
               <div className="flex-1 flex items-center gap-2 rounded-lg bg-surface-glass/50 border border-white/[0.06] px-3 py-2">
-                <LinkIcon size={12} className="text-text-muted shrink-0" />
-                <span className="text-xs text-text-secondary truncate">
+                <LinkIcon size={12} className="text-muted-foreground shrink-0" />
+                <span className="text-xs text-muted-foreground truncate">
                   {shareUrl}
                 </span>
               </div>
@@ -99,7 +99,7 @@ export function ShareableReportBanner({
               size="sm"
               onClick={handlePublishToggle}
               disabled={isPending}
-              className="text-text-muted hover:text-destructive"
+              className="text-muted-foreground hover:text-destructive"
             >
               {isPending ? (
                 <Loader2 size={14} className="animate-spin" />
@@ -116,10 +116,10 @@ export function ShareableReportBanner({
                 <Globe size={18} className="text-brand" />
               </div>
               <div>
-                <p className="text-sm font-medium text-text-primary">
+                <p className="text-sm font-medium text-foreground">
                   Share this report
                 </p>
-                <p className="text-xs text-text-muted">
+                <p className="text-xs text-muted-foreground">
                   Generate a public link for your client
                 </p>
               </div>

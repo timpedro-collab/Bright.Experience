@@ -12,27 +12,37 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { dispatchNotification } from "@/lib/notifications/dispatch";
+import { autoCompleteTaskByPath } from "@/app/actions/tasks";
+import { writeAudit } from "@/lib/audit";
+import { bumpStreak } from "./streak";
 import {
   storagePathFor,
   validateUpload,
   type StorageBucket,
 } from "@/lib/storage/signed-url";
+import { scanUpload } from "@/lib/storage/scan";
+import {
+  buildSpecWarnings,
+  imageDimensionsFromBuffer,
+} from "@/lib/asset-requirements/validate";
+import type { ActionResult } from "@/types/actions";
 
 const ASSET_BUCKET: StorageBucket = "event-assets";
 
-export async function uploadAsset(formData: FormData) {
+/** Upload a file for an asset slot and trigger creative review. */
+export async function uploadAsset(formData: FormData): Promise<ActionResult> {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) throw new Error("Not authenticated");
+  if (!user) return { success: false, error: "Not authenticated" };
 
   const assetId = formData.get("assetId") as string;
   const eventId = formData.get("eventId") as string;
   const file = formData.get("file") as File;
 
   if (!file || !assetId || !eventId) {
-    throw new Error("Missing required fields");
+    return { success: false, error: "Missing required fields" };
   }
 
   const check = validateUpload(ASSET_BUCKET, {
@@ -41,7 +51,18 @@ export async function uploadAsset(formData: FormData) {
     name: file.name,
   });
   if (!check.ok) {
-    throw new Error(check.detail);
+    return { success: false, error: check.detail };
+  }
+
+  // Malware screen before anything touches storage. No-ops gracefully when
+  // FILE_SCAN_URL isn't configured (local/dev/pre-handoff).
+  const scanBytes = new Uint8Array(await file.arrayBuffer());
+  const scan = await scanUpload(scanBytes, file.name);
+  if (!scan.ok) {
+    return {
+      success: false,
+      error: scan.detail ?? "This file was flagged by our security scan.",
+    };
   }
 
   const path = storagePathFor({
@@ -59,12 +80,67 @@ export async function uploadAsset(formData: FormData) {
     });
 
   if (uploadError) {
-    throw new Error(`Upload failed: ${uploadError.message}`);
+    return { success: false, error: `Upload failed: ${uploadError.message}` };
   }
 
-  // We store the *path* on the row, not the URL. Read surfaces sign
-  // on demand via createSignedReadUrl. This keeps URLs short-lived
-  // and prevents any accidental "leaked link" failure mode.
+  const warnings: string[] = [];
+  const { data: existingAsset } = await supabase
+    .from("assets")
+    .select("version, required_file_types, required_resolution_min, required_duration_range")
+    .eq("id", assetId)
+    .single();
+
+  if (existingAsset?.required_file_types?.length) {
+    const accepted = existingAsset.required_file_types as string[];
+    if (!accepted.includes(file.type)) {
+      warnings.push(
+        `File type "${file.type}" doesn't match accepted types: ${accepted.join(", ")}`
+      );
+    }
+  }
+
+  // Dimension/duration spec validation. Prefer client-measured values
+  // (forwarded as hidden fields); fall back to parsing image headers so we
+  // don't depend solely on the client being honest.
+  const clientWidth = Number(formData.get("width")) || undefined;
+  const clientHeight = Number(formData.get("height")) || undefined;
+  const clientDuration = Number(formData.get("durationSeconds")) || undefined;
+
+  let measuredWidth = clientWidth;
+  let measuredHeight = clientHeight;
+  if (
+    (!measuredWidth || !measuredHeight) &&
+    (file.type === "image/png" || file.type === "image/jpeg")
+  ) {
+    try {
+      const bytes = new Uint8Array(await file.arrayBuffer());
+      const dims = imageDimensionsFromBuffer(bytes);
+      if (dims) {
+        measuredWidth = dims.width;
+        measuredHeight = dims.height;
+      }
+    } catch {
+      // header parse is best-effort; ignore failures
+    }
+  }
+
+  warnings.push(
+    ...buildSpecWarnings(
+      {
+        fileType: file.type,
+        width: measuredWidth,
+        height: measuredHeight,
+        durationSeconds: clientDuration,
+      },
+      {
+        required_resolution_min: existingAsset?.required_resolution_min,
+        required_duration_range: existingAsset?.required_duration_range,
+      },
+    ),
+  );
+
+  const nextVersion = (existingAsset?.version ?? 0) + 1;
+
   const { error: updateError } = await supabase
     .from("assets")
     .update({
@@ -75,24 +151,43 @@ export async function uploadAsset(formData: FormData) {
       status: "under_review",
       review_status: "pending_review",
       uploaded_by: user.id,
+      version: nextVersion,
+      upload_warnings: warnings.length > 0 ? warnings : null,
     })
     .eq("id", assetId);
 
   if (updateError) {
-    throw new Error(`Update failed: ${updateError.message}`);
+    return { success: false, error: `Update failed: ${updateError.message}` };
   }
 
-  await supabase.from("audit_entries").insert({
-    event_id: eventId,
-    actor_id: user.id,
-    action: "asset_uploaded",
-    entity_type: "asset",
-    entity_id: assetId,
-    metadata: {
+  // Retain this upload as an immutable version row. Best-effort: never block
+  // the upload if the versions table isn't present yet.
+  await supabase
+    .from("asset_versions")
+    .insert({
+      asset_id: assetId,
+      event_id: eventId,
+      version: nextVersion,
+      file_path: path,
       file_name: file.name,
       file_size: file.size,
-      file_path: path,
-    },
+      file_type: file.type,
+      uploaded_by: user.id,
+      upload_warnings: warnings.length > 0 ? warnings : null,
+      review_status: "pending_review",
+    })
+    .then(
+      () => {},
+      () => {},
+    );
+
+  await writeAudit({
+    eventId,
+    actorId: user.id,
+    action: "asset_uploaded",
+    entityType: "asset",
+    entityId: assetId,
+    metadata: { file_name: file.name, file_size: file.size, file_path: path },
   });
 
   const [{ data: assetRow }, { data: uploaderProfile }, { data: eventRow }] =
@@ -113,41 +208,19 @@ export async function uploadAsset(formData: FormData) {
     entityId: assetId,
   });
 
-  revalidatePath(`/events/${eventId}/assets`);
-}
-
-export async function reviewAsset(
-  assetId: string,
-  eventId: string,
-  action: "accepted" | "rejected",
-  feedback?: string
-) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) throw new Error("Not authenticated");
-
-  const { error } = await supabase
+  const { data: remaining } = await supabase
     .from("assets")
-    .update({
-      status: action,
-      review_feedback: feedback || null,
-      reviewed_by: user.id,
-      reviewed_at: new Date().toISOString(),
-    })
-    .eq("id", assetId);
+    .select("id")
+    .eq("event_id", eventId)
+    .eq("status", "required")
+    .limit(1);
 
-  if (error) throw new Error(`Review failed: ${error.message}`);
+  if (!remaining || remaining.length === 0) {
+    await autoCompleteTaskByPath(eventId, "assets");
+  }
 
-  await supabase.from("audit_entries").insert({
-    event_id: eventId,
-    actor_id: user.id,
-    action: `asset_${action}`,
-    entity_type: "asset",
-    entity_id: assetId,
-    metadata: { feedback },
-  });
+  bumpStreak().catch(() => {});
 
   revalidatePath(`/events/${eventId}/assets`);
+  return { success: true, data: undefined };
 }

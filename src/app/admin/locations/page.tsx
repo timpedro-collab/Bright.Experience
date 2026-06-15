@@ -3,19 +3,28 @@ import { redirect } from "next/navigation";
 
 import { AdminPageShell, EditorialEyebrow } from "@/components/brand";
 import { Badge } from "@/components/ui/badge";
+import { Pagination } from "@/components/ui/Pagination";
 
 import { getUser } from "@/lib/auth";
 import { isInternalRole } from "@/lib/roles";
-import { getLocations } from "@/lib/queries/locations";
+import { getLocationsPaginated } from "@/lib/queries/locations";
 import { getUnreadCount } from "@/lib/queries/notifications";
+import { parsePage } from "@/lib/pagination";
 
-export default async function LocationsPage() {
+interface LocationsPageProps {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}
+
+export default async function LocationsPage({ searchParams }: LocationsPageProps) {
   const user = await getUser();
   if (!user) redirect("/login");
   if (!isInternalRole(user.role)) redirect("/");
 
-  const [locations, unread] = await Promise.all([
-    getLocations(),
+  const params = await searchParams;
+  const page = parsePage(params);
+
+  const [result, unread] = await Promise.all([
+    getLocationsPaginated(page),
     getUnreadCount(user.id),
   ]);
 
@@ -51,9 +60,9 @@ export default async function LocationsPage() {
               </tr>
             </thead>
             <tbody>
-              {locations.map((loc) => (
+              {result.data.map((loc) => (
                 <tr
-                  key={loc.id}
+                  key={loc.postcode_prefix}
                   className="border-b border-border/30 hover:bg-accent/20 transition-colors"
                 >
                   <td className="px-4 py-3 font-mono font-medium text-foreground">
@@ -69,11 +78,11 @@ export default async function LocationsPage() {
                     </Badge>
                   </td>
                   <td className="px-4 py-3 text-right font-mono text-foreground tabular-nums">
-                    {loc.multiplier}×
+                    {loc.media_value_multiplier}×
                   </td>
                 </tr>
               ))}
-              {locations.length === 0 && (
+              {result.data.length === 0 && (
                 <tr>
                   <td
                     colSpan={5}
@@ -86,6 +95,11 @@ export default async function LocationsPage() {
             </tbody>
           </table>
         </div>
+        <Pagination
+          currentPage={page}
+          totalPages={result.totalPages}
+          basePath="/admin/locations"
+        />
       </section>
     </AdminPageShell>
   );

@@ -140,6 +140,11 @@ export function QuizMatchCard({
     addons: encodeCapabilityParam(selected),
   }).toString()}`;
 
+  const bookHref = `/book/configure?${new URLSearchParams({
+    machine: match.machineSlug,
+    package: match.packageSlug ?? "",
+  }).toString()}`;
+
   return (
     <>
       <Card tone="elevated" className="relative overflow-hidden mx-auto max-w-2xl">
@@ -211,10 +216,13 @@ export function QuizMatchCard({
 
           <div className="space-y-3">
             <Button variant="brand" size="lg" className="w-full" asChild>
+              <Link href={bookHref}>Book this machine</Link>
+            </Button>
+            <Button variant="outline" size="lg" className="w-full" asChild>
               <Link href={proposalHref}>Get my tailored proposal</Link>
             </Button>
             <p className="text-center text-xs text-muted-foreground">
-              We&apos;ll price it together — no commitment yet.
+              Book directly, or request a custom proposal — no commitment yet.
             </p>
           </div>
 

@@ -535,6 +535,51 @@ EventMetricsSnapshot {
 }
 ```
 
+### HourlyMetrics
+Per-hour aggregated play and lead counts for an event, populated by the
+`report.ready` webhook handler.
+
+```
+HourlyMetrics {
+  id                  UUID
+  event_id            UUID → Event
+  snapshot_date       date
+  hour                integer (0–23)
+  plays               integer
+  leads               integer
+  created_at          timestamp
+  UNIQUE (event_id, snapshot_date, hour)
+}
+```
+
+### StudioPricing
+Database-driven pricing tiers for Bright.Studio creative services,
+replacing the hardcoded `STATIC_TIERS` / `VIDEO_TIERS` arrays.
+
+```
+StudioPricing {
+  id                  UUID
+  service_type        text ('design' | 'animation')
+  tier_name           text
+  description         text?
+  price_gbp           numeric(10,2)
+  price_label         text
+  price_unit          text
+  features            text[]
+  turnaround_days     integer?
+  revisions_included  integer?
+  is_express          boolean
+  is_featured         boolean
+  sort_order          integer
+  created_at          timestamp
+}
+```
+
+### Schema Fixes (migration `20260527100000`)
+- Added `hourly_metrics` table (above)
+- Added `is_final` boolean column to `event_metrics_snapshot`
+- Fixed `studio_pricing` RLS policies to use `is_internal_user()`
+
 ---
 
 ## Partner Entities (Phase 6)

@@ -1,6 +1,7 @@
 /** Server actions for the partner and reseller portal. */
 "use server";
 
+import { requireInternalUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 
@@ -56,7 +57,7 @@ export async function applyAsPartner(data: {
 
 /** Approve a pending partner, setting status to 'active'. */
 export async function approvePartner(partnerId: string) {
-  const supabase = await createClient();
+  const { supabase } = await requireInternalUser();
 
   const { error } = await supabase
     .from("partners")
@@ -75,7 +76,7 @@ export async function approvePartner(partnerId: string) {
 
 /** Suspend an active partner. */
 export async function suspendPartner(partnerId: string) {
-  const supabase = await createClient();
+  const { supabase } = await requireInternalUser();
 
   const { error } = await supabase
     .from("partners")
@@ -169,7 +170,7 @@ export async function recordAttribution(input: {
 
 /** Approve a commission with a specific amount. */
 export async function approveCommission(attributionId: string, amount: number) {
-  const supabase = await createClient();
+  const { supabase } = await requireInternalUser();
 
   const { error } = await supabase
     .from("partner_attributions")

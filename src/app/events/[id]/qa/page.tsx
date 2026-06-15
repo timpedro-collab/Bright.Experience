@@ -20,6 +20,7 @@ export default async function QAPage({
   const user = await getUser();
   if (!user) redirect("/login");
   const { id } = await params;
+  if (!isInternalRole(user.role)) redirect(`/events/${id}`);
   const [event, qaItems, unread] = await Promise.all([
     getEventById(id),
     getQAItemsByEvent(id),
@@ -37,6 +38,8 @@ export default async function QAPage({
       slug="qa"
       title="Pre-event readiness."
       subtitle="A final, opinionated checklist so we ship a flawless experience on the day."
+      isInternal={isInternal}
+      viewerRole={user.role}
     >
       <section className="py-8">
         {qaItems.length === 0 ? (

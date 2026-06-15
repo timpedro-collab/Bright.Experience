@@ -20,19 +20,19 @@ import {
   ShieldCheck,
   Activity,
   Users,
+  UserPlus,
   Handshake,
   DollarSign,
   FolderOpen,
   Layers,
   Lightbulb,
   Key,
-  Building2,
   MapPin,
   Database,
   Briefcase,
   Clock,
-  Bell,
   Inbox,
+  ArrowUpRight,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -44,6 +44,7 @@ interface NavItem {
   icon: React.ElementType;
   badge?: number;
   exact?: boolean;
+  dataTour?: string;
 }
 
 interface NavGroup {
@@ -78,11 +79,13 @@ function buildGroups({
       href: "/",
       icon: LayoutDashboard,
       exact: true,
+      dataTour: "pipeline",
     },
     { label: "Notifications", href: "/notifications", icon: Activity, badge: notificationCount },
   ];
 
   if (isInternal) {
+    workspace.push({ label: "Pipeline", href: "/pipeline", icon: Layers });
     workspace.push({ label: "Studio Queue", href: "/studio", icon: Sparkles });
   }
 
@@ -90,22 +93,22 @@ function buildGroups({
 
   if (eventId) {
     const eventItems: NavItem[] = [
-      { label: "Overview", href: `/events/${eventId}`, icon: Zap, exact: true },
+      { label: "Overview", href: `/events/${eventId}`, icon: Zap, exact: true, dataTour: "event-detail" },
       { label: "Timeline", href: `/events/${eventId}/timeline`, icon: CalendarCheck },
       { label: "Actions", href: `/events/${eventId}/actions`, icon: ListChecks },
       { label: "Communications", href: `/events/${eventId}/communications`, icon: MessageCircle },
-      { label: "Assets", href: `/events/${eventId}/assets`, icon: Upload },
+      { label: "Assets", href: `/events/${eventId}/assets`, icon: Upload, dataTour: "assets" },
       { label: "Approvals", href: `/events/${eventId}/approvals`, icon: CheckCircle2 },
-      { label: "Briefing", href: `/events/${eventId}/briefing`, icon: FileText },
+      { label: "Briefing", href: `/events/${eventId}/briefing`, icon: FileText, dataTour: "briefing" },
       { label: "Studio", href: `/events/${eventId}/studio`, icon: Sparkles },
     ];
     if (isInternal) {
       eventItems.push({ label: "Logistics", href: `/events/${eventId}/logistics`, icon: Truck });
       eventItems.push({ label: "QA", href: `/events/${eventId}/qa`, icon: ShieldCheck });
     }
-    eventItems.push({ label: "Live", href: `/events/${eventId}/live`, icon: Activity });
+    eventItems.push({ label: "Live", href: `/events/${eventId}/live`, icon: Activity, dataTour: "live" });
     eventItems.push({ label: "Leads", href: `/events/${eventId}/leads`, icon: Users });
-    eventItems.push({ label: "Reports", href: `/events/${eventId}/reports`, icon: BarChart3 });
+    eventItems.push({ label: "Reports", href: `/events/${eventId}/reports`, icon: BarChart3, dataTour: "reports" });
     if (isInternal) {
       eventItems.push({ label: "Campaign", href: `/events/${eventId}/campaign`, icon: Layers });
     }
@@ -142,7 +145,7 @@ function buildGroups({
     groups.push({
       heading: "Pipeline",
       items: [
-        { label: "Inbox", href: "/inbox", icon: Inbox },
+        { label: "Inbox", href: "/inbox", icon: Inbox, dataTour: "inbox" },
         { label: "Quotes", href: "/admin/quotes", icon: Briefcase },
         {
           label: "Asset reviews",
@@ -154,14 +157,16 @@ function buildGroups({
           href: "/admin/customer-queue",
           icon: Clock,
         },
-        { label: "Partners", href: "/admin/partners", icon: Handshake },
-        { label: "Campaigns", href: "/admin/campaigns", icon: Layers },
+      { label: "Partners", href: "/admin/partners", icon: Handshake },
+      { label: "Invites", href: "/admin/invites", icon: UserPlus },
+      { label: "Campaigns", href: "/admin/campaigns", icon: Layers },
       ],
     });
     groups.push({
       heading: "Catalog & data",
       items: [
         { label: "Catalog", href: "/admin/catalog", icon: Sparkles },
+        { label: "Public catalog", href: "/catalog", icon: ArrowUpRight },
         { label: "Templates", href: "/admin/templates", icon: FileText },
         { label: "Locations", href: "/admin/locations", icon: MapPin },
         { label: "Benchmarks", href: "/admin/benchmarks", icon: BarChart3 },
@@ -171,6 +176,8 @@ function buildGroups({
     groups.push({
       heading: "Platform",
       items: [
+        { label: "Users", href: "/admin/users", icon: Users, dataTour: "admin-users" },
+        { label: "Accounts", href: "/admin/accounts", icon: Briefcase },
         { label: "API & webhooks", href: "/admin/api", icon: Database },
         {
           label: "Pipedrive",
@@ -209,7 +216,7 @@ export function Sidebar({
     <aside
       className={cn(
         "fixed left-0 top-0 bottom-0 z-40 flex flex-col",
-        "border-r border-white/[0.06] bg-sidebar",
+        "border-r border-border bg-sidebar/80 backdrop-blur-xl",
         "transition-[width] duration-300",
         collapsed ? "w-[72px]" : "w-[260px]"
       )}
@@ -219,7 +226,7 @@ export function Sidebar({
       <Link
         href="/"
         className={cn(
-          "flex h-16 items-center gap-3 border-b border-white/[0.06] px-4",
+          "flex h-16 items-center gap-3 border-b border-border px-4",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
         )}
       >
@@ -241,18 +248,9 @@ export function Sidebar({
         ))}
       </nav>
 
-      <div className="border-t border-white/[0.06] p-3 space-y-1">
+      <div className="border-t border-border p-3 space-y-1">
         <NavLink
-          item={{
-            label: "Notifications",
-            href: "/settings/notifications",
-            icon: Bell,
-          }}
-          active={pathname?.startsWith("/settings/notifications") ?? false}
-          collapsed={collapsed}
-        />
-        <NavLink
-          item={{ label: "Settings", href: "/settings", icon: Settings }}
+          item={{ label: "Settings", href: "/settings", icon: Settings, dataTour: "settings-team" }}
           active={pathname === "/settings"}
           collapsed={collapsed}
         />
@@ -262,7 +260,7 @@ export function Sidebar({
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
           className={cn(
             "flex w-full items-center gap-3 rounded-[var(--radius-control)] px-3 py-2.5",
-            "text-sm text-muted-foreground hover:text-foreground hover:bg-white/[0.04]",
+            "text-sm text-muted-foreground hover:text-foreground hover:bg-muted/60",
             "transition-colors",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
           )}
@@ -332,17 +330,18 @@ function NavLink({
         "group relative flex items-center gap-3 rounded-[var(--radius-control)] px-3 py-2 text-sm font-medium",
         "transition-all duration-150 border",
         active
-          ? "bg-primary/10 text-foreground border-primary/30 shadow-[inset_0_0_0_1px_hsl(223,94%,53%,0.18)]"
-          : "text-muted-foreground hover:text-foreground hover:bg-white/[0.04] border-transparent",
+          ? "bg-primary/10 text-foreground border-primary/30 shadow-[inset_0_0_0_1px_hsl(230,93%,53%,0.18)]"
+          : "text-muted-foreground hover:text-foreground hover:bg-muted/60 border-transparent",
         collapsed && "justify-center px-2"
       )}
       title={collapsed ? item.label : undefined}
       aria-current={active ? "page" : undefined}
+      {...(item.dataTour ? { "data-tour": item.dataTour } : {})}
     >
       {active && (
         <span
           aria-hidden
-          className="absolute left-0 top-1/2 h-5 w-[3px] -translate-x-1.5 -translate-y-1/2 rounded-r-full bg-primary shadow-[0_0_12px_hsl(223,94%,53%,0.65)]"
+          className="absolute left-0 top-1/2 h-5 w-[3px] -translate-x-1.5 -translate-y-1/2 rounded-r-full bg-primary shadow-[0_0_12px_hsl(230,93%,53%,0.65)]"
         />
       )}
       <Icon size={17} className="shrink-0" />

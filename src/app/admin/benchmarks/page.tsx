@@ -13,6 +13,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
+import { RecalculateBenchmarksButton } from "@/components/reports/RecalculateBenchmarksButton";
+
 import { getUser } from "@/lib/auth";
 import { isInternalRole } from "@/lib/roles";
 import { getBenchmarks } from "@/lib/queries/benchmarks";
@@ -56,6 +58,9 @@ export default async function BenchmarksPage() {
       subtitle="Performance benchmarks generated as events complete. Use them to set expectation and ground reporting."
     >
       <div className="py-8">
+        <div className="mb-6 flex justify-end">
+          <RecalculateBenchmarksButton />
+        </div>
         {eventTypes.length === 0 ? (
           <EmptyState
             icon={BarChart3}

@@ -1,7 +1,7 @@
 /** Server actions for API key and webhook subscription management. */
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
+import { requireInternalUser } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 
 /** Generate a cryptographically random API key string. */
@@ -34,7 +34,7 @@ export async function createApiKey(data: {
   partnerId?: string;
   permissions: string[];
 }) {
-  const supabase = await createClient();
+  const { supabase } = await requireInternalUser();
   const rawKey = generateApiKey();
   const keyHash = await hashKey(rawKey);
   const keyPrefix = rawKey.slice(0, 11);
@@ -61,7 +61,7 @@ export async function createApiKey(data: {
 
 /** Revoke an API key by marking it inactive. */
 export async function revokeApiKey(id: string) {
-  const supabase = await createClient();
+  const { supabase } = await requireInternalUser();
 
   const { error } = await supabase
     .from("api_keys")
@@ -81,7 +81,7 @@ export async function createWebhookSubscription(data: {
   accountId?: string;
   partnerId?: string;
 }) {
-  const supabase = await createClient();
+  const { supabase } = await requireInternalUser();
   const secret = generateApiKey();
 
   const { data: webhook, error } = await supabase
@@ -105,7 +105,7 @@ export async function createWebhookSubscription(data: {
 
 /** Delete a webhook subscription. */
 export async function deleteWebhookSubscription(id: string) {
-  const supabase = await createClient();
+  const { supabase } = await requireInternalUser();
 
   const { error } = await supabase
     .from("webhook_subscriptions")

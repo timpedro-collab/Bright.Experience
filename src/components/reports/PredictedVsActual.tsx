@@ -38,7 +38,7 @@ export function PredictedVsActual({
   return (
     <Card className="border-white/[0.08] bg-card-dark/72 backdrop-blur-xl">
       <CardHeader className="pb-3">
-        <CardTitle className="text-heading text-base font-semibold text-text-primary">
+        <CardTitle className="text-heading text-base font-semibold text-foreground">
           Predicted vs Actual
         </CardTitle>
       </CardHeader>
@@ -46,14 +46,14 @@ export function PredictedVsActual({
         <div className="space-y-0">
           {/* Header row */}
           <div className="grid grid-cols-4 gap-4 pb-2 border-b border-white/[0.06]">
-            <span className="text-overline text-text-muted">Metric</span>
-            <span className="text-overline text-text-muted text-right">
+            <span className="text-overline text-muted-foreground">Metric</span>
+            <span className="text-overline text-muted-foreground text-right">
               Predicted
             </span>
-            <span className="text-overline text-text-muted text-right">
+            <span className="text-overline text-muted-foreground text-right">
               Actual
             </span>
-            <span className="text-overline text-text-muted text-right">
+            <span className="text-overline text-muted-foreground text-right">
               Delta
             </span>
           </div>
@@ -69,13 +69,13 @@ export function PredictedVsActual({
                 key={key}
                 className="grid grid-cols-4 gap-4 py-3 border-b border-white/[0.04] last:border-0"
               >
-                <span className="text-sm text-text-secondary">
+                <span className="text-sm text-muted-foreground">
                   {formatLabel(key)}
                 </span>
-                <span className="text-sm text-text-muted text-right tabular-nums">
+                <span className="text-sm text-muted-foreground text-right tabular-nums">
                   {predicted.toLocaleString()}
                 </span>
-                <span className="text-sm text-text-primary font-medium text-right tabular-nums">
+                <span className="text-sm text-foreground font-medium text-right tabular-nums">
                   {actual.toLocaleString()}
                 </span>
                 <div

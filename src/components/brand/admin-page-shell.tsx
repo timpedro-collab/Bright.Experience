@@ -15,6 +15,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { HelpCircle } from "lucide-react";
 
 import { CommandPalette } from "@/components/layout/CommandPalette";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
@@ -77,6 +78,13 @@ export function AdminPageShell({
         breadcrumbs={crumbs}
         rightSlot={
           <>
+            <Link
+              href="/help"
+              className="inline-flex items-center justify-center size-9 rounded-[var(--radius-control)] text-muted-foreground hover:text-foreground hover:bg-white/[0.04] transition-colors"
+              aria-label="Help center"
+            >
+              <HelpCircle size={18} />
+            </Link>
             <NotificationBell unreadCount={unreadCount} />
             <span
               className="hidden md:block h-6 w-px bg-border"
@@ -87,6 +95,7 @@ export function AdminPageShell({
         }
       />
       <RidgeHero
+        variant="compact"
         seed={`admin::${seedSlug}`}
         eyebrow={eyebrow ?? `Internal · ${section}`}
         title={title}

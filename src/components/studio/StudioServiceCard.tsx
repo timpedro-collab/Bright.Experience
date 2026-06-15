@@ -39,7 +39,7 @@ export function StudioTierCard({
       className={cn(
         "stagger-item flex flex-col relative p-6",
         tier.featured &&
-          "border-primary/30 bg-[linear-gradient(180deg,hsl(223,94%,53%,0.06),transparent_60%)]"
+          "border-primary/30 bg-[linear-gradient(180deg,hsl(230,93%,53%,0.06),transparent_60%)]"
       )}
       style={{ "--stagger-index": index } as React.CSSProperties}
     >

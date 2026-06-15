@@ -2,9 +2,10 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { LogOut, Settings, User as UserIcon, Sparkles } from "lucide-react";
+import { LogOut, Moon, Settings, Sun, User as UserIcon } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/client";
+import { useTheme } from "@/components/theme/ThemeProvider";
 import { cn } from "@/lib/utils";
 import {
   DropdownMenu,
@@ -35,6 +36,7 @@ interface UserMenuProps {
 
 export function UserMenu({ user }: UserMenuProps) {
   const router = useRouter();
+  const { isDark, toggleTheme } = useTheme();
 
   async function handleSignOut() {
     const supabase = createClient();
@@ -56,13 +58,14 @@ export function UserMenu({ user }: UserMenuProps) {
       <DropdownMenuTrigger asChild>
         <button
           type="button"
+          data-tour="user-menu"
           className={cn(
             "flex items-center gap-2.5 rounded-[var(--radius-control)] px-1.5 py-1",
             "transition-colors hover:bg-white/[0.04]",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           )}
         >
-          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[linear-gradient(135deg,hsl(223,94%,53%),hsl(189,100%,75%))] text-xs font-semibold text-white shadow-[0_4px_12px_-4px_hsl(223,94%,53%,0.55)]">
+          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[linear-gradient(135deg,hsl(230,93%,53%),hsl(189,100%,75%))] text-xs font-semibold text-white shadow-[0_4px_12px_-4px_hsl(230,93%,53%,0.55)]">
             {initials}
           </span>
           <span className="hidden md:flex flex-col items-start leading-tight">
@@ -99,9 +102,15 @@ export function UserMenu({ user }: UserMenuProps) {
           <Settings className="size-4" />
           Settings
         </DropdownMenuItem>
-        <DropdownMenuItem onSelect={() => router.push("/catalog")}>
-          <Sparkles className="size-4" />
-          Visit catalog
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          onSelect={(e) => {
+            e.preventDefault();
+            toggleTheme();
+          }}
+        >
+          {isDark ? <Sun className="size-4" /> : <Moon className="size-4" />}
+          {isDark ? "Switch to light" : "Switch to dark"}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem

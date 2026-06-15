@@ -39,15 +39,16 @@ const validInput = {
 };
 
 describe("createEvent — RBAC", () => {
-  it("throws when not authenticated", async () => {
+  it("fails when not authenticated", async () => {
     getUser.mockResolvedValue(null);
     const { createEvent } = await import("./events");
-    await expect(createEvent(validInput)).rejects.toThrow(
-      /Only internal users/
-    );
+    expect(await createEvent(validInput)).toMatchObject({
+      success: false,
+      error: expect.stringMatching(/Only internal users/),
+    });
   });
 
-  it("throws when user is a customer", async () => {
+  it("fails when user is a customer", async () => {
     getUser.mockResolvedValue({
       id: "u1",
       name: "x",
@@ -55,9 +56,10 @@ describe("createEvent — RBAC", () => {
       role: "customer_admin",
     });
     const { createEvent } = await import("./events");
-    await expect(createEvent(validInput)).rejects.toThrow(
-      /Only internal users/
-    );
+    expect(await createEvent(validInput)).toMatchObject({
+      success: false,
+      error: expect.stringMatching(/Only internal users/),
+    });
   });
 
   it("allows an events_lead to create", async () => {
@@ -70,7 +72,7 @@ describe("createEvent — RBAC", () => {
     supabase.setTableResponse("events", { data: { id: "evt-1" }, error: null });
     const { createEvent } = await import("./events");
     const result = await createEvent(validInput);
-    expect(result).toEqual({ id: "evt-1" });
+    expect(result).toEqual({ success: true, data: { id: "evt-1" } });
   });
 });
 
@@ -86,23 +88,23 @@ describe("createEvent — validation", () => {
 
   it("rejects a non-UUID accountId", async () => {
     const { createEvent } = await import("./events");
-    await expect(
-      createEvent({ ...validInput, accountId: "garbage" })
-    ).rejects.toThrow(/customer account/);
+    expect(
+      await createEvent({ ...validInput, accountId: "garbage" })
+    ).toMatchObject({ success: false, error: expect.stringMatching(/customer account/) });
   });
 
   it("rejects a too-short name", async () => {
     const { createEvent } = await import("./events");
-    await expect(
-      createEvent({ ...validInput, name: "x" })
-    ).rejects.toThrow(/event a name/);
+    expect(
+      await createEvent({ ...validInput, name: "x" })
+    ).toMatchObject({ success: false, error: expect.stringMatching(/event a name/) });
   });
 
   it("rejects a missing eventDateStart", async () => {
     const { createEvent } = await import("./events");
-    await expect(
-      createEvent({ ...validInput, eventDateStart: "" })
-    ).rejects.toThrow(/start date/i);
+    expect(
+      await createEvent({ ...validInput, eventDateStart: "" })
+    ).toMatchObject({ success: false, error: expect.stringMatching(/start date/i) });
   });
 });
 
@@ -158,13 +160,16 @@ describe("createEvent — Supabase errors", () => {
     });
   });
 
-  it("throws when the insert errors", async () => {
+  it("fails when the insert errors", async () => {
     supabase.setTableResponse("events", {
       data: null,
       error: { message: "duplicate key" },
     });
     const { createEvent } = await import("./events");
-    await expect(createEvent(validInput)).rejects.toThrow(/duplicate key/);
+    expect(await createEvent(validInput)).toMatchObject({
+      success: false,
+      error: expect.stringMatching(/could not create event/i),
+    });
   });
 });
 
@@ -178,7 +183,7 @@ describe("duplicateEvent", () => {
     });
   });
 
-  it("throws when the user is a customer", async () => {
+  it("fails when the user is a customer", async () => {
     getUser.mockResolvedValue({
       id: "u1",
       name: "x",
@@ -186,12 +191,18 @@ describe("duplicateEvent", () => {
       role: "customer_admin",
     });
     const { duplicateEvent } = await import("./events");
-    await expect(duplicateEvent("evt-1")).rejects.toThrow(/internal users/);
+    expect(await duplicateEvent("evt-1")).toMatchObject({
+      success: false,
+      error: expect.stringMatching(/internal users/),
+    });
   });
 
-  it("throws when the source event isn't found", async () => {
+  it("fails when the source event isn't found", async () => {
     supabase.setTableResponse("events", { data: null, error: null });
     const { duplicateEvent } = await import("./events");
-    await expect(duplicateEvent("evt-1")).rejects.toThrow(/source event/);
+    expect(await duplicateEvent("evt-1")).toMatchObject({
+      success: false,
+      error: expect.stringMatching(/source event/),
+    });
   });
 });

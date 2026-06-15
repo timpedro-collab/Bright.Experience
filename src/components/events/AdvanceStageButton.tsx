@@ -1,21 +1,14 @@
-/**
- * Internal-only "Advance stage" control.
- *
- * Server-side the page determines whether the gate is clear via
- * `canAdvanceStage`. This client component renders the resulting state
- * — either a clickable advance button or a disabled blocker list — and
- * calls the `advanceStage` action when clicked. The action handles
- * audit, notification, milestone sync, and Pipedrive write-back.
- */
 "use client";
 
-import { useState, useTransition } from "react";
+import { useCallback, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { ArrowRight } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { advanceStage } from "@/app/actions/stages";
 import { STAGE_CONFIG } from "@/types";
 import type { Stage } from "@/types";
+import { StageCelebration } from "./StageCelebration";
 
 interface Props {
   eventId: string;
@@ -31,13 +24,19 @@ export function AdvanceStageButton({
   blockers,
 }: Props) {
   const [error, setError] = useState<string | null>(null);
+  const [celebrateStage, setCelebrateStage] = useState<Stage | null>(null);
   const [pending, startTransition] = useTransition();
+  const router = useRouter();
 
   const currentOrder = STAGE_CONFIG[currentStage].order;
-  // STAGE_CONFIG is dense; the next stage is whichever has order + 1.
   const nextStage = (Object.entries(STAGE_CONFIG).find(
     ([, cfg]) => cfg.order === currentOrder + 1
   )?.[0] ?? null) as Stage | null;
+
+  const handleCelebrationDone = useCallback(() => {
+    setCelebrateStage(null);
+    router.refresh();
+  }, [router]);
 
   if (!nextStage) {
     return (
@@ -52,11 +51,12 @@ export function AdvanceStageButton({
   function handleClick() {
     setError(null);
     startTransition(async () => {
-      try {
-        await advanceStage(eventId);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Could not advance stage");
+      const result = await advanceStage(eventId);
+      if (!result.success) {
+        setError(result.error);
+        return;
       }
+      setCelebrateStage(nextStage);
     });
   }
 
@@ -78,18 +78,21 @@ export function AdvanceStageButton({
   }
 
   return (
-    <div className="space-y-2">
-      <Button
-        type="button"
-        size="sm"
-        variant="brand"
-        onClick={handleClick}
-        disabled={pending}
-      >
-        {pending ? "Advancing…" : `Advance to ${nextLabel}`}
-        <ArrowRight className="ml-1 h-3.5 w-3.5" />
-      </Button>
-      {error && <p className="text-xs text-destructive">{error}</p>}
-    </div>
+    <>
+      <div className="space-y-2">
+        <Button
+          type="button"
+          size="sm"
+          variant="brand"
+          onClick={handleClick}
+          disabled={pending}
+        >
+          {pending ? "Advancing…" : `Advance to ${nextLabel}`}
+          <ArrowRight className="ml-1 h-3.5 w-3.5" />
+        </Button>
+        {error && <p className="text-xs text-destructive">{error}</p>}
+      </div>
+      <StageCelebration stage={celebrateStage} onComplete={handleCelebrationDone} />
+    </>
   );
 }

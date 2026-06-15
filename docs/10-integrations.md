@@ -122,11 +122,11 @@ being sent. This makes local development safe without an email service.
 All cron routes live under `/api/cron/` and are protected by `CRON_SECRET`
 (Vercel sends `Authorization: Bearer ${CRON_SECRET}` or `x-vercel-cron`).
 
-| Route | Schedule | Purpose |
+| Route | Schedule (`vercel.json`) | Purpose |
 |---|---|---|
-| `/api/cron/reminders` | Every 15 min | Send pending notification reminders |
-| `/api/cron/digest` | Daily 08:00 UTC | Send daily notification digests |
-| `/api/cron/pipedrive` | Every 60 min | Drain Pipedrive outbox + time triggers |
+| `/api/cron/reminders` | `0 9 * * *` (daily 09:00 UTC) | Send pending notification reminders |
+| `/api/cron/digest` | `0 17 * * *` (daily 17:00 UTC) | Send daily notification digests |
+| `/api/cron/pipedrive` | `0 * * * *` (every 60 min) | Drain Pipedrive outbox + time triggers |
 
 ---
 
@@ -140,7 +140,7 @@ vars are marked with ⊘.
 | `NEXT_PUBLIC_SUPABASE_URL` | ✓ | |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | ✓ | |
 | `SUPABASE_SERVICE_ROLE_KEY` | ✓ | Never expose to browser |
-| `NEXT_PUBLIC_BASE_URL` | ✓ | Used in email links |
+| `NEXT_PUBLIC_SITE_URL` | ✓ | Used in email links & auth redirects |
 | `CRON_SECRET` | ⊘ | Vercel cron auth |
 | `RESEND_API_KEY` | ⊘ | Falls back to console logging |
 | `FROM_EMAIL` | ⊘ | |

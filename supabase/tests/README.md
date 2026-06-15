@@ -8,11 +8,13 @@ and leave no trace.
 
 ## Conventions
 
-- Every file starts with `\i tests/_fixtures.sql` to seed the shared
-  set of accounts, profiles and events.
+- Every file starts with `\ir _fixtures.psql` to seed the shared
+  set of accounts, profiles and events. (`\ir` resolves relative to the
+  test file, and the `.psql` extension keeps the shared include from being
+  picked up as a standalone test by `supabase test db`.)
 - `_rls_test_as(user_id)` switches the active JWT to mimic a logged-in
   user. The fixture file defines five canonical personas — see the
-  header comment in `_fixtures.sql`.
+  header comment in `_fixtures.psql`.
 - Each file calls `plan(N)` up front and `finish()` at the end so
   pgTAP can report a structured TAP stream.
 - All fixture UUIDs are deterministic so assertions can reference
@@ -36,7 +38,7 @@ Requirements:
 ## Adding a new test file
 
 1. Pick a table or policy you want to cover.
-2. Open a `begin;` transaction and `\i tests/_fixtures.sql`.
+2. Open a `begin;` transaction and `\ir _fixtures.psql`.
 3. Insert any extra fixture rows your scenario needs.
 4. Switch personas with `_rls_test_as(user_id)`.
 5. Use pgTAP assertions: `is`, `ok`, `throws_ok`, `results_eq`, etc.

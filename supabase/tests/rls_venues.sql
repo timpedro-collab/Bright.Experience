@@ -9,7 +9,7 @@
 -- =====================================================================
 
 begin;
-\i tests/_fixtures.sql
+\ir _fixtures.psql
 
 insert into placements (id, venue_id, start_date, status) values
   ('00000000-0000-4000-8000-0000000000c3', '00000000-0000-4000-8000-0000000000c1', '2026-08-01', 'planned'),

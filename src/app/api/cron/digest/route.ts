@@ -9,6 +9,7 @@
  */
 
 import { NextResponse } from "next/server";
+import * as Sentry from "@sentry/nextjs";
 import { Resend } from "resend";
 
 import { getServiceRoleClient } from "@/lib/supabase/service-role";
@@ -126,7 +127,7 @@ export async function GET(request: Request) {
     if (digestItems.length === 0) continue;
 
     const baseUrl =
-      process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3001";
+      process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3001";
     const lines = digestItems
       .slice(0, 8)
       .map((i) => `• ${i.title}${i.body ? ` — ${i.body}` : ""}`)
@@ -153,6 +154,7 @@ export async function GET(request: Request) {
       });
       sent += 1;
     } catch (err) {
+      Sentry.captureException(err, { tags: { cron: "digest" } });
       console.error(`[Digest] send failed for ${profile.email}`, err);
     }
   }

@@ -1,20 +1,28 @@
 "use server";
 
-/** Server actions for logistics management */
+/**
+ * Server actions for logistics management.
+ *
+ * Logistics entries track deliveries, setups, and collections. Status
+ * transitions fire audit entries and revalidate the logistics page.
+ */
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { addLogisticsEntrySchema } from "@/lib/validations/logistics";
+import { autoCompleteTaskByPath } from "@/app/actions/tasks";
+import type { ActionResult } from "@/types/actions";
 
-/** Update a logistics entry's status, notes, or completion timestamp */
+/** Update a logistics entry's status, notes, or completion timestamp. */
 export async function updateLogisticsEntry(
   entryId: string,
   data: { status?: string; notes?: string; completedAt?: string }
-) {
+): Promise<ActionResult> {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) throw new Error("Not authenticated");
+  if (!user) return { success: false, error: "Not authenticated" };
 
   const updateData: Record<string, unknown> = {};
   if (data.status) updateData.status = data.status;
@@ -29,7 +37,7 @@ export async function updateLogisticsEntry(
     .select("event_id")
     .single();
 
-  if (error) throw new Error(`Failed to update logistics entry: ${error.message}`);
+  if (error) return { success: false, error: `Failed to update logistics entry: ${error.message}` };
 
   await supabase.from("audit_entries").insert({
     event_id: entry.event_id,
@@ -41,9 +49,10 @@ export async function updateLogisticsEntry(
   });
 
   revalidatePath(`/events/${entry.event_id}/logistics`);
+  return { success: true, data: undefined };
 }
 
-/** Add a new logistics entry to an event (internal use only) */
+/** Add a new logistics entry to an event (internal use only). */
 export async function addLogisticsEntry(
   eventId: string,
   data: {
@@ -52,14 +61,23 @@ export async function addLogisticsEntry(
     scheduledDate?: string;
     description?: string;
   }
-) {
+): Promise<ActionResult<{ id: string }>> {
+  const parsed = addLogisticsEntrySchema.safeParse({
+    eventId,
+    entryType: data.entryType,
+    title: data.title,
+    scheduledDate: data.scheduledDate,
+    description: data.description,
+  });
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0].message };
+  }
+
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) throw new Error("Not authenticated");
-
-  if (!data.title.trim()) throw new Error("Title is required");
+  if (!user) return { success: false, error: "Not authenticated" };
 
   const { data: lastEntry } = await supabase
     .from("logistics_entries")
@@ -86,7 +104,7 @@ export async function addLogisticsEntry(
     .select()
     .single();
 
-  if (error) throw new Error(`Failed to add logistics entry: ${error.message}`);
+  if (error) return { success: false, error: `Failed to add logistics entry: ${error.message}` };
 
   await supabase.from("audit_entries").insert({
     event_id: eventId,
@@ -97,5 +115,8 @@ export async function addLogisticsEntry(
     metadata: { entry_type: data.entryType, title: data.title },
   });
 
+  await autoCompleteTaskByPath(eventId, "logistics");
+
   revalidatePath(`/events/${eventId}/logistics`);
+  return { success: true, data: { id: entry.id } };
 }

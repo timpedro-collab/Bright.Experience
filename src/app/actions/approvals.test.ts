@@ -27,12 +27,12 @@ beforeEach(() => {
 });
 
 describe("decideApproval — auth", () => {
-  it("throws when not authenticated", async () => {
+  it("returns error when not authenticated", async () => {
     supabase.setUser(null);
     const { decideApproval } = await import("./approvals");
-    await expect(
-      decideApproval("a1", "evt-1", "approved")
-    ).rejects.toThrow(/authenticated/);
+    const result = await decideApproval("a1", "evt-1", "approved");
+    expect(result.success).toBe(false);
+    if (!result.success) expect(result.error).toMatch(/authenticated/);
   });
 });
 
@@ -109,15 +109,15 @@ describe("decideApproval — revision requested", () => {
 });
 
 describe("decideApproval — DB errors", () => {
-  it("throws when update fails", async () => {
+  it("returns error when update fails", async () => {
     supabase.setUser({ id: "u1" });
     supabase.setTableResponse("approvals", {
       data: null,
       error: { message: "RLS denied" },
     });
     const { decideApproval } = await import("./approvals");
-    await expect(
-      decideApproval("a1", "evt-1", "approved")
-    ).rejects.toThrow(/Decision failed/);
+    const result = await decideApproval("a1", "evt-1", "approved");
+    expect(result.success).toBe(false);
+    if (!result.success) expect(result.error).toMatch(/Decision failed/);
   });
 });

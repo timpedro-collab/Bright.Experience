@@ -74,7 +74,7 @@ export function WebhookManager({ subscriptions }: WebhookManagerProps) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-heading text-base font-semibold text-text-primary">
+        <h3 className="text-heading text-base font-semibold text-foreground">
           Webhooks
         </h3>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -94,7 +94,7 @@ export function WebhookManager({ subscriptions }: WebhookManagerProps) {
 
             <div className="space-y-4">
               <div>
-                <label className="text-sm text-text-secondary mb-1.5 block">
+                <label className="text-sm text-muted-foreground mb-1.5 block">
                   Endpoint URL
                 </label>
                 <Input
@@ -104,7 +104,7 @@ export function WebhookManager({ subscriptions }: WebhookManagerProps) {
                 />
               </div>
               <div>
-                <label className="text-sm text-text-secondary mb-2 block">
+                <label className="text-sm text-muted-foreground mb-2 block">
                   Event Types
                 </label>
                 <div className="flex flex-wrap gap-2">
@@ -141,8 +141,8 @@ export function WebhookManager({ subscriptions }: WebhookManagerProps) {
 
       {subscriptions.length === 0 ? (
         <div className="text-center py-8">
-          <Webhook size={32} className="mx-auto text-text-muted mb-3" />
-          <p className="text-sm text-text-muted">No webhook subscriptions yet.</p>
+          <Webhook size={32} className="mx-auto text-muted-foreground mb-3" />
+          <p className="text-sm text-muted-foreground">No webhook subscriptions yet.</p>
         </div>
       ) : (
         <Table>
@@ -158,7 +158,7 @@ export function WebhookManager({ subscriptions }: WebhookManagerProps) {
             {subscriptions.map((wh) => (
               <TableRow key={wh.id}>
                 <TableCell>
-                  <code className="text-xs text-text-primary font-mono break-all">
+                  <code className="text-xs text-foreground font-mono break-all">
                     {wh.url}
                   </code>
                 </TableCell>

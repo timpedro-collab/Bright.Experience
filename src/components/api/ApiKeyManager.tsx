@@ -69,7 +69,7 @@ export function ApiKeyManager({ keys }: ApiKeyManagerProps) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-heading text-base font-semibold text-text-primary">
+        <h3 className="text-heading text-base font-semibold text-foreground">
           API Keys
         </h3>
         <Dialog open={dialogOpen} onOpenChange={handleDialogClose}>
@@ -95,12 +95,12 @@ export function ApiKeyManager({ keys }: ApiKeyManagerProps) {
               <div className="space-y-3">
                 <div className="flex items-center gap-2 rounded-lg border border-warning/30 bg-warning/5 p-3">
                   <AlertTriangle size={16} className="text-warning shrink-0" />
-                  <span className="text-xs text-text-secondary">
+                  <span className="text-xs text-muted-foreground">
                     Store this key securely. It will not be shown again.
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <code className="flex-1 rounded-lg bg-muted p-3 text-xs font-mono text-text-primary break-all">
+                  <code className="flex-1 rounded-lg bg-muted p-3 text-xs font-mono text-foreground break-all">
                     {generatedKey}
                   </code>
                   <Button variant="outline" size="sm" onClick={handleCopy}>
@@ -131,8 +131,8 @@ export function ApiKeyManager({ keys }: ApiKeyManagerProps) {
 
       {keys.length === 0 ? (
         <div className="text-center py-8">
-          <Key size={32} className="mx-auto text-text-muted mb-3" />
-          <p className="text-sm text-text-muted">No API keys yet.</p>
+          <Key size={32} className="mx-auto text-muted-foreground mb-3" />
+          <p className="text-sm text-muted-foreground">No API keys yet.</p>
         </div>
       ) : (
         <Table>
@@ -148,11 +148,11 @@ export function ApiKeyManager({ keys }: ApiKeyManagerProps) {
           <TableBody>
             {keys.map((k) => (
               <TableRow key={k.id}>
-                <TableCell className="font-medium text-text-primary">
+                <TableCell className="font-medium text-foreground">
                   {k.name}
                 </TableCell>
                 <TableCell>
-                  <code className="text-xs text-text-muted font-mono">
+                  <code className="text-xs text-muted-foreground font-mono">
                     {k.keyPrefix}…
                   </code>
                 </TableCell>
@@ -168,7 +168,7 @@ export function ApiKeyManager({ keys }: ApiKeyManagerProps) {
                     {k.isActive ? "Active" : "Revoked"}
                   </Badge>
                 </TableCell>
-                <TableCell className="text-sm text-text-muted">
+                <TableCell className="text-sm text-muted-foreground">
                   {k.lastUsedAt ?? "Never"}
                 </TableCell>
                 <TableCell>

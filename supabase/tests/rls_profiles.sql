@@ -12,7 +12,7 @@
 -- =====================================================================
 
 begin;
-\i tests/_fixtures.sql
+\ir _fixtures.psql
 
 select plan(6);
 
@@ -24,13 +24,17 @@ select is(
   'user can see own profile'
 );
 
--- (2) New user can insert own profile (test by simulating a brand-new auth user)
+-- (2) New user can insert own profile (test by simulating a brand-new auth user).
+-- Creating the auth.users row requires elevated privileges, so reset the role
+-- (the prior test switched us to the customer's authenticated role).
+set local role postgres;
 insert into auth.users (id, email, encrypted_password, email_confirmed_at, raw_user_meta_data, created_at, updated_at, instance_id, aud, role)
 values ('00000000-0000-4000-8000-000000000099', 'fresh@x.test', '', now(), '{}', now(), now(), '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated')
 on conflict (id) do nothing;
 select _rls_test_as('00000000-0000-4000-8000-000000000099');
 insert into profiles (id, name, email, role, is_active)
-  values ('00000000-0000-4000-8000-000000000099', 'Fresh', 'fresh@x.test', 'customer_user', true);
+  values ('00000000-0000-4000-8000-000000000099', 'Fresh', 'fresh@x.test', 'customer_user', true)
+on conflict (id) do nothing;
 select is(
   (select count(*)::int from profiles where id = '00000000-0000-4000-8000-000000000099'),
   1,

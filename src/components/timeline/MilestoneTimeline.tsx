@@ -72,7 +72,7 @@ export function MilestoneTimeline({
                 </div>
               ) : (
                 <div className="flex h-[30px] w-[30px] items-center justify-center rounded-full bg-white/[0.04] ring-2 ring-white/[0.08]">
-                  <Circle size={10} className="text-text-muted" />
+                  <Circle size={10} className="text-muted-foreground" />
                 </div>
               )}
             </div>
@@ -90,16 +90,16 @@ export function MilestoneTimeline({
                       isActive
                         ? "text-brand"
                         : isComplete
-                          ? "text-text-primary"
-                          : "text-text-secondary"
+                          ? "text-foreground"
+                          : "text-muted-foreground"
                     }`}
                   >
                     {milestone.name}
                   </p>
                   {!compact && milestone.targetDate && (
                     <div className="flex items-center gap-1.5 mt-1">
-                      <Clock size={12} className="text-text-muted" />
-                      <span className="text-xs text-text-muted">
+                      <Clock size={12} className="text-muted-foreground" />
+                      <span className="text-xs text-muted-foreground">
                         {isComplete && milestone.completedAt
                           ? `Completed ${formatDateShort(milestone.completedAt!)}`
                           : `Target: ${formatDateShort(milestone.targetDate!)}`}
@@ -109,7 +109,7 @@ export function MilestoneTimeline({
                 </div>
 
                 {compact && milestone.targetDate && (
-                  <span className="text-overline text-text-muted tabular-nums">
+                  <span className="text-overline text-muted-foreground tabular-nums">
                     {formatDateShort(milestone.targetDate!)}
                   </span>
                 )}
@@ -126,7 +126,7 @@ export function MilestoneTimeline({
                     className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium leading-none ${
                       waitingLabel === "Waiting on you"
                         ? "border border-warning/30 bg-warning/10 text-warning"
-                        : "border border-white/[0.08] bg-white/[0.04] text-text-muted"
+                        : "border border-white/[0.08] bg-white/[0.04] text-muted-foreground"
                     }`}
                   >
                     {waitingLabel}

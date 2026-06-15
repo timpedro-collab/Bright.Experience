@@ -4,11 +4,13 @@
 import confetti from "canvas-confetti";
 
 const BRAND_COLORS = [
-  "hsl(223, 94%, 53%)", // Bright blue
+  "hsl(230, 93%, 53%)", // Bright blue
   "hsl(189, 100%, 75%)", // Electric cyan
   "hsl(0, 0%, 100%)", // White
   "hsl(143, 72%, 42%)", // Success green
 ];
+
+const Z = 10010;
 
 /** Default celebration — gentle burst from the centre */
 export function celebrate(): void {
@@ -20,7 +22,7 @@ export function celebrate(): void {
     colors: BRAND_COLORS,
     scalar: 0.9,
     ticks: 200,
-    zIndex: 9999,
+    zIndex: Z,
   });
 }
 
@@ -37,7 +39,7 @@ export function celebrateBig(): void {
       spread: 55,
       origin: { x: 0, y: 0.7 },
       colors: BRAND_COLORS,
-      zIndex: 9999,
+      zIndex: Z,
     });
     confetti({
       particleCount: 4,
@@ -45,7 +47,7 @@ export function celebrateBig(): void {
       spread: 55,
       origin: { x: 1, y: 0.7 },
       colors: BRAND_COLORS,
-      zIndex: 9999,
+      zIndex: Z,
     });
     if (Date.now() < end) requestAnimationFrame(frame);
   })();
@@ -67,6 +69,6 @@ export function celebrateFromElement(el: HTMLElement | null): void {
     colors: BRAND_COLORS,
     scalar: 0.85,
     ticks: 150,
-    zIndex: 9999,
+    zIndex: Z,
   });
 }

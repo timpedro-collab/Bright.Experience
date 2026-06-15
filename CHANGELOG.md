@@ -4,6 +4,28 @@ All notable changes to the Bright.Experience platform are documented here.
 
 ---
 
+## [Customer Invites, Env Alignment & Doc Sync] - 2026-05-27
+
+### Customer Invite / Onboarding Flow
+- **NEW server action `inviteCustomerUser`** (`src/app/actions/invites.ts`) — gated to internal users, calls `supabase.auth.admin.inviteUserByEmail` and bootstraps a profile row.
+- **NEW admin page `/admin/invites`** — email + account dropdown + role select form, wired to the invite action with toast feedback.
+- **NEW welcome page `/welcome`** — editorial onboarding surface greeting the user by name with a capability overview and CTA to events.
+- **Sidebar** gains "Invites" link under Pipeline (internal only).
+
+### Environment Config Alignment
+- **Unified `NEXT_PUBLIC_BASE_URL` → `NEXT_PUBLIC_SITE_URL`** across `dispatch.ts`, `email-shell.ts`, `studio.ts`, `digest/route.ts`, and `vitest.setup.ts`.
+- **NEW `src/lib/env.ts`** — `checkRequiredEnv()` validates required (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_SITE_URL`) and recommended (`RESEND_API_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `BRIGHTBLUE_API_KEY`) vars at startup.
+- **`src/app/layout.tsx`** now calls `checkRequiredEnv()` at import time.
+- **`.env.example` rewritten** — grouped into Required / Recommended / Optional sections; `NEXT_PUBLIC_BASE_URL` removed; Resend setup steps documented in comments.
+
+### Documentation Sync
+- **`docs/04-data-model.md`** — added `HourlyMetrics`, `StudioPricing` entities and schema fix notes.
+- **`docs/10-integrations.md`** — cron table updated to match `vercel.json` schedules; `NEXT_PUBLIC_BASE_URL` → `NEXT_PUBLIC_SITE_URL`.
+- **`README.md`** — fixed port to 3001; added Required Environment Variables table; added Production Checklist section.
+- **`STUBS-TO-REPLACE.md`** — struck through completed items (legal pages, legal banner).
+
+---
+
 ## [10/10 World-Class Pass — Live Data + Task Lifecycle + Ops Briefing] - 2026-05-27
 
 Comprehensive quality pass addressing every gap identified in the post-audit review, with a focus on CTO handoff readiness and Bright.Blue Cloud integration.

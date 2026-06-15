@@ -21,6 +21,7 @@ import { getEventById } from "@/lib/queries/events";
 import { getApprovalsByEvent } from "@/lib/queries/approvals";
 import { getUnreadCount } from "@/lib/queries/notifications";
 import { getUser } from "@/lib/auth";
+import { isInternalRole } from "@/lib/roles";
 import { formatDateMedium, timeSince } from "@/lib/dates";
 import type { Approval } from "@/types";
 
@@ -38,6 +39,7 @@ export default async function ApprovalsPage({
     getUnreadCount(user.id),
   ]);
   if (!event) return notFound();
+  const isInternal = isInternalRole(user.role);
 
   const pending = approvals.filter(
     (a) => a.status === "pending" || a.status === "revision_requested",
@@ -61,6 +63,8 @@ export default async function ApprovalsPage({
       section="Approvals"
       title="Sign-off."
       subtitle={subtitle}
+      isInternal={isInternal}
+      viewerRole={user.role}
       heroRight={
         approvals.length > 0 ? (
           <div className="text-overline text-muted-foreground tabular-nums">

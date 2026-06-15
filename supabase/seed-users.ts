@@ -1,8 +1,30 @@
+import { readFileSync } from "node:fs";
 import { createClient } from "@supabase/supabase-js";
 
-const SUPABASE_URL = "https://gnlibancdyrjglwfgbym.supabase.co";
-const SERVICE_ROLE_KEY =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdubGliYW5jZHlyamdsd2ZnYnltIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NTI1MjQ0MCwiZXhwIjoyMDkwODI4NDQwfQ.Y2Xdb3Ybt41lWwXllt8PU6WS6lZx9uodN1bd96nX0Sk";
+// Load env from .env.local (gitignored) so secrets never live in code.
+function loadEnvLocal() {
+  try {
+    const raw = readFileSync(new URL("../.env.local", import.meta.url), "utf8");
+    for (const line of raw.split("\n")) {
+      const m = line.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/);
+      if (m && !process.env[m[1]]) process.env[m[1]] = m[2].replace(/^["']|["']$/g, "");
+    }
+  } catch {
+    /* .env.local is optional in CI */
+  }
+}
+loadEnvLocal();
+
+const SUPABASE_URL =
+  process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.SUPABASE_URL ?? "";
+const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
+
+if (!SUPABASE_URL || !SERVICE_ROLE_KEY) {
+  console.error(
+    "Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY. Add them to .env.local before seeding.",
+  );
+  process.exit(1);
+}
 
 const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
   auth: { autoRefreshToken: false, persistSession: false },

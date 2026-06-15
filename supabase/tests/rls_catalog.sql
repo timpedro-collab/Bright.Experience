@@ -8,26 +8,26 @@
 -- =====================================================================
 
 begin;
-\i tests/_fixtures.sql
+\ir _fixtures.psql
 
 insert into machines (id, name, slug, is_active) values
-  ('00000000-0000-4000-8000-0000000000m1', 'Bright.Vend Pro', 'bright-vend-pro', true),
-  ('00000000-0000-4000-8000-0000000000m2', 'Hidden Prototype', 'hidden-proto', false)
+  ('00000000-0000-4000-8000-0000000000da', 'Bright.Vend Pro', 'bright-vend-pro', true),
+  ('00000000-0000-4000-8000-0000000000db', 'Hidden Prototype', 'hidden-proto', false)
 on conflict (id) do nothing;
 
 insert into games (id, name, slug, is_active) values
-  ('00000000-0000-4000-8000-0000000000g1', 'Tap to Win', 'tap-to-win', true),
-  ('00000000-0000-4000-8000-0000000000g2', 'WIP Game',   'wip-game',  false)
+  ('00000000-0000-4000-8000-0000000000dc', 'Tap to Win', 'tap-to-win', true),
+  ('00000000-0000-4000-8000-0000000000dd', 'WIP Game',   'wip-game',  false)
 on conflict (id) do nothing;
 
 insert into packages (id, name, slug, tier, is_bookable) values
-  ('00000000-0000-4000-8000-0000000000p1', 'Standard',  'standard',  'standard',  true),
-  ('00000000-0000-4000-8000-0000000000p2', 'Internal Test', 'internal-test', 'custom', false)
+  ('00000000-0000-4000-8000-0000000000de', 'Standard',  'standard',  'standard',  true),
+  ('00000000-0000-4000-8000-0000000000df', 'Internal Test', 'internal-test', 'custom', false)
 on conflict (id) do nothing;
 
 insert into case_studies (id, title, slug, is_published) values
-  ('00000000-0000-4000-8000-0000000000s1', 'Live Story', 'live-story', true),
-  ('00000000-0000-4000-8000-0000000000s2', 'Draft',      'draft',      false)
+  ('00000000-0000-4000-8000-0000000000e7', 'Live Story', 'live-story', true),
+  ('00000000-0000-4000-8000-0000000000e8', 'Draft',      'draft',      false)
 on conflict (id) do nothing;
 
 select plan(7);
@@ -54,9 +54,10 @@ select is(
   'anon sees only bookable packages'
 );
 
--- (4) Anon sees only published case studies
+-- (4) Anon sees only published case studies (scoped to this test's rows,
+-- since migrations may seed their own published case studies).
 select is(
-  (select array_agg(slug order by slug)::text[] from case_studies),
+  (select array_agg(slug order by slug)::text[] from case_studies where slug in ('live-story', 'draft')),
   array['live-story']::text[],
   'anon sees only published case studies'
 );
@@ -78,14 +79,13 @@ select is(
   'internal can insert a machine'
 );
 
--- (7) Anon insert is blocked
+-- (7) Anon insert is blocked — RLS rejects the write outright (42501)
 select _rls_test_anon();
-insert into machines (name, slug, is_active)
-  values ('Sneak', 'sneak', true);
-select is(
-  (select count(*)::int from machines where slug = 'sneak'),
-  0,
-  'anon insert into machines is silently filtered by RLS'
+select throws_ok(
+  $$insert into machines (name, slug, is_active) values ('Sneak', 'sneak', true)$$,
+  '42501',
+  null::text,
+  'anon insert into machines is blocked by RLS'
 );
 
 select * from finish();

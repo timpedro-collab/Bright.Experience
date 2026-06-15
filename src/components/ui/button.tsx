@@ -20,13 +20,13 @@ const buttonVariants = cva(
         // Brand-aligned primary — gradient + premium shadow
         default: cn(
           "text-primary-foreground",
-          "bg-[linear-gradient(135deg,hsl(223,94%,53%),hsl(223,94%,60%))]",
+          "bg-[linear-gradient(135deg,hsl(230,93%,53%),hsl(230,93%,60%))]",
           "shadow-[var(--bb-shadow-premium)]",
           "hover:shadow-[var(--bb-shadow-float)] hover:brightness-110"
         ),
         brand: cn(
           "text-primary-foreground",
-          "bg-[linear-gradient(135deg,hsl(223,94%,53%),hsl(223,94%,60%))]",
+          "bg-[linear-gradient(135deg,hsl(230,93%,53%),hsl(230,93%,60%))]",
           "shadow-[var(--bb-shadow-premium)]",
           "hover:shadow-[var(--bb-shadow-float)] hover:brightness-110"
         ),
@@ -56,10 +56,16 @@ const buttonVariants = cva(
         icon: "h-10 w-10",
         "icon-sm": "h-8 w-8 [&_svg]:size-4",
       },
+      // Cloud CTAs use a fully-rounded pill; defaults keep the control radius.
+      shape: {
+        default: "",
+        pill: "rounded-full",
+      },
     },
     defaultVariants: {
       variant: "default",
       size: "default",
+      shape: "default",
     },
   }
 );

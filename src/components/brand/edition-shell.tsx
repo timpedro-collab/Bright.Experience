@@ -52,13 +52,13 @@ export function EditionShell({
     <div
       className={cn(
         theme === "light" ? "theme-light" : "",
-        "min-h-screen bg-background text-foreground",
+        "relative isolate min-h-screen bg-background text-foreground",
         className,
       )}
       data-theme={theme}
       {...props}
     >
-      <div className="mx-auto max-w-[1320px] px-6 lg:px-10 pt-6 pb-12">
+      <div className="relative mx-auto max-w-[1320px] px-6 lg:px-10 pt-6 pb-12">
         {children}
       </div>
     </div>
@@ -91,7 +91,7 @@ export function EditionChrome({
     <>
       <header
         className={cn(
-          "flex items-center justify-between gap-6 py-3",
+          "flex items-center justify-between gap-6 rounded-full border border-border bg-card px-5 py-2.5 shadow-sm",
           className,
         )}
       >
@@ -138,7 +138,6 @@ export function EditionChrome({
           </div>
         )}
       </header>
-      <Hairline className="opacity-70" />
     </>
   );
 }
@@ -159,6 +158,13 @@ interface RidgeHeroProps {
   showHeroThread?: boolean;
   /** Custom height of the artwork band, in CSS units. */
   artworkHeight?: string;
+  /**
+   * `editorial` (default) = the loud full-height ridge hero used for the
+   * brand / customer moments. `compact` = the Cloud dashboard page header:
+   * a slim ridge accent strip behind a tight PageHeader block. Operational
+   * surfaces (event tabs, admin) use `compact`.
+   */
+  variant?: "editorial" | "compact";
   className?: string;
 }
 
@@ -172,8 +178,58 @@ export function RidgeHero({
   amplitude = 90,
   showHeroThread = true,
   artworkHeight = "clamp(280px, 36vw, 480px)",
+  variant = "compact",
   className,
 }: RidgeHeroProps) {
+  if (variant === "compact") {
+    return (
+      <section
+        className={cn("relative isolate overflow-hidden pt-4", className)}
+        aria-labelledby="ridge-hero-title"
+      >
+        {/* Slim ridge accent — keeps the maze-of-lines identity at a whisper. */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-0 h-32 ridge-color-cobalt opacity-[0.10]"
+        >
+          <RidgeArtwork
+            seed={seed}
+            lines={Math.max(12, Math.round(lines / 2))}
+            amplitude={Math.round(amplitude / 2)}
+            showHeroThread={false}
+            className="text-[hsl(230,93%,53%)]"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent to-background" />
+        </div>
+        <div className="relative flex flex-col gap-4 pt-10 pb-2 sm:flex-row sm:items-end sm:justify-between">
+          <div className="min-w-0">
+            {eyebrow && (
+              <div className="mb-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-primary">
+                {eyebrow}
+              </div>
+            )}
+            <h1
+              id="ridge-hero-title"
+              className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl"
+            >
+              {title}
+            </h1>
+            {subtitle && (
+              <p className="mt-1.5 max-w-2xl text-sm text-muted-foreground">
+                {subtitle}
+              </p>
+            )}
+          </div>
+          {rightSlot && (
+            <div className="flex shrink-0 flex-wrap items-center gap-2 text-overline text-foreground">
+              {rightSlot}
+            </div>
+          )}
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section
       className={cn("relative isolate overflow-hidden", className)}
@@ -188,7 +244,7 @@ export function RidgeHero({
           lines={lines}
           amplitude={amplitude}
           showHeroThread={showHeroThread}
-          className="text-[hsl(223,94%,53%)]"
+          className="text-[hsl(230,93%,53%)]"
         />
         {/* Soft gradient fade at the bottom so the overlaid title sits
             calmly on the artwork without harsh visual conflict. */}

@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
-import type { Task } from "@/types";
+import { PAGE_SIZE, paginateQuery, totalPages } from "@/lib/pagination";
+import type { Task, UserRole } from "@/types";
 
 /**
  * Count open tasks per event for a given viewer in a single round-trip.
@@ -43,6 +44,35 @@ export async function getOpenTaskCountsForUser(
 }
 
 /**
+ * Per-event task progress: { completed, total } for each event in one round-trip.
+ * Used by the dashboard progress rings.
+ */
+export async function getTaskProgressByEvent(
+  eventIds: string[]
+): Promise<Record<string, { completed: number; total: number }>> {
+  if (eventIds.length === 0) return {};
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("tasks")
+    .select("event_id, status")
+    .in("event_id", eventIds);
+
+  if (error || !data) return {};
+
+  const progress: Record<string, { completed: number; total: number }> = {};
+  for (const row of data as { event_id: string; status: string }[]) {
+    if (!progress[row.event_id]) {
+      progress[row.event_id] = { completed: 0, total: 0 };
+    }
+    progress[row.event_id].total++;
+    if (row.status === "complete" || row.status === "skipped") {
+      progress[row.event_id].completed++;
+    }
+  }
+  return progress;
+}
+
+/**
  * All open tasks assigned to a user across every event they can see,
  * with parent event + account context joined in. Powers the dashboard
  * `MyTasksPanel` and the dedicated `/inbox` page.
@@ -58,7 +88,7 @@ export interface AssignedTaskWithContext extends Task {
 
 export async function getTasksAssignedToUser(
   userId: string,
-  options: { includeCompletedSince?: string } = {}
+  options: { includeCompletedSince?: string; page?: number; pageSize?: number } = {}
 ): Promise<AssignedTaskWithContext[]> {
   const supabase = await createClient();
   let query = supabase
@@ -105,8 +135,11 @@ export async function getTasksAssignedToUser(
             email: assigned.email as string,
             role: assigned.role as NonNullable<Task["assignedTo"]>["role"],
             accountId: assigned.account_id as string | undefined,
+            hasCompletedOnboarding: true,
           }
         : undefined,
+      assignedRole: (r.assigned_role as string | null) as Task["assignedRole"],
+      targetPath: (r.target_path as string | null) ?? undefined,
       dueDate: (r.due_date as string | null) ?? undefined,
       completedAt: (r.completed_at as string | null) ?? undefined,
       isBlocking: Boolean(r.is_blocking),
@@ -115,6 +148,105 @@ export async function getTasksAssignedToUser(
       eventName: events?.name ?? "Unknown event",
       accountName: events?.accounts?.name ?? null,
     };
+  });
+}
+
+/** A group of open tasks for a single event, enriched with event context. */
+export interface TaskGroupByEvent {
+  eventId: string;
+  eventName: string;
+  accountName: string;
+  eventDate: string;
+  healthStatus: string;
+  tasks: Task[];
+}
+
+/**
+ * Open tasks for the given role or user, grouped by active event.
+ *
+ * Pulls tasks where `assigned_role = role` OR `assigned_to = userId`
+ * from non-terminal events, excluding completed/skipped tasks. Results
+ * are ordered so tasks with the earliest due date appear first, then
+ * by event start date.
+ */
+export async function getTasksByRole(
+  role: UserRole,
+  userId: string,
+): Promise<TaskGroupByEvent[]> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("tasks")
+    .select(
+      "*, events!inner(id, name, account_id, event_date_start, health_status, current_stage, accounts(name))"
+    )
+    .not("status", "in", '("complete","skipped")')
+    .not("events.current_stage", "in", '("complete")')
+    .or(`assigned_role.eq.${role},assigned_to.eq.${userId}`)
+    .order("due_date", { ascending: true, nullsFirst: false });
+
+  if (error || !data) return [];
+
+  const groupMap = new Map<string, TaskGroupByEvent>();
+
+  for (const row of data) {
+    const r = row as Record<string, unknown>;
+    const ev = r.events as {
+      id: string;
+      name: string;
+      event_date_start: string;
+      health_status: string;
+      accounts: { name?: string } | null;
+    };
+    const eid = ev.id;
+
+    if (!groupMap.has(eid)) {
+      groupMap.set(eid, {
+        eventId: eid,
+        eventName: ev.name,
+        accountName: ev.accounts?.name ?? "Unknown",
+        eventDate: ev.event_date_start,
+        healthStatus: ev.health_status,
+        tasks: [],
+      });
+    }
+
+    const assigned = r.assigned as Record<string, unknown> | null | undefined;
+    groupMap.get(eid)!.tasks.push({
+      id: r.id as string,
+      eventId: eid,
+      milestoneId: (r.milestone_id as string | null) ?? undefined,
+      title: r.title as string,
+      description: (r.description as string | null) ?? undefined,
+      taskType: r.task_type as Task["taskType"],
+      category: r.category as Task["category"],
+      status: r.status as Task["status"],
+      priority: r.priority as Task["priority"],
+      assignedTo: assigned
+        ? {
+            id: assigned.id as string,
+            name: assigned.name as string,
+            email: assigned.email as string,
+            role: assigned.role as NonNullable<Task["assignedTo"]>["role"],
+            accountId: assigned.account_id as string | undefined,
+            hasCompletedOnboarding: true,
+          }
+        : undefined,
+      assignedRole: (r.assigned_role as string | null) as Task["assignedRole"],
+      targetPath: (r.target_path as string | null) ?? undefined,
+      dueDate: (r.due_date as string | null) ?? undefined,
+      completedAt: (r.completed_at as string | null) ?? undefined,
+      isBlocking: Boolean(r.is_blocking),
+      customerVisible: Boolean(r.customer_visible),
+      sortOrder: (r.sort_order as number) ?? 0,
+    });
+  }
+
+  return [...groupMap.values()].sort((a, b) => {
+    const aFirst = a.tasks[0]?.dueDate ?? "9999-12-31";
+    const bFirst = b.tasks[0]?.dueDate ?? "9999-12-31";
+    if (aFirst !== bFirst) return aFirst.localeCompare(bFirst);
+    return a.eventDate.localeCompare(b.eventDate);
   });
 }
 
@@ -145,10 +277,13 @@ export async function getTasksByEvent(eventId: string): Promise<Task[]> {
             id: assigned.id as string,
             name: assigned.name as string,
             email: assigned.email as string,
-            role: assigned.role as Task["assignedTo"] extends undefined ? never : NonNullable<Task["assignedTo"]>["role"],
+            role: assigned.role as NonNullable<Task["assignedTo"]>["role"],
             accountId: assigned.account_id as string | undefined,
+            hasCompletedOnboarding: true,
           }
         : undefined,
+      assignedRole: row.assigned_role ?? undefined,
+      targetPath: row.target_path ?? undefined,
       dueDate: row.due_date ?? undefined,
       completedAt: row.completed_at ?? undefined,
       isBlocking: row.is_blocking,

@@ -46,9 +46,9 @@ export function PartnerPipelineTable({ attributions }: PartnerPipelineTableProps
   if (attributions.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center rounded-[var(--radius-card)] border border-white/[0.06] bg-white/[0.02] p-12 text-center">
-        <FileText size={32} className="mb-3 text-text-muted" />
-        <p className="text-sm text-text-muted">No attributions yet</p>
-        <p className="mt-1 text-xs text-text-muted">
+        <FileText size={32} className="mb-3 text-muted-foreground" />
+        <p className="text-sm text-muted-foreground">No attributions yet</p>
+        <p className="mt-1 text-xs text-muted-foreground">
           Share your partner link to start building your pipeline
         </p>
       </div>
@@ -60,10 +60,10 @@ export function PartnerPipelineTable({ attributions }: PartnerPipelineTableProps
       <Table>
         <TableHeader>
           <TableRow className="border-white/[0.06] hover:bg-transparent">
-            <TableHead className="text-text-muted">Date</TableHead>
-            <TableHead className="text-text-muted">Type</TableHead>
-            <TableHead className="text-text-muted">Commission</TableHead>
-            <TableHead className="text-text-muted">Status</TableHead>
+            <TableHead className="text-muted-foreground">Date</TableHead>
+            <TableHead className="text-muted-foreground">Type</TableHead>
+            <TableHead className="text-muted-foreground">Commission</TableHead>
+            <TableHead className="text-muted-foreground">Status</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -73,7 +73,7 @@ export function PartnerPipelineTable({ attributions }: PartnerPipelineTableProps
 
             return (
               <TableRow key={attr.id} className="border-white/[0.06]">
-                <TableCell className="text-text-secondary">
+                <TableCell className="text-muted-foreground">
                   {new Date(attr.createdAt).toLocaleDateString("en-ZA", {
                     day: "numeric",
                     month: "short",
@@ -81,7 +81,7 @@ export function PartnerPipelineTable({ attributions }: PartnerPipelineTableProps
                   })}
                 </TableCell>
                 <TableCell>
-                  <span className="flex items-center gap-2 text-text-primary">
+                  <span className="flex items-center gap-2 text-foreground">
                     {isQuote ? (
                       <FileText size={14} className="text-violet-400" />
                     ) : (
@@ -90,7 +90,7 @@ export function PartnerPipelineTable({ attributions }: PartnerPipelineTableProps
                     {isQuote ? "Quote" : "Event"}
                   </span>
                 </TableCell>
-                <TableCell className="font-mono text-text-primary">
+                <TableCell className="font-mono text-foreground">
                   {attr.commissionAmount != null
                     ? formatCurrency(attr.commissionAmount)
                     : "—"}

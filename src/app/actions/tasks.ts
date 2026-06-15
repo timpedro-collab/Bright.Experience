@@ -10,15 +10,19 @@
  */
 
 import { createClient } from "@/lib/supabase/server";
+import { getServiceRoleClient } from "@/lib/supabase/service-role";
 import { revalidatePath } from "next/cache";
 import { dispatchNotification } from "@/lib/notifications/dispatch";
+import { bumpStreak } from "./streak";
+import type { ActionResult } from "@/types/actions";
 
-export async function completeTask(taskId: string) {
+/** Mark a task as complete — clears blocking gates when applicable. */
+export async function completeTask(taskId: string): Promise<ActionResult> {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) throw new Error("Not authenticated");
+  if (!user) return { success: false, error: "Not authenticated" };
 
   const now = new Date().toISOString();
 
@@ -35,7 +39,7 @@ export async function completeTask(taskId: string) {
     .single();
 
   if (error || !task) {
-    throw new Error("Could not complete task — it may already be done.");
+    return { success: false, error: "Could not complete task — it may already be done." };
   }
 
   await supabase.from("audit_entries").insert({
@@ -66,17 +70,21 @@ export async function completeTask(taskId: string) {
     });
   }
 
+  bumpStreak().catch(() => {});
+
   revalidatePath(`/events/${task.event_id}/actions`);
   revalidatePath(`/events/${task.event_id}`);
   revalidatePath(`/events/${task.event_id}/timeline`);
+  return { success: true, data: undefined };
 }
 
-export async function skipTask(taskId: string, reason?: string) {
+/** Skip a task (internal only) — records reason for audit trail. */
+export async function skipTask(taskId: string, reason?: string): Promise<ActionResult> {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) throw new Error("Not authenticated");
+  if (!user) return { success: false, error: "Not authenticated" };
 
   const { data: task, error } = await supabase
     .from("tasks")
@@ -91,7 +99,7 @@ export async function skipTask(taskId: string, reason?: string) {
     .single();
 
   if (error || !task) {
-    throw new Error("Could not skip task — it may already be resolved.");
+    return { success: false, error: "Could not skip task — it may already be resolved." };
   }
 
   await supabase.from("audit_entries").insert({
@@ -106,14 +114,16 @@ export async function skipTask(taskId: string, reason?: string) {
   revalidatePath(`/events/${task.event_id}/actions`);
   revalidatePath(`/events/${task.event_id}`);
   revalidatePath(`/events/${task.event_id}/timeline`);
+  return { success: true, data: undefined };
 }
 
-export async function startTask(taskId: string) {
+/** Move a pending task to in_progress. */
+export async function startTask(taskId: string): Promise<ActionResult> {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) throw new Error("Not authenticated");
+  if (!user) return { success: false, error: "Not authenticated" };
 
   const { data: task, error } = await supabase
     .from("tasks")
@@ -124,8 +134,41 @@ export async function startTask(taskId: string) {
     .single();
 
   if (error || !task) {
-    throw new Error("Could not start task.");
+    return { success: false, error: "Could not start task." };
   }
 
   revalidatePath(`/events/${task.event_id}/actions`);
+  return { success: true, data: undefined };
+}
+
+/**
+ * Auto-complete all open tasks whose `target_path` matches, using the
+ * service-role client so it works from any server action context.
+ */
+export async function autoCompleteTaskByPath(
+  eventId: string,
+  targetPath: string
+): Promise<void> {
+  const admin = getServiceRoleClient();
+  const now = new Date().toISOString();
+
+  const { data: tasks } = await admin
+    .from("tasks")
+    .select("id")
+    .eq("event_id", eventId)
+    .eq("target_path", targetPath)
+    .not("status", "in", '("complete","skipped")');
+
+  if (!tasks || tasks.length === 0) return;
+
+  await admin
+    .from("tasks")
+    .update({ status: "complete", completed_at: now })
+    .in(
+      "id",
+      tasks.map((t: { id: string }) => t.id)
+    );
+
+  revalidatePath(`/events/${eventId}/actions`);
+  revalidatePath(`/events/${eventId}`);
 }

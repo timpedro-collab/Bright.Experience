@@ -59,3 +59,12 @@ export function timeSince(dateStr: string): string {
   if (hours > 0) return `${hours}h ago`;
   return "Just now";
 }
+
+/** Human-friendly proximity label for a due date, e.g. "due in 5 days". */
+export function formatDueProximity(dueDate: string): string {
+  const diffDays = daysUntilDate(dueDate);
+  if (diffDays < 0) return `${Math.abs(diffDays)}d overdue`;
+  if (diffDays === 0) return "due today";
+  if (diffDays === 1) return "due tomorrow";
+  return `due in ${diffDays} days`;
+}

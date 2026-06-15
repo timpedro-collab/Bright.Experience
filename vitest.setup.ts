@@ -22,7 +22,7 @@ process.env.NEXT_PUBLIC_SUPABASE_URL ??= "http://localhost:54321";
 process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??= "test-anon-key";
 process.env.SUPABASE_SERVICE_ROLE_KEY ??= "test-service-role-key";
 process.env.NEXT_PUBLIC_SITE_URL ??= "http://localhost:3000";
-process.env.NEXT_PUBLIC_BASE_URL ??= "http://localhost:3000";
+// NEXT_PUBLIC_BASE_URL removed — unified on NEXT_PUBLIC_SITE_URL
 process.env.FROM_EMAIL ??= "test@brightblue.test";
 process.env.SALES_TEAM_EMAIL ??= "sales@brightblue.test";
 process.env.STUDIO_TEAM_EMAIL ??= "studio@brightblue.test";

@@ -3,19 +3,28 @@ import { redirect } from "next/navigation";
 
 import { AdminPageShell } from "@/components/brand";
 import { QuoteQueueTable } from "@/components/quotes/QuoteQueueTable";
+import { Pagination } from "@/components/ui/Pagination";
 
 import { getUser } from "@/lib/auth";
 import { isInternalRole } from "@/lib/roles";
-import { getQuotes } from "@/lib/queries/quotes";
+import { getQuotesPaginated } from "@/lib/queries/quotes";
 import { getUnreadCount } from "@/lib/queries/notifications";
+import { parsePage } from "@/lib/pagination";
 
-export default async function QuotesPage() {
+interface QuotesPageProps {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}
+
+export default async function QuotesPage({ searchParams }: QuotesPageProps) {
   const user = await getUser();
   if (!user) redirect("/login");
   if (!isInternalRole(user.role)) redirect("/");
 
-  const [quotes, unread] = await Promise.all([
-    getQuotes(),
+  const params = await searchParams;
+  const page = parsePage(params);
+
+  const [result, unread] = await Promise.all([
+    getQuotesPaginated(page),
     getUnreadCount(user.id),
   ]);
 
@@ -27,10 +36,10 @@ export default async function QuotesPage() {
       title="The quote queue."
       subtitle="Every Book Now and proposal request — assign, work, and ship."
       heroRight={
-        quotes.length > 0 ? (
+        result.totalCount > 0 ? (
           <div className="text-overline text-muted-foreground tabular-nums">
             <span className="text-foreground text-base font-semibold">
-              {quotes.length}
+              {result.totalCount}
             </span>{" "}
             in flight
           </div>
@@ -39,7 +48,12 @@ export default async function QuotesPage() {
     >
       <div className="py-8">
         <QuoteQueueTable
-          quotes={quotes as Parameters<typeof QuoteQueueTable>[0]["quotes"]}
+          quotes={result.data as Parameters<typeof QuoteQueueTable>[0]["quotes"]}
+        />
+        <Pagination
+          currentPage={page}
+          totalPages={result.totalPages}
+          basePath="/admin/quotes"
         />
       </div>
     </AdminPageShell>

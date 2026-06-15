@@ -7,17 +7,82 @@
  * endpoint will prefer Cloud data; otherwise it uses local webhook data.
  */
 import { notFound, redirect } from "next/navigation";
+import Link from "next/link";
+import { Info } from "lucide-react";
 
 import { EventPageShell } from "@/components/brand";
 import { Badge } from "@/components/ui/badge";
+import { ExportMenu } from "@/components/ui/ExportMenu";
 import { LiveDashboardClient } from "@/components/telemetry/LiveDashboardClient";
 
 import { getUser } from "@/lib/auth";
+import { isInternalRole } from "@/lib/roles";
 import { getEventById } from "@/lib/queries/events";
 import { getLatestEventMetrics } from "@/lib/queries/event-metrics";
 import { getTelemetryByEvent } from "@/lib/queries/telemetry";
 import { getMachineInstancesByEvent } from "@/lib/queries/machine-instances";
 import { getUnreadCount } from "@/lib/queries/notifications";
+import { formatDateMedium } from "@/lib/dates";
+import { deriveLiveStatus, type LiveStatus } from "@/lib/live-status";
+
+function LiveBadge({ status }: { status: LiveStatus }) {
+  if (status.state === "live") {
+    return (
+      <Badge variant="success" className="gap-2">
+        <span className="size-1.5 rounded-full bg-success animate-pulse" />
+        Live
+      </Badge>
+    );
+  }
+  if (status.state === "standby") {
+    return <Badge variant="warning">Standby</Badge>;
+  }
+  if (status.state === "ended") {
+    return <Badge variant="muted">Event ended</Badge>;
+  }
+  return (
+    <Badge variant="info" className="gap-2">
+      Scheduled {status.startLabel}
+    </Badge>
+  );
+}
+
+function LiveContextBanner({ status, eventId }: { status: LiveStatus; eventId: string }) {
+  if (status.state === "scheduled") {
+    return (
+      <div className="flex items-start gap-3 rounded-lg border border-info/25 bg-info/8 p-4 mb-6">
+        <Info className="mt-0.5 size-4 shrink-0 text-info" />
+        <p className="text-sm text-muted-foreground">
+          Your live dashboard will activate on event day. Data will begin
+          streaming when the machine goes online.{" "}
+          {status.startLabel && (
+            <span className="font-medium text-foreground">
+              Event starts {status.startLabel}.
+            </span>
+          )}
+        </p>
+      </div>
+    );
+  }
+  if (status.state === "ended") {
+    return (
+      <div className="flex items-start gap-3 rounded-lg border border-white/8 bg-white/4 p-4 mb-6">
+        <Info className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+        <p className="text-sm text-muted-foreground">
+          This event has concluded.{" "}
+          <Link
+            href={`/events/${eventId}/reports`}
+            className="font-medium text-primary underline underline-offset-2"
+          >
+            View your reports
+          </Link>{" "}
+          for the full picture.
+        </p>
+      </div>
+    );
+  }
+  return null;
+}
 
 export default async function LiveDashboardPage({
   params,
@@ -38,6 +103,8 @@ export default async function LiveDashboardPage({
     ]);
   if (!event) return notFound();
 
+  const liveStatus = deriveLiveStatus(event);
+
   const feedLabels: Record<string, string> = {
     play_started: "Game session started",
     play_completed: "Game completed",
@@ -55,8 +122,7 @@ export default async function LiveDashboardPage({
     type: String(t.event_type ?? "unknown")
       .replace(/_.*/, "")
       .replace("captured", "lead"),
-    message:
-      feedLabels[String(t.event_type)] ?? String(t.event_type),
+    message: feedLabels[String(t.event_type)] ?? String(t.event_type),
     timestamp: String(t.timestamp ?? ""),
   }));
 
@@ -83,13 +149,15 @@ export default async function LiveDashboardPage({
       section="Live"
       title="Live dashboard."
       subtitle="Watch your activation perform in real time. Numbers refresh every 10 seconds."
+      isInternal={isInternalRole(user.role)}
       heroRight={
-        <Badge variant="success" className="gap-2">
-          <span className="size-1.5 rounded-full bg-success animate-pulse" />
-          Live
-        </Badge>
+        <div className="flex items-center gap-3">
+          <ExportMenu eventId={id} view="live" />
+          <LiveBadge status={liveStatus} />
+        </div>
       }
     >
+      <LiveContextBanner status={liveStatus} eventId={id} />
       <LiveDashboardClient
         eventId={id}
         initialMetrics={{

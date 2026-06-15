@@ -80,13 +80,15 @@ describe("canAdvanceStage", () => {
 });
 
 describe("advanceStage", () => {
-  it("throws when not authenticated", async () => {
+  it("returns error when not authenticated", async () => {
     supabase.setUser(null);
     const { advanceStage } = await import("./stages");
-    await expect(advanceStage("evt-1")).rejects.toThrow(/authenticated/);
+    const result = await advanceStage("evt-1");
+    expect(result.success).toBe(false);
+    if (!result.success) expect(result.error).toMatch(/authenticated/);
   });
 
-  it("throws when blockers remain", async () => {
+  it("returns error when blockers remain", async () => {
     supabase.setUser({ id: "u1" });
     supabase.setTableResponse("events", {
       data: { current_stage: "confirmed", name: "Spring" },
@@ -97,7 +99,9 @@ describe("advanceStage", () => {
       error: null,
     });
     const { advanceStage } = await import("./stages");
-    await expect(advanceStage("evt-1")).rejects.toThrow(/Cannot advance/);
+    const result = await advanceStage("evt-1");
+    expect(result.success).toBe(false);
+    if (!result.success) expect(result.error).toMatch(/Cannot advance/);
   });
 
   it("dispatches stage.changed + enqueues Pipedrive on success", async () => {

@@ -35,7 +35,7 @@ export default function ProposalPage() {
             seed="proposal::intake"
             lines={26}
             amplitude={80}
-            className="text-[hsl(223,94%,53%)]"
+            className="text-[hsl(230,93%,53%)]"
           />
           <div
             aria-hidden

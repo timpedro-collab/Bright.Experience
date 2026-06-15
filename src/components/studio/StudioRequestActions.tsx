@@ -60,13 +60,8 @@ export function StudioRequestActions({
 
   async function handleAction(status: AllowedStatus) {
     setLoading(status);
-    try {
-      await updateStudioRequestStatus(requestId, eventId, status);
-    } catch {
-      // Error surfaced upstream via revalidation / toast — no inline UI here.
-    } finally {
-      setLoading(null);
-    }
+    await updateStudioRequestStatus(requestId, eventId, status);
+    setLoading(null);
   }
 
   return (

@@ -10,14 +10,6 @@ alter type user_role add value if not exists 'partner_member';
 alter type user_role add value if not exists 'partner_admin';
 
 -- ============================================================
--- HELPER FUNCTION
--- ============================================================
-
-create or replace function user_partner_id() returns uuid as $$
-  select partner_id from partner_users where profile_id = auth.uid() limit 1;
-$$ language sql security definer stable;
-
--- ============================================================
 -- TABLES
 -- ============================================================
 
@@ -46,6 +38,11 @@ create table partner_users (
   created_at timestamptz default now(),
   unique (partner_id, profile_id)
 );
+
+-- Helper function — must come after partner_users table creation
+create or replace function user_partner_id() returns uuid as $$
+  select partner_id from partner_users where profile_id = auth.uid() limit 1;
+$$ language sql security definer stable;
 
 create table partner_attributions (
   id uuid primary key default gen_random_uuid(),

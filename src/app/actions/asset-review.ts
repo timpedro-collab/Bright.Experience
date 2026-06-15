@@ -97,6 +97,32 @@ export async function submitAssetReview(input: unknown) {
     return { success: false as const, error: updateError.message };
   }
 
+  // Stamp the latest version row with this round's outcome. Best-effort so
+  // the decision still lands even before the versions table is provisioned.
+  try {
+    const { data: latestVersion } = await supabase
+      .from("asset_versions")
+      .select("id")
+      .eq("asset_id", assetId)
+      .order("version", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (latestVersion?.id) {
+      await supabase
+        .from("asset_versions")
+        .update({
+          review_status:
+            decision === "approved" ? "approved" : "revision_requested",
+          review_feedback: feedback ?? null,
+          review_decided_by: user.id,
+          review_decided_at: now,
+        })
+        .eq("id", latestVersion.id);
+    }
+  } catch {
+    /* versions table not present yet — non-fatal */
+  }
+
   await supabase.from("audit_entries").insert({
     event_id: existing.event_id,
     actor_id: user.id,

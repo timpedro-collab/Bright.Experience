@@ -1,10 +1,6 @@
 /**
  * Event overview — the customer's (or internal user's) deep view of a
- * single event. Uses the editorial Bright.Experience design language:
- *   - <RidgeHero> with a deterministic ridge artwork seeded by event id
- *   - editorial "What's next" callout (no glass, no gradient orbs)
- *   - hairline-separated body with a 2-column reading layout
- *   - tracked uppercase eyebrows, italic-underlined cobalt CTAs
+ * single event. Uses EventPageShell for consistent chrome.
  */
 
 import { notFound, redirect } from "next/navigation";
@@ -16,26 +12,30 @@ import {
   Package as PackageIcon,
   Share2,
   MessageCircle,
-  ArrowRight,
+  CalendarClock,
+  ListChecks,
+  Files,
+  GitBranch,
 } from "lucide-react";
 
-import { CommandPalette } from "@/components/layout/CommandPalette";
-import { NotificationBell } from "@/components/notifications/NotificationBell";
-import { UserMenu } from "@/components/layout/UserMenu";
 import {
-  EditionShell,
-  EditionChrome,
-  EditionBody,
-  EditionFooter,
-  RidgeHero,
+  EventPageShell,
   EditorialEyebrow,
   Hairline,
 } from "@/components/brand";
+import {
+  GlassCard,
+  GlassCardHeader,
+  KpiGrid,
+  KpiCard,
+} from "@/components/cloud";
 import { HealthBadge, StageBadge } from "@/components/ui/StatusBadge";
 import { StageProgressBar } from "@/components/events/StageProgressBar";
-import { MilestoneTimeline } from "@/components/timeline/MilestoneTimeline";
 import { TaskChecklist } from "@/components/events/TaskChecklist";
-import { EventOwnershipPanel } from "@/components/events/EventOwnershipPanel";
+import { OverviewNextStep } from "@/components/events/OverviewNextStep";
+import { OverviewSidebar } from "@/components/events/OverviewSidebar";
+import { IntegrationStatus } from "@/components/ui/IntegrationStatus";
+import { SaveAsTemplateButton } from "@/components/admin/SaveAsTemplateButton";
 
 import { getEventById } from "@/lib/queries/events";
 import { getMilestonesByEvent } from "@/lib/queries/milestones";
@@ -43,13 +43,15 @@ import { getTasksByEvent } from "@/lib/queries/tasks";
 import { getAssetsByEvent } from "@/lib/queries/assets";
 import { getApprovalsByEvent } from "@/lib/queries/approvals";
 import { getUnreadCount } from "@/lib/queries/notifications";
+import { getRecentAuditEntries } from "@/lib/queries/audit";
+import { getTeamForEvent } from "@/lib/queries/team";
 import { getUser } from "@/lib/auth";
 import { isInternalRole } from "@/lib/roles";
 import { STAGE_CONFIG } from "@/types";
+import type { Event } from "@/types";
 import { formatDateLong, daysUntilDate, isOverdue } from "@/lib/dates";
 import { resolveEventNextStep } from "@/lib/event-next-step";
 import { canAdvanceStage } from "@/app/actions/stages";
-import { AdvanceStageButton } from "@/components/events/AdvanceStageButton";
 
 export default async function EventOverviewPage({
   params,
@@ -63,12 +65,14 @@ export default async function EventOverviewPage({
   if (!event) return notFound();
 
   const isInternal = isInternalRole(user.role);
-  const [milestones, tasks, assets, approvals, unread] = await Promise.all([
+  const [milestones, tasks, assets, approvals, unread, recentActivity, teamMembers] = await Promise.all([
     getMilestonesByEvent(id),
     getTasksByEvent(id),
     getAssetsByEvent(id),
     getApprovalsByEvent(id),
     getUnreadCount(user.id),
+    getRecentAuditEntries(id, 5),
+    getTeamForEvent(id),
   ]);
 
   const customerTasks = tasks.filter((t) => t.customerVisible);
@@ -78,6 +82,16 @@ export default async function EventOverviewPage({
   const completedCount = customerTasks.filter(
     (t) => t.status === "complete",
   ).length;
+
+  const myTasks = isInternal
+    ? tasks.filter(
+        (t) =>
+          t.status !== "complete" &&
+          t.status !== "skipped" &&
+          (t.assignedRole === user.role ||
+            t.assignedTo?.id === user.id),
+      )
+    : pendingCustomerTasks;
   const days = daysUntilDate(event.eventDateStart);
   const stageConfig = STAGE_CONFIG[event.currentStage];
 
@@ -97,7 +111,7 @@ export default async function EventOverviewPage({
     (m) =>
       m.status !== "complete" &&
       m.status !== "skipped" &&
-      isOverdue(m.targetDate)
+      isOverdue(m.targetDate),
   ).length;
 
   const heroSubtitle = (() => {
@@ -109,286 +123,216 @@ export default async function EventOverviewPage({
   })();
 
   return (
-    <EditionShell>
-      <EditionChrome
-        breadcrumbs={[
-          { label: "Home", href: "/" },
-          { label: event.name },
-        ]}
-        rightSlot={
-          <>
-            <NotificationBell unreadCount={unread} />
-            <span
-              className="hidden md:block h-6 w-px bg-border"
-              aria-hidden
-            />
-            <UserMenu user={user} />
-          </>
-        }
-      />
-
-      <RidgeHero
-        seed={event.id}
-        eyebrow={event.account.name}
-        title={event.name}
-        subtitle={heroSubtitle}
-        rightSlot={
-          <div className="flex items-center gap-2 flex-wrap justify-end">
-            <HealthBadge status={event.healthStatus} />
-            <StageBadge stage={event.currentStage} />
-            <Link
-              href={`/events/${id}/communications`}
-              className="inline-flex items-center gap-1.5 text-overline text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <MessageCircle className="h-3.5 w-3.5" /> Messages
-            </Link>
-            <Link
-              href={`/events/${id}/timeline`}
-              className="inline-flex items-center gap-1.5 text-overline text-[var(--color-bb-cobalt)] hover:opacity-80 transition-opacity"
-            >
-              <Share2 className="h-3.5 w-3.5" /> Timeline
-            </Link>
-          </div>
-        }
-      />
-
-      <EditionBody>
-        {/* Next-step editorial callout — flat, typographic, no glass orbs.
-            Tone drives the accent colour on the eyebrow + primary CTA so
-            "warning" reads visually different to "success". */}
+    <EventPageShell
+      event={event}
+      user={user}
+      unreadCount={unread}
+      section="Overview"
+      slug="overview"
+      eyebrow={event.account.name}
+      title={event.name}
+      subtitle={heroSubtitle}
+      isInternal={isInternal}
+      viewerRole={user.role}
+      heroRight={
+        <div className="flex items-center gap-2 flex-wrap justify-end">
+          <HealthBadge status={event.healthStatus} />
+          <StageBadge stage={event.currentStage} />
+          <Link
+            href={`/events/${id}/communications`}
+            className="inline-flex items-center gap-1.5 text-overline text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <MessageCircle className="h-3.5 w-3.5" /> Messages
+          </Link>
+          <Link
+            href={`/events/${id}/timeline`}
+            className="inline-flex items-center gap-1.5 text-overline text-[var(--color-bb-cobalt)] hover:opacity-80 transition-opacity"
+          >
+            <Share2 className="h-3.5 w-3.5" /> Timeline
+          </Link>
+        </div>
+      }
+    >
+      <div className="space-y-8 py-6">
         {nextStep && (
-          <section className="py-10 md:py-12">
-            <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] md:gap-12 items-end">
-              <div>
-                <EditorialEyebrow accent={nextStep.tone !== "warning"}>
-                  {nextStep.eyebrow}
-                </EditorialEyebrow>
-                <h2 className="text-heading text-foreground text-[clamp(1.5rem,3vw,2.25rem)] leading-tight mt-2 max-w-[32ch]">
-                  {nextStep.title}
-                </h2>
-                {nextStep.description && (
-                  <p className="mt-3 max-w-[58ch] text-base text-muted-foreground leading-relaxed">
-                    {nextStep.description}
-                  </p>
-                )}
-              </div>
-              <div className="flex flex-col md:items-end gap-2 mt-4 md:mt-0">
-                <Link
-                  href={nextStep.primaryAction.href}
-                  className={`inline-flex items-center gap-2 text-white px-5 py-2.5 rounded-sm text-sm font-medium hover:opacity-90 transition-opacity ${
-                    nextStep.tone === "warning"
-                      ? "bg-warning"
-                      : nextStep.tone === "success"
-                        ? "bg-success"
-                        : "bg-[var(--color-bb-cobalt)]"
-                  }`}
-                >
-                  {nextStep.primaryAction.label}
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-                {nextStep.secondaryAction && (
-                  <Link
-                    href={nextStep.secondaryAction.href}
-                    className="text-overline text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    {nextStep.secondaryAction.label} →
-                  </Link>
-                )}
-              </div>
-            </div>
-            {isInternal && (
-              <div className="mt-6 max-w-md">
-                <EditorialEyebrow>Internal · stage gate</EditorialEyebrow>
-                <div className="mt-2">
-                  <AdvanceStageButton
-                    eventId={id}
-                    currentStage={event.currentStage}
-                    canAdvance={stageGate.canAdvance}
-                    blockers={stageGate.blockers}
-                  />
-                </div>
-              </div>
-            )}
-          </section>
+          <OverviewNextStep
+            nextStep={nextStep}
+            isInternal={isInternal}
+            eventId={id}
+            currentStage={event.currentStage}
+            canAdvance={stageGate.canAdvance}
+            blockers={stageGate.blockers}
+          />
         )}
 
-        {/* Stage strip — 10 dashes representing the journey */}
-        <section className="py-6">
-          <div className="flex items-baseline justify-between gap-3 mb-3">
-            <EditorialEyebrow>The journey</EditorialEyebrow>
-            <span className="text-overline text-muted-foreground tabular-nums">
-              Stage {stageConfig.order + 1} of 10 · {stageConfig.label}
-            </span>
+        <KpiGrid>
+          <KpiCard
+            label="Time to event"
+            value={days > 0 ? `${days}d` : days === 0 ? "Today" : "Wrapped"}
+            icon={CalendarClock}
+            hint={event.venueName ?? undefined}
+          />
+          <KpiCard
+            label={isInternal ? "Open actions" : "Your actions"}
+            value={isInternal ? myTasks.length : pendingCustomerTasks.length}
+            icon={ListChecks}
+            hint={
+              isInternal
+                ? "assigned to you"
+                : `${completedCount}/${customerTasks.length} done`
+            }
+          />
+          <KpiCard label="Assets" value={assets.length} icon={Files} />
+          <KpiCard
+            label="Stage"
+            value={`${stageConfig.order + 1}/10`}
+            icon={GitBranch}
+            hint={stageConfig.label}
+          />
+        </KpiGrid>
+
+        <GlassCard>
+          <GlassCardHeader
+            title="The journey"
+            description={`Stage ${stageConfig.order + 1} of 10 · ${stageConfig.label}`}
+          />
+          <div className="p-6">
+            <StageProgressBar currentStage={event.currentStage} />
           </div>
-          <StageProgressBar currentStage={event.currentStage} />
-        </section>
+        </GlassCard>
 
-        {/* Two-column reading layout: actions + details on the left,
-            timeline + team + KPIs on the right. */}
-        <section className="grid grid-cols-1 lg:grid-cols-[1fr_22rem] gap-x-12 gap-y-10 py-10">
-          {/* MAIN COLUMN */}
-          <div className="space-y-12 lg:border-r lg:border-border/40 lg:pr-12">
-            {/* Your actions */}
-            <div>
-              <div className="flex items-baseline justify-between gap-3 mb-4">
-                <EditorialEyebrow accent>Your actions</EditorialEyebrow>
-                <span className="text-overline text-muted-foreground tabular-nums">
-                  {completedCount} of {customerTasks.length} complete
-                </span>
-              </div>
-              {customerTasks.length === 0 ? (
-                <p className="text-sm text-muted-foreground">
-                  Nothing for you to do right now. We&apos;ll ping you when
-                  something needs your eyes.
-                </p>
-              ) : (
-                <TaskChecklist tasks={customerTasks} />
-              )}
-              <Link
-                href={`/events/${id}/actions`}
-                className="mt-4 inline-block text-overline text-[var(--color-bb-cobalt)] underline decoration-from-font underline-offset-4 font-medium"
-              >
-                Open all actions →
-              </Link>
-            </div>
-
-            <Hairline />
-
-            {/* Event details */}
-            <div>
-              <EditorialEyebrow>The details</EditorialEyebrow>
-              <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4">
-                <DetailItem
-                  icon={Calendar}
-                  label="Event date"
-                  value={
-                    event.eventDateEnd
-                      ? `${formatDateLong(event.eventDateStart)} → ${formatDateLong(event.eventDateEnd)}`
-                      : formatDateLong(event.eventDateStart)
-                  }
-                />
-                {event.venueName && (
-                  <DetailItem
-                    icon={MapPin}
-                    label="Venue"
-                    value={`${event.venueName}${
-                      event.venueAddress ? `, ${event.venueAddress}` : ""
-                    }`}
-                  />
+        <section className="grid grid-cols-1 lg:grid-cols-[1fr_22rem] gap-6">
+          <div className="space-y-6 min-w-0">
+            <GlassCard>
+              <GlassCardHeader
+                title={isInternal ? "Your actions" : "What's needed from you"}
+                action={
+                  <span className="text-overline text-muted-foreground tabular-nums">
+                    {isInternal
+                      ? `${myTasks.length} open`
+                      : `${completedCount} of ${customerTasks.length} complete`}
+                  </span>
+                }
+              />
+              <div className="p-6">
+                {isInternal ? (
+                  myTasks.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">
+                      Nothing assigned to your role right now.
+                    </p>
+                  ) : (
+                    <ul className="space-y-2">
+                      {myTasks.slice(0, 8).map((task) => (
+                        <li key={task.id}>
+                          <Link
+                            href={`/events/${id}/${task.targetPath ?? "actions"}`}
+                            className="flex items-center justify-between gap-3 rounded-2xl border border-border/60 px-4 py-3 transition-colors hover:bg-muted/40"
+                          >
+                            <span className="text-sm font-medium text-foreground truncate">
+                              {task.title}
+                            </span>
+                            {task.priority === "critical" || task.priority === "high" ? (
+                              <span className={`text-[10px] font-semibold ${task.priority === "critical" ? "text-destructive" : "text-warning"}`}>
+                                {task.priority === "critical" ? "Critical" : "High"}
+                              </span>
+                            ) : null}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  )
+                ) : customerTasks.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">
+                    Nothing for you to do right now. We&apos;ll ping you when
+                    something needs your eyes.
+                  </p>
+                ) : (
+                  <TaskChecklist tasks={customerTasks} />
                 )}
-                <DetailItem
-                  icon={PackageIcon}
-                  label="Package"
-                  value={`${event.packageType.charAt(0).toUpperCase()}${event.packageType.slice(1)} · ${event.eventType}`}
-                />
-                {event.machineType && (
-                  <DetailItem
-                    icon={Monitor}
-                    label="Machine"
-                    value={event.machineType}
-                  />
-                )}
+                <Link
+                  href={`/events/${id}/actions`}
+                  className="mt-4 inline-block text-overline text-[var(--color-bb-cobalt)] underline decoration-from-font underline-offset-4 font-medium"
+                >
+                  {isInternal ? "View all tasks →" : "Open all actions →"}
+                </Link>
               </div>
-            </div>
+            </GlassCard>
+
+            <GlassCard>
+              <GlassCardHeader title="The details" />
+              <div className="p-6">
+                <EventDetails event={event} />
+              </div>
+            </GlassCard>
+
+            {isInternal && (
+              <GlassCard>
+                <GlassCardHeader title="Internal" />
+                <div className="p-6 space-y-6">
+                  <IntegrationStatus
+                    webhookConfigured={!!process.env.BRIGHTBLUE_WEBHOOK_SECRET}
+                    cloudApiConfigured={!!process.env.BRIGHTBLUE_API_KEY}
+                  />
+                  <Hairline className="opacity-40" />
+                  <div>
+                    <EditorialEyebrow>Template</EditorialEyebrow>
+                    <div className="mt-3">
+                      <SaveAsTemplateButton eventId={id} />
+                    </div>
+                  </div>
+                </div>
+              </GlassCard>
+            )}
           </div>
 
-          {/* SIDEBAR */}
-          <aside className="space-y-10">
-            <div>
-              <EditorialEyebrow>Timeline</EditorialEyebrow>
-              <div className="mt-4">
-                <MilestoneTimeline
-                  milestones={milestones}
-                  compact
-                  tasks={tasks}
-                  viewerRole={user.role}
-                />
-              </div>
-              <Link
-                href={`/events/${id}/timeline`}
-                className="mt-3 inline-block text-overline text-[var(--color-bb-cobalt)] underline decoration-from-font underline-offset-4 font-medium"
-              >
-                Open the full timeline →
-              </Link>
-            </div>
-
-            <Hairline />
-
-            <div>
-              <EditorialEyebrow>Your team</EditorialEyebrow>
-              <div className="mt-4">
-                <EventOwnershipPanel
-                  tasks={tasks}
-                  viewerRole={user.role}
-                  ctaHref={`/events/${id}/actions`}
-                />
-              </div>
-            </div>
-
-            <Hairline />
-
-            <div>
-              <EditorialEyebrow>The numbers</EditorialEyebrow>
-              <ul className="mt-3 flex flex-col divide-y divide-border/40 border-t border-b border-border/40">
-                <MetricRow
-                  label="Days to event"
-                  value={
-                    days === 0
-                      ? "Today"
-                      : days > 0
-                        ? `${days}`
-                        : `${Math.abs(days)} ago`
-                  }
-                />
-                <MetricRow
-                  label="Pending actions"
-                  value={pendingCustomerTasks.length.toString()}
-                  tone={
-                    pendingCustomerTasks.length > 0 ? "warning" : "muted"
-                  }
-                />
-                <MetricRow
-                  label="Blocking"
-                  value={tasks
-                    .filter((t) => t.isBlocking && t.status !== "complete")
-                    .length.toString()}
-                  tone={
-                    tasks.some((t) => t.isBlocking && t.status !== "complete")
-                      ? "destructive"
-                      : "muted"
-                  }
-                />
-                <MetricRow
-                  label="Approvals pending"
-                  value={approvals
-                    .filter((a) => a.status === "pending")
-                    .length.toString()}
-                  tone={
-                    approvals.some((a) => a.status === "pending")
-                      ? "warning"
-                      : "muted"
-                  }
-                />
-                <MetricRow
-                  label="Missed milestones"
-                  value={missedMilestones.toString()}
-                  tone={missedMilestones > 0 ? "destructive" : "muted"}
-                />
-              </ul>
-            </div>
-          </aside>
+          <OverviewSidebar
+            eventId={id}
+            milestones={milestones}
+            tasks={tasks}
+            approvals={approvals}
+            viewerRole={user.role}
+            daysToEvent={days}
+            pendingActionsCount={pendingCustomerTasks.length}
+            missedMilestonesCount={missedMilestones}
+            recentActivity={recentActivity}
+            teamMembers={teamMembers}
+          />
         </section>
-      </EditionBody>
+      </div>
+    </EventPageShell>
+  );
+}
 
-      <EditionFooter
-        rightSlot={
-          <Link href="/" className="hover:opacity-80 transition-opacity">
-            Back to home →
-          </Link>
-        }
-      />
-      <CommandPalette />
-    </EditionShell>
+function EventDetails({ event }: { event: Event }) {
+  return (
+    <div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4">
+        <DetailItem
+          icon={Calendar}
+          label="Event date"
+          value={
+            event.eventDateEnd
+              ? `${formatDateLong(event.eventDateStart)} → ${formatDateLong(event.eventDateEnd)}`
+              : formatDateLong(event.eventDateStart)
+          }
+        />
+        {event.venueName && (
+          <DetailItem
+            icon={MapPin}
+            label="Venue"
+            value={`${event.venueName}${event.venueAddress ? `, ${event.venueAddress}` : ""}`}
+          />
+        )}
+        <DetailItem
+          icon={PackageIcon}
+          label="Package"
+          value={`${event.packageType.charAt(0).toUpperCase()}${event.packageType.slice(1)} · ${event.eventType}`}
+        />
+        {event.machineType && (
+          <DetailItem icon={Monitor} label="Machine" value={event.machineType} />
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -409,32 +353,5 @@ function DetailItem({
         <p className="text-sm text-foreground leading-snug">{value}</p>
       </div>
     </div>
-  );
-}
-
-function MetricRow({
-  label,
-  value,
-  tone = "default",
-}: {
-  label: string;
-  value: string;
-  tone?: "default" | "muted" | "warning" | "destructive";
-}) {
-  const toneClass = {
-    default: "text-foreground",
-    muted: "text-muted-foreground",
-    warning: "text-warning",
-    destructive: "text-destructive",
-  }[tone];
-  return (
-    <li className="flex items-center justify-between py-2.5">
-      <span className="text-sm text-muted-foreground">{label}</span>
-      <span
-        className={`text-base font-semibold tabular-nums ${toneClass}`}
-      >
-        {value}
-      </span>
-    </li>
   );
 }

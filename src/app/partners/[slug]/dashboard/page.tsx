@@ -3,8 +3,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Sparkles, Share2 } from "lucide-react";
 
-import { AppShell } from "@/components/layout/AppShell";
-import { PageHeader } from "@/components/layout/PageHeader";
+import { PortalPageShell, partnerTabs } from "@/components/brand";
 import { NextStepCard } from "@/components/layout/NextStepCard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -49,35 +48,30 @@ export default async function PartnerDashboardPage({ params }: DashboardPageProp
   ).length;
 
   return (
-    <AppShell
+    <PortalPageShell
       user={user}
-      partnerSlug={slug}
-      notificationCount={unread}
+      unreadCount={unread}
+      scope={partnerName}
+      section="Dashboard"
+      slug={slug}
+      tabs={partnerTabs(slug)}
+      title="Partner dashboard"
+      subtitle="Track every referral, conversion and commission from one workspace."
+      heroRight={
+        <>
+          <Button asChild variant="glass" size="sm">
+            <Link href={`/partners/${slug}/resources`}>
+              <Sparkles className="h-4 w-4" /> Resources
+            </Link>
+          </Button>
+          <Button asChild variant="brand" size="sm">
+            <Link href={`/partners/${slug}/clients`}>
+              <Share2 className="h-4 w-4" /> Clients
+            </Link>
+          </Button>
+        </>
+      }
     >
-      <PageHeader
-        eyebrow={partnerName}
-        title="Partner dashboard"
-        subtitle="Track every referral, conversion and commission from one workspace."
-        breadcrumbs={[
-          { label: "Partners", href: `/partners/${slug}/dashboard` },
-          { label: "Dashboard" },
-        ]}
-        actions={
-          <>
-            <Button asChild variant="glass" size="sm">
-              <Link href={`/partners/${slug}/resources`}>
-                <Sparkles className="h-4 w-4" /> Resources
-              </Link>
-            </Button>
-            <Button asChild variant="brand" size="sm">
-              <Link href={`/partners/${slug}/clients`}>
-                <Share2 className="h-4 w-4" /> Clients
-              </Link>
-            </Button>
-          </>
-        }
-      />
-
       <div className="mb-6">
         <NextStepCard
           eyebrow="Grow your pipeline"
@@ -137,6 +131,6 @@ export default async function PartnerDashboardPage({ params }: DashboardPageProp
           )}
         </CardContent>
       </Card>
-    </AppShell>
+    </PortalPageShell>
   );
 }

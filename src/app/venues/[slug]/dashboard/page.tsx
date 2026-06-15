@@ -11,15 +11,16 @@ import {
   PlusCircle,
 } from "lucide-react";
 
-import { AppShell } from "@/components/layout/AppShell";
-import { PageHeader } from "@/components/layout/PageHeader";
+import { PortalPageShell, venueTabs } from "@/components/brand";
 import { NextStepCard } from "@/components/layout/NextStepCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { CompactStat, VenueDetailsCard } from "@/components/venues/VenueStatWidgets";
+import { buildWeeklyRunway } from "@/components/venues/venue-helpers";
 
 import { getUser } from "@/lib/auth";
+import { getPartnerForUser } from "@/lib/queries/partners";
 import { getVenueBySlug } from "@/lib/queries/venues";
 import { getPlacementsByVenue } from "@/lib/queries/placements";
 import { getSlotsByPlacement } from "@/lib/queries/sponsorship-slots";
@@ -38,6 +39,9 @@ export default async function VenueDashboardPage({ params }: Props) {
   const venue = await getVenueBySlug(slug);
   if (!venue) redirect("/");
 
+  const partner = await getPartnerForUser(user.id);
+  if (!partner || venue.partner_id !== partner.id) redirect("/");
+
   const placements = await getPlacementsByVenue(venue.id);
   const unread = await getUnreadCount(user.id);
 
@@ -50,22 +54,7 @@ export default async function VenueDashboardPage({ params }: Props) {
   const availableSlots = allSlots.filter((s) => s.status === "available");
   const reservedSlots = allSlots.filter((s) => s.status === "reserved");
 
-  // Build a simple 12-week calendar
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const weeks: { weekStart: Date; placements: typeof placements }[] = [];
-  for (let w = 0; w < 12; w++) {
-    const weekStart = new Date(today);
-    weekStart.setDate(today.getDate() + w * 7);
-    const weekEnd = new Date(weekStart);
-    weekEnd.setDate(weekStart.getDate() + 7);
-    const hits = placements.filter((p) => {
-      const start = new Date(p.start_date);
-      const end = p.end_date ? new Date(p.end_date) : new Date(start.getTime() + 7 * 86400000);
-      return start < weekEnd && end >= weekStart;
-    });
-    weeks.push({ weekStart, placements: hits });
-  }
+  const weeks = buildWeeklyRunway(placements);
 
   const nextStepDescription = availableSlots.length > 0
     ? `${availableSlots.length} sponsorship slot${availableSlots.length === 1 ? " is" : "s are"} available across your active placements. Open the slot list to invite sponsors.`
@@ -74,28 +63,30 @@ export default async function VenueDashboardPage({ params }: Props) {
       : "Add your first placement to unlock sponsorship slot sales.";
 
   return (
-    <AppShell user={user} venueSlug={slug} notificationCount={unread}>
-      <PageHeader
-        eyebrow={venue.address ? `${venue.address}` : "Venue runway"}
-        title={venue.name}
-        subtitle="Live placements, calendar runway, and available sponsorship slots."
-        breadcrumbs={[{ label: "Venues" }, { label: venue.name }]}
-        actions={
-          <>
-            <Button asChild variant="glass" size="sm">
-              <Link href={`/venues/${slug}/packages`}>
-                <Building2 className="h-4 w-4" /> Packages
-              </Link>
-            </Button>
-            <Button asChild variant="brand" size="sm">
-              <Link href={`/venues/${slug}/placements`}>
-                <PlusCircle className="h-4 w-4" /> New placement
-              </Link>
-            </Button>
-          </>
-        }
-      />
-
+    <PortalPageShell
+      user={user}
+      unreadCount={unread}
+      scope={venue.address ? `${venue.address}` : "Venue runway"}
+      section="Dashboard"
+      slug={slug}
+      tabs={venueTabs(slug)}
+      title={venue.name}
+      subtitle="Live placements, calendar runway, and available sponsorship slots."
+      heroRight={
+        <>
+          <Button asChild variant="glass" size="sm">
+            <Link href={`/venues/${slug}/packages`}>
+              <Building2 className="h-4 w-4" /> Packages
+            </Link>
+          </Button>
+          <Button asChild variant="brand" size="sm">
+            <Link href={`/venues/${slug}/placements`}>
+              <PlusCircle className="h-4 w-4" /> New placement
+            </Link>
+          </Button>
+        </>
+      }
+    >
       <div className="mb-6">
         <NextStepCard
           eyebrow="Your next step"
@@ -181,7 +172,7 @@ export default async function VenueDashboardPage({ params }: Props) {
                               key={p.id}
                               className="inline-flex items-center gap-1.5 rounded-md border border-primary/25 bg-primary/8 px-2 py-0.5 text-xs text-foreground"
                             >
-                              <span className="h-1.5 w-1.5 rounded-full bg-primary shadow-[0_0_8px_hsl(223,94%,53%,0.7)]" />
+                              <span className="h-1.5 w-1.5 rounded-full bg-primary shadow-[0_0_8px_hsl(230,93%,53%,0.7)]" />
                               {(p.machine_instances as { nickname?: string })?.nickname ?? "Machine"}
                             </span>
                           ))}
@@ -195,84 +186,11 @@ export default async function VenueDashboardPage({ params }: Props) {
           </CardContent>
         </Card>
 
-        <Card tone="subtle">
-          <CardHeader className="pb-3">
-            <CardTitle>Venue details</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3 text-sm">
-            <DetailRow icon={MapPin} label="Address" value={venue.address || "—"} />
-            <DetailRow icon={Building2} label="Postcode" value={venue.postcode || "—"} />
-            <DetailRow
-              icon={Sparkles}
-              label="Type"
-              value={
-                <Badge variant="outline" className="text-[10px]">
-                  {venue.venue_type ? venue.venue_type.replace(/_/g, " ") : "Other"}
-                </Badge>
-              }
-            />
-            <DetailRow
-              icon={Ticket}
-              label="Capacity"
-              value={venue.capacity ? venue.capacity.toLocaleString() : "—"}
-            />
-          </CardContent>
-        </Card>
+        <VenueDetailsCard
+          venue={venue}
+          icons={{ mapPin: MapPin, building: Building2, sparkles: Sparkles, ticket: Ticket }}
+        />
       </div>
-    </AppShell>
-  );
-}
-
-function DetailRow({
-  icon: Icon,
-  label,
-  value,
-}: {
-  icon: React.ElementType;
-  label: string;
-  value: React.ReactNode;
-}) {
-  return (
-    <div className="flex items-center justify-between gap-3 border-b border-white/[0.04] py-2 last:border-0">
-      <span className="flex items-center gap-2 text-muted-foreground">
-        <Icon size={14} />
-        {label}
-      </span>
-      <span className="text-foreground text-right">{value}</span>
-    </div>
-  );
-}
-
-const COMPACT_TONES: Record<
-  "default" | "success" | "warning" | "info",
-  string
-> = {
-  default: "text-foreground",
-  success: "text-success",
-  warning: "text-warning",
-  info: "text-info",
-};
-
-function CompactStat({
-  icon: Icon,
-  label,
-  value,
-  tone = "default",
-}: {
-  icon: React.ElementType;
-  label: string;
-  value: number;
-  tone?: "default" | "success" | "warning" | "info";
-}) {
-  return (
-    <div className="flex items-center gap-3">
-      <Icon size={16} className="text-muted-foreground" />
-      <div>
-        <p className="text-overline text-muted-foreground leading-none">{label}</p>
-        <p className={`mt-1 text-xl font-semibold tabular-nums leading-none ${COMPACT_TONES[tone]}`}>
-          {value}
-        </p>
-      </div>
-    </div>
+    </PortalPageShell>
   );
 }

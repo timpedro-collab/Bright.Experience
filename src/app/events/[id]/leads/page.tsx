@@ -5,30 +5,40 @@ import { Users, TrendingUp, Star, Clock } from "lucide-react";
 import { EventPageShell, EditorialEyebrow, Hairline } from "@/components/brand";
 import { MetricCard } from "@/components/telemetry/MetricCard";
 import { LeadTable } from "@/components/telemetry/LeadTable";
+import { ExportMenu } from "@/components/ui/ExportMenu";
 
 import { getUser } from "@/lib/auth";
+import { isInternalRole } from "@/lib/roles";
 import { getEventById } from "@/lib/queries/events";
-import { getLeadsByEvent, getLeadCount } from "@/lib/queries/leads";
+import { getLeadsByEventPaginated, getLeadCount } from "@/lib/queries/leads";
 import { getLatestEventMetrics } from "@/lib/queries/event-metrics";
 import { getUnreadCount } from "@/lib/queries/notifications";
+import { parsePage } from "@/lib/pagination";
+import { Pagination } from "@/components/ui/Pagination";
 
 export default async function LeadsPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const user = await getUser();
   if (!user) redirect("/login");
   const { id } = await params;
+  const sp = await searchParams;
+  const page = parsePage(sp);
 
-  const [event, leads, leadCount, metrics, unread] = await Promise.all([
+  const [event, leadsResult, leadCount, metrics, unread] = await Promise.all([
     getEventById(id),
-    getLeadsByEvent(id),
+    getLeadsByEventPaginated(id, page),
     getLeadCount(id),
     getLatestEventMetrics(id),
     getUnreadCount(user.id),
   ]);
   if (!event) return notFound();
+
+  const leads = leadsResult.data;
 
   const todayStart = new Date();
   todayStart.setHours(0, 0, 0, 0);
@@ -71,6 +81,8 @@ export default async function LeadsPage({
       section="Leads"
       title="Captured leads."
       subtitle={`${leadCount} contacts captured.${todaysLeads > 0 ? ` ${todaysLeads} from today.` : " Pull in more by sharing the live link."}`}
+      isInternal={isInternalRole(user.role)}
+      heroRight={<ExportMenu eventId={id} view="leads" />}
     >
       <section className="py-8">
         <EditorialEyebrow accent>The headlines</EditorialEyebrow>
@@ -109,6 +121,11 @@ export default async function LeadsPage({
         <div className="mt-4">
           <LeadTable leads={tableLeads} />
         </div>
+        <Pagination
+          currentPage={page}
+          totalPages={leadsResult.totalPages}
+          basePath={`/events/${id}/leads`}
+        />
       </section>
     </EventPageShell>
   );

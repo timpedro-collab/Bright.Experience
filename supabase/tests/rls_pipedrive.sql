@@ -6,7 +6,7 @@
 -- =====================================================================
 
 begin;
-\i tests/_fixtures.sql
+\ir _fixtures.psql
 
 insert into pipedrive_outbox (id, event_id, kind, payload, deal_id) values
   ('00000000-0000-4000-8000-0000000000a3', '00000000-0000-4000-8000-0000000000e1', 'note', '{"note":"hello"}'::jsonb, '123')

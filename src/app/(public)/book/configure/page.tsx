@@ -15,7 +15,7 @@ import { getMachines } from "@/lib/queries/machines";
 import { getGames } from "@/lib/queries/games";
 
 interface ConfigurePageProps {
-  searchParams: Promise<{ package?: string }>;
+  searchParams: Promise<{ package?: string; machine?: string }>;
 }
 
 export const metadata = {
@@ -26,7 +26,7 @@ export const metadata = {
 export default async function ConfigurePage({
   searchParams,
 }: ConfigurePageProps) {
-  const { package: pkgSlug } = await searchParams;
+  const { package: pkgSlug, machine: machineSlug } = await searchParams;
   if (!pkgSlug) {
     redirect("/catalog/packages");
   }
@@ -67,6 +67,7 @@ export default async function ConfigurePage({
         slug: g.slug,
         category: g.category ?? null,
       }))}
+      preSelectedMachine={machineSlug}
     />
   );
 }

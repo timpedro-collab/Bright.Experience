@@ -3,19 +3,28 @@ import { redirect } from "next/navigation";
 
 import { AdminPageShell } from "@/components/brand";
 import { AdminPartnerTable } from "./AdminPartnerTable";
+import { Pagination } from "@/components/ui/Pagination";
 
 import { getUser } from "@/lib/auth";
 import { isInternalRole } from "@/lib/roles";
-import { getPartners } from "@/lib/queries/partners";
+import { getPartnersPaginated } from "@/lib/queries/partners";
 import { getUnreadCount } from "@/lib/queries/notifications";
+import { parsePage } from "@/lib/pagination";
 
-export default async function AdminPartnersPage() {
+interface AdminPartnersPageProps {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}
+
+export default async function AdminPartnersPage({ searchParams }: AdminPartnersPageProps) {
   const user = await getUser();
   if (!user) redirect("/login");
   if (!isInternalRole(user.role)) redirect("/");
 
-  const [partners, unread] = await Promise.all([
-    getPartners(),
+  const params = await searchParams;
+  const page = parsePage(params);
+
+  const [result, unread] = await Promise.all([
+    getPartnersPaginated(page),
     getUnreadCount(user.id),
   ]);
 
@@ -27,10 +36,10 @@ export default async function AdminPartnersPage() {
       title="Partner management."
       subtitle="Review, approve, and manage partner accounts."
       heroRight={
-        partners.length > 0 ? (
+        result.totalCount > 0 ? (
           <div className="text-overline text-muted-foreground tabular-nums">
             <span className="text-foreground text-base font-semibold">
-              {partners.length}
+              {result.totalCount}
             </span>{" "}
             partners
           </div>
@@ -38,7 +47,12 @@ export default async function AdminPartnersPage() {
       }
     >
       <div className="py-8">
-        <AdminPartnerTable partners={partners as Record<string, unknown>[]} />
+        <AdminPartnerTable partners={result.data as Record<string, unknown>[]} />
+        <Pagination
+          currentPage={page}
+          totalPages={result.totalPages}
+          basePath="/admin/partners"
+        />
       </div>
     </AdminPageShell>
   );

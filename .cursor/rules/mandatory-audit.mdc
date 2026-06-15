@@ -1,0 +1,31 @@
+---
+description: Mandatory self-audit before claiming any build is complete
+alwaysApply: true
+---
+
+# Mandatory Audit Before Completion
+
+Never claim a task, feature, or build is "done" without first completing a full self-audit. Every implementation must be verified before marking complete.
+
+## Required Audit Steps
+
+1. **Read every file you created or modified** — no exceptions. Verify the logic does what you think it does.
+2. **Check for dead code** — if you built a hook, component, or utility, confirm it is actually imported and called somewhere. Unused code = unfinished work.
+3. **Trace the data flow end-to-end** — follow props from parent to child, server action to client handler, DB column to UI render. Confirm nothing is disconnected.
+4. **Verify z-index and layering** — any overlay, modal, or confetti must render above everything it needs to. Check competing z-indices across the codebase.
+5. **Check animation performance** — if an animated component renders in a list, confirm it won't fire N simultaneous animations on page load. Animations should only run when meaningful (user-triggered, viewport entry), not on every server-rendered item.
+6. **Verify refs and event targets** — if a ref is assigned to multiple elements, only the last assignment wins. Confirm the ref points to the element the user actually interacts with.
+7. **Run `tsc --noEmit`** — the build must compile with zero type errors.
+8. **Run lints on all edited files** — fix any linter errors you introduced.
+
+## What "Done" Means
+
+A feature is done when:
+- Every new component is imported and rendered somewhere real
+- Every new hook is called in at least one consumer
+- Every new DB column is read and written by actual code paths
+- Every new server action is invoked from a client component
+- The TypeScript compiler and linter both pass clean
+- You have personally re-read the final state of every changed file
+
+If any of these are false, the feature is not done — keep working.

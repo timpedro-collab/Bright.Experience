@@ -34,6 +34,7 @@ import {
 
 import { cn } from "@/lib/utils";
 import { timeSince } from "@/lib/dates";
+import { markRead } from "@/app/actions/notifications";
 import type { Notification } from "@/types";
 
 interface NotificationListProps {
@@ -130,7 +131,10 @@ export function NotificationList({ notifications }: NotificationListProps) {
   );
 
   function handleClick(notification: Notification) {
-    startTransition(() => {
+    startTransition(async () => {
+      if (!notification.isRead) {
+        await markRead(notification.id);
+      }
       if (notification.link) router.push(notification.link);
       router.refresh();
     });

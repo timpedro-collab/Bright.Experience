@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Send, Loader2, CheckCircle2, X, Zap } from "lucide-react";
 import { toast } from "sonner";
 
@@ -28,41 +29,42 @@ export function StudioRequestForm({
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
   const submitRef = useRef<HTMLButtonElement | null>(null);
+  const router = useRouter();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
 
-    try {
-      const fd = new FormData();
-      fd.set("eventId", eventId);
-      fd.set("serviceType", serviceType);
-      fd.set(
-        "title",
-        `${defaultTitle ?? "Studio Request"} × ${quantity} asset${quantity > 1 ? "s" : ""}${express ? " (Express)" : ""}`
-      );
-      fd.set(
-        "description",
-        [
-          description,
-          express ? "EXPRESS TURNAROUND REQUESTED" : "",
-        ]
-          .filter(Boolean)
-          .join("\n\n")
-      );
-      await createStudioRequest(fd);
-      setDone(true);
-      toast.success("Studio request submitted", {
-        description: "Our team will confirm and begin work within 1 working day.",
-      });
-      celebrateFromElement(submitRef.current);
-    } catch (err) {
+    const fd = new FormData();
+    fd.set("eventId", eventId);
+    fd.set("serviceType", serviceType);
+    fd.set(
+      "title",
+      `${defaultTitle ?? "Studio Request"} × ${quantity} asset${quantity > 1 ? "s" : ""}${express ? " (Express)" : ""}`
+    );
+    fd.set(
+      "description",
+      [
+        description,
+        express ? "EXPRESS TURNAROUND REQUESTED" : "",
+      ]
+        .filter(Boolean)
+        .join("\n\n")
+    );
+    const result = await createStudioRequest(fd);
+    setLoading(false);
+    if (!result.success) {
       toast.error("Couldn't submit your request", {
-        description: err instanceof Error ? err.message : "Please try again.",
+        description: result.error,
       });
-    } finally {
-      setLoading(false);
+      return;
     }
+    setDone(true);
+    toast.success("Studio request submitted", {
+      description: "Our team will confirm and begin work within 1 working day.",
+    });
+    celebrateFromElement(submitRef.current);
+    router.refresh();
   }
 
   if (done) {

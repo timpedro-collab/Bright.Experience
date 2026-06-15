@@ -41,10 +41,10 @@ export default function CatalogError({
           <p className="mt-3 text-muted-foreground">
             Try again in a moment — and if it keeps happening, ping us at{" "}
             <a
-              href="mailto:hello@bright.blue"
+              href="mailto:hello@brightblue.co.uk"
               className="text-foreground underline underline-offset-4"
             >
-              hello@bright.blue
+              hello@brightblue.co.uk
             </a>
             .
           </p>

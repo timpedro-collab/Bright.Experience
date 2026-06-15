@@ -7,7 +7,7 @@
 -- =====================================================================
 
 begin;
-\i tests/_fixtures.sql
+\ir _fixtures.psql
 
 insert into tasks (id, event_id, title, task_type, category, customer_visible)
 values

@@ -35,24 +35,24 @@ export function PartnerResourceCard({
   category,
 }: PartnerResourceCardProps) {
   const Icon = CATEGORY_ICONS[category] ?? FileText;
-  const badgeClass = CATEGORY_STYLES[category] ?? "bg-white/[0.06] text-text-muted border-white/[0.06]";
+  const badgeClass = CATEGORY_STYLES[category] ?? "bg-white/[0.06] text-muted-foreground border-white/[0.06]";
 
   return (
     <Card className="border-white/[0.06] bg-white/[0.02] backdrop-blur-sm transition-colors hover:bg-white/[0.04]">
       <CardContent className="flex flex-col gap-4 p-6">
         <div className="flex items-start justify-between">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/[0.04]">
-            <Icon size={20} className="text-text-secondary" />
+            <Icon size={20} className="text-muted-foreground" />
           </div>
           <Badge className={cn("border text-xs capitalize", badgeClass)}>
             {category.replace(/-/g, " ")}
           </Badge>
         </div>
         <div>
-          <h3 className="text-heading text-sm font-semibold text-text-primary">
+          <h3 className="text-heading text-sm font-semibold text-foreground">
             {title}
           </h3>
-          <p className="mt-1 text-xs text-text-muted line-clamp-2">
+          <p className="mt-1 text-xs text-muted-foreground line-clamp-2">
             {description}
           </p>
         </div>
@@ -61,7 +61,7 @@ export function PartnerResourceCard({
             asChild
             variant="outline"
             size="sm"
-            className="w-full border-white/[0.06] bg-white/[0.02] text-text-primary hover:bg-white/[0.06]"
+            className="w-full border-white/[0.06] bg-white/[0.02] text-foreground hover:bg-white/[0.06]"
           >
             <a href={fileUrl} download>
               <Download size={14} className="mr-2" />

@@ -3,8 +3,8 @@ import { redirect } from "next/navigation";
 import { getUser } from "@/lib/auth";
 import { getPartnerForUser } from "@/lib/queries/partners";
 import { getAttributionsByPartner, getPartnerCommissionSummary } from "@/lib/queries/partner-attributions";
-import { AppShell } from "@/components/layout/AppShell";
-import { PageHeader } from "@/components/layout/PageHeader";
+import { getUnreadCount } from "@/lib/queries/notifications";
+import { PortalPageShell, partnerTabs } from "@/components/brand";
 import { CommissionTracker } from "@/components/partners/CommissionTracker";
 import { PartnerPipelineTable } from "@/components/partners/PartnerPipelineTable";
 
@@ -20,24 +20,25 @@ export default async function PartnerCommissionsPage({ params }: CommissionsPage
   const partner = await getPartnerForUser(user.id);
   if (!partner || partner.slug !== slug) redirect("/");
 
-  const [attributions, summary] = await Promise.all([
+  const [attributions, summary, unread] = await Promise.all([
     getAttributionsByPartner(partner.id),
     getPartnerCommissionSummary(partner.id),
+    getUnreadCount(user.id),
   ]);
 
   const partnerName = String(partner.name ?? "Partner");
 
   return (
-    <AppShell user={user}>
-      <PageHeader
-        title="Commissions"
-        subtitle="Track your earnings and payout status"
-        breadcrumbs={[
-          { label: "Partners", href: `/partners/${slug}/dashboard` },
-          { label: partnerName, href: `/partners/${slug}/dashboard` },
-          { label: "Commissions" },
-        ]}
-      />
+    <PortalPageShell
+      user={user}
+      unreadCount={unread}
+      scope={partnerName}
+      section="Commissions"
+      slug={slug}
+      tabs={partnerTabs(slug)}
+      title="Commissions"
+      subtitle="Track your earnings and payout status"
+    >
       <div className="space-y-8">
         <CommissionTracker
           totalEarned={summary.totalEarned}
@@ -45,7 +46,7 @@ export default async function PartnerCommissionsPage({ params }: CommissionsPage
           paid={summary.totalPaid}
         />
         <div>
-          <h2 className="text-heading mb-4 text-lg font-semibold text-text-primary">
+          <h2 className="mb-4 text-lg font-semibold text-foreground">
             Attribution History
           </h2>
           <PartnerPipelineTable attributions={attributions.map((a: Record<string, unknown>) => ({
@@ -58,6 +59,6 @@ export default async function PartnerCommissionsPage({ params }: CommissionsPage
           }))} />
         </div>
       </div>
-    </AppShell>
+    </PortalPageShell>
   );
 }

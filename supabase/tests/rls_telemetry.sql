@@ -8,20 +8,20 @@
 -- =====================================================================
 
 begin;
-\i tests/_fixtures.sql
+\ir _fixtures.psql
 
 insert into machines (id, name, slug, is_active) values
-  ('00000000-0000-4000-8000-0000000000m1', 'Bright.Vend Pro', 'bright-vend-pro', true)
+  ('00000000-0000-4000-8000-0000000000da', 'Bright.Vend Pro', 'bright-vend-pro', true)
 on conflict (id) do nothing;
 
 insert into machine_instances (id, machine_type_id, serial_number, current_event_id, status) values
-  ('00000000-0000-4000-8000-0000000000mi', '00000000-0000-4000-8000-0000000000m1', 'BV-1001', '00000000-0000-4000-8000-0000000000e1', 'deployed'),
-  ('00000000-0000-4000-8000-0000000000mj', '00000000-0000-4000-8000-0000000000m1', 'BV-1002', '00000000-0000-4000-8000-0000000000e2', 'deployed')
+  ('00000000-0000-4000-8000-0000000000db', '00000000-0000-4000-8000-0000000000da', 'BV-1001', '00000000-0000-4000-8000-0000000000e1', 'deployed'),
+  ('00000000-0000-4000-8000-0000000000dc', '00000000-0000-4000-8000-0000000000da', 'BV-1002', '00000000-0000-4000-8000-0000000000e2', 'deployed')
 on conflict (id) do nothing;
 
 insert into telemetry_events (machine_instance_id, event_id, event_type) values
-  ('00000000-0000-4000-8000-0000000000mi', '00000000-0000-4000-8000-0000000000e1', 'play_started'),
-  ('00000000-0000-4000-8000-0000000000mj', '00000000-0000-4000-8000-0000000000e2', 'play_started');
+  ('00000000-0000-4000-8000-0000000000db', '00000000-0000-4000-8000-0000000000e1', 'play_started'),
+  ('00000000-0000-4000-8000-0000000000dc', '00000000-0000-4000-8000-0000000000e2', 'play_started');
 
 insert into leads (event_id, contact_email, source) values
   ('00000000-0000-4000-8000-0000000000e1', 'lead-acme@x.test', 'game'),

@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { ensureProfile } from "@/lib/auth/bootstrap";
+import { isInternalRole } from "@/lib/roles";
 import type { User } from "@/types";
 
 export async function getUser(): Promise<User | null> {
@@ -40,6 +41,7 @@ export async function getUser(): Promise<User | null> {
       avatarUrl: created.avatar_url,
       role: created.role,
       accountId: created.account_id,
+      hasCompletedOnboarding: Boolean(created.has_completed_onboarding),
     };
   }
 
@@ -50,5 +52,27 @@ export async function getUser(): Promise<User | null> {
     avatarUrl: profile.avatar_url,
     role: profile.role,
     accountId: profile.account_id,
+    hasCompletedOnboarding: Boolean(profile.has_completed_onboarding),
   };
+}
+
+/** Verify the caller is authenticated and holds an internal role; throws otherwise. */
+export async function requireInternalUser() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("id, role")
+    .eq("id", user.id)
+    .single();
+
+  if (!profile || !isInternalRole(profile.role)) {
+    throw new Error("Forbidden: internal access only");
+  }
+
+  return { supabase, user, profile };
 }

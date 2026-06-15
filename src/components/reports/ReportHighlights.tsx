@@ -37,7 +37,7 @@ export function ReportHighlights({ highlights }: ReportHighlightsProps) {
   return (
     <Card className="border-white/[0.08] bg-card-dark/72 backdrop-blur-xl">
       <CardHeader className="pb-3">
-        <CardTitle className="text-heading text-base font-semibold text-text-primary">
+        <CardTitle className="text-heading text-base font-semibold text-foreground">
           Event Highlights
         </CardTitle>
       </CardHeader>

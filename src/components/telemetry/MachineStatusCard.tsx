@@ -18,7 +18,7 @@ const STATUS_STYLES: Record<string, { bg: string; text: string; label: string }>
   available: { bg: "bg-success/10", text: "text-success", label: "Available" },
   deployed: { bg: "bg-brand/10", text: "text-brand", label: "Deployed" },
   maintenance: { bg: "bg-warning/10", text: "text-warning", label: "Maintenance" },
-  retired: { bg: "bg-white/[0.06]", text: "text-text-muted", label: "Retired" },
+  retired: { bg: "bg-white/[0.06]", text: "text-muted-foreground", label: "Retired" },
 };
 
 function getRelativeTime(timestamp: string): string {
@@ -44,11 +44,11 @@ export function MachineStatusCard({ machine }: MachineStatusCardProps) {
       <CardContent className="p-5">
         <div className="flex items-start justify-between mb-3">
           <div className="min-w-0">
-            <p className="text-heading text-sm font-semibold text-text-primary truncate">
+            <p className="text-heading text-sm font-semibold text-foreground truncate">
               {machine.nickname ?? machine.serialNumber}
             </p>
             {machine.nickname && (
-              <p className="text-xs text-text-muted mt-0.5">
+              <p className="text-xs text-muted-foreground mt-0.5">
                 {machine.serialNumber}
               </p>
             )}
@@ -63,16 +63,16 @@ export function MachineStatusCard({ machine }: MachineStatusCardProps) {
             {isOnline ? (
               <Wifi size={12} className="text-success" />
             ) : (
-              <WifiOff size={12} className="text-text-muted" />
+              <WifiOff size={12} className="text-muted-foreground" />
             )}
-            <span className={isOnline ? "text-success" : "text-text-muted"}>
+            <span className={isOnline ? "text-success" : "text-muted-foreground"}>
               {machine.lastHeartbeat
                 ? getRelativeTime(machine.lastHeartbeat)
                 : "No signal"}
             </span>
           </div>
           {machine.firmwareVersion && (
-            <span className="text-text-muted">
+            <span className="text-muted-foreground">
               v{machine.firmwareVersion}
             </span>
           )}

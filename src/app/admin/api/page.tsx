@@ -7,14 +7,14 @@ import { ApiKeyManager } from "@/components/api/ApiKeyManager";
 import { WebhookManager } from "@/components/api/WebhookManager";
 
 import { getUser } from "@/lib/auth";
-import { isInternalRole } from "@/lib/roles";
+import { isAdminRole } from "@/lib/roles";
 import { createClient } from "@/lib/supabase/server";
 import { getUnreadCount } from "@/lib/queries/notifications";
 
 export default async function ApiManagementPage() {
   const user = await getUser();
   if (!user) redirect("/login");
-  if (!isInternalRole(user.role)) redirect("/");
+  if (!isAdminRole(user.role)) redirect("/");
 
   const supabase = await createClient();
   const unread = await getUnreadCount(user.id);

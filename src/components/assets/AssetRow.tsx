@@ -1,0 +1,228 @@
+/** Single asset row for the asset list — shows status, metadata, upload CTA, and expandable comments. */
+import {
+  FileImage,
+  FileText,
+  CheckCircle2,
+  XCircle,
+  Clock,
+  AlertCircle,
+  MessageCircle,
+  ExternalLink,
+} from "lucide-react";
+
+import { AssetStatusBadge } from "@/components/ui/StatusBadge";
+import { AssetUploadZone } from "@/components/assets/AssetUploadZone";
+import { StudioFixButton } from "@/components/assets/StudioFixButton";
+import { MachinePreview } from "@/components/assets/MachinePreview";
+import { placementPreviewFor } from "@/lib/asset-requirements/placements";
+import { AssetReviewBadge } from "@/components/assets/AssetReviewBadge";
+import { AssetCommentSection } from "@/components/assets/AssetCommentSection";
+import { AssetSpecCard } from "@/components/assets/AssetSpecCard";
+import { AssetPreviewDialog } from "@/components/assets/AssetPreviewDialog";
+import { formatDateShort, isOverdue as checkOverdue } from "@/lib/dates";
+import { cn } from "@/lib/utils";
+import { SURFACE_CARD } from "@/lib/surfaces";
+import type { Asset, Comment } from "@/types";
+
+function formatFileSize(bytes?: number): string {
+  if (!bytes) return "";
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function renderAssetIcon(assetType: string, size = 18) {
+  switch (assetType) {
+    case "logo":
+    case "imagery":
+      return <FileImage size={size} />;
+    default:
+      return <FileText size={size} />;
+  }
+}
+
+interface AssetRowProps {
+  asset: Asset;
+  comments?: Comment[];
+  commentCount?: number;
+  currentUserId?: string;
+}
+
+export function AssetRow({ asset, comments = [], commentCount = 0, currentUserId }: AssetRowProps) {
+  const overdue =
+    asset.status === "required" &&
+    asset.dueDate &&
+    checkOverdue(asset.dueDate);
+  const needsAction =
+    asset.status === "required" ||
+    asset.reviewStatus === "revision_requested";
+
+  return (
+    <li className={cn(SURFACE_CARD, "relative overflow-hidden")}>
+      <div className="grid grid-cols-1 md:grid-cols-[auto_1fr_auto] gap-4 py-5 pl-5 pr-4">
+        <span
+          aria-hidden
+          className={`absolute left-0 top-3 bottom-3 w-[2px] rounded-full ${
+            overdue
+              ? "bg-destructive"
+              : needsAction
+                ? "bg-[var(--color-bb-cobalt)]"
+                : asset.status === "accepted"
+                  ? "bg-success/50"
+                  : "bg-transparent"
+          }`}
+        />
+
+        <div
+          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-md border ${
+            asset.status === "accepted"
+              ? "border-success/30 bg-success/10 text-success"
+              : asset.status === "rejected"
+                ? "border-destructive/30 bg-destructive/10 text-destructive"
+                : "border-border/60 bg-card/40 text-muted-foreground"
+          }`}
+        >
+          {asset.status === "accepted" ? (
+            <CheckCircle2 size={18} />
+          ) : asset.status === "rejected" ? (
+            <XCircle size={18} />
+          ) : (
+            renderAssetIcon(asset.assetType)
+          )}
+        </div>
+
+        <div className="min-w-0">
+          <div className="flex items-center gap-2 flex-wrap mb-1">
+            <h3 className="text-sm font-semibold text-foreground truncate">
+              {asset.name}
+            </h3>
+            <AssetReviewBadge
+              reviewStatus={asset.reviewStatus}
+              hasUpload={Boolean(asset.fileUrl)}
+            />
+            <AssetStatusBadge status={asset.status} />
+          </div>
+
+          {asset.description && (
+            <p className="text-sm text-muted-foreground line-clamp-2 mt-0.5">
+              {asset.description}
+            </p>
+          )}
+
+          <p className="mt-1.5 text-overline text-muted-foreground">
+            {asset.requiredFormat && <>Format · {asset.requiredFormat}</>}
+            {asset.requiredFormat && asset.requiredDimensions && (
+              <span className="opacity-60"> · </span>
+            )}
+            {asset.requiredDimensions && (
+              <>Size · {asset.requiredDimensions}</>
+            )}
+            {asset.dueDate && (
+              <>
+                <span className="opacity-60"> · </span>
+                <span
+                  className={
+                    overdue ? "text-destructive" : "text-muted-foreground"
+                  }
+                >
+                  {overdue ? (
+                    <AlertCircle className="inline size-3 -mt-0.5 mr-0.5" />
+                  ) : (
+                    <Clock className="inline size-3 -mt-0.5 mr-0.5" />
+                  )}
+                  {overdue ? "Overdue " : "Due "}
+                  {formatDateShort(asset.dueDate)}
+                </span>
+              </>
+            )}
+          </p>
+
+          {asset.fileName && (
+            <p className="mt-1 text-xs text-muted-foreground truncate opacity-80">
+              {asset.fileUrl ? (
+                <a
+                  href={asset.fileUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-[var(--color-bb-cobalt)] hover:underline"
+                >
+                  {asset.fileName}
+                  <ExternalLink size={10} className="shrink-0" />
+                </a>
+              ) : (
+                asset.fileName
+              )}
+              {asset.fileSize ? ` (${formatFileSize(asset.fileSize)})` : ""}
+            </p>
+          )}
+
+          <AssetSpecCard asset={asset} />
+
+          {(() => {
+            const machinePreview = placementPreviewFor(asset.name);
+            const fileName = asset.fileName ?? "";
+            const isImageUpload =
+              Boolean(asset.fileUrl) && /\.(png|jpe?g|webp|gif)$/i.test(fileName);
+            const isVideoUpload =
+              Boolean(asset.fileUrl) && /\.(mp4|webm|mov)$/i.test(fileName);
+            if (!machinePreview || (!isImageUpload && !isVideoUpload)) return null;
+            return (
+              <div className="mt-3 max-w-[260px]">
+                <MachinePreview
+                  preview={machinePreview}
+                  overlaySrc={asset.fileUrl}
+                  overlayKind={isVideoUpload ? "video" : "image"}
+                />
+              </div>
+            );
+          })()}
+
+          {asset.uploadWarnings && asset.uploadWarnings.length > 0 && (
+            <div className="mt-3 border-l-2 border-amber-400/60 pl-3 py-1">
+              <p className="text-overline text-amber-400 mb-1">Upload warnings</p>
+              <ul className="text-xs text-foreground/80 space-y-0.5">
+                {asset.uploadWarnings.map((w, i) => (
+                  <li key={i}>⚠ {w}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {asset.reviewFeedback &&
+            asset.reviewStatus === "revision_requested" && (
+              <div className="mt-3 border-l-2 border-warning/60 pl-3 py-1">
+                <p className="text-overline text-warning mb-1">
+                  Note from creative
+                </p>
+                <p className="text-sm text-foreground/90 whitespace-pre-line leading-snug">
+                  {asset.reviewFeedback}
+                </p>
+                <StudioFixButton assetId={asset.id} />
+              </div>
+            )}
+
+          {needsAction && <AssetUploadZone asset={asset} />}
+        </div>
+
+        <div className="flex md:flex-col md:justify-end md:items-end gap-2">
+          {commentCount > 0 && (
+            <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+              <MessageCircle size={13} /> {commentCount}
+            </span>
+          )}
+          {asset.fileUrl && (
+            <AssetPreviewDialog url={asset.fileUrl} fileName={asset.fileName ?? undefined} />
+          )}
+        </div>
+      </div>
+      {currentUserId && (
+        <AssetCommentSection
+          comments={comments}
+          assetId={asset.id}
+          eventId={asset.eventId}
+          currentUserId={currentUserId}
+        />
+      )}
+    </li>
+  );
+}

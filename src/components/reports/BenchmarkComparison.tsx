@@ -46,7 +46,7 @@ export function BenchmarkComparison({
   return (
     <Card className="border-white/[0.08] bg-card-dark/72 backdrop-blur-xl">
       <CardHeader className="pb-3">
-        <CardTitle className="text-heading text-base font-semibold text-text-primary">
+        <CardTitle className="text-heading text-base font-semibold text-foreground">
           Benchmark Comparison
         </CardTitle>
       </CardHeader>
@@ -91,7 +91,7 @@ export function BenchmarkComparison({
             />
             <Bar
               dataKey="Your Event"
-              fill="hsl(223 94% 53%)"
+              fill="hsl(230 93% 53%)"
               radius={[0, 4, 4, 0]}
               barSize={16}
             />

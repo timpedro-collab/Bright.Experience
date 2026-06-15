@@ -78,7 +78,7 @@ export function ProposalAssetRequirements() {
         {/* Layer 2 — Bright.Studio rate card */}
         <div className="rounded-[var(--radius-card)] border border-primary/20 bg-primary/[0.04] p-5 md:p-6">
           <div className="mb-5 flex items-start gap-3">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[linear-gradient(135deg,hsl(223,94%,53%),hsl(189,100%,75%))] text-white">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[linear-gradient(135deg,hsl(230,93%,53%),hsl(189,100%,75%))] text-white">
               <Sparkles className="h-4 w-4" aria-hidden />
             </div>
             <div>

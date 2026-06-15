@@ -3,7 +3,7 @@
  */
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Bell, User, Shield, ArrowRight } from "lucide-react";
+import { Bell, User, Shield, Users, ArrowRight } from "lucide-react";
 
 import {
   EditionShell,
@@ -46,7 +46,13 @@ const SETTINGS_SECTIONS = [
     description: "Password, sessions, and two-factor authentication.",
     icon: Shield,
     href: "/settings/security",
-    comingSoon: true,
+  },
+  {
+    title: "Team",
+    description: "Manage team members and control who has access to your events.",
+    icon: Users,
+    href: "/settings/team",
+    adminOnly: true,
   },
 ];
 
@@ -84,30 +90,13 @@ export default async function SettingsPage() {
           <EditorialEyebrow accent>Account</EditorialEyebrow>
 
           <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {SETTINGS_SECTIONS.map((section) => {
+            {SETTINGS_SECTIONS.filter(
+              (s) => !s.adminOnly || user.role === "customer_admin",
+            ).map((section) => {
               const Icon = section.icon;
-              if (section.comingSoon) {
-                return (
-                  <Card
-                    key={section.title}
-                    className="p-6 opacity-50 cursor-not-allowed"
-                  >
-                    <Icon size={24} className="text-muted-foreground mb-3" />
-                    <h3 className="text-heading text-sm font-semibold text-foreground">
-                      {section.title}
-                    </h3>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      {section.description}
-                    </p>
-                    <span className="mt-3 inline-block text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
-                      Coming soon
-                    </span>
-                  </Card>
-                );
-              }
               return (
                 <Link key={section.title} href={section.href}>
-                  <Card className="p-6 hover:bg-white/[0.04] transition-colors group">
+                  <Card className="p-6 hover:bg-muted/40 transition-colors group h-full">
                     <Icon size={24} className="text-brand mb-3" />
                     <h3 className="text-heading text-sm font-semibold text-foreground">
                       {section.title}
@@ -129,7 +118,7 @@ export default async function SettingsPage() {
 
         <section className="py-10">
           <EditorialEyebrow>Your account</EditorialEyebrow>
-          <div className="mt-4 flex flex-col divide-y divide-border/40 border-t border-b border-border/40 max-w-lg">
+          <div className="mt-4 flex flex-col divide-y divide-border/40 rounded-2xl border border-border bg-card/60 px-5 max-w-lg">
             <div className="py-3 flex justify-between">
               <span className="text-sm text-muted-foreground">Name</span>
               <span className="text-sm text-foreground font-medium">

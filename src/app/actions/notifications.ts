@@ -1,17 +1,24 @@
 "use server";
 
-/** Server actions for notification management */
+/**
+ * Server actions for notification management.
+ *
+ * Read-state mutations for the in-app notification bell. New code
+ * should dispatch via `@/lib/notifications/dispatch` — these actions
+ * handle only read/unread toggling and legacy ad-hoc creation.
+ */
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import type { ActionResult } from "@/types/actions";
 
-/** Mark a single notification as read */
-export async function markRead(notificationId: string) {
+/** Mark a single notification as read. */
+export async function markRead(notificationId: string): Promise<ActionResult> {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) throw new Error("Not authenticated");
+  if (!user) return { success: false, error: "Not authenticated" };
 
   const { error } = await supabase
     .from("notifications")
@@ -19,17 +26,18 @@ export async function markRead(notificationId: string) {
     .eq("id", notificationId)
     .eq("user_id", user.id);
 
-  if (error) throw new Error(`Failed to mark read: ${error.message}`);
+  if (error) return { success: false, error: `Failed to mark read: ${error.message}` };
   revalidatePath("/", "layout");
+  return { success: true, data: undefined };
 }
 
-/** Mark all notifications for the current user as read */
-export async function markAllRead() {
+/** Mark all notifications for the current user as read. */
+export async function markAllRead(): Promise<ActionResult> {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) throw new Error("Not authenticated");
+  if (!user) return { success: false, error: "Not authenticated" };
 
   const { error } = await supabase
     .from("notifications")
@@ -37,8 +45,9 @@ export async function markAllRead() {
     .eq("user_id", user.id)
     .eq("is_read", false);
 
-  if (error) throw new Error(`Failed to mark all read: ${error.message}`);
+  if (error) return { success: false, error: `Failed to mark all read: ${error.message}` };
   revalidatePath("/", "layout");
+  return { success: true, data: undefined };
 }
 
 /**
@@ -47,9 +56,6 @@ export async function markAllRead() {
  * **Prefer `dispatchNotification` from `@/lib/notifications/dispatch` for
  * any new code.** This function is retained for the handful of legacy
  * spots that hand-craft a notification (e.g. one-off internal pings).
- * Every domain event with a canonical archetype goes through the
- * dispatcher instead — that way subject lines, links, reminder cadences
- * and email rendering all stay in one place.
  */
 export async function createNotification(
   userId: string,
@@ -58,7 +64,7 @@ export async function createNotification(
   title: string,
   body: string | null,
   link: string | null
-) {
+): Promise<ActionResult> {
   const supabase = await createClient();
 
   const { error } = await supabase.from("notifications").insert({
@@ -71,5 +77,6 @@ export async function createNotification(
     is_read: false,
   });
 
-  if (error) throw new Error(`Failed to create notification: ${error.message}`);
+  if (error) return { success: false, error: `Failed to create notification: ${error.message}` };
+  return { success: true, data: undefined };
 }

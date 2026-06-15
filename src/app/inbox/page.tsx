@@ -55,6 +55,8 @@ import {
   timeSince,
 } from "@/lib/dates";
 import { cn } from "@/lib/utils";
+import { parsePage, PAGE_SIZE } from "@/lib/pagination";
+import { Pagination } from "@/components/ui/Pagination";
 import type { TaskCategory } from "@/types";
 
 export const metadata = {
@@ -78,6 +80,7 @@ interface InboxPageProps {
     event?: string;
     category?: string;
     status?: string;
+    page?: string;
   }>;
 }
 
@@ -161,6 +164,16 @@ export default async function InboxPage({ searchParams }: InboxPageProps) {
 
   const openTotal = overdue.length + dueSoon.length + other.length;
 
+  const page = parsePage(params as Record<string, string | string[] | undefined>);
+  const inboxTotalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const sliceStart = (page - 1) * PAGE_SIZE;
+  const paginatedSlice = filtered.slice(sliceStart, sliceStart + PAGE_SIZE);
+
+  const pgOverdue = paginatedSlice.filter((t) => t.status !== "complete" && t.dueDate && isOverdue(t.dueDate));
+  const pgDueSoon = paginatedSlice.filter((t) => t.status !== "complete" && t.dueDate && !isOverdue(t.dueDate) && daysUntilDate(t.dueDate) <= 3);
+  const pgOther = paginatedSlice.filter((t) => t.status !== "complete" && !(t.dueDate && isOverdue(t.dueDate)) && !(t.dueDate && daysUntilDate(t.dueDate) <= 3));
+  const pgCompleted = paginatedSlice.filter((t) => t.status === "complete");
+
   const subtitle =
     openTotal === 0 && completed.length === 0
       ? "Nothing is on you right now. Take a breath."
@@ -203,39 +216,44 @@ export default async function InboxPage({ searchParams }: InboxPageProps) {
           />
         ) : (
           <div className="flex flex-col gap-12 pb-8">
-            {overdue.length > 0 && (
+            {pgOverdue.length > 0 && (
               <TaskGroup
                 title="Overdue"
                 tone="destructive"
-                tasks={overdue}
+                tasks={pgOverdue}
                 countLabel="now"
               />
             )}
-            {dueSoon.length > 0 && (
+            {pgDueSoon.length > 0 && (
               <TaskGroup
                 title="Due in the next 3 days"
                 tone="warning"
-                tasks={dueSoon}
+                tasks={pgDueSoon}
                 countLabel="soon"
               />
             )}
-            {other.length > 0 && (
+            {pgOther.length > 0 && (
               <TaskGroup
                 title="Everything else"
                 tone="default"
-                tasks={other}
+                tasks={pgOther}
                 countLabel="open"
               />
             )}
-            {completed.length > 0 && (
+            {pgCompleted.length > 0 && (
               <TaskGroup
                 title="Recently completed"
                 tone="success"
-                tasks={completed}
+                tasks={pgCompleted}
                 countLabel="done"
                 completed
               />
             )}
+            <Pagination
+              currentPage={page}
+              totalPages={inboxTotalPages}
+              basePath="/inbox"
+            />
           </div>
         )}
       </EditionBody>
@@ -315,7 +333,7 @@ function TaskRow({
 
   return (
     <Link
-      href={`/events/${task.eventId}/actions`}
+      href={task.targetPath ? `/events/${task.eventId}/${task.targetPath}` : `/events/${task.eventId}/actions`}
       className={cn(
         "group relative flex items-start gap-4 py-3.5 pl-3 pr-2 text-left transition-colors",
         "hover:bg-accent/30 focus-visible:outline-none focus-visible:bg-accent/40",

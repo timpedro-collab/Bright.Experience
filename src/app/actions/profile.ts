@@ -1,17 +1,21 @@
 "use server";
 
+/** Server action for user profile updates. */
+
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import type { ActionResult } from "@/types/actions";
 
-export async function updateProfileName(name: string) {
+/** Update the current user's display name. */
+export async function updateProfileName(name: string): Promise<ActionResult> {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) throw new Error("Not authenticated");
+  if (!user) return { success: false, error: "Not authenticated" };
 
   if (!name.trim() || name.trim().length < 2) {
-    throw new Error("Name must be at least 2 characters");
+    return { success: false, error: "Name must be at least 2 characters" };
   }
 
   const { error } = await supabase
@@ -19,9 +23,10 @@ export async function updateProfileName(name: string) {
     .update({ name: name.trim() })
     .eq("id", user.id);
 
-  if (error) throw new Error(`Failed to update profile: ${error.message}`);
+  if (error) return { success: false, error: `Failed to update profile: ${error.message}` };
 
   revalidatePath("/settings/profile");
   revalidatePath("/settings");
   revalidatePath("/");
+  return { success: true, data: undefined };
 }

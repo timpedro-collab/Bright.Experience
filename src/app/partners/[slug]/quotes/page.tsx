@@ -3,8 +3,8 @@ import { redirect } from "next/navigation";
 import { getUser } from "@/lib/auth";
 import { getPartnerForUser } from "@/lib/queries/partners";
 import { getAttributionsByPartner } from "@/lib/queries/partner-attributions";
-import { AppShell } from "@/components/layout/AppShell";
-import { PageHeader } from "@/components/layout/PageHeader";
+import { getUnreadCount } from "@/lib/queries/notifications";
+import { PortalPageShell, partnerTabs } from "@/components/brand";
 import {
   Table,
   TableHeader,
@@ -14,18 +14,25 @@ import {
   TableCell,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
 import { FileText } from "lucide-react";
+import { EmptyState } from "@/components/ui/EmptyState";
 
 interface QuotesPageProps {
   params: Promise<{ slug: string }>;
 }
 
-const STATUS_MAP: Record<string, { label: string; className: string }> = {
-  pending: { label: "Pending", className: "bg-amber-500/10 text-amber-400 border-amber-500/20" },
-  approved: { label: "Approved", className: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" },
-  paid: { label: "Paid", className: "bg-brand/10 text-brand border-brand/20" },
-  rejected: { label: "Rejected", className: "bg-red-500/10 text-red-400 border-red-500/20" },
+const STATUS_VARIANT: Record<string, "default" | "success" | "warning" | "destructive"> = {
+  pending: "warning",
+  approved: "success",
+  paid: "default",
+  rejected: "destructive",
+};
+
+const STATUS_LABEL: Record<string, string> = {
+  pending: "Pending",
+  approved: "Approved",
+  paid: "Paid",
+  rejected: "Rejected",
 };
 
 /** Formats a number as ZAR currency */
@@ -45,68 +52,68 @@ export default async function PartnerQuotesPage({ params }: QuotesPageProps) {
   const partner = await getPartnerForUser(user.id);
   if (!partner || partner.slug !== slug) redirect("/");
 
-  const attributions = await getAttributionsByPartner(partner.id);
+  const [attributions, unread] = await Promise.all([
+    getAttributionsByPartner(partner.id),
+    getUnreadCount(user.id),
+  ]);
   const partnerName = String(partner.name ?? "Partner");
 
   const quoteAttributions = attributions.filter(
-    (a: Record<string, unknown>) => a.quoteId
+    (a: Record<string, unknown>) => a.quote_id
   );
 
   return (
-    <AppShell user={user}>
-      <PageHeader
-        title="Quote Pipeline"
-        subtitle="All quotes attributed to your referrals"
-        breadcrumbs={[
-          { label: "Partners", href: `/partners/${slug}/dashboard` },
-          { label: partnerName, href: `/partners/${slug}/dashboard` },
-          { label: "Quotes" },
-        ]}
-      />
-
+    <PortalPageShell
+      user={user}
+      unreadCount={unread}
+      scope={partnerName}
+      section="Quotes"
+      slug={slug}
+      tabs={partnerTabs(slug)}
+      title="Quote pipeline"
+      subtitle="All quotes attributed to your referrals"
+    >
       {quoteAttributions.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-[var(--radius-card)] border border-white/[0.06] bg-white/[0.02] p-16 text-center">
-          <FileText size={32} className="mb-3 text-text-muted" />
-          <p className="text-sm text-text-muted">No quotes in your pipeline</p>
-          <p className="mt-1 text-xs text-text-muted">
-            Quotes generated through your partner link will appear here
-          </p>
-        </div>
+        <EmptyState
+          icon={FileText}
+          title="No quotes in your pipeline"
+          description="Quotes generated through your partner link will appear here."
+          size="sm"
+        />
       ) : (
         <div className="rounded-[var(--radius-card)] border border-white/[0.06] bg-white/[0.02] backdrop-blur-sm overflow-hidden">
           <Table>
             <TableHeader>
               <TableRow className="border-white/[0.06] hover:bg-transparent">
-                <TableHead className="text-text-muted">Date</TableHead>
-                <TableHead className="text-text-muted">Quote ID</TableHead>
-                <TableHead className="text-text-muted">Commission</TableHead>
-                <TableHead className="text-text-muted">Status</TableHead>
+                <TableHead className="text-muted-foreground">Date</TableHead>
+                <TableHead className="text-muted-foreground">Quote ID</TableHead>
+                <TableHead className="text-muted-foreground">Commission</TableHead>
+                <TableHead className="text-muted-foreground">Status</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {quoteAttributions.map((attr: Record<string, unknown>) => {
-                const status = String(attr.commissionStatus ?? "pending");
-                const statusConfig = STATUS_MAP[status] ?? STATUS_MAP.pending;
+                const status = String(attr.commission_status ?? "pending");
                 return (
                   <TableRow key={String(attr.id)} className="border-white/[0.06]">
-                    <TableCell className="text-text-secondary">
-                      {new Date(String(attr.createdAt)).toLocaleDateString("en-ZA", {
+                    <TableCell className="text-muted-foreground">
+                      {new Date(String(attr.created_at)).toLocaleDateString("en-ZA", {
                         day: "numeric",
                         month: "short",
                         year: "numeric",
                       })}
                     </TableCell>
-                    <TableCell className="font-mono text-xs text-text-primary">
-                      {String(attr.quoteId ?? "—").slice(0, 8)}
+                    <TableCell className="font-mono text-xs text-foreground">
+                      {String(attr.quote_id ?? "—").slice(0, 8)}
                     </TableCell>
-                    <TableCell className="font-mono text-text-primary">
-                      {attr.commissionAmount != null
-                        ? formatCurrency(Number(attr.commissionAmount))
+                    <TableCell className="font-mono text-foreground">
+                      {attr.commission_amount != null
+                        ? formatCurrency(Number(attr.commission_amount))
                         : "—"}
                     </TableCell>
                     <TableCell>
-                      <Badge className={cn("border", statusConfig.className)}>
-                        {statusConfig.label}
+                      <Badge variant={STATUS_VARIANT[status] ?? "warning"}>
+                        {STATUS_LABEL[status] ?? status}
                       </Badge>
                     </TableCell>
                   </TableRow>
@@ -116,6 +123,6 @@ export default async function PartnerQuotesPage({ params }: QuotesPageProps) {
           </Table>
         </div>
       )}
-    </AppShell>
+    </PortalPageShell>
   );
 }

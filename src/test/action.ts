@@ -52,6 +52,7 @@ export function setupActionMocks(): TestContext {
     name: "Tim Pedro",
     email: "tim@brightblue.test",
     role: "events_lead" as const,
+    hasCompletedOnboarding: true,
   };
 
   // Re-wire the global mocks that test files have set up via vi.mock.

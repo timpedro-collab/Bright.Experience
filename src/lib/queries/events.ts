@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { PAGE_SIZE, paginateQuery, totalPages } from "@/lib/pagination";
 import type { Event } from "@/types";
 
 function mapEvent(row: Record<string, unknown>): Event {
@@ -33,6 +34,7 @@ function mapEvent(row: Record<string, unknown>): Event {
   };
 }
 
+/** Fetch all events (unpaginated) — used by the home page editorial view. */
 export async function getEvents(): Promise<Event[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -42,6 +44,37 @@ export async function getEvents(): Promise<Event[]> {
 
   if (error || !data) return [];
   return data.map(mapEvent);
+}
+
+export interface EventFilters {
+  q?: string;
+  stage?: string;
+  health?: string;
+  owner?: string;
+}
+
+/** Paginated event list for admin / library views, with optional filters. */
+export async function getEventsPaginated(
+  page: number = 1,
+  pageSize: number = PAGE_SIZE,
+  filters?: EventFilters,
+): Promise<{ data: Event[]; totalCount: number; totalPages: number }> {
+  const supabase = await createClient();
+  let query = supabase
+    .from("events")
+    .select("*, accounts(*)", { count: "exact" })
+    .order("event_date_start");
+
+  if (filters?.stage) query = query.eq("current_stage", filters.stage);
+  if (filters?.health) query = query.eq("health_status", filters.health);
+  if (filters?.q) query = query.or(`name.ilike.%${filters.q}%,accounts.name.ilike.%${filters.q}%`);
+  if (filters?.owner) query = query.eq("accounts.name", filters.owner);
+
+  const { data, error, count } = await paginateQuery(query, page, pageSize);
+  if (error || !data) return { data: [], totalCount: 0, totalPages: 1 };
+
+  const total = count ?? 0;
+  return { data: data.map(mapEvent), totalCount: total, totalPages: totalPages(total, pageSize) };
 }
 
 export async function getEventById(id: string): Promise<Event | null> {

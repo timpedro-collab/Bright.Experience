@@ -17,6 +17,7 @@
  */
 
 import { NextResponse } from "next/server";
+import * as Sentry from "@sentry/nextjs";
 
 import { getServiceRoleClient } from "@/lib/supabase/service-role";
 import {
@@ -275,6 +276,33 @@ async function findStaleSubjects(
       );
     }
 
+    case "asset.upload_needed": {
+      const { data } = await supabase
+        .from("assets")
+        .select("id, event_id, name, due_date, created_at, events(name)")
+        .eq("status", "required")
+        .eq("customer_visible", true);
+      return ((data ?? []) as unknown as Record<string, unknown>[]).map(
+        (r) => {
+          const events = r.events as { name?: string } | null;
+          return {
+            kind,
+            subjectType: "asset",
+            subjectId: String(r.id),
+            anchor: String(r.due_date ?? r.created_at),
+            context: {
+              eventId: String(r.event_id),
+              assetId: String(r.id),
+              assetName: String(r.name),
+              eventName: events?.name ?? "your event",
+              entityType: "asset",
+              entityId: String(r.id),
+            },
+          };
+        }
+      );
+    }
+
     default:
       return [];
   }
@@ -377,6 +405,76 @@ async function nudgeStale(
 }
 
 /**
+ * Graduated deadline escalation — auto-flags event health to amber when
+ * any blocking deadline is 3+ days overdue.
+ */
+async function escalateOverdueDeadlines(
+  supabase: SupabaseClient
+): Promise<{ escalated: number; notified: number }> {
+  const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000)
+    .toISOString()
+    .slice(0, 10);
+
+  const { data: overdueTasks } = await supabase
+    .from("tasks")
+    .select("id, event_id, title, due_date, events(name)")
+    .not("status", "in", '("complete","skipped")')
+    .not("due_date", "is", null)
+    .lt("due_date", threeDaysAgo);
+
+  const eventIds = new Set<string>();
+  let notified = 0;
+
+  for (const t of overdueTasks ?? []) {
+    eventIds.add(t.event_id);
+    const row = t as Record<string, unknown>;
+    const events = row.events as { name?: string } | null;
+    const dueDate = row.due_date as string;
+    const daysOverdue = Math.floor(
+      (Date.now() - new Date(dueDate).getTime()) / (1000 * 60 * 60 * 24)
+    );
+
+    try {
+      await dispatchNotification(
+        "deadline.escalation",
+        {
+          eventId: t.event_id as string,
+          eventName: events?.name ?? "an event",
+          taskTitle: t.title as string,
+          dueDate,
+          daysOverdue: String(daysOverdue),
+          entityType: "task",
+          entityId: t.id as string,
+        },
+        { supabaseClient: supabase }
+      );
+      notified += 1;
+    } catch {
+      // dispatch failures shouldn't block the rest
+    }
+  }
+
+  let escalated = 0;
+  for (const eid of eventIds) {
+    const { data: event } = await supabase
+      .from("events")
+      .select("health_status")
+      .eq("id", eid)
+      .single();
+
+    if (event?.health_status === "green") {
+      await supabase
+        .from("events")
+        .update({ health_status: "amber" })
+        .eq("id", eid);
+      escalated += 1;
+    }
+  }
+
+  return { escalated, notified };
+}
+
+/**
  * Time-driven event nudges (t-30/14/7/3). Targets every event whose
  * `event_date_start` falls within ±1 day of the offset.
  */
@@ -455,17 +553,76 @@ export async function GET(request: Request) {
         archetype.reminderCadence
       );
     } catch (e) {
+      Sentry.captureException(e, { tags: { cron: "reminders", kind: archetype.kind } });
       console.error(`[Cron] ${archetype.kind} failed`, e);
       summary[archetype.kind] = { sent: 0, skipped: 0 };
     }
   }
 
+  // Auto-transition invoices from 'issued' to 'overdue'
+  let invoiceOverdue = { count: 0 };
+  try {
+    const now = new Date().toISOString();
+    const { data: transitioned } = await supabase
+      .from("invoices")
+      .update({ status: "overdue", updated_at: now })
+      .eq("status", "issued")
+      .lt("due_at", now)
+      .select("id, invoice_number, event_id, events(name)");
+
+    invoiceOverdue = { count: transitioned?.length ?? 0 };
+    for (const inv of transitioned ?? []) {
+      const row = inv as Record<string, unknown>;
+      const events = row.events as { name?: string } | null;
+      await dispatchNotification("invoice.overdue", {
+        eventId: String(row.event_id),
+        invoiceNumber: String(row.invoice_number),
+        eventName: events?.name ?? "an event",
+        entityType: "invoice",
+        entityId: String(row.id),
+      }, { supabaseClient: supabase }).catch(() => {});
+    }
+  } catch (e) {
+    console.error("[Cron] invoice overdue transition failed", e);
+  }
+
+  // Compliance document expiry warnings (30 days out)
+  const complianceExpiry = { notified: 0 };
+  try {
+    const thirtyDaysOut = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+    const { data: expiring } = await supabase
+      .from("compliance_documents")
+      .select("id, event_id, title, expires_at, events(name)")
+      .eq("status", "approved")
+      .not("expires_at", "is", null)
+      .lt("expires_at", thirtyDaysOut);
+
+    for (const doc of (expiring ?? []) as Record<string, unknown>[]) {
+      const events = doc.events as { name?: string } | null;
+      await dispatchNotification("compliance.document_expiring", {
+        eventId: String(doc.event_id),
+        eventName: events?.name ?? "an event",
+        documentTitle: String(doc.title),
+        expiryDate: String(doc.expires_at),
+        entityType: "compliance_document",
+        entityId: String(doc.id),
+      }, { supabaseClient: supabase }).catch(() => {});
+      complianceExpiry.notified += 1;
+    }
+  } catch (e) {
+    console.error("[Cron] compliance expiry check failed", e);
+  }
+
   const timeDriven = await nudgeTimeDriven(supabase);
+  const deadlineEscalation = await escalateOverdueDeadlines(supabase);
 
   return NextResponse.json({
     ok: true,
     ranAt: new Date().toISOString(),
     reminders: summary,
     timeDriven,
+    deadlineEscalation,
+    invoiceOverdue,
+    complianceExpiry,
   });
 }

@@ -21,6 +21,7 @@
  */
 
 import { NextResponse } from "next/server";
+import * as Sentry from "@sentry/nextjs";
 import { getServiceRoleClient } from "@/lib/supabase/service-role";
 import { parseWebhookRequest } from "@/lib/webhooks/verify";
 
@@ -60,6 +61,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ received: true, event_type: eventType });
   } catch (err) {
+    Sentry.captureException(err, { tags: { webhook_event_type: eventType } });
     console.error(`[webhook:brightblue] ${eventType} failed:`, err);
     return NextResponse.json(
       { error: "Internal processing error" },
@@ -189,9 +191,13 @@ async function handleMachineHeartbeat(body: Record<string, unknown>) {
   const serial = String(body.machine_serial ?? "");
   if (!serial) throw new Error("Missing machine_serial");
 
+  const VALID_STATUSES = new Set(["available", "deployed", "maintenance", "retired"]);
+  const rawStatus = body.status ? String(body.status) : "deployed";
+  const mappedStatus = VALID_STATUSES.has(rawStatus) ? rawStatus : "deployed";
+
   const update: Record<string, unknown> = {
     last_heartbeat: new Date().toISOString(),
-    status: body.status ? String(body.status) : "online",
+    status: mappedStatus,
   };
 
   if (body.firmware_version) {

@@ -21,14 +21,19 @@ import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { dispatchNotification } from "@/lib/notifications/dispatch";
 import { enqueueStageAdvance } from "@/lib/pipedrive/triggers";
+import { writeAudit } from "@/lib/audit";
+import { checkComplianceForStageGate } from "./compliance";
+import { createHandoffNote } from "./handoff-notes";
+import { bumpStreak } from "./streak";
 import { STAGE_CONFIG } from "@/types";
 import type { Stage } from "@/types";
+import type { ActionResult } from "@/types/actions";
 
 const STAGE_ORDER: Stage[] = Object.entries(STAGE_CONFIG)
   .sort(([, a], [, b]) => a.order - b.order)
   .map(([key]) => key as Stage);
 
-/** Check whether all blocking tasks for the current stage are complete */
+/** Check whether all blocking tasks for the current stage are complete. */
 export async function canAdvanceStage(
   eventId: string
 ): Promise<{ canAdvance: boolean; blockers: string[] }> {
@@ -49,7 +54,6 @@ export async function canAdvanceStage(
     return { canAdvance: false, blockers: ["Event is already at final stage"] };
   }
 
-  // Resolve milestones for this stage so we can filter blocking tasks.
   const { data: stageMilestones } = await supabase
     .from("milestones")
     .select("id")
@@ -58,9 +62,6 @@ export async function canAdvanceStage(
 
   const milestoneIds = (stageMilestones ?? []).map((m) => m.id as string);
 
-  // Two task categories block: tasks tied to a current-stage milestone,
-  // and free-floating tasks (no milestone_id) — treat the latter as
-  // event-global blockers.
   let query = supabase
     .from("tasks")
     .select("id, title, status, milestone_id")
@@ -81,20 +82,32 @@ export async function canAdvanceStage(
     (t: { title: string }) => t.title
   );
 
+  const complianceGateStages: Stage[] = ["logistics_confirmed", "qa_readiness"];
+  if (complianceGateStages.includes(nextStage)) {
+    const compliance = await checkComplianceForStageGate(eventId);
+    if (!compliance.passed) {
+      for (const doc of compliance.missing) {
+        blockers.push(`Missing compliance: ${doc}`);
+      }
+    }
+  }
+
   return { canAdvance: blockers.length === 0, blockers };
 }
 
-/** Advance the event to the next stage after verifying exit gates */
-export async function advanceStage(eventId: string) {
+/** Advance the event to the next stage after verifying exit gates. */
+export async function advanceStage(
+  eventId: string
+): Promise<ActionResult<{ from: Stage; to: Stage }>> {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) throw new Error("Not authenticated");
+  if (!user) return { success: false, error: "Not authenticated" };
 
   const { canAdvance, blockers } = await canAdvanceStage(eventId);
   if (!canAdvance) {
-    throw new Error(`Cannot advance: ${blockers.join(", ")}`);
+    return { success: false, error: `Cannot advance: ${blockers.join(", ")}` };
   }
 
   const { data: event } = await supabase
@@ -102,7 +115,7 @@ export async function advanceStage(eventId: string) {
     .select("current_stage, name")
     .eq("id", eventId)
     .single();
-  if (!event) throw new Error("Event not found");
+  if (!event) return { success: false, error: "Event not found" };
 
   const currentStage = event.current_stage as Stage;
   const nextStage = STAGE_ORDER[STAGE_CONFIG[currentStage].order + 1];
@@ -113,11 +126,9 @@ export async function advanceStage(eventId: string) {
     .update({ current_stage: nextStage, updated_at: now })
     .eq("id", eventId);
 
-  if (error) throw new Error(`Failed to advance stage: ${error.message}`);
+  if (error) return { success: false, error: `Failed to advance stage: ${error.message}` };
 
-  // Sync milestones so the timeline stays in lock-step with the event.
-  // Best-effort — failures here don't block the advance, but we log them
-  // for debugging.
+  // Sync milestones — best-effort, failures don't block the advance.
   try {
     await supabase
       .from("milestones")
@@ -139,12 +150,12 @@ export async function advanceStage(eventId: string) {
     console.warn("Milestone sync after stage advance failed", err);
   }
 
-  await supabase.from("audit_entries").insert({
-    event_id: eventId,
-    actor_id: user.id,
+  await writeAudit({
+    eventId,
+    actorId: user.id,
     action: "stage_advanced",
-    entity_type: "event",
-    entity_id: eventId,
+    entityType: "event",
+    entityId: eventId,
     metadata: { from: currentStage, to: nextStage },
   });
 
@@ -158,11 +169,17 @@ export async function advanceStage(eventId: string) {
     entityId: eventId,
   });
 
-  // Pipedrive: fire-and-forget write-back. Silently no-ops when the
-  // event isn't linked to a deal or the integration is unconfigured.
   await enqueueStageAdvance(eventId, nextStage);
+  bumpStreak().catch(() => {});
+
+  const fromLabel = STAGE_CONFIG[currentStage].label;
+  const toLabel = STAGE_CONFIG[nextStage].label;
+  createHandoffNote(eventId, currentStage, nextStage, {
+    whatsDone: `Stage "${fromLabel}" completed.`,
+    whatsPending: `Stage "${toLabel}" now in progress.`,
+  }).catch(() => {});
 
   revalidatePath(`/events/${eventId}`);
   revalidatePath(`/events/${eventId}/timeline`);
-  return { from: currentStage, to: nextStage };
+  return { success: true, data: { from: currentStage, to: nextStage } };
 }

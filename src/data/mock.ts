@@ -13,6 +13,7 @@ export const currentUser: User = {
   name: "Sarah Mitchell",
   email: "sarah@brightblue.co.uk",
   role: "events_lead",
+  hasCompletedOnboarding: true,
 };
 
 export const customerUser: User = {
@@ -21,6 +22,7 @@ export const customerUser: User = {
   email: "james.chen@cocacola.com",
   role: "customer_admin",
   accountId: "acc-1",
+  hasCompletedOnboarding: true,
 };
 
 const creativeUser: User = {
@@ -28,6 +30,7 @@ const creativeUser: User = {
   name: "Emma Wright",
   email: "emma@brightblue.co.uk",
   role: "creative_lead",
+  hasCompletedOnboarding: true,
 };
 
 const opsUser: User = {
@@ -35,12 +38,14 @@ const opsUser: User = {
   name: "Tom Parker",
   email: "tom@brightblue.co.uk",
   role: "operations_lead",
+  hasCompletedOnboarding: true,
 };
 
 const qaUser: User = {
   id: "u-5",
   name: "Alex Rivera",
   email: "alex@brightblue.co.uk",
+  hasCompletedOnboarding: true,
   role: "qa_lead",
 };
 
@@ -70,7 +75,7 @@ export const events: Event[] = [
     name: "Coca-Cola Summer Festival 2026",
     eventType: "vending",
     packageType: "premium",
-    machineType: "Bright.Vend Pro",
+    machineType: "Experience Portal",
     venueName: "Hyde Park",
     venueAddress: "London W2 2UH",
     eventDateStart: "2026-07-15",
@@ -89,7 +94,7 @@ export const events: Event[] = [
     name: "Samsung Galaxy Launch Experience",
     eventType: "activation",
     packageType: "custom",
-    machineType: "Bright.Play",
+    machineType: "Experience Portal XL",
     venueName: "Westfield London",
     venueAddress: "Ariel Way, London W12 7GF",
     eventDateStart: "2026-05-20",
@@ -106,7 +111,7 @@ export const events: Event[] = [
     name: "Guinness Six Nations Fan Zone",
     eventType: "sampling",
     packageType: "standard",
-    machineType: "Bright.Vend",
+    machineType: "Experience Portal Compact",
     venueName: "Twickenham Stadium",
     venueAddress: "Whitton Rd, Twickenham TW2 7BA",
     eventDateStart: "2026-06-10",
@@ -122,7 +127,7 @@ export const events: Event[] = [
     name: "Coca-Cola Christmas Market",
     eventType: "vending",
     packageType: "premium",
-    machineType: "Bright.Vend Pro",
+    machineType: "Experience Portal",
     venueName: "Birmingham Frankfurt Market",
     venueAddress: "Victoria Square, Birmingham",
     eventDateStart: "2026-11-20",
@@ -139,7 +144,7 @@ export const events: Event[] = [
     name: "Samsung Unpacked Pop-Up",
     eventType: "activation",
     packageType: "premium",
-    machineType: "Bright.Play",
+    machineType: "Experience Portal XL",
     venueName: "Battersea Power Station",
     venueAddress: "Circus Rd W, London SW11 8DD",
     eventDateStart: "2026-04-10",

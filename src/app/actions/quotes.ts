@@ -9,6 +9,11 @@ import { sanitiseCapabilitySlugs } from "@/lib/capabilities";
 import { sendProposalIntakeNotification } from "@/lib/email";
 import { dispatchNotification } from "@/lib/notifications/dispatch";
 import { recordAttribution } from "@/app/actions/partners";
+import { provisionEventFromQuote } from "@/app/actions/provisioning";
+import {
+  bookNowSchema,
+  proposalIntakeSchema,
+} from "@/lib/validations/quotes";
 
 const PARTNER_ATTRIBUTION_COOKIE = "bb_partner";
 
@@ -35,6 +40,20 @@ export async function submitBookNowQuote(data: {
   contactPhone?: string;
   companyName?: string;
 }) {
+  const coreFields = bookNowSchema.pick({
+    packageId: true,
+    contactName: true,
+    contactEmail: true,
+  });
+  const parsed = coreFields.safeParse({
+    packageId: data.packageId,
+    contactName: data.contactName,
+    contactEmail: data.contactEmail,
+  });
+  if (!parsed.success) {
+    return { success: false as const, error: parsed.error.issues[0].message };
+  }
+
   const supabase = await createClient();
   const capabilitySlugs = sanitiseCapabilitySlugs(data.addons);
 
@@ -114,6 +133,13 @@ export async function submitBookNowQuote(data: {
     console.error("[submitBookNowQuote] notification failed", notifyError);
   }
 
+  // Book-now track: auto-provision event immediately.
+  try {
+    await provisionEventFromQuote(quote.id);
+  } catch (provisionError) {
+    console.error("[submitBookNowQuote] provisioning failed", provisionError);
+  }
+
   revalidatePath("/admin/quotes");
   return {
     success: true as const,
@@ -175,6 +201,20 @@ export async function submitProposalIntake(data: {
   companyName?: string;
   addons?: string[];
 }) {
+  const coreFields = proposalIntakeSchema.pick({
+    eventType: true,
+    contactName: true,
+    contactEmail: true,
+  });
+  const parsed = coreFields.safeParse({
+    eventType: data.eventType,
+    contactName: data.contactName,
+    contactEmail: data.contactEmail,
+  });
+  if (!parsed.success) {
+    return { success: false as const, error: parsed.error.issues[0].message };
+  }
+
   const supabase = await createClient();
   const addons = sanitiseCapabilitySlugs(data.addons);
 
@@ -369,6 +409,13 @@ export async function acceptQuote(quoteId: string) {
     entityType: "quote",
     entityId: quoteId,
   });
+
+  // Auto-provision event from the accepted quote.
+  try {
+    await provisionEventFromQuote(quoteId);
+  } catch (provisionError) {
+    console.error("[acceptQuote] provisioning failed", provisionError);
+  }
 
   revalidatePath(`/proposal/${quoteId}`);
   revalidatePath("/admin/quotes");

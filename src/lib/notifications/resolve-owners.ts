@@ -284,6 +284,39 @@ export async function resolveOwners(
       return profile ? [profile] : [];
     }
 
+    case "asset_comment_participants": {
+      if (!context.assetId || !context.eventId) return [];
+      const sb = await client(supabase);
+      const { data: commenters } = await sb
+        .from("comments")
+        .select("author_id")
+        .eq("asset_id", String(context.assetId));
+      const uniqueIds: string[] = Array.from(
+        new Set((commenters ?? []).map((c: Record<string, unknown>) => String(c.author_id)))
+      );
+      const { data: assetRow } = await sb
+        .from("assets")
+        .select("uploaded_by")
+        .eq("id", String(context.assetId))
+        .single();
+      if (assetRow?.uploaded_by && !uniqueIds.includes(assetRow.uploaded_by)) {
+        uniqueIds.push(assetRow.uploaded_by);
+      }
+      const eventInfo = await fetchEventAccount(String(context.eventId), supabase);
+      if (eventInfo?.createdBy && !uniqueIds.includes(eventInfo.createdBy)) {
+        uniqueIds.push(eventInfo.createdBy);
+      }
+      const profiles: ResolvedRecipient[] = [];
+      for (const uid of uniqueIds) {
+        const p = await fetchProfile(uid, supabase);
+        if (p) profiles.push(p);
+      }
+      if (profiles.length === 0) {
+        return fetchInternalsByRoles(["creative_lead", "events_lead"], supabase);
+      }
+      return profiles;
+    }
+
     case "approval_requester": {
       if (!context.approvalId) return [];
       const sb = await client(supabase);

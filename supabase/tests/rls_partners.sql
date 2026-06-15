@@ -10,12 +10,18 @@
 -- =====================================================================
 
 begin;
-\i tests/_fixtures.sql
+\ir _fixtures.psql
 
 insert into partner_attributions (id, partner_id, commission_status) values
   ('00000000-0000-4000-8000-0000000000a3', '00000000-0000-4000-8000-0000000000b1', 'pending'),
   ('00000000-0000-4000-8000-0000000000a4', '00000000-0000-4000-8000-0000000000b2', 'pending')
 on conflict (id) do nothing;
+
+-- The "Public read active partners" policy intentionally exposes every
+-- ACTIVE partner to all roles. Mark the foreign partner inactive so the
+-- partner-scoping assertions below test the own-partner guarantee rather
+-- than the public directory.
+update partners set status = 'inactive' where id = '00000000-0000-4000-8000-0000000000b2';
 
 select plan(5);
 
@@ -50,10 +56,13 @@ select is(
   'partner sees only own attributions'
 );
 
--- (5) Anon can insert a new partner (application).
+-- (5) Anon can insert a new partner (application). The row is 'pending',
+-- so anon cannot read it back (public read is active-only); verify as
+-- internal that the application persisted.
 select _rls_test_anon();
 insert into partners (name, slug, type, partner_code, status)
   values ('Walk-in', 'walkin', 'reseller', 'BB-WALK001', 'pending');
+select _rls_test_as('00000000-0000-4000-8000-000000000011');
 select is(
   (select count(*)::int from partners where slug = 'walkin'),
   1,

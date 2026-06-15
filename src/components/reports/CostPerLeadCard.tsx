@@ -30,7 +30,7 @@ export function CostPerLeadCard({
   return (
     <Card className="border-white/[0.08] bg-card-dark/72 backdrop-blur-xl">
       <CardHeader className="pb-2">
-        <CardTitle className="text-heading text-base font-semibold text-text-primary flex items-center gap-2">
+        <CardTitle className="text-heading text-base font-semibold text-foreground flex items-center gap-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-brand/10 border border-brand/15">
             <DollarSign size={14} className="text-brand" />
           </div>
@@ -38,10 +38,10 @@ export function CostPerLeadCard({
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <p className="text-heading text-3xl font-bold text-text-primary tabular-nums mb-1">
+        <p className="text-heading text-3xl font-bold text-foreground tabular-nums mb-1">
           R{cpl.toFixed(2)}
         </p>
-        <p className="text-xs text-text-muted mb-4">
+        <p className="text-xs text-muted-foreground mb-4">
           R{totalCost.toLocaleString()} total /{" "}
           {totalLeads.toLocaleString()} leads
         </p>

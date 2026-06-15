@@ -16,7 +16,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, HelpCircle } from "lucide-react";
 
 import { CommandPalette } from "@/components/layout/CommandPalette";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
@@ -28,8 +28,9 @@ import {
   EditionFooter,
   RidgeHero,
 } from "./index";
+import { EventTabNav } from "./EventTabNav";
 
-import type { Event, User } from "@/types";
+import type { Event, User, UserRole } from "@/types";
 
 interface EventPageShellProps {
   event: Event;
@@ -47,9 +48,31 @@ interface EventPageShellProps {
   subtitle?: React.ReactNode;
   /** Optional content for the hero's right slot. */
   heroRight?: React.ReactNode;
+  /** Whether the viewer is an internal Bright.Blue user (shows extra tabs). */
+  isInternal?: boolean;
+  /** Viewer's role — used to reorder internal tabs by relevance. */
+  viewerRole?: UserRole;
   /** Page body. Sits inside <EditionBody> with default hairlines. */
   children: React.ReactNode;
 }
+
+/** Map the display section label to the URL slug for active-tab matching. */
+const SECTION_TO_SLUG: Record<string, string> = {
+  Overview: "",
+  Timeline: "timeline",
+  Actions: "actions",
+  Messages: "communications",
+  Briefing: "briefing",
+  Assets: "assets",
+  Approvals: "approvals",
+  "Bright.Studio": "studio",
+  "Quality assurance": "qa",
+  Logistics: "logistics",
+  Live: "live",
+  Leads: "leads",
+  Reports: "reports",
+  Campaign: "campaign",
+};
 
 export function EventPageShell({
   event,
@@ -61,9 +84,12 @@ export function EventPageShell({
   title,
   subtitle,
   heroRight,
+  isInternal = false,
+  viewerRole,
   children,
 }: EventPageShellProps) {
   const seedSlug = slug ?? section.toLowerCase().replace(/\s+/g, "-");
+  const currentSection = SECTION_TO_SLUG[section] ?? seedSlug;
   return (
     <EditionShell>
       <EditionChrome
@@ -74,6 +100,13 @@ export function EventPageShell({
         ]}
         rightSlot={
           <>
+            <Link
+              href="/help"
+              className="inline-flex items-center justify-center size-9 rounded-[var(--radius-control)] text-muted-foreground hover:text-foreground hover:bg-white/[0.04] transition-colors"
+              aria-label="Help center"
+            >
+              <HelpCircle size={18} />
+            </Link>
             <NotificationBell unreadCount={unreadCount} />
             <span
               className="hidden md:block h-6 w-px bg-border"
@@ -84,11 +117,18 @@ export function EventPageShell({
         }
       />
       <RidgeHero
+        variant="compact"
         seed={`${event.id}::${seedSlug}`}
         eyebrow={eyebrow ?? `${event.account.name} · ${section}`}
         title={title}
         subtitle={subtitle}
         rightSlot={heroRight}
+      />
+      <EventTabNav
+        eventId={event.id}
+        currentSection={currentSection}
+        isInternal={isInternal}
+        viewerRole={viewerRole}
       />
       <EditionBody>{children}</EditionBody>
       <EditionFooter
@@ -101,7 +141,7 @@ export function EventPageShell({
           </Link>
         }
       />
-      <CommandPalette />
+      <CommandPalette eventId={event.id} isInternal={isInternal} />
     </EditionShell>
   );
 }

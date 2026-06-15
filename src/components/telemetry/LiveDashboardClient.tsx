@@ -14,8 +14,10 @@ import { HourlyChart } from "./HourlyChart";
 import { LiveFeed } from "./LiveFeed";
 import { MachineStatusCard } from "./MachineStatusCard";
 import { EditorialEyebrow, Hairline } from "@/components/brand";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { Radio } from "lucide-react";
 
 const POLL_INTERVAL_MS = 10_000;
 
@@ -103,8 +105,30 @@ export function LiveDashboardClient({
     return () => clearInterval(id);
   }, [fetchData, isPolling]);
 
+  const allZero =
+    metrics.total_plays === 0 &&
+    metrics.total_leads === 0 &&
+    metrics.total_interactions === 0 &&
+    metrics.total_prizes === 0;
+  const noMachinesConnected =
+    machines.length === 0 ||
+    machines.every((m) => m.status === "offline" || m.status === "disconnected");
+  const showWaiting = allZero && noMachinesConnected;
+
   return (
     <>
+      {showWaiting && (
+        <section className="py-8">
+          <EmptyState
+            icon={Radio}
+            title="Waiting for your activation"
+            description="Waiting for your activation to go live. Metrics will appear here automatically once the machines are connected."
+            tone="flat"
+            size="sm"
+          />
+        </section>
+      )}
+
       <section className="py-8">
         <div className="flex items-center justify-between mb-4">
           <EditorialEyebrow accent>Right now</EditorialEyebrow>

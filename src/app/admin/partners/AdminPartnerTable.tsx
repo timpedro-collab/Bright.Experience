@@ -45,7 +45,7 @@ export function AdminPartnerTable({ partners }: AdminPartnerTableProps) {
   if (partners.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center rounded-[var(--radius-card)] border border-white/[0.06] bg-white/[0.02] p-16 text-center">
-        <p className="text-sm text-text-muted">No partner applications yet</p>
+        <p className="text-sm text-muted-foreground">No partner applications yet</p>
       </div>
     );
   }
@@ -55,12 +55,12 @@ export function AdminPartnerTable({ partners }: AdminPartnerTableProps) {
       <Table>
         <TableHeader>
           <TableRow className="border-white/[0.06] hover:bg-transparent">
-            <TableHead className="text-text-muted">Company</TableHead>
-            <TableHead className="text-text-muted">Type</TableHead>
-            <TableHead className="text-text-muted">Code</TableHead>
-            <TableHead className="text-text-muted">Contact</TableHead>
-            <TableHead className="text-text-muted">Status</TableHead>
-            <TableHead className="text-right text-text-muted">Actions</TableHead>
+            <TableHead className="text-muted-foreground">Company</TableHead>
+            <TableHead className="text-muted-foreground">Type</TableHead>
+            <TableHead className="text-muted-foreground">Code</TableHead>
+            <TableHead className="text-muted-foreground">Contact</TableHead>
+            <TableHead className="text-muted-foreground">Status</TableHead>
+            <TableHead className="text-right text-muted-foreground">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -71,18 +71,18 @@ export function AdminPartnerTable({ partners }: AdminPartnerTableProps) {
 
             return (
               <TableRow key={id} className="border-white/[0.06]">
-                <TableCell className="font-medium text-text-primary">
+                <TableCell className="font-medium text-foreground">
                   {String(p.company_name ?? p.name ?? "—")}
                 </TableCell>
-                <TableCell className="text-text-secondary capitalize">
-                  {String(p.partner_type ?? "referral")}
+                <TableCell className="text-muted-foreground capitalize">
+                  {String(p.type ?? "referral")}
                 </TableCell>
                 <TableCell>
                   <code className="rounded bg-white/[0.06] px-1.5 py-0.5 font-mono text-xs text-brand">
-                    {String(p.code ?? "—")}
+                    {String(p.partner_code ?? "—")}
                   </code>
                 </TableCell>
-                <TableCell className="text-text-secondary text-sm">
+                <TableCell className="text-muted-foreground text-sm">
                   {String(p.contact_email ?? "—")}
                 </TableCell>
                 <TableCell>
@@ -96,7 +96,7 @@ export function AdminPartnerTable({ partners }: AdminPartnerTableProps) {
                       asChild
                       variant="ghost"
                       size="sm"
-                      className="text-text-muted hover:text-text-primary"
+                      className="text-muted-foreground hover:text-foreground"
                     >
                       <Link href={`/admin/partners/${id}`}>
                         <Eye size={14} className="mr-1" />

@@ -27,9 +27,11 @@ vi.mock("@/app/actions/partners", () => ({
   recordAttribution: (...args: unknown[]) => recordAttribution(...args),
 }));
 
+const PKG_UUID = "00000000-0000-4000-8000-000000000099";
+
 /** Convenience: seed the packages table with a bookable row so the
  *  `submitBookNowQuote` server-side re-read passes. */
-function seedBookablePackage(id = "p1", basePrice = 100_000) {
+function seedBookablePackage(id = PKG_UUID, basePrice = 100_000) {
   supabase.setTableResponse("packages", {
     data: {
       id,
@@ -64,13 +66,13 @@ beforeEach(() => {
 
 describe("submitBookNowQuote", () => {
   it("inserts a quote with track=book_now and returns the id + total", async () => {
-    seedBookablePackage("p1", 100_000);
+    seedBookablePackage(PKG_UUID, 100_000);
     supabase.setTableResponse("quotes", { data: { id: "q1" }, error: null });
     const { submitBookNowQuote } = await import("./quotes");
     const result = await submitBookNowQuote({
-      packageId: "p1",
+      packageId: PKG_UUID,
       contactName: "Casey",
-      contactEmail: "casey@x",
+      contactEmail: "casey@acme.test",
     });
     expect(result.success).toBe(true);
     if (result.success) {
@@ -87,36 +89,36 @@ describe("submitBookNowQuote", () => {
     supabase.setTableResponse("packages", { data: null, error: null });
     const { submitBookNowQuote } = await import("./quotes");
     const result = await submitBookNowQuote({
-      packageId: "nope",
+      packageId: "00000000-0000-4000-8000-000000000000",
       contactName: "Casey",
-      contactEmail: "casey@x",
+      contactEmail: "casey@acme.test",
     });
     expect(result.success).toBe(false);
   });
 
   it("returns failure on insert error", async () => {
-    seedBookablePackage("p1");
+    seedBookablePackage();
     supabase.setTableResponse("quotes", {
       data: null,
       error: { message: "boom" },
     });
     const { submitBookNowQuote } = await import("./quotes");
     const result = await submitBookNowQuote({
-      packageId: "p1",
+      packageId: PKG_UUID,
       contactName: "Casey",
-      contactEmail: "casey@x",
+      contactEmail: "casey@acme.test",
     });
     expect(result.success).toBe(false);
   });
 
   it("sanitises addons before insert and prices only known capabilities", async () => {
-    seedBookablePackage("p1", 100_000);
+    seedBookablePackage(PKG_UUID, 100_000);
     supabase.setTableResponse("quotes", { data: { id: "q1" }, error: null });
     const { submitBookNowQuote } = await import("./quotes");
     const result = await submitBookNowQuote({
-      packageId: "p1",
+      packageId: PKG_UUID,
       contactName: "Casey",
-      contactEmail: "casey@x",
+      contactEmail: "casey@acme.test",
       addons: ["live-telemetry", "garbage", "survey-layer"],
     });
     const insertCall = supabase
@@ -130,13 +132,13 @@ describe("submitBookNowQuote", () => {
   });
 
   it("dispatches booking.received once the row is in", async () => {
-    seedBookablePackage("p1");
+    seedBookablePackage();
     supabase.setTableResponse("quotes", { data: { id: "q1" }, error: null });
     const { submitBookNowQuote } = await import("./quotes");
     await submitBookNowQuote({
-      packageId: "p1",
+      packageId: PKG_UUID,
       contactName: "Casey",
-      contactEmail: "casey@x",
+      contactEmail: "casey@acme.test",
     });
     expect(dispatchNotification).toHaveBeenCalledWith(
       "booking.received",
@@ -145,14 +147,14 @@ describe("submitBookNowQuote", () => {
   });
 
   it("does not blow up if the booking notification fails", async () => {
-    seedBookablePackage("p1");
+    seedBookablePackage();
     supabase.setTableResponse("quotes", { data: { id: "q1" }, error: null });
     dispatchNotification.mockRejectedValueOnce(new Error("queue down"));
     const { submitBookNowQuote } = await import("./quotes");
     const result = await submitBookNowQuote({
-      packageId: "p1",
+      packageId: PKG_UUID,
       contactName: "Casey",
-      contactEmail: "casey@x",
+      contactEmail: "casey@acme.test",
     });
     expect(result.success).toBe(true);
   });
@@ -165,7 +167,7 @@ describe("submitProposalIntake", () => {
     const result = await submitProposalIntake({
       eventType: "trade-show",
       contactName: "Casey",
-      contactEmail: "casey@x",
+      contactEmail: "casey@acme.test",
     });
     expect(result.success).toBe(true);
     expect(dispatchNotification).toHaveBeenCalledWith(
@@ -184,7 +186,7 @@ describe("submitProposalIntake", () => {
     const result = await submitProposalIntake({
       eventType: "trade-show",
       contactName: "Casey",
-      contactEmail: "casey@x",
+      contactEmail: "casey@acme.test",
     });
     expect(result.success).toBe(false);
     expect(dispatchNotification).not.toHaveBeenCalled();
@@ -197,7 +199,7 @@ describe("submitProposalIntake", () => {
     const result = await submitProposalIntake({
       eventType: "trade-show",
       contactName: "Casey",
-      contactEmail: "casey@x",
+      contactEmail: "casey@acme.test",
     });
     // Action still succeeds because the email is fire-and-forget
     expect(result.success).toBe(true);

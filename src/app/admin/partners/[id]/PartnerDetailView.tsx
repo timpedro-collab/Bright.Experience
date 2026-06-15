@@ -4,6 +4,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Table,
   TableHeader,
@@ -21,12 +23,15 @@ import {
   Mail,
   Globe,
   Copy,
+  UserPlus,
+  Loader2,
 } from "lucide-react";
 import {
   approvePartner,
   suspendPartner,
   approveCommission,
   markCommissionPaid,
+  addPartnerUser,
 } from "@/app/actions/partners";
 import { useState } from "react";
 
@@ -57,6 +62,7 @@ function formatCurrency(amount: number): string {
 
 export function PartnerDetailView({ partner, attributions }: PartnerDetailViewProps) {
   const [acting, setActing] = useState<string | null>(null);
+  const [commissionAmounts, setCommissionAmounts] = useState<Record<string, string>>({});
 
   const status = String(partner.status ?? "pending");
   const statusConfig = STATUS_MAP[status] ?? STATUS_MAP.pending;
@@ -75,8 +81,11 @@ export function PartnerDetailView({ partner, attributions }: PartnerDetailViewPr
   }
 
   async function handleApproveCommission(attrId: string) {
+    const raw = commissionAmounts[attrId];
+    const amount = raw ? Number(raw) : 0;
+    if (!raw || Number.isNaN(amount) || amount <= 0) return;
     setActing(attrId);
-    await approveCommission(attrId, 0);
+    await approveCommission(attrId, amount);
     setActing(null);
   }
 
@@ -102,28 +111,32 @@ export function PartnerDetailView({ partner, attributions }: PartnerDetailViewPr
           </CardContent>
         </Card>
 
-        <Card className="border-glass-border/10 bg-card">
-          <CardHeader>
-            <CardTitle className="text-heading text-lg">Actions</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {status === "pending" && (
-              <Button onClick={handleApprove} disabled={acting === "approve"} className="w-full">
-                <CheckCircle2 size={14} className="mr-2" /> Approve Partner
-              </Button>
-            )}
-            {status === "active" && (
-              <Button onClick={handleSuspend} disabled={acting === "suspend"} variant="destructive" className="w-full">
-                <Ban size={14} className="mr-2" /> Suspend Partner
-              </Button>
-            )}
-            {status === "suspended" && (
-              <Button onClick={handleApprove} disabled={acting === "approve"} className="w-full">
-                <CheckCircle2 size={14} className="mr-2" /> Reactivate Partner
-              </Button>
-            )}
-          </CardContent>
-        </Card>
+        <div className="space-y-6">
+          <Card className="border-glass-border/10 bg-card">
+            <CardHeader>
+              <CardTitle className="text-heading text-lg">Actions</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {status === "pending" && (
+                <Button onClick={handleApprove} disabled={acting === "approve"} className="w-full">
+                  <CheckCircle2 size={14} className="mr-2" /> Approve Partner
+                </Button>
+              )}
+              {status === "active" && (
+                <Button onClick={handleSuspend} disabled={acting === "suspend"} variant="destructive" className="w-full">
+                  <Ban size={14} className="mr-2" /> Suspend Partner
+                </Button>
+              )}
+              {status === "suspended" && (
+                <Button onClick={handleApprove} disabled={acting === "approve"} className="w-full">
+                  <CheckCircle2 size={14} className="mr-2" /> Reactivate Partner
+                </Button>
+              )}
+            </CardContent>
+          </Card>
+
+          <AddTeamMemberCard partnerId={partnerId} />
+        </div>
       </div>
 
       <Card className="border-glass-border/10 bg-card">
@@ -164,9 +177,26 @@ export function PartnerDetailView({ partner, attributions }: PartnerDetailViewPr
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-2">
                           {commStatus === "pending" && (
-                            <Button size="sm" onClick={() => handleApproveCommission(attrId)} disabled={acting === attrId}>
-                              Approve
-                            </Button>
+                            <div className="flex items-center gap-2">
+                              <Input
+                                type="number"
+                                min={0}
+                                step="0.01"
+                                placeholder="£ amount"
+                                className="w-28 h-8 text-sm"
+                                value={commissionAmounts[attrId] ?? ""}
+                                onChange={(e) =>
+                                  setCommissionAmounts((prev) => ({ ...prev, [attrId]: e.target.value }))
+                                }
+                              />
+                              <Button
+                                size="sm"
+                                onClick={() => handleApproveCommission(attrId)}
+                                disabled={acting === attrId || !commissionAmounts[attrId]}
+                              >
+                                Approve
+                              </Button>
+                            </div>
                           )}
                           {commStatus === "approved" && (
                             <Button size="sm" variant="outline" onClick={() => handleMarkPaid(attrId)} disabled={acting === attrId}>
@@ -184,6 +214,72 @@ export function PartnerDetailView({ partner, attributions }: PartnerDetailViewPr
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+/** Simple form to add a team member to this partner organisation. */
+function AddTeamMemberCard({ partnerId }: { partnerId: string }) {
+  const [profileId, setProfileId] = useState("");
+  const [role, setRole] = useState("member");
+  const [pending, setPending] = useState(false);
+  const [result, setResult] = useState<{ ok: boolean; msg: string } | null>(null);
+
+  async function handleAdd(e: React.FormEvent) {
+    e.preventDefault();
+    if (!profileId.trim()) return;
+    setPending(true);
+    setResult(null);
+    const res = await addPartnerUser(partnerId, profileId.trim(), role);
+    setPending(false);
+    if (res.success) {
+      setResult({ ok: true, msg: "Team member added" });
+      setProfileId("");
+    } else {
+      setResult({ ok: false, msg: res.error });
+    }
+  }
+
+  return (
+    <Card className="border-glass-border/10 bg-card">
+      <CardHeader>
+        <CardTitle className="text-heading text-lg flex items-center gap-2">
+          <UserPlus size={16} /> Add Team Member
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleAdd} className="space-y-3">
+          <div className="space-y-1.5">
+            <Label htmlFor="tm-profile">Profile ID</Label>
+            <Input
+              id="tm-profile"
+              value={profileId}
+              onChange={(e) => setProfileId(e.target.value)}
+              placeholder="User profile UUID"
+              required
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="tm-role">Role</Label>
+            <select
+              id="tm-role"
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
+              className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground"
+            >
+              <option value="member">Member</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+          {result && (
+            <p className={cn("text-sm", result.ok ? "text-emerald-400" : "text-destructive")}>{result.msg}</p>
+          )}
+          <Button type="submit" size="sm" disabled={pending} className="w-full">
+            {pending && <Loader2 size={14} className="animate-spin mr-1" />}
+            Add Member
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
   );
 }
 

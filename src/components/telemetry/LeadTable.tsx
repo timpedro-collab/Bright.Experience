@@ -97,7 +97,7 @@ export function LeadTable({ leads }: LeadTableProps) {
         <div className="relative flex-1 max-w-sm">
           <Search
             size={16}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted"
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
           />
           <Input
             placeholder="Filter by name or email…"
@@ -135,7 +135,7 @@ export function LeadTable({ leads }: LeadTableProps) {
                 dir={sortDir}
                 onSort={toggleSort}
               />
-              <TableHead className="text-text-muted">Phone</TableHead>
+              <TableHead className="text-muted-foreground">Phone</TableHead>
               <SortableHead
                 label="Source"
                 field="source"
@@ -157,7 +157,7 @@ export function LeadTable({ leads }: LeadTableProps) {
               <TableRow>
                 <TableCell
                   colSpan={5}
-                  className="text-center text-text-muted py-8"
+                  className="text-center text-muted-foreground py-8"
                 >
                   No leads found
                 </TableCell>
@@ -168,19 +168,19 @@ export function LeadTable({ leads }: LeadTableProps) {
                   key={lead.id}
                   className="border-white/[0.04] hover:bg-white/[0.02]"
                 >
-                  <TableCell className="font-medium text-text-primary">
+                  <TableCell className="font-medium text-foreground">
                     {lead.contactName}
                   </TableCell>
-                  <TableCell className="text-text-secondary">
+                  <TableCell className="text-muted-foreground">
                     {lead.contactEmail}
                   </TableCell>
-                  <TableCell className="text-text-secondary">
+                  <TableCell className="text-muted-foreground">
                     {lead.contactPhone ?? "—"}
                   </TableCell>
-                  <TableCell className="text-text-secondary">
+                  <TableCell className="text-muted-foreground">
                     {lead.source}
                   </TableCell>
-                  <TableCell className="text-text-secondary tabular-nums">
+                  <TableCell className="text-muted-foreground tabular-nums">
                     {formatDateTime(lead.capturedAt)}
                   </TableCell>
                 </TableRow>
@@ -209,8 +209,8 @@ function SortableHead({
   return (
     <TableHead
       className={cn(
-        "text-text-muted cursor-pointer select-none hover:text-text-primary transition-colors",
-        active === field && "text-text-primary"
+        "text-muted-foreground cursor-pointer select-none hover:text-foreground transition-colors",
+        active === field && "text-foreground"
       )}
       onClick={() => onSort(field)}
     >

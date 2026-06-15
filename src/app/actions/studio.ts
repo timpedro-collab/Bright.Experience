@@ -1,17 +1,29 @@
 "use server";
 
+/**
+ * Server actions for Bright.Studio creative requests.
+ *
+ * Mutations for creating, updating, and cancelling studio orders. Each
+ * action validates auth, persists the change, emits an audit entry, and
+ * dispatches in-app + email notifications where appropriate.
+ */
+
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { sendStudioOrderNotification } from "@/lib/email";
 import { dispatchNotification } from "@/lib/notifications/dispatch";
 import type { StudioServiceType } from "@/types";
+import type { ActionResult } from "@/types/actions";
 
-export async function createStudioRequest(formData: FormData) {
+/** Submit a new studio request for an event. */
+export async function createStudioRequest(
+  formData: FormData
+): Promise<ActionResult<{ id: string }>> {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) throw new Error("Not authenticated");
+  if (!user) return { success: false, error: "Not authenticated" };
 
   const eventId = formData.get("eventId") as string;
   const serviceType = formData.get("serviceType") as StudioServiceType;
@@ -19,7 +31,7 @@ export async function createStudioRequest(formData: FormData) {
   const description = formData.get("description") as string;
 
   if (!eventId || !serviceType || !title) {
-    throw new Error("Missing required fields");
+    return { success: false, error: "Missing required fields" };
   }
 
   const { data, error } = await supabase
@@ -35,7 +47,7 @@ export async function createStudioRequest(formData: FormData) {
     .select()
     .single();
 
-  if (error) throw new Error(`Failed to create request: ${error.message}`);
+  if (error) return { success: false, error: `Failed to create request: ${error.message}` };
 
   await supabase.from("audit_entries").insert({
     event_id: eventId,
@@ -46,7 +58,6 @@ export async function createStudioRequest(formData: FormData) {
     metadata: { service_type: serviceType, title },
   });
 
-  // Fetch context for the email notification
   const { data: event } = await supabase
     .from("events")
     .select("name, accounts(name)")
@@ -59,7 +70,7 @@ export async function createStudioRequest(formData: FormData) {
     .single();
 
   const account = event?.accounts as unknown as Record<string, unknown> | null;
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3001";
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3001";
 
   sendStudioOrderNotification({
     title,
@@ -71,8 +82,6 @@ export async function createStudioRequest(formData: FormData) {
     portalUrl: `${baseUrl}/studio`,
   });
 
-  // In-portal notification for creative leads — keeps the queue badge fresh
-  // even when Resend is not configured locally.
   await dispatchNotification("studio.request_submitted", {
     eventId,
     studioRequestId: data.id,
@@ -86,19 +95,96 @@ export async function createStudioRequest(formData: FormData) {
 
   revalidatePath(`/events/${eventId}/studio`);
   revalidatePath("/studio");
+  return { success: true, data: { id: data.id } };
 }
 
+/**
+ * "Fix it for me" — turn a struggling asset into a Bright.Studio order.
+ * Pre-fills the brief from the asset's spec so the customer (or reviewer)
+ * can hand a rejected/awkward slot straight to the creative team.
+ */
+export async function requestStudioFixForAsset(
+  assetId: string,
+): Promise<ActionResult<{ id: string }>> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { success: false, error: "Not authenticated" };
+
+  const { data: asset } = await supabase
+    .from("assets")
+    .select("event_id, name, asset_type, required_format, required_dimensions, review_feedback")
+    .eq("id", assetId)
+    .single();
+  if (!asset) return { success: false, error: "Asset not found" };
+
+  const eventId = String(asset.event_id);
+  const serviceType: StudioServiceType =
+    asset.asset_type === "video" ? "video" : "design";
+
+  const briefLines = [
+    `Customer has asked Bright.Studio to produce the "${asset.name}" asset.`,
+    asset.required_format ? `Required format: ${asset.required_format}` : null,
+    asset.required_dimensions ? `Dimensions: ${asset.required_dimensions}` : null,
+    asset.review_feedback ? `Latest reviewer note: ${asset.review_feedback}` : null,
+  ].filter(Boolean);
+
+  const { data, error } = await supabase
+    .from("studio_requests")
+    .insert({
+      event_id: eventId,
+      service_type: serviceType,
+      title: `Studio build — ${asset.name}`,
+      description: briefLines.join("\n"),
+      status: "submitted",
+      created_by: user.id,
+      source_asset_id: assetId,
+    })
+    .select("id")
+    .single();
+
+  if (error) {
+    return { success: false, error: `Could not create the order: ${error.message}` };
+  }
+
+  await supabase.from("audit_entries").insert({
+    event_id: eventId,
+    actor_id: user.id,
+    action: "studio_request_created",
+    entity_type: "studio_request",
+    entity_id: data.id,
+    metadata: { service_type: serviceType, source_asset_id: assetId },
+  });
+
+  await dispatchNotification("studio.request_submitted", {
+    eventId,
+    studioRequestId: String(data.id),
+    actorId: user.id,
+    title: `Studio build — ${asset.name}`,
+    serviceType: serviceType === "design" ? "Static visuals" : "Motion visuals",
+    entityType: "studio_request",
+    entityId: String(data.id),
+  });
+
+  revalidatePath(`/events/${eventId}/assets`);
+  revalidatePath(`/events/${eventId}/studio`);
+  revalidatePath("/studio");
+  return { success: true, data: { id: String(data.id) } };
+}
+
+/** Transition a studio request through its lifecycle. */
 export async function updateStudioRequestStatus(
   requestId: string,
   eventId: string,
   status: "confirmed" | "in_progress" | "delivered" | "cancelled",
   note?: string
-) {
+): Promise<ActionResult> {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) throw new Error("Not authenticated");
+  if (!user) return { success: false, error: "Not authenticated" };
 
   const updateData: Record<string, unknown> = { status };
   if (status === "delivered") {
@@ -110,7 +196,7 @@ export async function updateStudioRequestStatus(
     .update(updateData)
     .eq("id", requestId);
 
-  if (error) throw new Error(`Failed to update: ${error.message}`);
+  if (error) return { success: false, error: `Failed to update: ${error.message}` };
 
   await supabase.from("audit_entries").insert({
     event_id: eventId,
@@ -139,21 +225,26 @@ export async function updateStudioRequestStatus(
 
   revalidatePath(`/events/${eventId}/studio`);
   revalidatePath("/studio");
+  return { success: true, data: undefined };
 }
 
-export async function cancelStudioRequest(requestId: string, eventId: string) {
+/** Cancel a pending or confirmed studio request. */
+export async function cancelStudioRequest(
+  requestId: string,
+  eventId: string
+): Promise<ActionResult> {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) throw new Error("Not authenticated");
+  if (!user) return { success: false, error: "Not authenticated" };
 
   const { error } = await supabase
     .from("studio_requests")
     .update({ status: "cancelled" })
     .eq("id", requestId);
 
-  if (error) throw new Error(`Failed to cancel: ${error.message}`);
+  if (error) return { success: false, error: `Failed to cancel: ${error.message}` };
 
   await supabase.from("audit_entries").insert({
     event_id: eventId,
@@ -164,4 +255,5 @@ export async function cancelStudioRequest(requestId: string, eventId: string) {
   });
 
   revalidatePath(`/events/${eventId}/studio`);
+  return { success: true, data: undefined };
 }

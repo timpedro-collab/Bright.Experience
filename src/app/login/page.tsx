@@ -15,7 +15,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowRight } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/client";
@@ -39,6 +39,9 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get("redirect") || "/";
+  const isDev = process.env.NODE_ENV === "development";
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -55,7 +58,7 @@ export default function LoginPage() {
       setError(signInError.message);
       setLoading(false);
     } else {
-      router.push("/");
+      router.push(redirectTo);
       router.refresh();
     }
   }
@@ -69,7 +72,7 @@ export default function LoginPage() {
             seed="bright.experience"
             lines={36}
             amplitude={110}
-            className="text-[hsl(223,94%,53%)]"
+            className="text-[hsl(230,93%,53%)]"
           />
           <div
             aria-hidden
@@ -147,7 +150,7 @@ export default function LoginPage() {
                 required
                 autoComplete="email"
                 placeholder="you@company.com"
-                className="w-full bg-card text-foreground placeholder:text-muted-foreground/70 px-4 py-2.5 rounded-md border border-border focus:outline-none focus:ring-2 focus:ring-[var(--color-bb-cobalt)] focus:border-[var(--color-bb-cobalt)] transition"
+                className="w-full bg-card text-foreground placeholder:text-muted-foreground/70 px-4 py-2.5 rounded-xl border border-border focus:outline-none focus:ring-2 focus:ring-[var(--color-bb-cobalt)] focus:border-[var(--color-bb-cobalt)] transition"
               />
             </div>
 
@@ -166,14 +169,14 @@ export default function LoginPage() {
                 required
                 autoComplete="current-password"
                 placeholder="Enter your password"
-                className="w-full bg-card text-foreground placeholder:text-muted-foreground/70 px-4 py-2.5 rounded-md border border-border focus:outline-none focus:ring-2 focus:ring-[var(--color-bb-cobalt)] focus:border-[var(--color-bb-cobalt)] transition"
+                className="w-full bg-card text-foreground placeholder:text-muted-foreground/70 px-4 py-2.5 rounded-xl border border-border focus:outline-none focus:ring-2 focus:ring-[var(--color-bb-cobalt)] focus:border-[var(--color-bb-cobalt)] transition"
               />
             </div>
 
             <button
               type="submit"
               disabled={loading || !email || !password}
-              className="group w-full inline-flex items-center justify-center gap-2 rounded-md bg-[var(--color-bb-cobalt)] px-4 py-3 text-sm font-medium text-primary-foreground transition hover:brightness-110 disabled:opacity-50 disabled:pointer-events-none"
+              className="group w-full inline-flex items-center justify-center gap-2 rounded-full bg-[var(--color-bb-cobalt)] px-4 py-3 text-sm font-medium text-primary-foreground shadow-[var(--bb-shadow-premium)] transition hover:brightness-110 disabled:opacity-50 disabled:pointer-events-none"
             >
               {loading ? (
                 <>Signing you in…</>
@@ -187,36 +190,49 @@ export default function LoginPage() {
                 </>
               )}
             </button>
+
+            <div className="mt-4 text-center">
+              <a
+                href="/forgot-password"
+                className="text-sm text-[var(--color-bb-cobalt)] underline decoration-from-font underline-offset-4 hover:opacity-80 transition-opacity"
+              >
+                Forgot your password?
+              </a>
+            </div>
           </form>
 
-          <Hairline className="my-8 opacity-60" />
+          {isDev && (
+            <>
+              <Hairline className="my-8 opacity-60" />
 
-          <section aria-label="Demo accounts">
-            <EditorialEyebrow className="mb-3">
-              Demo accounts
-            </EditorialEyebrow>
-            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {DEMO_ACCOUNTS.map((demo) => (
-                <li key={demo.email}>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setEmail(demo.email);
-                      setPassword("demo-password-123");
-                    }}
-                    className="w-full text-left rounded-md border border-border bg-card/60 hover:bg-card hover:border-[var(--color-bb-cobalt)]/50 px-3 py-2 transition group"
-                  >
-                    <span className="block text-sm text-foreground font-medium">
-                      {demo.label}
-                    </span>
-                    <span className="text-overline text-muted-foreground group-hover:text-[var(--color-bb-cobalt)] transition-colors">
-                      {demo.role}
-                    </span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </section>
+              <section aria-label="Demo accounts">
+                <EditorialEyebrow className="mb-3">
+                  Demo accounts
+                </EditorialEyebrow>
+                <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {DEMO_ACCOUNTS.map((demo) => (
+                    <li key={demo.email}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEmail(demo.email);
+                          setPassword("demo-password-123");
+                        }}
+                        className="w-full text-left rounded-md border border-border bg-card/60 hover:bg-card hover:border-[var(--color-bb-cobalt)]/50 px-3 py-2 transition group"
+                      >
+                        <span className="block text-sm text-foreground font-medium">
+                          {demo.label}
+                        </span>
+                        <span className="text-overline text-muted-foreground group-hover:text-[var(--color-bb-cobalt)] transition-colors">
+                          {demo.role}
+                        </span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            </>
+          )}
         </div>
       </main>
     </div>

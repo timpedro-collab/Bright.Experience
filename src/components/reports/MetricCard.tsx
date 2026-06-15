@@ -24,9 +24,9 @@ export function MetricCard({
         <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-brand/10 border border-brand/15">
           <Icon size={14} className="text-brand" />
         </div>
-        <span className="text-overline text-text-muted">{label}</span>
+        <span className="text-overline text-muted-foreground">{label}</span>
       </div>
-      <p className="text-heading text-2xl font-bold text-text-primary tabular-nums mb-1">
+      <p className="text-heading text-2xl font-bold text-foreground tabular-nums mb-1">
         {value}
       </p>
       {delta && (
@@ -35,7 +35,7 @@ export function MetricCard({
             "text-xs",
             positive === true && "text-success",
             positive === false && "text-destructive",
-            positive === undefined && "text-text-secondary"
+            positive === undefined && "text-muted-foreground"
           )}
         >
           {delta}

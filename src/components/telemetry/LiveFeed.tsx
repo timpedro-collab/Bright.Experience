@@ -48,7 +48,7 @@ export function LiveFeed({ items }: LiveFeedProps) {
       className="max-h-[360px] overflow-y-auto space-y-2 pr-1 scrollbar-thin"
     >
       {items.length === 0 && (
-        <p className="text-sm text-text-muted text-center py-8">
+        <p className="text-sm text-muted-foreground text-center py-8">
           No activity yet
         </p>
       )}
@@ -66,16 +66,16 @@ export function LiveFeed({ items }: LiveFeedProps) {
                 item.type === "play" && "bg-brand/10 text-brand",
                 item.type === "prize" && "bg-warning/10 text-warning",
                 !["lead", "play", "prize"].includes(item.type) &&
-                  "bg-white/[0.06] text-text-muted"
+                  "bg-white/[0.06] text-muted-foreground"
               )}
             >
               <Icon size={14} />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-sm text-text-primary truncate">
+              <p className="text-sm text-foreground truncate">
                 {item.message}
               </p>
-              <p className="text-xs text-text-muted mt-0.5">
+              <p className="text-xs text-muted-foreground mt-0.5">
                 {getRelativeTime(item.timestamp)}
               </p>
             </div>

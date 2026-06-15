@@ -10,6 +10,8 @@
  */
 
 import { useTransition } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 import {
   CheckCircle2,
   Circle,
@@ -28,6 +30,10 @@ import { Button } from "@/components/ui/button";
 import { TaskStatusBadge } from "@/components/ui/StatusBadge";
 import { formatDateShort, isOverdue } from "@/lib/dates";
 import { completeTask, skipTask, startTask } from "@/app/actions/tasks";
+import { celebrateFromElement, celebrateBig } from "@/lib/celebrate";
+import { useProgressToast } from "@/hooks/useProgressToast";
+import { CelebrationCheck } from "@/components/ui/CelebrationCheck";
+import { AllClearState } from "@/components/ui/AllClearState";
 
 function priorityAccent(priority: string): string {
   switch (priority) {
@@ -68,6 +74,25 @@ export function TaskChecklist({
   const completed = visibleTasks.filter(
     (t) => t.status === "complete" || t.status === "skipped"
   );
+  const openCount = overdue.length + active.length;
+
+  const totalTasks = visibleTasks.length;
+
+  if (openCount === 0 && completed.length > 0) {
+    return (
+      <div className="space-y-6">
+        <AllClearState variant="tasks" />
+        <TaskGroup
+          title="Completed"
+          tasks={completed}
+          variant="completed"
+          isInternal={isInternal}
+          openCount={openCount}
+          totalTasks={totalTasks}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -77,6 +102,8 @@ export function TaskChecklist({
           tasks={overdue}
           variant="overdue"
           isInternal={isInternal}
+          openCount={openCount}
+          totalTasks={totalTasks}
         />
       )}
       {active.length > 0 && (
@@ -85,6 +112,8 @@ export function TaskChecklist({
           tasks={active}
           variant="active"
           isInternal={isInternal}
+          openCount={openCount}
+          totalTasks={totalTasks}
         />
       )}
       {completed.length > 0 && (
@@ -93,6 +122,8 @@ export function TaskChecklist({
           tasks={completed}
           variant="completed"
           isInternal={isInternal}
+          openCount={openCount}
+          totalTasks={totalTasks}
         />
       )}
     </div>
@@ -104,11 +135,15 @@ function TaskGroup({
   tasks,
   variant,
   isInternal,
+  openCount,
+  totalTasks,
 }: {
   title: string;
   tasks: Task[];
   variant: "overdue" | "active" | "completed";
   isInternal: boolean;
+  openCount: number;
+  totalTasks: number;
 }) {
   return (
     <div>
@@ -122,8 +157,8 @@ function TaskGroup({
         {variant === "completed" && (
           <CheckCircle2 size={14} className="text-success" />
         )}
-        <h3 className="text-overline text-text-secondary">{title}</h3>
-        <span className="text-overline text-text-muted">{tasks.length}</span>
+        <h3 className="text-overline text-muted-foreground">{title}</h3>
+        <span className="text-overline text-muted-foreground">{tasks.length}</span>
       </div>
 
       <div className="space-y-2">
@@ -134,6 +169,8 @@ function TaskGroup({
             index={i}
             isCompleted={variant === "completed"}
             isInternal={isInternal}
+            openCount={openCount}
+            totalTasks={totalTasks}
           />
         ))}
       </div>
@@ -146,60 +183,70 @@ function TaskItem({
   index,
   isCompleted,
   isInternal,
+  openCount,
+  totalTasks,
 }: {
   task: Task;
   index: number;
   isCompleted: boolean;
   isInternal: boolean;
+  openCount: number;
+  totalTasks: number;
 }) {
   const [pending, startTransition] = useTransition();
+  const router = useRouter();
+  const { showProgress } = useProgressToast("tasks");
   const overdue = !isCompleted && task.dueDate && isOverdue(task.dueDate);
 
-  function handleComplete() {
+  function handleComplete(e?: React.MouseEvent) {
+    const triggerEl = (e?.currentTarget as HTMLElement) ?? null;
     startTransition(async () => {
-      try {
-        await completeTask(task.id);
-        toast.success("Task completed", {
-          description: task.isBlocking
-            ? "Blocking item cleared — stage may now advance."
-            : undefined,
-        });
-      } catch (err) {
-        toast.error(
-          err instanceof Error ? err.message : "Could not complete task"
-        );
+      const result = await completeTask(task.id);
+      if (!result.success) {
+        toast.error(result.error);
+        return;
       }
+      const doneNow = totalTasks - openCount + 1;
+      if (openCount <= 1) {
+        celebrateBig();
+      } else {
+        celebrateFromElement(triggerEl);
+      }
+      showProgress(doneNow, totalTasks);
+      router.refresh();
     });
   }
 
   function handleSkip() {
     startTransition(async () => {
-      try {
-        await skipTask(task.id);
-        toast.info("Task skipped");
-      } catch (err) {
-        toast.error(
-          err instanceof Error ? err.message : "Could not skip task"
-        );
+      const result = await skipTask(task.id);
+      if (!result.success) {
+        toast.error(result.error);
+        return;
       }
+      toast.info("Task skipped");
+      router.refresh();
     });
   }
 
   function handleStart() {
     startTransition(async () => {
-      try {
-        await startTask(task.id);
-      } catch (err) {
-        toast.error(
-          err instanceof Error ? err.message : "Could not start task"
-        );
+      const result = await startTask(task.id);
+      if (!result.success) {
+        toast.error(result.error);
+        return;
+      }
+      if (task.targetPath) {
+        router.push(`/events/${task.eventId}/${task.targetPath}`);
+      } else {
+        router.refresh();
       }
     });
   }
 
   return (
     <div
-      className={`group glass-subtle rounded-[var(--radius-card)] p-4 border-l-3 transition-all hover:bg-white/[0.03] ${priorityAccent(task.priority)} ${
+      className={`group rounded-[var(--radius-card)] border border-border/30 p-4 border-l-3 transition-all hover:bg-muted/10 ${priorityAccent(task.priority)} ${
         isCompleted ? "opacity-60" : ""
       }`}
       style={{ "--stagger-index": index } as React.CSSProperties}
@@ -209,7 +256,7 @@ function TaskItem({
           {pending ? (
             <Loader2 size={18} className="animate-spin text-muted-foreground" />
           ) : isCompleted ? (
-            <CheckCircle2 size={18} className="text-success" />
+            <CelebrationCheck size={18} className="text-success" />
           ) : task.status === "blocked" ? (
             <AlertCircle size={18} className="text-destructive" />
           ) : task.status === "in_progress" ? (
@@ -217,7 +264,7 @@ function TaskItem({
           ) : (
             <button
               onClick={handleComplete}
-              className="hover:text-success transition-colors text-text-muted"
+              className="hover:text-success transition-colors text-muted-foreground"
               title="Mark as complete"
             >
               <Circle size={18} />
@@ -227,20 +274,33 @@ function TaskItem({
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between gap-3 mb-1">
-            <p
-              className={`text-sm font-medium ${
-                isCompleted
-                  ? "text-text-secondary line-through"
-                  : "text-text-primary"
-              }`}
-            >
-              {task.title}
-            </p>
+            {task.targetPath ? (
+              <Link
+                href={`/events/${task.eventId}/${task.targetPath}`}
+                className={`text-sm font-medium hover:underline ${
+                  isCompleted
+                    ? "text-muted-foreground line-through"
+                    : "text-foreground"
+                }`}
+              >
+                {task.title}
+              </Link>
+            ) : (
+              <p
+                className={`text-sm font-medium ${
+                  isCompleted
+                    ? "text-muted-foreground line-through"
+                    : "text-foreground"
+                }`}
+              >
+                {task.title}
+              </p>
+            )}
             <TaskStatusBadge status={task.status} />
           </div>
 
           {task.description && (
-            <p className="text-xs text-text-muted mt-1 line-clamp-2">
+            <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
               {task.description}
             </p>
           )}
@@ -249,7 +309,7 @@ function TaskItem({
             {task.dueDate && (
               <span
                 className={`flex items-center gap-1 text-xs ${
-                  overdue ? "text-destructive" : "text-text-muted"
+                  overdue ? "text-destructive" : "text-muted-foreground"
                 }`}
               >
                 <Clock size={11} />
@@ -258,7 +318,7 @@ function TaskItem({
               </span>
             )}
             {task.assignedTo && (
-              <span className="flex items-center gap-1 text-xs text-text-muted">
+              <span className="flex items-center gap-1 text-xs text-muted-foreground">
                 <User size={11} />
                 {task.assignedTo.name}
               </span>

@@ -1,6 +1,11 @@
 import { createClient } from "@/lib/supabase/server";
 import { createSignedReadUrl } from "@/lib/storage/signed-url";
-import type { Asset, AssetReviewStatus } from "@/types";
+import type {
+  Asset,
+  AssetAnnotation,
+  AssetReviewStatus,
+  AssetVersion,
+} from "@/types";
 
 function mapAsset(row: Record<string, unknown>): Asset {
   return {
@@ -31,6 +36,15 @@ function mapAsset(row: Record<string, unknown>): Asset {
       (row.review_decided_at as string | null) ?? undefined,
     revisionCount: (row.revision_count as number | null) ?? 0,
     uploadedBy: (row.uploaded_by as string | null) ?? undefined,
+    requiredResolutionMin: (row.required_resolution_min as string | null) ?? undefined,
+    requiredDurationRange: (row.required_duration_range as string | null) ?? undefined,
+    requiredFileTypes: (row.required_file_types as string[] | null) ?? undefined,
+    animationRequirements: (row.animation_requirements as string | null) ?? undefined,
+    safeZoneDescription: (row.safe_zone_description as string | null) ?? undefined,
+    referenceUrl: (row.reference_url as string | null) ?? undefined,
+    isPhysical: Boolean(row.is_physical),
+    specDocumentUrl: (row.spec_document_url as string | null) ?? undefined,
+    uploadWarnings: (row.upload_warnings as string[] | null) ?? undefined,
   };
 }
 
@@ -104,6 +118,100 @@ export async function getAssetsPendingReview(): Promise<
     };
   });
   return attachSignedUrls(supabase, enriched);
+}
+
+/**
+ * Full version history for one asset, newest first, each with a signed URL.
+ * Returns [] gracefully if the versions table isn't provisioned yet.
+ */
+export async function getAssetVersions(
+  assetId: string,
+): Promise<AssetVersion[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("asset_versions")
+    .select("*, uploader:profiles!asset_versions_uploaded_by_fkey(name)")
+    .eq("asset_id", assetId)
+    .order("version", { ascending: false });
+
+  if (error || !data) return [];
+
+  const versions: AssetVersion[] = data.map((row) => {
+    const r = row as Record<string, unknown>;
+    const uploader = r.uploader as { name?: string } | null;
+    return {
+      id: String(r.id),
+      assetId: String(r.asset_id),
+      eventId: String(r.event_id),
+      version: Number(r.version ?? 1),
+      filePath: (r.file_path as string | null) ?? undefined,
+      fileUrl: undefined,
+      fileName: (r.file_name as string | null) ?? undefined,
+      fileSize: (r.file_size as number | null) ?? undefined,
+      fileType: (r.file_type as string | null) ?? undefined,
+      uploadedBy: (r.uploaded_by as string | null) ?? undefined,
+      uploaderName: uploader?.name ?? undefined,
+      uploadWarnings: (r.upload_warnings as string[] | null) ?? undefined,
+      reviewStatus:
+        (r.review_status as AssetReviewStatus | null) ?? "pending_review",
+      reviewFeedback: (r.review_feedback as string | null) ?? undefined,
+      reviewDecidedBy: (r.review_decided_by as string | null) ?? undefined,
+      reviewDecidedAt: (r.review_decided_at as string | null) ?? undefined,
+      createdAt: String(r.created_at ?? ""),
+    };
+  });
+
+  return Promise.all(
+    versions.map(async (v) => {
+      if (!v.filePath) return v;
+      if (/^https?:|^\//.test(v.filePath)) {
+        return { ...v, fileUrl: v.filePath };
+      }
+      const signed = await createSignedReadUrl(
+        supabase,
+        "event-assets",
+        v.filePath,
+      );
+      return { ...v, fileUrl: signed ?? undefined };
+    }),
+  );
+}
+
+/**
+ * Region-anchored annotations for an asset, oldest first.
+ * Returns [] gracefully if the annotations table isn't provisioned yet.
+ */
+export async function getAssetAnnotations(
+  assetId: string,
+): Promise<AssetAnnotation[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("asset_annotations")
+    .select("*, author:profiles!asset_annotations_author_id_fkey(name)")
+    .eq("asset_id", assetId)
+    .order("created_at", { ascending: true });
+
+  if (error || !data) return [];
+
+  return data.map((row) => {
+    const r = row as Record<string, unknown>;
+    const author = r.author as { name?: string } | null;
+    return {
+      id: String(r.id),
+      assetId: String(r.asset_id),
+      assetVersionId: (r.asset_version_id as string | null) ?? undefined,
+      eventId: String(r.event_id),
+      authorId: String(r.author_id),
+      authorName: author?.name ?? undefined,
+      x: Number(r.x ?? 0),
+      y: Number(r.y ?? 0),
+      w: Number(r.w ?? 0),
+      h: Number(r.h ?? 0),
+      body: String(r.body ?? ""),
+      resolved: Boolean(r.resolved),
+      createdAt: String(r.created_at ?? ""),
+    };
+  });
 }
 
 export async function getAssetById(assetId: string): Promise<Asset | null> {

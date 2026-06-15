@@ -43,6 +43,7 @@ export function makeUser(overrides: Partial<User> = {}): User {
     name: "Tim Pedro",
     email: "tim@brightblue.test",
     role: "events_lead",
+    hasCompletedOnboarding: true,
     ...overrides,
   };
 }

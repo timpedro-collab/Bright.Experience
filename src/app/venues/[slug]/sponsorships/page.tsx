@@ -1,13 +1,14 @@
 /** Sponsorship slot management — slots grouped by placement. */
 import { redirect } from "next/navigation";
-import { AppShell } from "@/components/layout/AppShell";
-import { PageHeader } from "@/components/layout/PageHeader";
+import { PortalPageShell, venueTabs } from "@/components/brand";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { getUser } from "@/lib/auth";
+import { getPartnerForUser } from "@/lib/queries/partners";
 import { getVenueBySlug } from "@/lib/queries/venues";
 import { getPlacementsByVenue } from "@/lib/queries/placements";
 import { getSlotsByPlacement } from "@/lib/queries/sponsorship-slots";
+import { getUnreadCount } from "@/lib/queries/notifications";
 import { SponsorshipSlotCard } from "@/components/venues/SponsorshipSlotCard";
 
 interface Props {
@@ -36,7 +37,13 @@ export default async function SponsorshipsPage({ params }: Props) {
   const venue = await getVenueBySlug(slug);
   if (!venue) redirect("/");
 
-  const placements = await getPlacementsByVenue(venue.id);
+  const partner = await getPartnerForUser(user.id);
+  if (!partner || venue.partner_id !== partner.id) redirect("/");
+
+  const [placements, unread] = await Promise.all([
+    getPlacementsByVenue(venue.id),
+    getUnreadCount(user.id),
+  ]);
 
   const placementsWithSlots: PlacementWithSlots[] = await Promise.all(
     placements
@@ -62,17 +69,16 @@ export default async function SponsorshipsPage({ params }: Props) {
   );
 
   return (
-    <AppShell user={user} isInternal={false}>
-      <PageHeader
-        title="Sponsorships"
-        subtitle={`Sponsorship slots at ${venue.name}`}
-        breadcrumbs={[
-          { label: "Venues", href: "/" },
-          { label: venue.name, href: `/venues/${slug}/dashboard` },
-          { label: "Sponsorships" },
-        ]}
-      />
-
+    <PortalPageShell
+      user={user}
+      unreadCount={unread}
+      scope={venue.name}
+      section="Sponsorships"
+      slug={slug}
+      tabs={venueTabs(slug)}
+      title="Sponsorships"
+      subtitle={`Sponsorship slots at ${venue.name}`}
+    >
       <div className="space-y-6">
         {placementsWithSlots.length === 0 ? (
           <Card>
@@ -114,6 +120,6 @@ export default async function SponsorshipsPage({ params }: Props) {
           ))
         )}
       </div>
-    </AppShell>
+    </PortalPageShell>
   );
 }

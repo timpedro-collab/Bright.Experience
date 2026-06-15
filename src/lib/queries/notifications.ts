@@ -1,6 +1,7 @@
 /** Supabase queries for notification management */
 
 import { createClient } from "@/lib/supabase/server";
+import { PAGE_SIZE, paginateQuery, totalPages } from "@/lib/pagination";
 import type { Notification } from "@/types";
 
 /**
@@ -44,6 +45,30 @@ export async function getNotificationsByUser(
   return data.map((row) => mapNotification(row as Record<string, unknown>));
 }
 
+/** Paginated notifications for the inbox view. */
+export async function getNotificationsByUserPaginated(
+  userId: string,
+  page: number = 1,
+  pageSize: number = PAGE_SIZE
+): Promise<{ data: Notification[]; totalCount: number; totalPages: number }> {
+  const supabase = await createClient();
+  const query = supabase
+    .from("notifications")
+    .select("*", { count: "exact" })
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false });
+
+  const { data, error, count } = await paginateQuery(query, page, pageSize);
+  if (error || !data) return { data: [], totalCount: 0, totalPages: 1 };
+
+  const total = count ?? 0;
+  return {
+    data: data.map((row) => mapNotification(row as Record<string, unknown>)),
+    totalCount: total,
+    totalPages: totalPages(total, pageSize),
+  };
+}
+
 /** Count of unread notifications for a user */
 export async function getUnreadCount(userId: string): Promise<number> {
   const supabase = await createClient();
@@ -57,19 +82,23 @@ export async function getUnreadCount(userId: string): Promise<number> {
   return count ?? 0;
 }
 
-/** Mark a single notification as read */
-export async function markNotificationRead(notificationId: string) {
+/** Mark a single notification as read. Returns true on success, false on error. */
+export async function markNotificationRead(
+  notificationId: string,
+): Promise<boolean> {
   const supabase = await createClient();
   const { error } = await supabase
     .from("notifications")
     .update({ is_read: true })
     .eq("id", notificationId);
 
-  if (error) throw new Error(`Failed to mark read: ${error.message}`);
+  return !error;
 }
 
-/** Mark all notifications as read for a user */
-export async function markAllNotificationsRead(userId: string) {
+/** Mark all notifications as read for a user. Returns true on success, false on error. */
+export async function markAllNotificationsRead(
+  userId: string,
+): Promise<boolean> {
   const supabase = await createClient();
   const { error } = await supabase
     .from("notifications")
@@ -77,5 +106,5 @@ export async function markAllNotificationsRead(userId: string) {
     .eq("user_id", userId)
     .eq("is_read", false);
 
-  if (error) throw new Error(`Failed to mark all read: ${error.message}`);
+  return !error;
 }

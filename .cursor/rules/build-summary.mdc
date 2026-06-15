@@ -1,0 +1,24 @@
+---
+description: Always end a build or implementation sprint with a plain-English layman's summary
+alwaysApply: true
+---
+
+# Layman's Summary After Every Build
+
+After completing a build, implementation sprint, or set of to-dos, always end your final message with a **"In plain English"** section.
+
+## Format
+
+```
+---
+
+**In plain English:** <2-4 sentence summary a non-technical person would understand. Explain what changed from the user's perspective — what they'll see, what now works that didn't before, and why it matters. No jargon, no file names, no technical terms.>
+```
+
+## Rules
+
+- Write as if explaining to someone who has never seen a line of code
+- Focus on **what the user/customer experiences**, not what the code does
+- Keep it under 4 sentences
+- Use conversational, friendly tone
+- Place it at the very end of the completion message, after any technical summary

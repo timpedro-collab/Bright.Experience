@@ -67,7 +67,7 @@ export default function PublicLayout({
       <header className="sticky top-0 z-50 bg-background/85 backdrop-blur-md border-b border-border/40">
         <Container className="flex h-16 items-center justify-between gap-6">
           <Link
-            href="/catalog"
+            href="/"
             className="flex items-center gap-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-md"
           >
             <BrandLockup />
@@ -171,6 +171,14 @@ export default function PublicLayout({
               <Link href="/partners/join" className="hover:text-foreground transition-colors">
                 Partners
               </Link>
+              <a
+                href="https://bright.blue"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-foreground transition-colors"
+              >
+                bright.blue
+              </a>
             </div>
           </div>
         </Container>

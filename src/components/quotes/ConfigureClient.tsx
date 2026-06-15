@@ -58,14 +58,19 @@ interface Props {
   pkg: PackageForConfig;
   machines: MachineForConfig[];
   games: GameForConfig[];
+  /** Pre-select a machine by slug (e.g. from quiz flow). */
+  preSelectedMachine?: string;
 }
 
 const STEPS = ["Machine", "Game", "Add-ons", "Dates"] as const;
 
-export function ConfigureClient({ pkg, machines, games }: Props) {
+export function ConfigureClient({ pkg, machines, games, preSelectedMachine }: Props) {
   const router = useRouter();
-  const [step, setStep] = useState(0);
-  const [machineId, setMachineId] = useState<string>("");
+  const preselectedId = preSelectedMachine
+    ? (machines.find((m) => m.slug === preSelectedMachine)?.id ?? "")
+    : "";
+  const [step, setStep] = useState(preselectedId ? 1 : 0);
+  const [machineId, setMachineId] = useState<string>(preselectedId);
   const [gameId, setGameId] = useState<string>("");
   const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
   const [dateStart, setDateStart] = useState("");
@@ -127,7 +132,7 @@ export function ConfigureClient({ pkg, machines, games }: Props) {
               className={cn(
                 "flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold transition-colors",
                 i < step && "bg-foreground text-background",
-                i === step && "bg-[hsl(223,94%,53%)] text-white",
+                i === step && "bg-[hsl(230,93%,53%)] text-white",
                 i > step && "bg-muted text-muted-foreground"
               )}
             >

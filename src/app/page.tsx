@@ -19,16 +19,33 @@
  */
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import {
+  ArrowRight,
+  Layers,
+  CircleCheck,
+  TriangleAlert,
+  ListChecks,
+  CalendarClock,
+  GitBranch,
+  Users,
+} from "lucide-react";
+
+import {
+  PageHeader,
+  KpiGrid,
+  KpiCard,
+  GlassCard,
+  GlassCardHeader,
+  ChartCard,
+  CloudBarChart,
+} from "@/components/cloud";
 
 import {
   EditionShell,
   EditionChrome,
-  EditionBody,
   EditionFooter,
   EditionPlate,
   RidgeHero,
-  ThreeColumn,
   EditorialEyebrow,
   Hairline,
   type PlateStatusTone,
@@ -37,14 +54,26 @@ import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { UserMenu } from "@/components/layout/UserMenu";
 import { CommandPalette } from "@/components/layout/CommandPalette";
 
-import { getEvents } from "@/lib/queries/events";
+import { getEvents, getEventsPaginated, type EventFilters } from "@/lib/queries/events";
+import { EventFilterBar } from "@/components/events/EventFilterBar";
 import { getUnreadCount } from "@/lib/queries/notifications";
-import { getOpenTaskCountsForUser, getTasksByEvent } from "@/lib/queries/tasks";
+import { getOpenTaskCountsForUser, getTasksByRole, getTaskProgressByEvent } from "@/lib/queries/tasks";
+import { MyWorkDashboard } from "@/components/dashboard/MyWorkDashboard";
+import { getTeamForEvent } from "@/lib/queries/team";
 import { getUser } from "@/lib/auth";
 import { isInternalRole } from "@/lib/roles";
 import { DEFAULT_ACCOUNT_MANAGER } from "@/lib/team";
+import { parsePage } from "@/lib/pagination";
+import { Pagination } from "@/components/ui/Pagination";
+import { TourShell } from "@/components/onboarding/TourShell";
+import { StreakIndicator } from "@/components/dashboard/StreakIndicator";
+import { CustomerActionSummary } from "@/components/events/CustomerActionSummary";
+import { getStreak } from "@/app/actions/streak";
+import { getCustomerActionItems } from "@/lib/queries/deadlines";
+import { getPendingQuotesForCustomer } from "@/lib/queries/quotes";
+import { CustomerHoldingState } from "@/components/home/CustomerHoldingState";
 import { STAGE_CONFIG } from "@/types";
-import type { Event, Stage, Task } from "@/types";
+import type { Event, EventTeamMember, Stage } from "@/types";
 
 /**
  * Pick the event the customer most wants to see first. We prefer:
@@ -119,6 +148,20 @@ const STAGE_ORDER: Stage[] = [
   "complete",
 ];
 
+/** Compact axis labels for the portfolio-by-stage chart. */
+const STAGE_SHORT: Record<Stage, string> = {
+  confirmed: "Confirmed",
+  kickoff_complete: "Kickoff",
+  creative_assets: "Assets",
+  approvals: "Approvals",
+  build_configuration: "Build",
+  qa_readiness: "QA",
+  logistics_confirmed: "Logistics",
+  event_live: "Live",
+  reporting: "Reporting",
+  complete: "Complete",
+};
+
 /**
  * Return the current stage plus the next two upcoming stages. We
  * deliberately limit to three rows so the column has the same calm
@@ -142,98 +185,48 @@ function getProgressRows(event: Event): Array<{
   }));
 }
 
-/**
- * The "Waiting on you" column for the customer view. Pulls the next
- * three customer-visible open tasks and renders them as a small list
- * of editorial line items, each linking back to the event task view.
- */
-function WaitingColumn({
+/** The "From your team" column — account manager + real team members. */
+function TeamColumn({
   eventId,
-  tasks,
+  members,
+  hideEyebrow = false,
 }: {
   eventId: string;
-  tasks: Task[];
+  members: EventTeamMember[];
+  hideEyebrow?: boolean;
 }) {
-  const open = tasks
-    .filter(
-      (t) =>
-        t.customerVisible &&
-        t.status !== "complete" &&
-        t.status !== "skipped",
-    )
-    .slice(0, 4);
+  const am = {
+    initial: DEFAULT_ACCOUNT_MANAGER.firstName[0],
+    name: DEFAULT_ACCOUNT_MANAGER.fullName,
+    title: DEFAULT_ACCOUNT_MANAGER.title,
+  };
+  const approvedMembers = members
+    .filter((m) => m.status === "approved")
+    .slice(0, 4)
+    .map((m) => ({
+      initial: (m.profile?.name?.[0] ?? m.email[0]).toUpperCase(),
+      name: m.profile?.name ?? m.email,
+      title: m.roleLabel,
+    }));
+  const team = [am, ...approvedMembers];
 
   return (
     <div className="space-y-4">
-      <EditorialEyebrow accent>Waiting on you</EditorialEyebrow>
-      {open.length === 0 ? (
-        <p className="text-sm text-muted-foreground">
-          Nothing on your plate right now. Your team will reach out when
-          they need you.
-        </p>
+      {!hideEyebrow && <EditorialEyebrow accent>From your team</EditorialEyebrow>}
+      {team.length === 1 && approvedMembers.length === 0 ? (
+        <>
+          <TeamMemberRow member={am} />
+          <p className="text-sm text-muted-foreground">
+            No team members yet.
+          </p>
+        </>
       ) : (
-        <ul className="flex flex-col">
-          {open.map((task) => (
-            <li
-              key={task.id}
-              className="flex items-start justify-between gap-3 border-b border-border/40 py-3 last:border-0"
-            >
-              <span className="text-sm text-foreground leading-snug">
-                {task.title}
-              </span>
-              <ArrowRight
-                className="size-4 shrink-0 text-[var(--color-bb-cobalt)] mt-0.5"
-                aria-hidden
-              />
-            </li>
+        <ul className="flex flex-col gap-3">
+          {team.map((m) => (
+            <TeamMemberRow key={m.name} member={m} />
           ))}
         </ul>
       )}
-      <Link
-        href={`/events/${eventId}/actions`}
-        className="inline-block text-overline text-[var(--color-bb-cobalt)] underline decoration-from-font underline-offset-4 italic font-medium not-italic"
-      >
-        Go to your queue →
-      </Link>
-    </div>
-  );
-}
-
-/**
- * The "From your team" column. Today we surface the default account
- * manager plus two placeholder roles; when a real team roster lands
- * this maps 1:1.
- */
-function TeamColumn({ eventId }: { eventId: string }) {
-  const team = [
-    {
-      initial: "S",
-      name: DEFAULT_ACCOUNT_MANAGER.fullName,
-      title: "Account Manager",
-    },
-    { initial: "C", name: "Casey Wong", title: "Production Lead" },
-    { initial: "M", name: "Mira Patel", title: "Brand Strategist" },
-  ];
-  return (
-    <div className="space-y-4">
-      <EditorialEyebrow accent>From your team</EditorialEyebrow>
-      <ul className="flex flex-col gap-3">
-        {team.map((m) => (
-          <li key={m.name} className="flex items-center gap-3">
-            <span className="flex items-center justify-center size-8 rounded-full bg-card border border-border text-overline text-foreground">
-              {m.initial}
-            </span>
-            <span className="flex flex-col leading-tight">
-              <span className="text-sm font-medium text-foreground">
-                {m.name}
-              </span>
-              <span className="text-overline text-muted-foreground">
-                {m.title}
-              </span>
-            </span>
-          </li>
-        ))}
-      </ul>
       <Link
         href={`/events/${eventId}/communications`}
         className="inline-block text-overline text-[var(--color-bb-cobalt)] underline decoration-from-font underline-offset-4 font-medium"
@@ -244,38 +237,100 @@ function TeamColumn({ eventId }: { eventId: string }) {
   );
 }
 
+function TeamMemberRow({
+  member,
+}: {
+  member: { initial: string; name: string; title: string };
+}) {
+  return (
+    <li className="flex items-center gap-3">
+      <span className="flex items-center justify-center size-8 rounded-full bg-card border border-border text-overline text-foreground">
+        {member.initial}
+      </span>
+      <span className="flex flex-col leading-tight">
+        <span className="text-sm font-medium text-foreground">
+          {member.name}
+        </span>
+        <span className="text-overline text-muted-foreground">
+          {member.title}
+        </span>
+      </span>
+    </li>
+  );
+}
+
 /** Friendly first-name greeting. */
 function firstName(name?: string): string {
   if (!name) return "there";
   return name.split(" ")[0] ?? name;
 }
 
-export default async function HomePage() {
-  const user = await getUser();
-  if (!user) redirect("/login");
+interface HomePageProps {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}
 
+export default async function HomePage({ searchParams }: HomePageProps) {
+  const user = await getUser();
+  if (!user) {
+    const { PublicLanding } = await import("@/components/public/PublicLanding");
+    return <PublicLanding />;
+  }
+  if (!user.hasCompletedOnboarding) redirect("/welcome");
+
+  const params = await searchParams;
   const isInternal = isInternalRole(user.role);
-  const [events, unread] = await Promise.all([
-    getEvents(),
+  const page = parsePage(params);
+
+  const filters: EventFilters = {
+    q: typeof params.q === "string" ? params.q : undefined,
+    stage: typeof params.stage === "string" ? params.stage : undefined,
+    health: typeof params.health === "string" ? params.health : undefined,
+    owner: typeof params.owner === "string" ? params.owner : undefined,
+  };
+
+  const [eventsResult, unread, roleTaskGroups, streak] = await Promise.all([
+    isInternal ? getEventsPaginated(page, undefined, filters) : getEventsPaginated(page),
     getUnreadCount(user.id),
+    isInternal ? getTasksByRole(user.role, user.id) : Promise.resolve([]),
+    getStreak(),
   ]);
+  const events = eventsResult.data;
 
   const featured = pickFeaturedEvent(events);
   const others = featured ? events.filter((e) => e.id !== featured.id) : [];
 
   // Featured-event-specific data only fetched if there's something to feature.
-  const [featuredTasks, taskCounts] = await Promise.all([
-    featured ? getTasksByEvent(featured.id) : Promise.resolve<Task[]>([]),
-    getOpenTaskCountsForUser(
-      user.id,
-      isInternal,
-      events.map((e) => e.id),
-    ),
+  const eventIds = events.map((e) => e.id);
+  const [taskCounts, featuredTeam, taskProgress, customerActions] = await Promise.all([
+    getOpenTaskCountsForUser(user.id, isInternal, eventIds),
+    featured ? getTeamForEvent(featured.id) : Promise.resolve([]),
+    getTaskProgressByEvent(eventIds),
+    featured && !isInternal ? getCustomerActionItems(featured.id) : Promise.resolve([]),
   ]);
 
-  // Internal mode → Library
+  // Internal mode → Library with role-aware work dashboard
   if (isInternal) {
+    const onTrackCount = events.filter((e) => e.healthStatus === "green").length;
+    const atRiskCount = events.filter(
+      (e) => e.healthStatus === "amber" || e.healthStatus === "red",
+    ).length;
+    const openForMe = Object.values(taskCounts).reduce(
+      (sum, n) => sum + (n ?? 0),
+      0,
+    );
+
+    // Portfolio-by-stage uses the full event set (not the paginated page)
+    // so the chart reflects the whole pipeline at a glance. Fall back to
+    // the already-loaded page if the full fetch comes back empty.
+    const fullEvents = await getEvents();
+    const portfolioEvents = fullEvents.length > 0 ? fullEvents : events;
+    const stageData = STAGE_ORDER.map((stage) => ({
+      name: STAGE_SHORT[stage],
+      count: portfolioEvents.filter((e) => e.currentStage === stage).length,
+    }));
+
     return (
+      <TourShell role={user.role} autoStart={false}>
       <EditionShell theme="dark">
         <EditionChrome
           breadcrumbs={[{ label: "Your library" }]}
@@ -290,55 +345,138 @@ export default async function HomePage() {
             </>
           }
         />
-        <section className="py-10 md:py-14">
-          <EditorialEyebrow>Your work</EditorialEyebrow>
-          <h1 className="text-display text-foreground text-[clamp(2.25rem,5vw,4rem)] mt-2">
-            Every event, in one place.
-          </h1>
-          <p className="mt-3 text-base text-muted-foreground max-w-[52ch]">
-            {events.length === 0
-              ? "No events in production yet. Create the first one to get started."
-              : `${events.length} event${events.length === 1 ? "" : "s"} in production · ${events.filter((e) => e.healthStatus === "green").length} on track.`}
-          </p>
-        </section>
-        <EditionBody>
-          {events.length === 0 ? (
-            <div className="flex flex-col items-start gap-4 py-8">
-              <p className="text-muted-foreground">
-                Get started by importing or creating your first event.
-              </p>
+        <div className="space-y-8 py-8 md:py-10">
+          <PageHeader
+            eyebrow="Your work"
+            title="Every event, in one place."
+            subtitle={
+              events.length === 0
+                ? "No events in production yet. Create the first one to get started."
+                : `${events.length} event${events.length === 1 ? "" : "s"} in production · ${onTrackCount} on track.`
+            }
+            actions={<StreakIndicator streak={streak} />}
+          />
+
+          <KpiGrid>
+            <KpiCard label="Total events" value={events.length} icon={Layers} />
+            <KpiCard
+              label="On track"
+              value={onTrackCount}
+              icon={CircleCheck}
+              hint="healthy"
+            />
+            <KpiCard
+              label="At risk / blocked"
+              value={atRiskCount}
+              icon={TriangleAlert}
+              hint={atRiskCount > 0 ? "needs attention" : undefined}
+            />
+            <KpiCard
+              label="Open tasks"
+              value={openForMe}
+              icon={ListChecks}
+              hint="assigned to you"
+            />
+          </KpiGrid>
+
+          {/* Cloud-grade portfolio chart (real event data) */}
+          {portfolioEvents.length > 0 && (
+            <ChartCard
+              title="Portfolio by stage"
+              description={`Where ${portfolioEvents.length} event${portfolioEvents.length === 1 ? "" : "s"} sit in the delivery pipeline`}
+              height={260}
+            >
+              <CloudBarChart
+                data={stageData}
+                xKey="name"
+                series={[{ key: "count", name: "Events", tone: "primary" }]}
+              />
+            </ChartCard>
+          )}
+
+          <GlassCard data-tour="my-work">
+            <GlassCardHeader
+              title="My work"
+              description="Tasks waiting on your role"
+              action={
+                <Link
+                  href="/pipeline"
+                  data-tour="pipeline-link"
+                  className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:opacity-80 transition-opacity"
+                >
+                  Open pipeline <ArrowRight className="size-4" />
+                </Link>
+              }
+            />
+            <div className="p-6">
+              <MyWorkDashboard taskGroups={roleTaskGroups} role={user.role} />
+            </div>
+          </GlassCard>
+
+          <section className="space-y-5">
+            <div className="flex items-end justify-between gap-3">
+              <div>
+                <h2 className="text-xl font-semibold tracking-tight text-foreground">
+                  The library
+                </h2>
+                <p className="mt-0.5 text-sm text-muted-foreground">
+                  Every active edition with its live status.
+                </p>
+              </div>
               <Link
                 href="/events/new"
-                className="inline-flex items-center gap-2 rounded-md bg-[var(--color-bb-cobalt)] px-4 py-2 text-sm font-medium text-primary-foreground hover:brightness-110"
+                className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-[var(--bb-shadow-premium)] hover:brightness-110"
               >
-                Create new edition <ArrowRight className="size-4" />
+                New edition <ArrowRight className="size-4" />
               </Link>
             </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-              {events.map((event, i) => {
-                const health = healthLabel(event);
-                return (
-                  <div
-                    key={event.id}
-                    className="stagger-item"
-                    style={{ "--stagger-index": i } as React.CSSProperties}
-                  >
-                    <EditionPlate
-                      id={event.id}
-                      title={event.name}
-                      meta={event.venueName ?? undefined}
-                      statusLabel={health.label}
-                      statusTone={health.tone}
-                      waitingOnYou={(taskCounts[event.id] ?? 0) > 0}
-                      href={`/events/${event.id}`}
-                    />
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </EditionBody>
+            <EventFilterBar
+              owners={[...new Set(events.map((e) => e.account.name).filter(Boolean))]}
+              currentFilters={filters}
+            />
+            {events.length === 0 ? (
+              <div className="flex flex-col items-start gap-4 py-8">
+                <p className="text-muted-foreground">
+                  No events match your filters. Try adjusting or clearing them.
+                </p>
+              </div>
+            ) : (
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                  {events.map((event, i) => {
+                    const health = healthLabel(event);
+                    return (
+                      <div
+                        key={event.id}
+                        className="stagger-item"
+                        style={{ "--stagger-index": i } as React.CSSProperties}
+                      >
+                        <EditionPlate
+                          id={event.id}
+                          title={event.name}
+                          meta={event.venueName ?? undefined}
+                          statusLabel={health.label}
+                          statusTone={health.tone}
+                          waitingOnYou={(taskCounts[event.id] ?? 0) > 0}
+                          completedTasks={taskProgress[event.id]?.completed}
+                          totalTasks={taskProgress[event.id]?.total}
+                          href={`/events/${event.id}`}
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+                {typeof eventsResult?.totalPages === "number" && eventsResult.totalPages > 1 && (
+                  <Pagination
+                    currentPage={page}
+                    totalPages={eventsResult.totalPages}
+                    basePath="/"
+                  />
+                )}
+              </>
+            )}
+          </section>
+        </div>
         <EditionFooter
           rightSlot={
             <Link
@@ -351,11 +489,19 @@ export default async function HomePage() {
         />
         <CommandPalette isInternal />
       </EditionShell>
+      </TourShell>
     );
   }
 
+  // A logged-in customer with no event isn't dumped to the public funnel —
+  // we show their in-flight proposal (if any) or a warm in-portal discovery.
+  const pendingQuotes = !featured
+    ? await getPendingQuotesForCustomer(user.email)
+    : [];
+
   // Customer mode → Featured event editorial spread
   return (
+    <TourShell role={user.role} autoStart={false}>
     <EditionShell theme="dark">
       <EditionChrome
         breadcrumbs={
@@ -373,34 +519,14 @@ export default async function HomePage() {
       />
 
       {!featured ? (
-        <section className="py-16 md:py-24">
-          <EditorialEyebrow>Welcome, {firstName(user.name)}</EditorialEyebrow>
-          <h1 className="text-display text-foreground text-[clamp(2.25rem,5vw,4rem)] mt-3">
-            Your portal is ready.
-          </h1>
-          <p className="mt-4 text-base text-muted-foreground max-w-[52ch]">
-            No activations in flight yet. Browse our catalog to find what
-            fits, or take the quiz and we&apos;ll build the proposal with
-            you.
-          </p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Link
-              href="/quiz"
-              className="inline-flex items-center gap-2 rounded-md bg-[var(--color-bb-cobalt)] px-5 py-2.5 text-sm font-medium text-primary-foreground hover:brightness-110"
-            >
-              Find a fit <ArrowRight className="size-4" />
-            </Link>
-            <Link
-              href="/catalog"
-              className="inline-flex items-center gap-2 rounded-md border border-border px-5 py-2.5 text-sm font-medium text-foreground hover:bg-accent"
-            >
-              Browse the catalog
-            </Link>
-          </div>
-        </section>
+        <CustomerHoldingState
+          firstName={firstName(user.name)}
+          pendingQuotes={pendingQuotes}
+        />
       ) : (
         <>
           <RidgeHero
+            variant="compact"
             seed={featured.id}
             eyebrow={`Welcome back, ${firstName(user.name)}`}
             title={`${featured.name} is taking shape.`}
@@ -415,6 +541,7 @@ export default async function HomePage() {
             })()}
             rightSlot={
               <>
+                <StreakIndicator streak={streak} />
                 <span className="flex items-center gap-2">
                   <span
                     className={
@@ -426,19 +553,52 @@ export default async function HomePage() {
                   />
                   {healthLabel(featured).label}
                 </span>
-                <span className="text-sm text-foreground tabular-nums">
-                  {timeUntil(featured)}
-                </span>
               </>
             }
           />
 
-          <EditionBody>
-            <ThreeColumn
-              left={<WaitingColumn eventId={featured.id} tasks={featuredTasks} />}
-              center={
-                <div className="space-y-4">
-                  <EditorialEyebrow accent>Progress</EditorialEyebrow>
+          <div className="space-y-8 py-6" data-tour="featured-event">
+            <KpiGrid>
+              <KpiCard
+                label="Time to event"
+                value={timeUntil(featured)}
+                icon={CalendarClock}
+                hint={featured.venueName ?? undefined}
+              />
+              <KpiCard
+                label="Needs you"
+                value={customerActions.length}
+                icon={ListChecks}
+                hint={customerActions.length === 0 ? "all clear" : "open items"}
+              />
+              <KpiCard
+                label="Stage"
+                value={`${(STAGE_CONFIG[featured.currentStage as Stage]?.order ?? 0) + 1}/10`}
+                icon={GitBranch}
+                hint={
+                  STAGE_CONFIG[featured.currentStage as Stage]?.label ??
+                  featured.currentStage
+                }
+              />
+              <KpiCard
+                label="Your team"
+                value={featuredTeam.filter((m) => m.status === "approved").length + 1}
+                icon={Users}
+                hint="on this event"
+              />
+            </KpiGrid>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <GlassCard data-tour="waiting-on-you">
+                <GlassCardHeader title="What's needed from you" />
+                <div className="p-6">
+                  <CustomerActionSummary eventId={featured.id} items={customerActions} />
+                </div>
+              </GlassCard>
+
+              <GlassCard>
+                <GlassCardHeader title="Progress" />
+                <div className="p-6 space-y-4">
                   {(() => {
                     const rows = getProgressRows(featured);
                     if (rows.length === 0) {
@@ -486,17 +646,25 @@ export default async function HomePage() {
                     Open the full timeline →
                   </Link>
                 </div>
-              }
-              right={<TeamColumn eventId={featured.id} />}
-            />
-          </EditionBody>
+              </GlassCard>
+
+              <GlassCard>
+                <GlassCardHeader title="From your team" />
+                <div className="p-6">
+                  <TeamColumn eventId={featured.id} members={featuredTeam} hideEyebrow />
+                </div>
+              </GlassCard>
+            </div>
+          </div>
 
           {others.length > 0 && (
             <section className="py-10">
               <div className="flex items-baseline justify-between mb-6">
-                <EditorialEyebrow>Your other events</EditorialEyebrow>
+                <h2 className="text-xl font-semibold tracking-tight text-foreground">
+                  Your other events
+                </h2>
                 <Link
-                  href="/library"
+                  href="/"
                   className="text-overline text-muted-foreground hover:text-foreground transition-colors"
                 >
                   View all →
@@ -514,11 +682,20 @@ export default async function HomePage() {
                       statusLabel={health.label}
                       statusTone={health.tone}
                       waitingOnYou={(taskCounts[event.id] ?? 0) > 0}
+                      completedTasks={taskProgress[event.id]?.completed}
+                      totalTasks={taskProgress[event.id]?.total}
                       href={`/events/${event.id}`}
                     />
                   );
                 })}
               </div>
+              {typeof eventsResult?.totalPages === "number" && eventsResult.totalPages > 1 && (
+                <Pagination
+                  currentPage={page}
+                  totalPages={eventsResult.totalPages}
+                  basePath="/"
+                />
+              )}
               <Hairline className="opacity-60 mt-10" />
             </section>
           )}
@@ -539,5 +716,6 @@ export default async function HomePage() {
       />
       <CommandPalette />
     </EditionShell>
+    </TourShell>
   );
 }

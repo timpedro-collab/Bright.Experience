@@ -29,12 +29,12 @@ export function MetricCard({
           {icon}
         </div>
         <div className="min-w-0">
-          <p className="text-heading text-2xl font-bold tabular-nums text-text-primary">
+          <p className="text-heading text-2xl font-bold tabular-nums text-foreground">
             {typeof value === "number" ? value.toLocaleString() : value}
           </p>
-          <p className="text-sm text-text-secondary">{label}</p>
+          <p className="text-sm text-muted-foreground">{label}</p>
           {subtitle && (
-            <p className="mt-0.5 text-xs text-text-muted">{subtitle}</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">{subtitle}</p>
           )}
         </div>
       </CardContent>

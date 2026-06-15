@@ -6,10 +6,13 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
+import { getServiceRoleClient } from "@/lib/supabase/service-role";
 import { getUser } from "@/lib/auth";
 import { isInternalRole } from "@/lib/roles";
 import { enqueueDealKickoff } from "@/lib/pipedrive/triggers";
 import { normalisePipedriveDealId } from "@/lib/pipedrive/normalise";
+import { expandTemplate } from "@/app/actions/expand-template";
+import type { ActionResult } from "@/types/actions";
 
 const createEventSchema = z.object({
   accountId: z.string().uuid("Select a customer account"),
@@ -27,15 +30,20 @@ const createEventSchema = z.object({
 
 export type CreateEventInput = z.infer<typeof createEventSchema>;
 
-export async function createEvent(input: CreateEventInput): Promise<{ id: string }> {
+export async function createEvent(
+  input: CreateEventInput,
+): Promise<ActionResult<{ id: string }>> {
   const user = await getUser();
   if (!user || !isInternalRole(user.role)) {
-    throw new Error("Only internal users can create events");
+    return { success: false, error: "Only internal users can create events." };
   }
 
   const parsed = createEventSchema.safeParse(input);
   if (!parsed.success) {
-    throw new Error(parsed.error.issues[0]?.message ?? "Invalid input");
+    return {
+      success: false,
+      error: parsed.error.issues[0]?.message ?? "Invalid input.",
+    };
   }
 
   const supabase = await createClient();
@@ -60,22 +68,71 @@ export async function createEvent(input: CreateEventInput): Promise<{ id: string
     .single();
 
   if (error || !data) {
-    throw new Error(error?.message ?? "Failed to create event");
+    return { success: false, error: "Could not create event. Please try again." };
   }
 
-  // Pipedrive: first note on the deal once we have a linked event.
   if (dealId) {
     await enqueueDealKickoff(data.id as string);
   }
 
+  if (parsed.data.templateId) {
+    await expandTemplate(data.id as string, parsed.data.templateId);
+  }
+
   revalidatePath("/");
-  return { id: data.id as string };
+  return { success: true, data: { id: data.id as string } };
 }
 
-export async function duplicateEvent(eventId: string): Promise<{ id: string }> {
+/**
+ * Service-role event creation — bypasses `isInternalRole` for system flows
+ * like auto-provisioning from an accepted quote.
+ */
+export async function createEventInternal(
+  input: Omit<CreateEventInput, "pipedriveDealId">,
+): Promise<ActionResult<{ id: string }>> {
+  const parsed = createEventSchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      success: false,
+      error: parsed.error.issues[0]?.message ?? "Invalid input.",
+    };
+  }
+
+  const supabase = getServiceRoleClient();
+  const { data, error } = await supabase
+    .from("events")
+    .insert({
+      account_id: parsed.data.accountId,
+      name: parsed.data.name,
+      event_type: parsed.data.eventType,
+      package_type: parsed.data.packageType,
+      machine_type: parsed.data.machineType || null,
+      venue_name: parsed.data.venueName || null,
+      venue_address: parsed.data.venueAddress || null,
+      event_date_start: parsed.data.eventDateStart,
+      event_date_end: parsed.data.eventDateEnd || null,
+    })
+    .select("id")
+    .single();
+
+  if (error || !data) {
+    return { success: false, error: "Could not create event. Please try again." };
+  }
+
+  if (parsed.data.templateId) {
+    await expandTemplate(data.id as string, parsed.data.templateId);
+  }
+
+  revalidatePath("/");
+  return { success: true, data: { id: data.id as string } };
+}
+
+export async function duplicateEvent(
+  eventId: string,
+): Promise<ActionResult<{ id: string }>> {
   const user = await getUser();
   if (!user || !isInternalRole(user.role)) {
-    throw new Error("Only internal users can duplicate events");
+    return { success: false, error: "Only internal users can duplicate events." };
   }
 
   const supabase = await createClient();
@@ -84,7 +141,10 @@ export async function duplicateEvent(eventId: string): Promise<{ id: string }> {
     .select("*")
     .eq("id", eventId)
     .single();
-  if (readErr || !source) throw new Error("Could not load source event");
+
+  if (readErr || !source) {
+    return { success: false, error: "Could not load source event." };
+  }
 
   const { data: copy, error: insErr } = await supabase
     .from("events")
@@ -105,9 +165,12 @@ export async function duplicateEvent(eventId: string): Promise<{ id: string }> {
     .select("id")
     .single();
 
-  if (insErr || !copy) throw new Error(insErr?.message ?? "Failed to duplicate event");
+  if (insErr || !copy) {
+    return { success: false, error: "Could not duplicate event. Please try again." };
+  }
+
   revalidatePath("/");
-  return { id: copy.id as string };
+  return { success: true, data: { id: copy.id as string } };
 }
 
 /** Server-action wrapper used by progressive-enhancement forms. */
@@ -115,8 +178,12 @@ export async function createEventFromForm(formData: FormData) {
   const input: CreateEventInput = {
     accountId: String(formData.get("accountId") ?? ""),
     name: String(formData.get("name") ?? ""),
-    eventType: (formData.get("eventType") as CreateEventInput["eventType"]) ?? "activation",
-    packageType: (formData.get("packageType") as CreateEventInput["packageType"]) ?? "standard",
+    eventType:
+      (formData.get("eventType") as CreateEventInput["eventType"]) ??
+      "activation",
+    packageType:
+      (formData.get("packageType") as CreateEventInput["packageType"]) ??
+      "standard",
     machineType: (formData.get("machineType") as string) || undefined,
     venueName: (formData.get("venueName") as string) || undefined,
     venueAddress: (formData.get("venueAddress") as string) || undefined,
@@ -124,6 +191,9 @@ export async function createEventFromForm(formData: FormData) {
     eventDateEnd: (formData.get("eventDateEnd") as string) || undefined,
     pipedriveDealId: (formData.get("pipedriveDealId") as string) || undefined,
   };
-  const { id } = await createEvent(input);
-  redirect(`/events/${id}`);
+  const result = await createEvent(input);
+  if (!result.success) {
+    throw new Error(result.error);
+  }
+  redirect(`/events/${result.data.id}`);
 }

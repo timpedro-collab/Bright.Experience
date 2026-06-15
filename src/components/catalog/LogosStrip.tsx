@@ -15,26 +15,17 @@ interface LogoEntry {
 }
 
 const DEFAULT_LOGOS: LogoEntry[] = [
-  { name: "Heineken" },
-  { name: "Vodafone" },
-  { name: "Sky" },
-  { name: "Boots" },
-  { name: "Sainsbury's" },
-  { name: "British Airways" },
+  { name: "Costa Coffee" },
+  { name: "Lucozade" },
+  { name: "Red Bull" },
+  { name: "Pepsi" },
+  { name: "Porsche" },
+  { name: "Suntory" },
 ];
 
 interface LogosStripProps {
   logos?: LogoEntry[];
   overline?: string;
-}
-
-function getMonogram(name: string): string {
-  const trimmed = name.replace(/^The\s+/i, "").trim();
-  const parts = trimmed.split(/\s+/).filter(Boolean);
-  if (parts.length === 1) {
-    return parts[0].slice(0, 2).toUpperCase();
-  }
-  return (parts[0][0] + parts[1][0]).toUpperCase();
 }
 
 export function LogosStrip({
@@ -68,9 +59,9 @@ export function LogosStrip({
               ) : (
                 <span
                   aria-label={logo.name}
-                  className="font-[var(--font-heading)] text-xl font-semibold tracking-tight"
+                  className="font-[var(--font-heading)] text-sm font-bold tracking-tight uppercase"
                 >
-                  {getMonogram(logo.name)}
+                  {logo.name}
                 </span>
               )}
             </li>

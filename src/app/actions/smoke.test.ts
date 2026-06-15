@@ -28,6 +28,11 @@ vi.mock("@/lib/supabase/service-role", () => ({
 }));
 vi.mock("@/lib/auth", () => ({
   getUser: (...args: unknown[]) => getUser(...args),
+  requireInternalUser: vi.fn(async () => ({
+    supabase,
+    user: { id: "00000000-0000-0000-0000-000000000001" },
+    profile: { id: "00000000-0000-0000-0000-000000000001", role: "admin" },
+  })),
 }));
 vi.mock("@/lib/pipedrive/drain", () => ({
   drainOutbox: (...args: unknown[]) => drainOutbox(...args),
@@ -149,7 +154,7 @@ describe("telemetry action — ingestTelemetry", () => {
     const { ingestTelemetry } = await import("./telemetry");
     const result = await ingestTelemetry({
       machineSerial: "BB-XYZ",
-      eventId: "evt-1",
+      eventId: "00000000-0000-4000-8000-000000000001",
       eventType: "heartbeat",
     });
     expect(result.success).toBe(false);
@@ -164,7 +169,7 @@ describe("telemetry action — ingestTelemetry", () => {
     const { ingestTelemetry } = await import("./telemetry");
     const result = await ingestTelemetry({
       machineSerial: "BB-001",
-      eventId: "evt-1",
+      eventId: "00000000-0000-4000-8000-000000000001",
       eventType: "play_started",
     });
     expect(result.success).toBe(true);
@@ -176,9 +181,9 @@ describe("telemetry action — captureLead", () => {
     supabase.setTableResponse("leads", { data: { id: "lead-1" }, error: null });
     const { captureLead } = await import("./telemetry");
     const result = await captureLead({
-      eventId: "evt-1",
+      eventId: "00000000-0000-4000-8000-000000000001",
       contactName: "Casey",
-      contactEmail: "casey@x",
+      contactEmail: "casey@acme.test",
     });
     expect(result.success).toBe(true);
     if (result.success) expect(result.data.id).toBe("lead-1");
@@ -191,9 +196,9 @@ describe("telemetry action — captureLead", () => {
     });
     const { captureLead } = await import("./telemetry");
     const result = await captureLead({
-      eventId: "evt-1",
+      eventId: "00000000-0000-4000-8000-000000000001",
       contactName: "Casey",
-      contactEmail: "casey@x",
+      contactEmail: "casey@acme.test",
     });
     expect(result.success).toBe(false);
   });

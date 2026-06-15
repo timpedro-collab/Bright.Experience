@@ -24,6 +24,7 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { RidgeArtwork } from "./ridge-artwork";
 import { EditorialEyebrow } from "./editorial";
+import { EventProgressRing } from "@/components/dashboard/EventProgressRing";
 
 export type PlateStatusTone = "active" | "live" | "client" | "wrap" | "warning";
 
@@ -41,6 +42,9 @@ interface EditionPlateProps {
   waitingOnYou?: boolean;
   /** If set, the plate links to this href. */
   href?: string;
+  /** Task completion counts for the progress ring. */
+  completedTasks?: number;
+  totalTasks?: number;
   className?: string;
 }
 
@@ -68,8 +72,12 @@ export function EditionPlate({
   statusTone = "active",
   waitingOnYou,
   href,
+  completedTasks,
+  totalTasks,
   className,
 }: EditionPlateProps) {
+  const hasProgress =
+    typeof completedTasks === "number" && typeof totalTasks === "number" && totalTasks > 0;
   const body = (
     <article
       className={cn(
@@ -87,7 +95,7 @@ export function EditionPlate({
           lines={14}
           amplitude={40}
           strokeWidth={0.9}
-          className="text-[hsl(223,94%,53%)]"
+          className="text-[hsl(230,93%,53%)]"
         />
         <div
           aria-hidden
@@ -107,15 +115,27 @@ export function EditionPlate({
         {meta && (
           <EditorialEyebrow className="opacity-75">{meta}</EditorialEyebrow>
         )}
-        {statusLabel && (
-          <div className="mt-2 flex items-center gap-2">
-            <span
-              className={cn("size-1.5 rounded-full", TONE_DOT[statusTone])}
-              aria-hidden
-            />
-            <EditorialEyebrow className={TONE_TEXT[statusTone]}>
-              {statusLabel}
-            </EditorialEyebrow>
+        {(statusLabel || hasProgress) && (
+          <div className="mt-2 flex items-center justify-between gap-2">
+            {statusLabel && (
+              <div className="flex items-center gap-2">
+                <span
+                  className={cn("size-1.5 rounded-full", TONE_DOT[statusTone])}
+                  aria-hidden
+                />
+                <EditorialEyebrow className={TONE_TEXT[statusTone]}>
+                  {statusLabel}
+                </EditorialEyebrow>
+              </div>
+            )}
+            {hasProgress && (
+              <EventProgressRing
+                completed={completedTasks!}
+                total={totalTasks!}
+                size={36}
+                strokeWidth={3}
+              />
+            )}
           </div>
         )}
       </div>

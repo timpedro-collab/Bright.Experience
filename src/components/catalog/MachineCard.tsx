@@ -34,7 +34,7 @@ export function MachineCard({ machine, index = 0, featured = false }: MachineCar
       <div
         className={cn(
           "relative aspect-[4/3] overflow-hidden",
-          "bg-[radial-gradient(circle_at_30%_30%,hsl(223,94%,53%,0.25),transparent_60%),radial-gradient(circle_at_70%_70%,hsl(189,100%,75%,0.18),transparent_55%)]"
+          "bg-[radial-gradient(circle_at_30%_30%,hsl(230,93%,53%,0.25),transparent_60%),radial-gradient(circle_at_70%_70%,hsl(189,100%,75%,0.18),transparent_55%)]"
         )}
       >
         {machine.heroImageUrl ? (

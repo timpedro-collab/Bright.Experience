@@ -14,6 +14,7 @@
  */
 
 import { NextResponse } from "next/server";
+import * as Sentry from "@sentry/nextjs";
 
 import { getServiceRoleClient } from "@/lib/supabase/service-role";
 import { drainOutbox } from "@/lib/pipedrive/drain";
@@ -136,20 +137,26 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
-  const [liveFired, deliveredFired] = await Promise.all([
-    fireEventLiveTriggers(),
-    fireEventDeliveredTriggers(),
-  ]);
+  try {
+    const [liveFired, deliveredFired] = await Promise.all([
+      fireEventLiveTriggers(),
+      fireEventDeliveredTriggers(),
+    ]);
 
-  // Drain anything new plus anything stuck.
-  const drain = await drainOutbox({ limit: 50 });
+    // Drain anything new plus anything stuck.
+    const drain = await drainOutbox({ limit: 50 });
 
-  return NextResponse.json({
-    ok: true,
-    liveFired,
-    deliveredFired,
-    drain,
-  });
+    return NextResponse.json({
+      ok: true,
+      liveFired,
+      deliveredFired,
+      drain,
+    });
+  } catch (err) {
+    Sentry.captureException(err, { tags: { cron: "pipedrive" } });
+    console.error("[Cron:pipedrive] failed:", err);
+    return NextResponse.json({ error: "Internal error" }, { status: 500 });
+  }
 }
 
 export async function POST(request: Request) {

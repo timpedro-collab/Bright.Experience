@@ -2,6 +2,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { CheckCircle2, XCircle, Loader2, MessageSquare } from "lucide-react";
 import { toast } from "sonner";
 
@@ -21,6 +22,7 @@ export function ApprovalActions({
   const [feedback, setFeedback] = useState("");
   const [decided, setDecided] = useState<"approved" | "rejected" | null>(null);
   const approveRef = useRef<HTMLButtonElement | null>(null);
+  const router = useRouter();
 
   async function handleDecision(decision: "approved" | "rejected") {
     if (decision === "rejected" && !showFeedback) {
@@ -29,29 +31,26 @@ export function ApprovalActions({
     }
 
     setLoading(decision);
-    try {
-      await decideApproval(approvalId, eventId, decision, feedback || undefined);
-      setDecided(decision);
-      if (decision === "approved") {
-        toast.success("Approved", {
-          description: "We'll let the team know straight away.",
-        });
-        celebrateFromElement(approveRef.current);
-      } else {
-        toast.info("Changes requested", {
-          description: "Your feedback has been shared with the team.",
-        });
-      }
-    } catch (err) {
+    const result = await decideApproval(approvalId, eventId, decision, feedback || undefined);
+    setLoading(null);
+    if (!result.success) {
       toast.error("Couldn't save your decision", {
-        description:
-          err instanceof Error
-            ? err.message
-            : "Please try again — if the issue persists, contact your producer.",
+        description: result.error,
       });
-    } finally {
-      setLoading(null);
+      return;
     }
+    setDecided(decision);
+    if (decision === "approved") {
+      toast.success("Approved", {
+        description: "We'll let the team know straight away.",
+      });
+      celebrateFromElement(approveRef.current);
+    } else {
+      toast.info("Changes requested", {
+        description: "Your feedback has been shared with the team.",
+      });
+    }
+    router.refresh();
   }
 
   if (decided) {

@@ -1,7 +1,7 @@
 /** Server actions for campaign management and multi-event coordination. */
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
+import { requireInternalUser } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 
 /** Create a new campaign in draft status. */
@@ -12,7 +12,7 @@ export async function createCampaign(data: {
   startDate?: string;
   endDate?: string;
 }) {
-  const supabase = await createClient();
+  const { supabase } = await requireInternalUser();
 
   const { data: campaign, error } = await supabase
     .from("campaigns")
@@ -35,7 +35,7 @@ export async function createCampaign(data: {
 
 /** Link an event to a campaign. */
 export async function addEventToCampaign(campaignId: string, eventId: string) {
-  const supabase = await createClient();
+  const { supabase } = await requireInternalUser();
 
   const { data: existing } = await supabase
     .from("campaign_events")
@@ -71,7 +71,7 @@ export async function addEventToCampaign(campaignId: string, eventId: string) {
 
 /** Remove an event from a campaign. */
 export async function removeEventFromCampaign(campaignId: string, eventId: string) {
-  const supabase = await createClient();
+  const { supabase } = await requireInternalUser();
 
   const { error } = await supabase
     .from("campaign_events")
@@ -88,7 +88,7 @@ export async function removeEventFromCampaign(campaignId: string, eventId: strin
 
 /** Update a campaign's lifecycle status. */
 export async function updateCampaignStatus(id: string, status: string) {
-  const supabase = await createClient();
+  const { supabase } = await requireInternalUser();
 
   const { error } = await supabase
     .from("campaigns")
@@ -108,7 +108,7 @@ export async function duplicateEventForCampaign(
   newDates: { start: string; end: string },
   newLocation?: string
 ) {
-  const supabase = await createClient();
+  const { supabase } = await requireInternalUser();
 
   const { data: source, error: fetchError } = await supabase
     .from("events")

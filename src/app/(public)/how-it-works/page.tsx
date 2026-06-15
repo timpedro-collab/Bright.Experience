@@ -30,7 +30,7 @@ export default function HowItWorksPage() {
             seed="how-it-works"
             lines={28}
             amplitude={90}
-            className="text-[hsl(223,94%,53%)]"
+            className="text-[hsl(230,93%,53%)]"
           />
           <div
             aria-hidden

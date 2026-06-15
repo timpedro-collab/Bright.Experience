@@ -46,22 +46,22 @@ on conflict (id) do nothing;
 -- CATALOG: machines
 -- ============================================================
 insert into machines (id, name, slug, tagline, description, hero_image_url, video_url, is_active, sort_order) values
-  ('a1a1a1a1-a1a1-4a1a-8a1a-a1a1a1a1a1a1', 'Bright.Vend', 'bright-vend',
+  ('a1a1a1a1-a1a1-4a1a-8a1a-a1a1a1a1a1a1', 'Experience Portal Compact', 'experience-portal-compact',
     'The compact gifting kiosk',
-    'The smallest Bright.Blue machine: 1m² footprint, single-pull dispense, designed for high-frequency sampling moments at retail, transport and festivals.',
-    '/catalog/bright-vend-hero.jpg', null, true, 1),
-  ('a2a2a2a2-a2a2-4a2a-8a2a-a2a2a2a2a2a2', 'Bright.Vend Pro', 'bright-vend-pro',
-    'The full-size sampling experience',
-    'Twin-stack dispenser with a 32" portrait touchscreen, branded wrap and built-in lead capture. The workhorse of the Bright.Blue activation fleet.',
-    '/catalog/bright-vend-pro-hero.jpg', null, true, 2),
-  ('a3a3a3a3-a3a3-4a3a-8a3a-a3a3a3a3a3a3', 'Bright.Play', 'bright-play',
-    'Interactive game station',
-    'Full-body interactive game cabinet built for activations. Combines a 65" landscape display with capacitive touch, RFID, and Bright.Blue''s game engine.',
-    '/catalog/bright-play-hero.jpg', null, true, 3),
-  ('a4a4a4a4-a4a4-4a4a-8a4a-a4a4a4a4a4a4', 'Bright.Studio', 'bright-studio',
+    'A smaller-footprint Experience Portal with single-pull dispense, designed for high-frequency sampling moments at retail, transport hubs, and festivals. Same game engine, same lead capture — just smaller.',
+    '/catalog/experience-portal-compact-hero.jpg', null, true, 1),
+  ('a2a2a2a2-a2a2-4a2a-8a2a-a2a2a2a2a2a2', 'Experience Portal', 'experience-portal',
+    'The standard activation unit',
+    'The Europa — a 55" portrait touchscreen wrapped in a fully branded shell, with built-in lead capture, prize dispensing, and Bright.Blue''s entire game engine. The machine behind the majority of Bright.Blue activations. Compact enough for retail, powerful enough for stadiums.',
+    '/catalog/experience-portal-hero.jpg', null, true, 2),
+  ('a3a3a3a3-a3a3-4a3a-8a3a-a3a3a3a3a3a3', 'Experience Portal XL', 'experience-portal-xl',
+    'The large-format interactive experience',
+    'Full-body interactive experience cabinet with a 65" landscape display, capacitive touch, RFID, and Bright.Blue''s game engine. Built for activations where presence and scale matter.',
+    '/catalog/experience-portal-xl-hero.jpg', null, true, 3),
+  ('a4a4a4a4-a4a4-4a4a-8a4a-a4a4a4a4a4a4', 'Experience Portal Studio', 'experience-portal-studio',
     'Bespoke creative + content',
     'The Bright.Blue studio team — design, animation, video, and photography — packaged as bookable creative capacity alongside any hardware activation.',
-    '/catalog/bright-studio-hero.jpg', null, true, 4)
+    '/catalog/experience-portal-studio-hero.jpg', null, true, 4)
 on conflict (id) do nothing;
 
 -- ============================================================
@@ -235,43 +235,74 @@ insert into milestones (event_id, name, stage, status, target_date, completed_at
 -- ============================================================
 -- TASKS (for evt-1)
 -- ============================================================
-insert into tasks (id, event_id, title, description, task_type, category, status, priority, assigned_to, due_date, completed_at, is_blocking, customer_visible, sort_order) values
-  ('11111111-1111-4111-8111-111111111101', 'e1111111-1111-1111-1111-111111111111', 'Upload primary brand logo', 'SVG or PNG format, minimum 300dpi, on transparent background', 'customer_action', 'creative', 'complete', 'high', '22222222-2222-2222-2222-222222222222', '2026-04-10', '2026-04-02T10:00:00Z', true, true, 0),
-  ('11111111-1111-4111-8111-111111111102', 'e1111111-1111-1111-1111-111111111111', 'Upload brand guidelines document', 'PDF with colour codes, font specifications, and usage rules', 'customer_action', 'creative', 'in_progress', 'high', '22222222-2222-2222-2222-222222222222', '2026-04-12', null, true, true, 1),
-  ('11111111-1111-4111-8111-111111111103', 'e1111111-1111-1111-1111-111111111111', 'Provide webform questions', 'List of data capture questions for the consumer-facing form', 'customer_action', 'creative', 'pending', 'medium', '22222222-2222-2222-2222-222222222222', '2026-04-15', null, false, true, 2),
-  ('11111111-1111-4111-8111-111111111104', 'e1111111-1111-1111-1111-111111111111', 'Confirm prize details and quantities', 'Product name, size, quantity, and any vending-specific requirements', 'customer_action', 'operations', 'pending', 'high', '22222222-2222-2222-2222-222222222222', '2026-04-18', null, true, true, 3),
-  ('11111111-1111-4111-8111-111111111105', 'e1111111-1111-1111-1111-111111111111', 'Provide onsite contact details', 'Name, phone, and email for the person on site during the event', 'customer_action', 'logistics', 'pending', 'medium', null, '2026-05-01', null, false, true, 4),
-  ('11111111-1111-4111-8111-111111111106', 'e1111111-1111-1111-1111-111111111111', 'Design wrap concept', null, 'internal_action', 'creative', 'pending', 'high', '33333333-3333-3333-3333-333333333333', '2026-04-20', null, true, false, 5),
-  ('11111111-1111-4111-8111-111111111107', 'e1111111-1111-1111-1111-111111111111', 'Configure game logic', null, 'internal_action', 'development', 'pending', 'medium', '55555555-5555-5555-5555-555555555555', '2026-05-15', null, false, false, 6),
-  ('11111111-1111-4111-8111-111111111108', 'e1111111-1111-1111-1111-111111111111', 'Arrange logistics and transport', null, 'internal_action', 'logistics', 'pending', 'medium', '44444444-4444-4444-4444-444444444444', '2026-06-30', null, false, false, 7);
+insert into tasks (id, event_id, title, description, task_type, category, status, priority, assigned_to, due_date, completed_at, is_blocking, customer_visible, sort_order, assigned_role, target_path) values
+  ('11111111-1111-4111-8111-111111111101', 'e1111111-1111-1111-1111-111111111111', 'Upload primary brand logo', 'SVG or PNG format, minimum 300dpi, on transparent background', 'customer_action', 'creative', 'complete', 'high', '22222222-2222-2222-2222-222222222222', '2026-04-10', '2026-04-02T10:00:00Z', true, true, 0, 'creative_lead', 'assets'),
+  ('11111111-1111-4111-8111-111111111102', 'e1111111-1111-1111-1111-111111111111', 'Upload brand guidelines document', 'PDF with colour codes, font specifications, and usage rules', 'customer_action', 'creative', 'in_progress', 'high', '22222222-2222-2222-2222-222222222222', '2026-04-12', null, true, true, 1, 'creative_lead', 'assets'),
+  ('11111111-1111-4111-8111-111111111103', 'e1111111-1111-1111-1111-111111111111', 'Provide webform questions', 'List of data capture questions for the consumer-facing form', 'customer_action', 'admin', 'pending', 'medium', '22222222-2222-2222-2222-222222222222', '2026-04-15', null, false, true, 2, 'events_lead', 'briefing'),
+  ('11111111-1111-4111-8111-111111111104', 'e1111111-1111-1111-1111-111111111111', 'Confirm prize details and quantities', 'Product name, size, quantity, and any vending-specific requirements', 'customer_action', 'operations', 'pending', 'high', '22222222-2222-2222-2222-222222222222', '2026-04-18', null, true, true, 3, 'operations_lead', 'configuration'),
+  ('11111111-1111-4111-8111-111111111105', 'e1111111-1111-1111-1111-111111111111', 'Provide onsite contact details', 'Name, phone, and email for the person on site during the event', 'customer_action', 'logistics', 'pending', 'medium', null, '2026-05-01', null, false, true, 4, 'operations_lead', 'logistics'),
+  ('11111111-1111-4111-8111-111111111106', 'e1111111-1111-1111-1111-111111111111', 'Design wrap concept', null, 'internal_action', 'creative', 'pending', 'high', '33333333-3333-3333-3333-333333333333', '2026-04-20', null, true, false, 5, 'creative_lead', 'studio'),
+  ('11111111-1111-4111-8111-111111111107', 'e1111111-1111-1111-1111-111111111111', 'Configure game logic', null, 'internal_action', 'development', 'pending', 'medium', '55555555-5555-5555-5555-555555555555', '2026-05-15', null, false, false, 6, 'developer', 'configuration'),
+  ('11111111-1111-4111-8111-111111111108', 'e1111111-1111-1111-1111-111111111111', 'Arrange logistics and transport', null, 'internal_action', 'logistics', 'pending', 'medium', '44444444-4444-4444-4444-444444444444', '2026-06-30', null, false, false, 7, 'operations_lead', 'logistics');
 
 -- Generic tasks for other events
-insert into tasks (event_id, title, task_type, category, status, priority, due_date, is_blocking, customer_visible, sort_order) values
-  ('e2222222-2222-2222-2222-222222222222', 'Upload brand assets',           'customer_action', 'creative', 'pending', 'high',   '2026-04-20', true,  true, 0),
-  ('e2222222-2222-2222-2222-222222222222', 'Complete creative briefing form','customer_action', 'creative', 'pending', 'medium', '2026-04-25', false, true, 1),
-  ('e3333333-3333-3333-3333-333333333333', 'Upload brand assets',           'customer_action', 'creative', 'pending', 'high',   '2026-04-20', true,  true, 0),
-  ('e3333333-3333-3333-3333-333333333333', 'Complete creative briefing form','customer_action', 'creative', 'pending', 'medium', '2026-04-25', false, true, 1),
-  ('e4444444-4444-4444-4444-444444444444', 'Upload brand assets',           'customer_action', 'creative', 'pending', 'high',   '2026-04-20', true,  true, 0),
-  ('e4444444-4444-4444-4444-444444444444', 'Complete creative briefing form','customer_action', 'creative', 'pending', 'medium', '2026-04-25', false, true, 1),
-  ('e5555555-5555-5555-5555-555555555555', 'Upload brand assets',           'customer_action', 'creative', 'pending', 'high',   '2026-04-20', true,  true, 0),
-  ('e5555555-5555-5555-5555-555555555555', 'Complete creative briefing form','customer_action', 'creative', 'pending', 'medium', '2026-04-25', false, true, 1);
+insert into tasks (event_id, title, task_type, category, status, priority, due_date, is_blocking, customer_visible, sort_order, assigned_role, target_path) values
+  ('e2222222-2222-2222-2222-222222222222', 'Upload brand assets',           'customer_action', 'creative',   'pending', 'high',   '2026-04-20', true,  true, 0, 'creative_lead', 'assets'),
+  ('e2222222-2222-2222-2222-222222222222', 'Complete creative briefing form','customer_action', 'admin',      'pending', 'medium', '2026-04-25', false, true, 1, 'events_lead',   'briefing'),
+  ('e3333333-3333-3333-3333-333333333333', 'Upload brand assets',           'customer_action', 'creative',   'pending', 'high',   '2026-04-20', true,  true, 0, 'creative_lead', 'assets'),
+  ('e3333333-3333-3333-3333-333333333333', 'Complete creative briefing form','customer_action', 'admin',      'pending', 'medium', '2026-04-25', false, true, 1, 'events_lead',   'briefing'),
+  ('e4444444-4444-4444-4444-444444444444', 'Upload brand assets',           'customer_action', 'creative',   'pending', 'high',   '2026-04-20', true,  true, 0, 'creative_lead', 'assets'),
+  ('e4444444-4444-4444-4444-444444444444', 'Complete creative briefing form','customer_action', 'admin',      'pending', 'medium', '2026-04-25', false, true, 1, 'events_lead',   'briefing'),
+  ('e5555555-5555-5555-5555-555555555555', 'Upload brand assets',           'customer_action', 'creative',   'pending', 'high',   '2026-04-20', true,  true, 0, 'creative_lead', 'assets'),
+  ('e5555555-5555-5555-5555-555555555555', 'Complete creative briefing form','customer_action', 'admin',      'pending', 'medium', '2026-04-25', false, true, 1, 'events_lead',   'briefing');
 
 -- ============================================================
--- ASSETS (for evt-1)
+-- ASSETS — canonical "standard game flow" requirement set
+-- Mirrors src/lib/asset-requirements/game-flow.ts. Applied to the two
+-- Coca-Cola demo events (e1 + e4) with the rich spec columns populated so
+-- the customer Assets page renders full spec cards.
 -- ============================================================
+insert into assets (id, event_id, name, description, asset_type, required_format, required_dimensions, required_resolution_min, required_duration_range, required_file_types, safe_zone_description, animation_requirements, is_physical, file_url, file_name, file_size, version, status, customer_visible, due_date) values
+  ('a1f00000-0000-4000-8000-000000000001', 'e1111111-1111-1111-1111-111111111111', 'Primary Brand Logo', 'Main logo for the machine wrap and digital touchpoints. Supply on a transparent background — no white box.', 'logo', 'SVG or PNG (transparent, 300dpi)', 'Minimum 2000px wide', null, null, array['image/svg+xml','image/png'], null, null, false, '/uploads/coca-cola-logo.svg', 'coca-cola-primary-logo.svg', 45200, 1, 'accepted', true, '2026-06-25'),
+  ('a1f00000-0000-4000-8000-000000000002', 'e1111111-1111-1111-1111-111111111111', 'Brand Guidelines', 'Full brand guide with colour codes (HEX), typography, and usage rules so our designers stay on-brand.', 'document', 'PDF', null, null, null, array['application/pdf'], null, null, false, null, null, null, 1, 'required', true, '2026-06-25'),
+  ('a1f00000-0000-4000-8000-000000000003', 'e1111111-1111-1111-1111-111111111111', 'Machine Wrap Artwork', 'Physical wrap for the machine body. Design over our supplied dieline. CMYK, print-ready.', 'physical', 'Print-ready PDF · CMYK · 3mm bleed · 150dpi', null, null, null, null, null, null, true, null, null, null, 1, 'required', true, '2026-06-25'),
+  ('a1f00000-0000-4000-8000-000000000004', 'e1111111-1111-1111-1111-111111111111', 'Payment Terminal Screen', 'Static image on the card-payment screen. It stays lit while idle, so we recommend placing your logo here.', 'imagery', 'PNG or JPG · ≤150 kb', '1080 × 1920 px', '1080x1920', null, array['image/png','image/jpeg'], null, null, false, null, null, null, 1, 'required', true, '2026-06-25'),
+  ('a1f00000-0000-4000-8000-000000000005', 'e1111111-1111-1111-1111-111111111111', 'Product Packshot', 'Clean cut-out of the product, used throughout the game flow. Leave ~30px right padding on wide items.', 'imagery', 'PNG (transparent) · ≤150 kb', '428 × 600 px', null, null, array['image/png'], null, null, false, null, null, null, 1, 'required', true, '2026-06-25'),
+  ('a1f00000-0000-4000-8000-000000000006', 'e1111111-1111-1111-1111-111111111111', 'Negative Icons (×6)', 'The six on-brand ''distractor'' icons players must avoid tapping. Relevant to the game theme.', 'imagery', 'PNG · ≤50 kb each', '300 × 300 px', null, null, array['image/png'], null, null, false, null, null, null, 1, 'required', true, '2026-06-25'),
+  ('a1f00000-0000-4000-8000-000000000007', 'e1111111-1111-1111-1111-111111111111', 'Idle Screen Advert', 'Attract-loop video that plays when the machine is idle — showcase the prizes with a clear ''play now'' CTA.', 'video', 'MP4 · 9:16 · ≤20 mb', '1080 × 1920 px', null, '15-30', array['video/mp4'], null, null, false, null, null, null, 1, 'required', true, '2026-06-25'),
+  ('a1f00000-0000-4000-8000-000000000008', 'e1111111-1111-1111-1111-111111111111', 'Game Prompt Video', 'Short animated ''play now to win'' teaser shown before the game.', 'video', 'MP4 · ≤20 mb', '900 × 1600 px', null, '5-10', array['video/mp4'], 'Keep key content within the 804 × 682 px centre safe area (49px padding).', 'Animate elements in and out to avoid screen burn-in.', false, null, null, null, 1, 'required', true, '2026-06-25'),
+  ('a1f00000-0000-4000-8000-000000000009', 'e1111111-1111-1111-1111-111111111111', 'Game Page Banner', 'Header strip across the top of the gameplay screen.', 'imagery', 'PNG · ≤150 kb', '1080 × 216 px', null, null, array['image/png'], null, null, false, null, null, null, 1, 'required', true, '2026-06-25'),
+  ('a1f00000-0000-4000-8000-000000000010', 'e1111111-1111-1111-1111-111111111111', 'Home Banner Ad', 'Hero banner at the top of the storefront homepage. Keep all text and logos inside the safe area.', 'imagery', 'JPG or PNG · ≤150 kb', '2160 × 816 px (total)', null, null, array['image/png','image/jpeg'], 'Safe area 2064 × 600 px with 48px padding; outer edges may be obstructed.', null, false, null, null, null, 1, 'required', true, '2026-06-25'),
+  ('a4f00000-0000-4000-8000-000000000001', 'e4444444-4444-4444-4444-444444444444', 'Primary Brand Logo', 'Main logo for the machine wrap and digital touchpoints. Supply on a transparent background — no white box.', 'logo', 'SVG or PNG (transparent, 300dpi)', 'Minimum 2000px wide', null, null, array['image/svg+xml','image/png'], null, null, false, null, null, null, 1, 'required', true, '2026-06-25'),
+  ('a4f00000-0000-4000-8000-000000000002', 'e4444444-4444-4444-4444-444444444444', 'Brand Guidelines', 'Full brand guide with colour codes (HEX), typography, and usage rules so our designers stay on-brand.', 'document', 'PDF', null, null, null, array['application/pdf'], null, null, false, null, null, null, 1, 'required', true, '2026-06-25'),
+  ('a4f00000-0000-4000-8000-000000000003', 'e4444444-4444-4444-4444-444444444444', 'Machine Wrap Artwork', 'Physical wrap for the machine body. Design over our supplied dieline. CMYK, print-ready.', 'physical', 'Print-ready PDF · CMYK · 3mm bleed · 150dpi', null, null, null, null, null, null, true, null, null, null, 1, 'required', true, '2026-06-25'),
+  ('a4f00000-0000-4000-8000-000000000004', 'e4444444-4444-4444-4444-444444444444', 'Payment Terminal Screen', 'Static image on the card-payment screen. It stays lit while idle, so we recommend placing your logo here.', 'imagery', 'PNG or JPG · ≤150 kb', '1080 × 1920 px', '1080x1920', null, array['image/png','image/jpeg'], null, null, false, null, null, null, 1, 'required', true, '2026-06-25'),
+  ('a4f00000-0000-4000-8000-000000000005', 'e4444444-4444-4444-4444-444444444444', 'Product Packshot', 'Clean cut-out of the product, used throughout the game flow. Leave ~30px right padding on wide items.', 'imagery', 'PNG (transparent) · ≤150 kb', '428 × 600 px', null, null, array['image/png'], null, null, false, null, null, null, 1, 'required', true, '2026-06-25'),
+  ('a4f00000-0000-4000-8000-000000000006', 'e4444444-4444-4444-4444-444444444444', 'Negative Icons (×6)', 'The six on-brand ''distractor'' icons players must avoid tapping. Relevant to the game theme.', 'imagery', 'PNG · ≤50 kb each', '300 × 300 px', null, null, array['image/png'], null, null, false, null, null, null, 1, 'required', true, '2026-06-25'),
+  ('a4f00000-0000-4000-8000-000000000007', 'e4444444-4444-4444-4444-444444444444', 'Idle Screen Advert', 'Attract-loop video that plays when the machine is idle — showcase the prizes with a clear ''play now'' CTA.', 'video', 'MP4 · 9:16 · ≤20 mb', '1080 × 1920 px', null, '15-30', array['video/mp4'], null, null, false, null, null, null, 1, 'required', true, '2026-06-25'),
+  ('a4f00000-0000-4000-8000-000000000008', 'e4444444-4444-4444-4444-444444444444', 'Game Prompt Video', 'Short animated ''play now to win'' teaser shown before the game.', 'video', 'MP4 · ≤20 mb', '900 × 1600 px', null, '5-10', array['video/mp4'], 'Keep key content within the 804 × 682 px centre safe area (49px padding).', 'Animate elements in and out to avoid screen burn-in.', false, null, null, null, 1, 'required', true, '2026-06-25'),
+  ('a4f00000-0000-4000-8000-000000000009', 'e4444444-4444-4444-4444-444444444444', 'Game Page Banner', 'Header strip across the top of the gameplay screen.', 'imagery', 'PNG · ≤150 kb', '1080 × 216 px', null, null, array['image/png'], null, null, false, null, null, null, 1, 'required', true, '2026-06-25'),
+  ('a4f00000-0000-4000-8000-000000000010', 'e4444444-4444-4444-4444-444444444444', 'Home Banner Ad', 'Hero banner at the top of the storefront homepage. Keep all text and logos inside the safe area.', 'imagery', 'JPG or PNG · ≤150 kb', '2160 × 816 px (total)', null, null, array['image/png','image/jpeg'], 'Safe area 2064 × 600 px with 48px padding; outer edges may be obstructed.', null, false, null, null, null, 1, 'required', true, '2026-06-25')
+on conflict (id) do nothing;
+
+-- Generic asset slots for the remaining active events so their "Upload brand assets"
+-- task has a real destination (otherwise the Assets page reads "No assets required yet").
 insert into assets (id, event_id, name, description, asset_type, required_format, required_dimensions, file_url, file_name, file_size, version, status, due_date) values
-  ('a1111111-1111-1111-1111-111111111111', 'e1111111-1111-1111-1111-111111111111', 'Primary Brand Logo', 'Main logo for wrap and digital touchpoints', 'logo', 'SVG or PNG (300dpi min)', 'Minimum 2000px wide', '/uploads/coca-cola-logo.svg', 'coca-cola-primary-logo.svg', 45200, 1, 'accepted', '2026-04-10'),
-  ('a2222222-2222-2222-2222-222222222222', 'e1111111-1111-1111-1111-111111111111', 'Brand Guidelines', 'Full brand guide with colour codes, typography, and usage rules', 'brand_guidelines', 'PDF', null, null, null, null, 1, 'required', '2026-04-12'),
-  ('a3333333-3333-3333-3333-333333333333', 'e1111111-1111-1111-1111-111111111111', 'Campaign Hero Image', 'Key visual for the Summer Festival campaign', 'imagery', 'PNG or JPEG', '3840x2160 minimum', null, null, null, 1, 'required', '2026-04-15'),
-  ('a4444444-4444-4444-4444-444444444444', 'e1111111-1111-1111-1111-111111111111', 'Product Photography', 'High-res product shots for digital displays', 'imagery', 'PNG (transparent background)', '2000x2000 minimum', null, null, null, 1, 'required', '2026-04-18');
+  ('a2000001-0000-4000-8000-000000000001', 'e2222222-2222-2222-2222-222222222222', 'Primary Brand Logo', 'Main logo for wrap and digital touchpoints', 'logo', 'SVG or PNG (300dpi min)', 'Minimum 2000px wide', null, null, null, 1, 'required', '2026-04-20'),
+  ('a2000002-0000-4000-8000-000000000002', 'e2222222-2222-2222-2222-222222222222', 'Campaign Hero Image', 'Key visual for the activation', 'imagery', 'PNG or JPEG', '3840x2160 minimum', null, null, null, 1, 'required', '2026-04-20'),
+  ('a3000001-0000-4000-8000-000000000001', 'e3333333-3333-3333-3333-333333333333', 'Primary Brand Logo', 'Main logo for wrap and digital touchpoints', 'logo', 'SVG or PNG (300dpi min)', 'Minimum 2000px wide', null, null, null, 1, 'required', '2026-04-20'),
+  ('a3000002-0000-4000-8000-000000000002', 'e3333333-3333-3333-3333-333333333333', 'Campaign Hero Image', 'Key visual for the activation', 'imagery', 'PNG or JPEG', '3840x2160 minimum', null, null, null, 1, 'required', '2026-04-20'),
+  ('a5000001-0000-4000-8000-000000000001', 'e5555555-5555-5555-5555-555555555555', 'Primary Brand Logo', 'Main logo for wrap and digital touchpoints', 'logo', 'SVG or PNG (300dpi min)', 'Minimum 2000px wide', null, null, null, 1, 'required', '2026-04-20'),
+  ('a5000002-0000-4000-8000-000000000002', 'e5555555-5555-5555-5555-555555555555', 'Campaign Hero Image', 'Key visual for the activation', 'imagery', 'PNG or JPEG', '3840x2160 minimum', null, null, null, 1, 'required', '2026-04-20')
+on conflict (id) do nothing;
 
 -- ============================================================
 -- APPROVALS (for evt-2)
 -- ============================================================
 insert into approvals (id, event_id, title, description, approval_type, status, preview_url, requested_by, requested_at, decided_at, feedback, revision_count) values
-  ('ap111111-1111-1111-1111-111111111111', 'e2222222-2222-2222-2222-222222222222', 'Wrap Design', 'Machine wrap design for the Galaxy Launch Experience', 'wrap', 'pending', '/previews/samsung-wrap-v2.png', '33333333-3333-3333-3333-333333333333', '2026-03-28T14:00:00Z', null, 'Previous version had incorrect blue shade. Updated to Galaxy Blue #1428A0.', 1),
-  ('ap222222-2222-2222-2222-222222222222', 'e2222222-2222-2222-2222-222222222222', 'Game Flow', 'Interactive game sequence for the Bright.Play activation', 'game_flow', 'approved', null, '33333333-3333-3333-3333-333333333333', '2026-03-20T10:00:00Z', '2026-03-22T16:30:00Z', null, 0),
-  ('ap333333-3333-3333-3333-333333333333', 'e2222222-2222-2222-2222-222222222222', 'Webform Design', 'Data capture form for lead generation', 'webform', 'pending', null, '33333333-3333-3333-3333-333333333333', '2026-03-30T09:00:00Z', null, null, 0);
+  ('ab111111-1111-1111-1111-111111111111', 'e2222222-2222-2222-2222-222222222222', 'Wrap Design', 'Machine wrap design for the Galaxy Launch Experience', 'wrap', 'pending', '/catalog/case-studies/costa-matcha/03-prize-selection.png', '33333333-3333-3333-3333-333333333333', '2026-03-28T14:00:00Z', null, 'Previous version had incorrect blue shade. Updated to Galaxy Blue #1428A0.', 1),
+  ('ab222222-2222-2222-2222-222222222222', 'e2222222-2222-2222-2222-222222222222', 'Game Flow', 'Interactive game sequence for the Bright.Play activation', 'game_flow', 'approved', null, '33333333-3333-3333-3333-333333333333', '2026-03-20T10:00:00Z', '2026-03-22T16:30:00Z', null, 0),
+  ('ab333333-3333-3333-3333-333333333333', 'e2222222-2222-2222-2222-222222222222', 'Webform Design', 'Data capture form for lead generation', 'webform', 'pending', null, '33333333-3333-3333-3333-333333333333', '2026-03-30T09:00:00Z', null, null, 0);
 
 -- ============================================================
 -- PARTNERS + USERS

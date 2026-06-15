@@ -1,8 +1,12 @@
 /** Server actions for live event telemetry and lead capture. */
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
+import { requireInternalUser } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
+import {
+  ingestTelemetrySchema,
+  captureLeadSchema,
+} from "@/lib/validations/telemetry";
 
 /** Ingest a telemetry event from a machine, resolved by serial number. */
 export async function ingestTelemetry(data: {
@@ -11,7 +15,12 @@ export async function ingestTelemetry(data: {
   eventType: string;
   payload?: Record<string, unknown>;
 }) {
-  const supabase = await createClient();
+  const parsed = ingestTelemetrySchema.safeParse(data);
+  if (!parsed.success) {
+    return { success: false as const, error: parsed.error.issues[0].message };
+  }
+
+  const { supabase } = await requireInternalUser();
 
   const { data: instance, error: lookupError } = await supabase
     .from("machine_instances")
@@ -46,7 +55,12 @@ export async function captureLead(data: {
   contactPhone?: string;
   customFields?: Record<string, unknown>;
 }) {
-  const supabase = await createClient();
+  const parsed = captureLeadSchema.safeParse(data);
+  if (!parsed.success) {
+    return { success: false as const, error: parsed.error.issues[0].message };
+  }
+
+  const { supabase } = await requireInternalUser();
 
   const { data: lead, error } = await supabase
     .from("leads")
@@ -72,7 +86,7 @@ export async function captureLead(data: {
 
 /** Update the last heartbeat timestamp for a machine by serial number. */
 export async function updateMachineHeartbeat(serial: string) {
-  const supabase = await createClient();
+  const { supabase } = await requireInternalUser();
 
   const { error } = await supabase
     .from("machine_instances")
@@ -88,7 +102,7 @@ export async function updateMachineHeartbeat(serial: string) {
 
 /** Recalculate today's event_metrics_snapshot by aggregating telemetry_events. */
 export async function refreshEventMetrics(eventId: string) {
-  const supabase = await createClient();
+  const { supabase } = await requireInternalUser();
   const today = new Date().toISOString().slice(0, 10);
   const startOfDay = `${today}T00:00:00.000Z`;
   const endOfDay = `${today}T23:59:59.999Z`;

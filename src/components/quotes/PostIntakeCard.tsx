@@ -119,7 +119,7 @@ export function PostIntakeCard({
 
           <div className="rounded-[var(--radius-card)] border border-primary/15 bg-primary/[0.04] p-5">
             <div className="flex items-start gap-4">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[linear-gradient(135deg,hsl(223,94%,53%),hsl(189,100%,75%))] text-base font-semibold text-white">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[linear-gradient(135deg,hsl(230,93%,53%),hsl(189,100%,75%))] text-base font-semibold text-white">
                 {ae.firstName.charAt(0)}
               </div>
               <div className="min-w-0 space-y-0.5">

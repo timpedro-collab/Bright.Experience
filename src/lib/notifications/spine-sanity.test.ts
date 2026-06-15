@@ -32,6 +32,7 @@ const OWNER_RESOLVERS: ReadonlySet<string> = new Set([
   "task_assignee",
   "message_recipients",
   "asset_uploader",
+  "asset_comment_participants",
   "approval_requester",
 ]);
 
@@ -55,6 +56,14 @@ function richContext(): Record<string, string | number> {
     status: "delivered",
     leadCount: 42,
     feedback: "Tighten the strapline.",
+    invoiceNumber: "INV-2026-001",
+    documentTitle: "Public Liability Insurance",
+    expiryDate: "2026-12-31",
+    daysOverdue: "5",
+    companyName: "Acme Corp",
+    authorName: "Hannah G.",
+    filename: "leads-export-2026-05-28.csv",
+    downloadUrl: "https://storage.example.com/reports/export.csv",
   };
 }
 

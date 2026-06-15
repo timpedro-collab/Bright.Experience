@@ -13,13 +13,14 @@
  * full-screen modal. Reviewers care about throughput, not chrome.
  */
 
-import { useState, useTransition } from "react";
+import { useState, useEffect, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
   CheckCircle2,
   AlertTriangle,
   Clock,
   ExternalLink,
+  Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -29,7 +30,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { formatDateShort, timeSince } from "@/lib/dates";
 import { submitAssetReview } from "@/app/actions/asset-review";
-import type { Asset } from "@/types";
+import { requestStudioFixForAsset } from "@/app/actions/studio";
+import { loadAssetReviewDetail } from "@/app/actions/asset-detail";
+import { MachinePreview } from "@/components/assets/MachinePreview";
+import { AssetVersionTimeline } from "@/components/assets/AssetVersionTimeline";
+import { AnnotatablePreview } from "@/components/assets/AnnotatablePreview";
+import { placementPreviewFor } from "@/lib/asset-requirements/placements";
+import type { Asset, AssetAnnotation, AssetVersion } from "@/types";
 
 type QueueAsset = Asset & {
   eventName: string | null;
@@ -69,7 +76,42 @@ function AssetReviewRow({
 }) {
   const [feedback, setFeedback] = useState("");
   const [pending, startTransition] = useTransition();
+  const [studioPending, startStudioTransition] = useTransition();
+  const [versions, setVersions] = useState<AssetVersion[] | null>(null);
+  const [annotations, setAnnotations] = useState<AssetAnnotation[]>([]);
   const router = useRouter();
+
+  const machine = placementPreviewFor(asset.name);
+  const fileName = asset.fileName ?? "";
+  const isVideoUpload = /\.(mp4|webm|mov)$/i.test(fileName);
+  const isImageUpload = /\.(png|jpe?g|webp|gif)$/i.test(fileName);
+  const canPreview = Boolean(asset.fileUrl) && machine && (isImageUpload || isVideoUpload);
+
+  // Lazy-load version history + annotations the first time a row is opened.
+  useEffect(() => {
+    if (!isExpanded || versions !== null) return;
+    let active = true;
+    loadAssetReviewDetail(asset.id).then((detail) => {
+      if (!active) return;
+      setVersions(detail.versions);
+      setAnnotations(detail.annotations);
+    });
+    return () => {
+      active = false;
+    };
+  }, [isExpanded, versions, asset.id]);
+
+  function handleStudioHandoff() {
+    startStudioTransition(async () => {
+      const result = await requestStudioFixForAsset(asset.id);
+      if (!result.success) {
+        toast.error(result.error ?? "Could not raise the Studio order.");
+        return;
+      }
+      toast.success("Bright.Studio order raised from this asset.");
+      router.refresh();
+    });
+  }
 
   function handleDecision(decision: "approved" | "revision_requested") {
     startTransition(async () => {
@@ -131,66 +173,147 @@ function AssetReviewRow({
       </button>
 
       {isExpanded && (
-        <div className="border-t border-white/[0.06] p-5 space-y-4">
-          <div className="grid sm:grid-cols-2 gap-4 text-xs">
-            <Detail label="Type" value={asset.assetType} />
-            <Detail
-              label="Required format"
-              value={asset.requiredFormat ?? "—"}
-            />
-            <Detail
-              label="Required size"
-              value={asset.requiredDimensions ?? "—"}
-            />
-            <Detail
-              label="Due date"
-              value={asset.dueDate ? formatDateShort(asset.dueDate) : "—"}
-            />
-          </div>
+        <div className="border-t border-white/[0.06] p-5">
+          <div className="grid gap-5 lg:grid-cols-[minmax(0,260px)_1fr]">
+            {/* Left: the same on-machine preview the customer sees */}
+            <div className="space-y-3">
+              {canPreview ? (
+                <MachinePreview
+                  preview={machine!}
+                  overlaySrc={asset.fileUrl}
+                  overlayKind={isVideoUpload ? "video" : "image"}
+                />
+              ) : asset.fileUrl ? (
+                <a
+                  href={asset.fileUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex aspect-square w-full items-center justify-center rounded-2xl border border-dashed border-border bg-muted/40 text-xs text-muted-foreground hover:text-foreground"
+                >
+                  <span className="inline-flex items-center gap-1.5">
+                    <ExternalLink className="h-3.5 w-3.5" /> Open uploaded file
+                  </span>
+                </a>
+              ) : (
+                <div className="flex aspect-square w-full items-center justify-center rounded-2xl border border-dashed border-border bg-muted/40 text-xs text-muted-foreground">
+                  No file uploaded yet
+                </div>
+              )}
+              {asset.fileUrl && canPreview && (
+                <a
+                  href={asset.fileUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline"
+                >
+                  <ExternalLink className="h-3 w-3" /> Open original file
+                </a>
+              )}
 
-          {asset.fileUrl && (
-            <a
-              href={asset.fileUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline"
-            >
-              <ExternalLink className="h-3 w-3" /> Open uploaded file
-            </a>
-          )}
+              <div>
+                <p className="text-overline text-muted-foreground mb-2">
+                  Version history
+                </p>
+                {versions === null ? (
+                  <p className="text-xs text-muted-foreground">Loading…</p>
+                ) : (
+                  <AssetVersionTimeline versions={versions} />
+                )}
+              </div>
+            </div>
 
-          <div>
-            <label className="text-overline text-muted-foreground block mb-2">
-              Feedback (required for revisions)
-            </label>
-            <Textarea
-              value={feedback}
-              onChange={(e) => setFeedback(e.target.value)}
-              placeholder="Be specific: dimensions, colour profile, copy fix, etc. This goes straight to the customer."
-              rows={3}
-              disabled={pending}
-            />
-          </div>
+            {/* Right: spec checklist + decision */}
+            <div className="space-y-4">
+              <div className="grid sm:grid-cols-2 gap-4 text-xs">
+                <Detail label="Type" value={asset.assetType} />
+                <Detail
+                  label="Required format"
+                  value={asset.requiredFormat ?? "—"}
+                />
+                <Detail
+                  label="Required size"
+                  value={asset.requiredDimensions ?? "—"}
+                />
+                <Detail
+                  label="Due date"
+                  value={asset.dueDate ? formatDateShort(asset.dueDate) : "—"}
+                />
+              </div>
 
-          <div className="flex flex-wrap gap-3">
-            <Button
-              variant="default"
-              size="sm"
-              disabled={pending}
-              onClick={() => handleDecision("approved")}
-            >
-              <CheckCircle2 className="h-4 w-4" />
-              Approve
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={pending || feedback.trim().length === 0}
-              onClick={() => handleDecision("revision_requested")}
-            >
-              <AlertTriangle className="h-4 w-4" />
-              Request a revision
-            </Button>
+              {asset.uploadWarnings && asset.uploadWarnings.length > 0 && (
+                <div className="rounded-xl border border-amber-400/30 bg-amber-400/10 p-3">
+                  <p className="flex items-center gap-1.5 text-overline text-amber-300">
+                    <AlertTriangle className="h-3.5 w-3.5" /> Spec flags from upload
+                  </p>
+                  <ul className="mt-2 space-y-1 text-xs text-amber-100/90">
+                    {asset.uploadWarnings.map((w, i) => (
+                      <li key={i} className="flex gap-1.5">
+                        <span aria-hidden>•</span>
+                        <span>{w}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {isImageUpload && asset.fileUrl && (
+                <div>
+                  <p className="text-overline text-muted-foreground mb-2">
+                    Mark up the creative
+                  </p>
+                  <AnnotatablePreview
+                    assetId={asset.id}
+                    eventId={asset.eventId}
+                    imageUrl={asset.fileUrl}
+                    initialAnnotations={annotations}
+                  />
+                </div>
+              )}
+
+              <div>
+                <label className="text-overline text-muted-foreground block mb-2">
+                  Feedback (required for revisions)
+                </label>
+                <Textarea
+                  value={feedback}
+                  onChange={(e) => setFeedback(e.target.value)}
+                  placeholder="Be specific: dimensions, colour profile, copy fix, etc. This goes straight to the customer."
+                  rows={3}
+                  disabled={pending}
+                />
+              </div>
+
+              <div className="flex flex-wrap gap-3">
+                <Button
+                  variant="default"
+                  size="sm"
+                  disabled={pending}
+                  onClick={() => handleDecision("approved")}
+                >
+                  <CheckCircle2 className="h-4 w-4" />
+                  Approve
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={pending || feedback.trim().length === 0}
+                  onClick={() => handleDecision("revision_requested")}
+                >
+                  <AlertTriangle className="h-4 w-4" />
+                  Request a revision
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  disabled={studioPending}
+                  onClick={handleStudioHandoff}
+                  className="text-primary"
+                >
+                  <Sparkles className="h-4 w-4" />
+                  Hand to Bright.Studio
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
       )}

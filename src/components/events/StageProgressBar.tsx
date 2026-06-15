@@ -57,7 +57,7 @@ export function StageProgressBar({ currentStage }: { currentStage: Stage }) {
               <span
                 key={stage}
                 className={`text-[0.6rem] font-medium ${
-                  isCurrent ? "text-brand" : "text-text-muted"
+                  isCurrent ? "text-brand" : "text-muted-foreground"
                 }`}
                 style={{ fontFamily: "var(--bb-font-overline)" }}
               >

@@ -12,6 +12,11 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Reference project (kept for design parity, not part of the app):
+    "TheoCloudRedesign-main/**",
+    // Vendored / minified assets:
+    "public/**/*.min.mjs",
+    "public/**/*.min.js",
   ]),
 ]);
 

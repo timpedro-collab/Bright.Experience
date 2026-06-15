@@ -7,6 +7,7 @@ import { ArrowLeft, MapPin, Calendar } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { MediaGallery, type MediaItem } from "@/components/catalog/MediaGallery";
 import { getCaseStudyBySlug } from "@/lib/queries/case-studies";
 
 interface Props {
@@ -105,6 +106,22 @@ export default async function CaseStudyDetailPage({ params }: Props) {
         </Card>
       )}
 
+      {/* Gallery */}
+      {(() => {
+        const raw = (cs.gallery_urls as string[] | null) ?? [];
+        const galleryItems: MediaItem[] = raw.map((url) => ({
+          url,
+          type: (url.endsWith(".mp4") || url.endsWith(".webm") ? "video" : "image") as "video" | "image",
+        }));
+        if (galleryItems.length === 0) return null;
+        return (
+          <div className="mt-10">
+            <p className="text-overline text-muted-foreground mb-4">Gallery</p>
+            <MediaGallery items={galleryItems} />
+          </div>
+        );
+      })()}
+
       {/* Testimonial */}
       {cs.testimonial_quote && (
         <Card className="mt-10 border-primary/20 bg-primary/[0.03]">
@@ -139,6 +156,12 @@ export default async function CaseStudyDetailPage({ params }: Props) {
   );
 }
 
+function humanizeStatKey(key: string): string {
+  return key
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
 function StatsRow({ stats }: { stats: Record<string, unknown> | null }) {
   if (!stats || typeof stats !== "object") return null;
   const entries = Object.entries(stats).filter(
@@ -150,13 +173,13 @@ function StatsRow({ stats }: { stats: Record<string, unknown> | null }) {
       {entries.map(([key, value]) => (
         <div
           key={key}
-          className="rounded-[var(--radius-card)] border border-white/[0.06] bg-white/[0.02] p-5"
+          className="rounded-[var(--radius-card)] border border-border/30 bg-card/40 p-5"
         >
           <p className="text-heading text-2xl font-bold text-primary tabular-nums">
             {String(value)}
           </p>
           <p className="mt-1 text-xs uppercase tracking-widest text-muted-foreground">
-            {key}
+            {humanizeStatKey(key)}
           </p>
         </div>
       ))}

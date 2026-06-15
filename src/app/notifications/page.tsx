@@ -33,23 +33,34 @@ import { NotificationList } from "@/components/notifications/NotificationList";
 import { MarkAllReadButton } from "@/components/notifications/MarkAllReadButton";
 
 import {
-  getNotificationsByUser,
+  getNotificationsByUserPaginated,
   getUnreadCount,
 } from "@/lib/queries/notifications";
 import { getUser } from "@/lib/auth";
 import { isInternalRole } from "@/lib/roles";
+import { parsePage } from "@/lib/pagination";
+import { Pagination } from "@/components/ui/Pagination";
 
 export const metadata = {
   title: "Notifications · Bright.Experience",
 };
 
-export default async function NotificationsPage() {
+interface NotificationsPageProps {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}
+
+export default async function NotificationsPage({
+  searchParams,
+}: NotificationsPageProps) {
   const user = await getUser();
   if (!user) redirect("/login");
   const isInternal = isInternalRole(user.role);
 
-  const [notifications, unread] = await Promise.all([
-    getNotificationsByUser(user.id),
+  const params = await searchParams;
+  const page = parsePage(params);
+
+  const [{ data: notifications, totalPages }, unread] = await Promise.all([
+    getNotificationsByUserPaginated(user.id, page),
     getUnreadCount(user.id),
   ]);
 
@@ -152,6 +163,11 @@ export default async function NotificationsPage() {
             </aside>
           </div>
         )}
+        <Pagination
+          currentPage={page}
+          totalPages={totalPages}
+          basePath="/notifications"
+        />
       </EditionBody>
 
       <EditionFooter
