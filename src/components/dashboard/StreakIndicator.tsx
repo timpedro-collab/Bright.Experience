@@ -16,7 +16,7 @@ export function StreakIndicator({ streak, className }: StreakIndicatorProps) {
     <motion.div
       className={cn(
         "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1",
-        "bg-white/[0.04] border border-white/[0.08]",
+        "bg-muted/40 border border-border/60",
         "text-xs font-medium tabular-nums",
         className
       )}

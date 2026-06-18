@@ -52,7 +52,7 @@ export function EmbedCodeGenerator({ venueSlug }: EmbedCodeGeneratorProps) {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="relative">
-            <pre className="rounded-lg bg-muted/30 border border-white/[0.06] p-4 text-xs text-muted-foreground overflow-x-auto font-mono leading-relaxed">
+            <pre className="rounded-lg bg-muted/30 border border-border/60 p-4 text-xs text-muted-foreground overflow-x-auto font-mono leading-relaxed">
               {embedCode}
             </pre>
             <Button
@@ -93,7 +93,7 @@ export function EmbedCodeGenerator({ venueSlug }: EmbedCodeGeneratorProps) {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="rounded-lg border border-white/[0.06] bg-muted/20 p-1">
+          <div className="rounded-lg border border-border/60 bg-muted/20 p-1">
             <div className="rounded-md bg-background overflow-hidden" style={{ height: 300 }}>
               <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
                 <div className="text-center space-y-2">

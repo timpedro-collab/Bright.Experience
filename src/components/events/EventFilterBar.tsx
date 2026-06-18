@@ -21,16 +21,17 @@ const HEALTH_OPTIONS: { value: HealthStatus | "all"; label: string }[] = [
 ];
 
 interface EventFilterBarProps {
-  owners: string[];
+  /** Distinct customer account names to filter by. */
+  accounts: string[];
   currentFilters: {
     q?: string;
     stage?: string;
     health?: string;
-    owner?: string;
+    account?: string;
   };
 }
 
-export function EventFilterBar({ owners, currentFilters }: EventFilterBarProps) {
+export function EventFilterBar({ accounts, currentFilters }: EventFilterBarProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [, startTransition] = useTransition();
@@ -87,12 +88,12 @@ export function EventFilterBar({ owners, currentFilters }: EventFilterBarProps) 
       </select>
 
       <select
-        defaultValue={currentFilters.owner ?? "all"}
-        onChange={(e) => updateParam("owner", e.target.value)}
+        defaultValue={currentFilters.account ?? "all"}
+        onChange={(e) => updateParam("account", e.target.value)}
         className="rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground"
       >
-        <option value="all">All owners</option>
-        {owners.map((o) => (
+        <option value="all">All accounts</option>
+        {accounts.map((o) => (
           <option key={o} value={o}>{o}</option>
         ))}
       </select>

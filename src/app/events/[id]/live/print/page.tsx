@@ -7,6 +7,7 @@ import { notFound, redirect } from "next/navigation";
 import { HourlyChart } from "@/components/telemetry/HourlyChart";
 import { getEventById } from "@/lib/queries/events";
 import { getUser } from "@/lib/auth";
+import { canViewSection } from "@/lib/event-access";
 import { createClient } from "@/lib/supabase/server";
 import { Activity, Users, Gift, Clock } from "lucide-react";
 
@@ -20,6 +21,10 @@ export default async function LivePrintPage({
   const { id } = await params;
   const event = await getEventById(id);
   if (!event) return notFound();
+  // Live telemetry is gated to roles that own event-day operations. Ops and
+  // Creative leads are blocked from /live — mirror that on the print route so
+  // the PDF export can't leak live KPIs.
+  if (!canViewSection(user.role, "live")) return notFound();
 
   const supabase = await createClient();
   const today = new Date().toISOString().slice(0, 10);

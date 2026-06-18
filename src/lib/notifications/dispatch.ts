@@ -37,6 +37,7 @@ import {
   type DispatchContext,
   type SupabaseLike,
 } from "./resolve-owners";
+import { isInternal } from "./roles";
 import { renderNotificationEmail } from "./email-shell";
 
 const resend = process.env.RESEND_API_KEY
@@ -157,6 +158,20 @@ export async function dispatchNotification(
     const scope = archetype.roleScope as readonly string[];
     recipients = recipients.filter(
       (r) => scope.includes(r.role) || r.isFallbackTeamInbox
+    );
+  }
+  // Enforce the archetype `audience` as a hard routing filter. An
+  // `internal` archetype must never reach customer/partner accounts, and a
+  // `customer` archetype must never reach internal staff, regardless of who
+  // resolveOwners surfaced. `both` opts out. The synthetic fallback team
+  // inbox is always kept so nothing is silently dropped.
+  if (archetype.audience !== "both") {
+    recipients = recipients.filter(
+      (r) =>
+        r.isFallbackTeamInbox ||
+        (archetype.audience === "internal"
+          ? isInternal(r.role)
+          : !isInternal(r.role))
     );
   }
   if (recipients.length === 0) return [];

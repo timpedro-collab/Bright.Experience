@@ -17,6 +17,7 @@ import { NextResponse } from "next/server";
 import * as Sentry from "@sentry/nextjs";
 
 import { getServiceRoleClient } from "@/lib/supabase/service-role";
+import { requireCron } from "@/lib/cron-auth";
 import { drainOutbox } from "@/lib/pipedrive/drain";
 import {
   enqueueEventDelivered,
@@ -25,15 +26,6 @@ import {
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-function authed(request: Request): boolean {
-  if (request.headers.get("x-vercel-cron")) return true;
-  const auth = request.headers.get("authorization");
-  if (!auth) return false;
-  const secret = process.env.CRON_SECRET;
-  if (!secret) return false;
-  return auth === `Bearer ${secret}`;
-}
 
 /**
  * Has Pipedrive already received a note of this kind for this event?
@@ -133,7 +125,7 @@ async function fireEventDeliveredTriggers(): Promise<number> {
 }
 
 export async function GET(request: Request) {
-  if (!authed(request)) {
+  if (!requireCron(request)) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 

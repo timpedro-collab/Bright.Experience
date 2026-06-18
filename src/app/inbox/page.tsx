@@ -164,10 +164,26 @@ export default async function InboxPage({ searchParams }: InboxPageProps) {
 
   const openTotal = overdue.length + dueSoon.length + other.length;
 
+  // Order by urgency *before* paginating, so page 1 always shows the most
+  // urgent work and the group headers stay meaningful across pages (previously
+  // the page slice took an arbitrary order and re-bucketed only what landed on
+  // it — overdue tasks could hide on page 2). Within a group, soonest-due first.
+  const byDueDate = (a: AssignedTaskWithContext, b: AssignedTaskWithContext) => {
+    const aD = a.dueDate ? new Date(a.dueDate).getTime() : Infinity;
+    const bD = b.dueDate ? new Date(b.dueDate).getTime() : Infinity;
+    return aD - bD;
+  };
+  const ordered = [
+    ...overdue.sort(byDueDate),
+    ...dueSoon.sort(byDueDate),
+    ...other.sort(byDueDate),
+    ...completed,
+  ];
+
   const page = parsePage(params as Record<string, string | string[] | undefined>);
-  const inboxTotalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const inboxTotalPages = Math.max(1, Math.ceil(ordered.length / PAGE_SIZE));
   const sliceStart = (page - 1) * PAGE_SIZE;
-  const paginatedSlice = filtered.slice(sliceStart, sliceStart + PAGE_SIZE);
+  const paginatedSlice = ordered.slice(sliceStart, sliceStart + PAGE_SIZE);
 
   const pgOverdue = paginatedSlice.filter((t) => t.status !== "complete" && t.dueDate && isOverdue(t.dueDate));
   const pgDueSoon = paginatedSlice.filter((t) => t.status !== "complete" && t.dueDate && !isOverdue(t.dueDate) && daysUntilDate(t.dueDate) <= 3);
@@ -265,7 +281,7 @@ export default async function InboxPage({ searchParams }: InboxPageProps) {
           </Link>
         }
       />
-      <CommandPalette />
+      <CommandPalette isInternal role={user.role} />
     </EditionShell>
   );
 }

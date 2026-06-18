@@ -6,18 +6,17 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
-const BUDGET_OPTIONS = [
-  { value: "under_5k", label: "Under £5,000" },
-  { value: "5k_10k", label: "£5,000 – £10,000" },
-  { value: "10k_20k", label: "£10,000 – £20,000" },
-  { value: "20k_plus", label: "£20,000+" },
-  { value: "flexible", label: "Flexible / Not Sure" },
+const SCOPE_OPTIONS = [
+  { value: "one_off", label: "A one-off event" },
+  { value: "campaign", label: "Part of a wider campaign" },
+  { value: "series", label: "A series of events" },
+  { value: "unsure", label: "Not sure yet" },
 ] as const;
 
 interface IntakeStepCreativeProps {
   creativeNeeds: string;
   specialRequirements: string;
-  budgetIndication: string;
+  engagementScope: string;
   onChange: (field: string, value: string) => void;
 }
 
@@ -50,16 +49,19 @@ export function IntakeStepCreative(props: IntakeStepCreativeProps) {
           />
         </div>
         <div className="space-y-2">
-          <Label>A rough budget range?</Label>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-            {BUDGET_OPTIONS.map((opt) => (
+          <Label>Is this a one-off, or part of something bigger?</Label>
+          <p className="text-xs text-muted-foreground">
+            Helps us shape the right kind of partnership — optional.
+          </p>
+          <div className="grid grid-cols-2 gap-2">
+            {SCOPE_OPTIONS.map((opt) => (
               <button
                 key={opt.value}
                 type="button"
-                onClick={() => props.onChange("budgetIndication", opt.value)}
+                onClick={() => props.onChange("engagementScope", opt.value)}
                 className={cn(
                   "rounded-lg border px-3 py-2 text-sm transition-all",
-                  props.budgetIndication === opt.value
+                  props.engagementScope === opt.value
                     ? "border-brand bg-brand/8 text-brand font-medium"
                     : "border-border text-muted-foreground hover:border-brand/40"
                 )}

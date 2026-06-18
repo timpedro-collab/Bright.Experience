@@ -33,7 +33,7 @@ const buttonVariants = cva(
         destructive:
           "bg-destructive text-destructive-foreground hover:bg-destructive/90",
         outline:
-          "border border-input bg-transparent text-foreground hover:bg-accent hover:text-accent-foreground hover:border-white/20",
+          "border border-input bg-transparent text-foreground hover:bg-accent hover:text-accent-foreground hover:border-foreground/25",
         secondary:
           "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost:
@@ -42,8 +42,8 @@ const buttonVariants = cva(
         // alongside `brand` / `default` (e.g. "Request proposal" next to "Book now")
         glass: cn(
           "bg-transparent text-foreground",
-          "border border-white/10",
-          "hover:bg-white/5 hover:border-white/20"
+          "border border-border",
+          "hover:bg-accent hover:border-foreground/25"
         ),
         link: "text-primary underline-offset-4 hover:underline",
       },

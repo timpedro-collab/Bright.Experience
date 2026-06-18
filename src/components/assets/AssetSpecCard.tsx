@@ -41,7 +41,7 @@ export function AssetSpecCard({ asset }: AssetSpecCardProps) {
   if (!hasSpecs) return null;
 
   return (
-    <div className="mt-3 p-3 rounded-lg bg-white/[0.02] border border-white/[0.06] space-y-2.5">
+    <div className="mt-3 p-3 rounded-lg bg-muted/40 border border-border/60 space-y-2.5">
       <p className="text-[11px] text-muted-foreground uppercase tracking-wider font-medium">
         Specifications
       </p>

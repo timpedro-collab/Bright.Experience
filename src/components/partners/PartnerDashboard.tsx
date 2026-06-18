@@ -91,19 +91,19 @@ export function PartnerDashboard({ partner, summary, partnerSlug }: PartnerDashb
         <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
           <a
             href={`/partners/${partnerSlug}/commissions`}
-            className="rounded-[var(--radius-chip)] border border-white/10 bg-white/[0.02] px-3 py-1.5 transition-colors hover:border-white/24 hover:text-foreground"
+            className="rounded-[var(--radius-chip)] border border-border bg-muted/40 px-3 py-1.5 transition-colors hover:border-border hover:text-foreground"
           >
             View commissions
           </a>
           <a
             href={`/partners/${partnerSlug}/quotes`}
-            className="rounded-[var(--radius-chip)] border border-white/10 bg-white/[0.02] px-3 py-1.5 transition-colors hover:border-white/24 hover:text-foreground"
+            className="rounded-[var(--radius-chip)] border border-border bg-muted/40 px-3 py-1.5 transition-colors hover:border-border hover:text-foreground"
           >
             View quotes
           </a>
           <a
             href={`/partners/${partnerSlug}/clients`}
-            className="rounded-[var(--radius-chip)] border border-white/10 bg-white/[0.02] px-3 py-1.5 transition-colors hover:border-white/24 hover:text-foreground"
+            className="rounded-[var(--radius-chip)] border border-border bg-muted/40 px-3 py-1.5 transition-colors hover:border-border hover:text-foreground"
           >
             View clients
           </a>

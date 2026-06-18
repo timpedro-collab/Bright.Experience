@@ -10,13 +10,13 @@ import { Button } from "@/components/ui/button";
 
 import { getTemplates } from "@/lib/queries/templates";
 import { getUser } from "@/lib/auth";
-import { isInternalRole } from "@/lib/roles";
+import { canViewCommercial } from "@/lib/roles";
 import { getUnreadCount } from "@/lib/queries/notifications";
 
 export default async function TemplatesPage() {
   const user = await getUser();
   if (!user) redirect("/login");
-  if (!isInternalRole(user.role)) redirect("/");
+  if (!canViewCommercial(user.role)) redirect("/");
 
   const [templates, unread] = await Promise.all([
     getTemplates(),

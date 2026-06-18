@@ -3,9 +3,10 @@ import { redirect } from "next/navigation";
 
 import { AdminPageShell } from "@/components/brand";
 import { PipelineBoard } from "@/components/pipeline/PipelineBoard";
+import { AutoRefresh } from "@/components/system/AutoRefresh";
 
 import { getUser } from "@/lib/auth";
-import { isInternalRole } from "@/lib/roles";
+import { isInternalRole, canAdvanceEventStage } from "@/lib/roles";
 import { getPipelineEvents } from "@/lib/queries/pipeline";
 import { getUnreadCount } from "@/lib/queries/notifications";
 
@@ -34,8 +35,13 @@ export default async function PipelinePage() {
       title="The pipeline."
       subtitle={`${events.length} events in flight · ${healthCounts.green} on track · ${healthCounts.amber} at risk · ${healthCounts.red} blocked.`}
     >
+      <AutoRefresh />
       <div className="py-8">
-        <PipelineBoard events={events} owners={owners} />
+        <PipelineBoard
+          events={events}
+          owners={owners}
+          canManageStage={canAdvanceEventStage(user.role)}
+        />
       </div>
     </AdminPageShell>
   );

@@ -8,7 +8,10 @@ import type {
   ApprovalStatus,
   MilestoneStatus,
 } from "@/types";
-import { STAGE_CONFIG, HEALTH_CONFIG } from "@/types";
+import {
+  stageShortLabelFor,
+  healthLabelFor,
+} from "@/lib/customer-copy";
 
 type BadgeVariant = "green" | "amber" | "red" | "blue" | "muted";
 
@@ -73,23 +76,51 @@ const MILESTONE_STATUS_MAP: Record<MilestoneStatus, { label: string; variant: Ba
   skipped: { label: "Skipped", variant: "muted" },
 };
 
-export function HealthBadge({ status }: { status: HealthStatus }) {
-  const config = HEALTH_CONFIG[status];
-  const variant: BadgeVariant = status === "green" ? "green" : status === "amber" ? "amber" : "red";
+export function HealthBadge({
+  status,
+  isCustomer = false,
+}: {
+  status: HealthStatus;
+  isCustomer?: boolean;
+}) {
+  // Customers never see "Blocked"/"At Risk" or a destructive red dot — their
+  // health reads as a calm "On track" / "In progress".
+  const variant: BadgeVariant = isCustomer
+    ? status === "green"
+      ? "green"
+      : "blue"
+    : status === "green"
+      ? "green"
+      : status === "amber"
+        ? "amber"
+        : "red";
   return (
     <StatusBadge variant={variant}>
-      <span className={cn("inline-block h-1.5 w-1.5 rounded-full", {
-        "bg-success": status === "green",
-        "bg-warning": status === "amber",
-        "bg-destructive": status === "red",
-      })} />
-      {config.label}
+      <span
+        className={cn("inline-block h-1.5 w-1.5 rounded-full", {
+          "bg-success": variant === "green",
+          "bg-warning": variant === "amber",
+          "bg-destructive": variant === "red",
+          "bg-primary": variant === "blue",
+        })}
+      />
+      {healthLabelFor(status, isCustomer)}
     </StatusBadge>
   );
 }
 
-export function StageBadge({ stage }: { stage: Stage }) {
-  return <StatusBadge variant="blue">{STAGE_CONFIG[stage].shortLabel}</StatusBadge>;
+export function StageBadge({
+  stage,
+  isCustomer = false,
+}: {
+  stage: Stage;
+  isCustomer?: boolean;
+}) {
+  return (
+    <StatusBadge variant="blue">
+      {stageShortLabelFor(stage, isCustomer)}
+    </StatusBadge>
+  );
 }
 
 export function TaskStatusBadge({ status }: { status: TaskStatus }) {

@@ -30,7 +30,7 @@ export default function CatalogError({
   return (
     <Section spacing="lg">
       <Container size="sm">
-        <div className="rounded-[var(--radius-card)] border border-white/[0.06] bg-white/[0.02] p-10 text-center">
+        <div className="rounded-[var(--radius-card)] border border-border bg-card p-10 text-center">
           <div className="mx-auto mb-6 inline-flex h-12 w-12 items-center justify-center rounded-full bg-amber-500/10">
             <AlertTriangle className="h-6 w-6 text-amber-500" />
           </div>

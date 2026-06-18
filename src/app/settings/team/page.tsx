@@ -17,7 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { CommandPalette } from "@/components/layout/CommandPalette";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { UserMenu } from "@/components/layout/UserMenu";
-import { TeamRequestButton } from "@/components/events/TeamRequestButton";
+import { TeamInviteForm } from "@/components/settings/TeamInviteForm";
 import { TeamRemoveButton } from "@/components/settings/TeamRemoveButton";
 
 import { getUser } from "@/lib/auth";
@@ -146,13 +146,14 @@ export default async function TeamSettingsPage() {
         <Hairline />
 
         <section className="py-10">
-          <EditorialEyebrow accent>Request new team member</EditorialEyebrow>
+          <EditorialEyebrow accent>Invite a teammate</EditorialEyebrow>
           <p className="mt-2 text-sm text-muted-foreground max-w-[58ch] mb-4">
-            Add someone to a specific event. They&apos;ll need approval from the
-            Bright.Blue team before they get access.
+            Add colleagues to your portal. People on your company email domain
+            get access straight away; anyone outside it — or an admin invite —
+            is sent to the Bright.Blue team for a quick approval.
           </p>
           {user.accountId && (
-            <TeamRequestButton eventId="__account__" />
+            <TeamInviteForm domain={user.email.split("@")[1] ?? ""} />
           )}
         </section>
       </EditionBody>

@@ -16,8 +16,8 @@ const emptyQueues = {
 };
 
 describe("InternalWorkQueue", () => {
-  it("renders all six tiles", () => {
-    render(<InternalWorkQueue queues={emptyQueues} />);
+  it("renders all six tiles for an admin (owns every queue)", () => {
+    render(<InternalWorkQueue queues={emptyQueues} viewerRole="admin" />);
     expect(screen.getByText(/New quote requests/i)).toBeInTheDocument();
     expect(screen.getByText(/Studio orders to action/i)).toBeInTheDocument();
     expect(screen.getByText(/Asset reviews/i)).toBeInTheDocument();
@@ -27,11 +27,11 @@ describe("InternalWorkQueue", () => {
   });
 
   it("shows '0 open' in the header when no work", () => {
-    render(<InternalWorkQueue queues={emptyQueues} />);
+    render(<InternalWorkQueue queues={emptyQueues} viewerRole="admin" />);
     expect(screen.getByText("0 open")).toBeInTheDocument();
   });
 
-  it("sums counts in the header total", () => {
+  it("sums counts in the header total for the queues the role owns", () => {
     render(
       <InternalWorkQueue
         queues={{
@@ -42,6 +42,7 @@ describe("InternalWorkQueue", () => {
           assetReviews: 5,
           stuckCustomerActions: 6,
         }}
+        viewerRole="admin"
       />
     );
     expect(screen.getByText("21 open")).toBeInTheDocument();
@@ -55,6 +56,7 @@ describe("InternalWorkQueue", () => {
           newQuotes: 7,
           assetReviews: 12,
         }}
+        viewerRole="admin"
       />
     );
     expect(screen.getByText("7")).toBeInTheDocument();
@@ -62,12 +64,29 @@ describe("InternalWorkQueue", () => {
   });
 
   it("links each tile to its admin URL", () => {
-    render(<InternalWorkQueue queues={emptyQueues} />);
+    render(<InternalWorkQueue queues={emptyQueues} viewerRole="admin" />);
     const links = screen.getAllByRole("link");
     const hrefs = links.map((l) => l.getAttribute("href"));
     expect(hrefs).toContain("/admin/quotes");
     expect(hrefs).toContain("/admin/asset-reviews");
     expect(hrefs).toContain("/admin/customer-queue");
     expect(hrefs).toContain("/admin/partners");
+  });
+
+  it("scopes creative queues to the Creative Lead (no quote/partner cards)", () => {
+    render(<InternalWorkQueue queues={emptyQueues} viewerRole="creative_lead" />);
+    expect(screen.getByText(/Asset reviews/i)).toBeInTheDocument();
+    expect(screen.getByText(/Studio orders to action/i)).toBeInTheDocument();
+    expect(screen.queryByText(/New quote requests/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Partner applications/i)).not.toBeInTheDocument();
+  });
+
+  it("renders nothing for specialist lanes that own no admin queues", () => {
+    render(
+      <InternalWorkQueue queues={emptyQueues} viewerRole="operations_lead" />
+    );
+    expect(screen.queryByText(/Work queue/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Asset reviews/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/New quote requests/i)).not.toBeInTheDocument();
   });
 });

@@ -11,17 +11,29 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import {
   saveGameConfiguration,
+  updateGameConfigStatus,
   type GameConfiguration,
   type PrizeMode,
   type PrizeEntry,
   type FormFieldEntry,
 } from "@/app/actions/game-config";
+import type { UserRole } from "@/types";
 
 interface GameConfigFormProps {
   eventId: string;
   config: GameConfiguration | null;
-  isInternal: boolean;
+  viewerRole: UserRole;
 }
+
+/** Roles that author the configuration. QA verifies (read-only + sign-off). */
+const EDIT_ROLES: UserRole[] = [
+  "customer_user",
+  "customer_admin",
+  "creative_lead",
+  "events_lead",
+  "admin",
+  "developer",
+];
 
 const PRIZE_MODES: { value: PrizeMode; label: string; description: string }[] = [
   { value: "random", label: "Random", description: "Each play randomly awards a prize" },
@@ -29,10 +41,14 @@ const PRIZE_MODES: { value: PrizeMode; label: string; description: string }[] = 
   { value: "guaranteed", label: "Guaranteed", description: "Every player receives a prize" },
 ];
 
-export function GameConfigForm({ eventId, config, isInternal }: GameConfigFormProps) {
+export function GameConfigForm({ eventId, config, viewerRole }: GameConfigFormProps) {
   const router = useRouter();
   const [saving, startSave] = useTransition();
   const [submitting, startSubmit] = useTransition();
+  const [verifying, startVerify] = useTransition();
+
+  const canEdit = EDIT_ROLES.includes(viewerRole);
+  const canVerify = viewerRole === "qa_lead";
 
   const [prizeMode, setPrizeMode] = useState<PrizeMode>(config?.prizeMode ?? "random");
   const [prizes, setPrizes] = useState<PrizeEntry[]>(config?.prizesJson ?? []);
@@ -78,6 +94,15 @@ export function GameConfigForm({ eventId, config, isInternal }: GameConfigFormPr
     });
   }
 
+  function handleMarkTested() {
+    startVerify(async () => {
+      const result = await updateGameConfigStatus(eventId, "tested");
+      if (!result.success) { toast.error(result.error); return; }
+      toast.success("Configuration marked as tested");
+      router.refresh();
+    });
+  }
+
   return (
     <Card tone="subtle" className="p-6 space-y-6">
       {isSubmitted && (
@@ -90,6 +115,14 @@ export function GameConfigForm({ eventId, config, isInternal }: GameConfigFormPr
         </div>
       )}
 
+      {canVerify && !canEdit && (
+        <div className="rounded-lg border border-info/25 bg-info/8 px-4 py-3 text-sm text-muted-foreground">
+          QA view — review the configuration below, then mark it as tested when
+          everything checks out.
+        </div>
+      )}
+
+      <fieldset disabled={!canEdit} className="space-y-6 border-0 p-0 m-0 disabled:opacity-70">
       {/* Prize mode */}
       <div>
         <label className="block text-sm font-medium text-foreground mb-2">Prize mode</label>
@@ -103,7 +136,7 @@ export function GameConfigForm({ eventId, config, isInternal }: GameConfigFormPr
                 "p-3 rounded-lg border text-left text-sm transition-colors",
                 prizeMode === mode.value
                   ? "border-[var(--color-bb-cobalt)] bg-[var(--color-bb-cobalt)]/10"
-                  : "border-white/[0.08] bg-white/[0.02] hover:bg-white/[0.04]"
+                  : "border-border bg-muted/40 hover:bg-accent"
               )}
             >
               <p className="font-medium text-foreground">{mode.label}</p>
@@ -127,7 +160,7 @@ export function GameConfigForm({ eventId, config, isInternal }: GameConfigFormPr
                   setPrizes(next);
                 }}
                 placeholder="Prize name"
-                className="flex-1 px-3 py-2 rounded-[var(--radius-control)] border border-white/[0.08] bg-white/[0.02] text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-ring"
+                className="flex-1 px-3 py-2 rounded-[var(--radius-control)] border border-border bg-muted/40 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-ring"
               />
               <input
                 type="number"
@@ -138,7 +171,7 @@ export function GameConfigForm({ eventId, config, isInternal }: GameConfigFormPr
                   setPrizes(next);
                 }}
                 placeholder="Qty"
-                className="w-20 px-3 py-2 rounded-[var(--radius-control)] border border-white/[0.08] bg-white/[0.02] text-sm text-foreground outline-none focus:ring-2 focus:ring-ring"
+                className="w-20 px-3 py-2 rounded-[var(--radius-control)] border border-border bg-muted/40 text-sm text-foreground outline-none focus:ring-2 focus:ring-ring"
               />
               <Button variant="ghost" size="icon" onClick={() => setPrizes(prizes.filter((_, j) => j !== i))}>
                 <Trash2 size={14} className="text-muted-foreground" />
@@ -165,7 +198,7 @@ export function GameConfigForm({ eventId, config, isInternal }: GameConfigFormPr
                   setFormFields(next);
                 }}
                 placeholder="Field label"
-                className="flex-1 px-3 py-2 rounded-[var(--radius-control)] border border-white/[0.08] bg-white/[0.02] text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-ring"
+                className="flex-1 px-3 py-2 rounded-[var(--radius-control)] border border-border bg-muted/40 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-ring"
               />
               <select
                 value={field.type}
@@ -174,7 +207,7 @@ export function GameConfigForm({ eventId, config, isInternal }: GameConfigFormPr
                   next[i] = { ...next[i], type: e.target.value as FormFieldEntry["type"] };
                   setFormFields(next);
                 }}
-                className="px-3 py-2 rounded-[var(--radius-control)] border border-white/[0.08] bg-white/[0.02] text-sm text-foreground outline-none"
+                className="px-3 py-2 rounded-[var(--radius-control)] border border-border bg-muted/40 text-sm text-foreground outline-none"
               >
                 <option value="text">Text</option>
                 <option value="email">Email</option>
@@ -227,17 +260,34 @@ export function GameConfigForm({ eventId, config, isInternal }: GameConfigFormPr
           Include scores in lead export
         </label>
       </div>
+      </fieldset>
 
-      <div className="flex flex-col-reverse gap-3 pt-4 border-t border-white/[0.06] sm:flex-row sm:items-center">
-        <Button onClick={handleSave} disabled={saving} variant="glass">
-          {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
-          {saving ? "Saving…" : "Save draft"}
-        </Button>
-        <Button onClick={handleSubmit} disabled={submitting} variant="brand" className="sm:ml-auto">
-          {submitting ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
-          {submitting ? "Submitting…" : "Submit configuration"}
-        </Button>
-      </div>
+      {canEdit && (
+        <div className="flex flex-col-reverse gap-3 pt-4 border-t border-border/60 sm:flex-row sm:items-center">
+          <Button onClick={handleSave} disabled={saving} variant="glass">
+            {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+            {saving ? "Saving…" : "Save draft"}
+          </Button>
+          <Button onClick={handleSubmit} disabled={submitting} variant="brand" className="sm:ml-auto">
+            {submitting ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
+            {submitting ? "Submitting…" : "Submit configuration"}
+          </Button>
+        </div>
+      )}
+
+      {canVerify && (
+        <div className="flex flex-col-reverse gap-3 pt-4 border-t border-border/60 sm:flex-row sm:items-center">
+          <Button
+            onClick={handleMarkTested}
+            disabled={verifying || config?.status === "tested"}
+            variant="brand"
+            className="sm:ml-auto"
+          >
+            {verifying ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle2 size={14} />}
+            {config?.status === "tested" ? "Tested" : "Mark as tested"}
+          </Button>
+        </div>
+      )}
     </Card>
   );
 }

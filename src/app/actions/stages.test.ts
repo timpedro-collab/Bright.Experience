@@ -13,9 +13,21 @@ import { createMockSupabase, type MockSupabase } from "@/test/supabase";
 let supabase: MockSupabase;
 const dispatchNotification = vi.fn();
 const enqueueStageAdvance = vi.fn();
+// Role of the profile getUser() resolves to — tests flip this to exercise the
+// stage-advance RBAC guard.
+let mockRole = "events_lead";
 
 vi.mock("@/lib/supabase/server", () => ({
   createClient: vi.fn(async () => supabase),
+}));
+vi.mock("@/lib/auth", () => ({
+  getUser: vi.fn(async () => ({
+    id: "u1",
+    name: "Test",
+    email: "test@brightblue.co.uk",
+    role: mockRole,
+    hasCompletedOnboarding: true,
+  })),
 }));
 vi.mock("@/lib/notifications/dispatch", () => ({
   dispatchNotification: (...args: unknown[]) => dispatchNotification(...args),
@@ -28,6 +40,7 @@ beforeEach(() => {
   supabase = createMockSupabase();
   dispatchNotification.mockReset();
   enqueueStageAdvance.mockReset();
+  mockRole = "events_lead";
 });
 
 describe("canAdvanceStage", () => {
@@ -86,6 +99,15 @@ describe("advanceStage", () => {
     const result = await advanceStage("evt-1");
     expect(result.success).toBe(false);
     if (!result.success) expect(result.error).toMatch(/authenticated/);
+  });
+
+  it("rejects roles that may not advance stages", async () => {
+    supabase.setUser({ id: "u1" });
+    mockRole = "creative_lead";
+    const { advanceStage } = await import("./stages");
+    const result = await advanceStage("evt-1");
+    expect(result.success).toBe(false);
+    if (!result.success) expect(result.error).toMatch(/advance stages/);
   });
 
   it("returns error when blockers remain", async () => {

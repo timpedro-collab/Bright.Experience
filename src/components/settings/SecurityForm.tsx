@@ -33,7 +33,8 @@ export function SecurityForm({ email, createdAt }: { email: string; createdAt?: 
 
   async function handleSignOutEverywhere() {
     await supabase.auth.signOut({ scope: "global" });
-    router.push("/login");
+    router.push("/");
+    router.refresh();
   }
 
   return (

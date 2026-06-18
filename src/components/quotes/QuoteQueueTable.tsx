@@ -76,7 +76,7 @@ export function QuoteQueueTable({ quotes }: QuoteQueueTableProps) {
 
   return (
     <Card tone="subtle" className="overflow-hidden">
-      <div className="border-b border-white/[0.06] p-4">
+      <div className="border-b border-border/60 p-4">
         <div className="flex flex-wrap items-center gap-3">
           <div className="relative flex-1 min-w-[220px] max-w-sm">
             <Search
@@ -115,7 +115,7 @@ export function QuoteQueueTable({ quotes }: QuoteQueueTableProps) {
                   "inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors",
                   active
                     ? "border-primary/40 bg-primary/15 text-primary"
-                    : "border-white/[0.08] bg-white/[0.02] text-muted-foreground hover:text-foreground hover:bg-white/[0.05]"
+                    : "border-border bg-muted/40 text-muted-foreground hover:text-foreground hover:bg-accent"
                 )}
               >
                 {tab.label}
@@ -130,7 +130,7 @@ export function QuoteQueueTable({ quotes }: QuoteQueueTableProps) {
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-white/[0.06] text-left text-overline text-muted-foreground">
+              <tr className="border-b border-border/60 text-left text-overline text-muted-foreground">
                 <th className="px-4 py-3 font-medium">Contact</th>
                 <th className="px-4 py-3 font-medium">Track</th>
                 <th className="px-4 py-3 font-medium">Status</th>
@@ -142,7 +142,7 @@ export function QuoteQueueTable({ quotes }: QuoteQueueTableProps) {
               {filtered.map((q) => (
                 <tr
                   key={q.id}
-                  className="border-b border-white/[0.04] transition-colors hover:bg-white/[0.03]"
+                  className="border-b border-border/60 transition-colors hover:bg-accent"
                 >
                   <td className="px-4 py-3">
                     <Link href={`/admin/quotes/${q.id}`} className="block">

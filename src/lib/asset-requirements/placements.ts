@@ -137,7 +137,13 @@ export const PLACEMENT_PREVIEWS: Record<string, PlacementPreview> = {
   },
 };
 
-/** Lookup the on-machine preview config for an asset slot, if any. */
+/**
+ * Lookup the on-machine preview config for an asset slot, if any.
+ *
+ * Backward-compatible entry point: returns the default-variant geometry. New
+ * machine-variant-aware call sites should use `placementPreviewForMachine` /
+ * `slotForAsset` from `./machine-placements`.
+ */
 export function placementPreviewFor(assetName: string): PlacementPreview | null {
   return PLACEMENT_PREVIEWS[assetName] ?? null;
 }

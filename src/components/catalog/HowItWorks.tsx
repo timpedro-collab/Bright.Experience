@@ -29,7 +29,7 @@ const STEPS = [
 
 export function HowItWorks() {
   return (
-    <Section spacing="lg" className="border-t border-white/[0.06]">
+    <Section spacing="lg" className="border-t border-border/60">
       <Container>
         <div className="mx-auto mb-12 max-w-2xl text-center">
           <p className="text-overline text-muted-foreground mb-2">How it works</p>

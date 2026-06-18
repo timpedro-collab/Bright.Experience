@@ -35,7 +35,7 @@ import { loadAssetReviewDetail } from "@/app/actions/asset-detail";
 import { MachinePreview } from "@/components/assets/MachinePreview";
 import { AssetVersionTimeline } from "@/components/assets/AssetVersionTimeline";
 import { AnnotatablePreview } from "@/components/assets/AnnotatablePreview";
-import { placementPreviewFor } from "@/lib/asset-requirements/placements";
+import { slotForAsset } from "@/lib/asset-requirements/machine-placements";
 import type { Asset, AssetAnnotation, AssetVersion } from "@/types";
 
 type QueueAsset = Asset & {
@@ -45,9 +45,14 @@ type QueueAsset = Asset & {
 
 interface AssetReviewQueueProps {
   items: QueueAsset[];
+  /**
+   * Whether the viewer may action sign-off. Creative team + admin → true.
+   * Events Lead (oversight) → false: they see the queue read-only.
+   */
+  canReview?: boolean;
 }
 
-export function AssetReviewQueue({ items }: AssetReviewQueueProps) {
+export function AssetReviewQueue({ items, canReview = true }: AssetReviewQueueProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   return (
     <div className="space-y-3">
@@ -55,6 +60,7 @@ export function AssetReviewQueue({ items }: AssetReviewQueueProps) {
         <AssetReviewRow
           key={asset.id}
           asset={asset}
+          canReview={canReview}
           isExpanded={expandedId === asset.id}
           onToggle={() =>
             setExpandedId((current) => (current === asset.id ? null : asset.id))
@@ -67,10 +73,12 @@ export function AssetReviewQueue({ items }: AssetReviewQueueProps) {
 
 function AssetReviewRow({
   asset,
+  canReview,
   isExpanded,
   onToggle,
 }: {
   asset: QueueAsset;
+  canReview: boolean;
   isExpanded: boolean;
   onToggle: () => void;
 }) {
@@ -81,7 +89,8 @@ function AssetReviewRow({
   const [annotations, setAnnotations] = useState<AssetAnnotation[]>([]);
   const router = useRouter();
 
-  const machine = placementPreviewFor(asset.name);
+  const slot = slotForAsset(asset.name);
+  const machine = slot?.preview ?? null;
   const fileName = asset.fileName ?? "";
   const isVideoUpload = /\.(mp4|webm|mov)$/i.test(fileName);
   const isImageUpload = /\.(png|jpe?g|webp|gif)$/i.test(fileName);
@@ -139,7 +148,7 @@ function AssetReviewRow({
       <button
         type="button"
         onClick={onToggle}
-        className="w-full text-left p-4 flex items-center gap-4 hover:bg-white/[0.02] transition-colors"
+        className="w-full text-left p-4 flex items-center gap-4 hover:bg-accent transition-colors"
       >
         <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-[var(--radius-control)] border border-amber-300/30 bg-amber-300/10 text-amber-200">
           <Clock className="h-4 w-4" />
@@ -150,7 +159,7 @@ function AssetReviewRow({
               {asset.name}
             </h3>
             <span className="text-xs text-muted-foreground shrink-0 whitespace-nowrap">
-              Uploaded {timeSince(asset.reviewDecidedAt ?? "")}
+              Uploaded {timeSince(asset.updatedAt ?? asset.reviewDecidedAt ?? "")}
             </span>
           </div>
           <p className="mt-1 text-xs text-muted-foreground truncate">
@@ -173,13 +182,14 @@ function AssetReviewRow({
       </button>
 
       {isExpanded && (
-        <div className="border-t border-white/[0.06] p-5">
+        <div className="border-t border-border/60 p-5">
           <div className="grid gap-5 lg:grid-cols-[minmax(0,260px)_1fr]">
             {/* Left: the same on-machine preview the customer sees */}
             <div className="space-y-3">
               {canPreview ? (
                 <MachinePreview
                   preview={machine!}
+                  slot={slot ?? undefined}
                   overlaySrc={asset.fileUrl}
                   overlayKind={isVideoUpload ? "video" : "image"}
                 />
@@ -256,6 +266,17 @@ function AssetReviewRow({
                 </div>
               )}
 
+              {!canReview ? (
+                <div className="rounded-xl border border-border/60 bg-muted/30 p-4 text-xs text-muted-foreground">
+                  <p className="text-overline text-muted-foreground mb-1">
+                    Oversight view
+                  </p>
+                  Sign-off on creative assets is handled by the Creative team.
+                  You can track status and history here, but approvals and
+                  revision requests are theirs to make.
+                </div>
+              ) : (
+                <>
               {isImageUpload && asset.fileUrl && (
                 <div>
                   <p className="text-overline text-muted-foreground mb-2">
@@ -313,6 +334,8 @@ function AssetReviewRow({
                   Hand to Bright.Studio
                 </Button>
               </div>
+                </>
+              )}
             </div>
           </div>
         </div>

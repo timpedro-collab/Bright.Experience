@@ -1,5 +1,4 @@
 import { createClient } from "@/lib/supabase/server";
-import { PAGE_SIZE, paginateQuery, totalPages } from "@/lib/pagination";
 import type { Task, UserRole } from "@/types";
 
 /**
@@ -8,9 +7,10 @@ import type { Task, UserRole } from "@/types";
  * Two flavours, gated by `isInternal`:
  *   - internal: tasks where `assigned_to` is the current user. Mirrors how
  *     the dashboard pill answers "is anything actually waiting on me?"
- *   - customer: tasks where `customer_visible` is true and the customer
- *     hasn't ticked them off. RLS already scopes events to the viewer's
- *     account, so we don't need to filter on `account_id` here.
+ *   - customer: open `customer_action` tasks the customer hasn't ticked
+ *     off — i.e. work genuinely on THEIR plate, not Bright.Blue-owned
+ *     tasks that merely happen to be customer-visible. RLS already scopes
+ *     events to the viewer's account, so we don't filter `account_id`.
  *
  * Returns a map keyed by `event_id` so the dashboard can hand each
  * `<EventCard>` its own number without a second query per card.
@@ -30,7 +30,7 @@ export async function getOpenTaskCountsForUser(
 
   query = isInternal
     ? query.eq("assigned_to", userId)
-    : query.eq("customer_visible", true);
+    : query.eq("customer_visible", true).eq("task_type", "customer_action");
 
   const { data, error } = await query;
   if (error || !data) return {};

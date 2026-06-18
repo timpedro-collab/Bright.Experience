@@ -41,7 +41,9 @@ export function UserMenu({ user }: UserMenuProps) {
   async function handleSignOut() {
     const supabase = createClient();
     await supabase.auth.signOut();
-    router.push("/login");
+    // Land on the public home/landing (catalog, quiz, proposal) rather than
+    // the bare login screen.
+    router.push("/");
     router.refresh();
   }
 
@@ -61,7 +63,7 @@ export function UserMenu({ user }: UserMenuProps) {
           data-tour="user-menu"
           className={cn(
             "flex items-center gap-2.5 rounded-[var(--radius-control)] px-1.5 py-1",
-            "transition-colors hover:bg-white/[0.04]",
+            "transition-colors hover:bg-accent",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           )}
         >
@@ -81,7 +83,7 @@ export function UserMenu({ user }: UserMenuProps) {
       <DropdownMenuContent
         align="end"
         sideOffset={8}
-        className="w-64 border-white/10 bg-popover/95 backdrop-blur-xl"
+        className="w-64 border-border bg-popover/95 backdrop-blur-xl"
       >
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col gap-0.5 py-1">

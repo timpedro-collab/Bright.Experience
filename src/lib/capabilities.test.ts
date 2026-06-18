@@ -101,7 +101,7 @@ describe("sanitiseCapabilitySlugs", () => {
 });
 
 describe("preSelectCapabilities", () => {
-  it("returns telemetry + linkedin + survey for a B2B trade show lead-gen quiz", () => {
+  it("returns telemetry for a B2B trade show lead-gen quiz", () => {
     const slugs = preSelectCapabilities({
       objective: "lead-generation",
       eventType: "trade-show",
@@ -109,12 +109,14 @@ describe("preSelectCapabilities", () => {
       industry: "technology",
     });
     expect(slugs).toContain("live-telemetry");
-    expect(slugs).toContain("linkedin-follow");
-    // survey-layer needs objective in {engagement, research} or conference — not this one
+    // linkedin-follow, survey-layer, payments-onunit are opt-in only now —
+    // never auto-promised on the match card.
+    expect(slugs).not.toContain("linkedin-follow");
+    expect(slugs).not.toContain("survey-layer");
     expect(slugs).not.toContain("payments-onunit");
   });
 
-  it("returns sampling + voucher + dynamic-sponsors for a B2C festival", () => {
+  it("returns sampling + dynamic-sponsors for a B2C festival", () => {
     const slugs = preSelectCapabilities({
       objective: "sampling",
       eventType: "festival",
@@ -124,9 +126,9 @@ describe("preSelectCapabilities", () => {
     expect(slugs).toContain("dynamic-sponsors");
   });
 
-  it("returns age-verification for alcohol industry", () => {
+  it("does not auto-select age-verification (opt-in only) for alcohol industry", () => {
     const slugs = preSelectCapabilities({ industry: "alcohol" });
-    expect(slugs).toContain("age-verification");
+    expect(slugs).not.toContain("age-verification");
   });
 
   it("caps at 5 results to keep the match card calm", () => {

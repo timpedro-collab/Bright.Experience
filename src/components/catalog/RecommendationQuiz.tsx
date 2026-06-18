@@ -16,11 +16,12 @@ import {
   Users, Building2, Tent, Sparkles, Music, Briefcase, Mic,
   User, UsersRound, Ruler, Warehouse, Globe, Theater,
   Handshake, ShoppingBag, CircleDot, Wine, Wind, Dice5,
-  Landmark, Stethoscope, type LucideIcon,
+  Landmark, Stethoscope, Lightbulb, Rocket, Share2, type LucideIcon,
 } from "lucide-react";
 
 const QUIZ_ICONS: Record<string, LucideIcon> = {
   megaphone: Megaphone, target: Target, gift: Gift, "gamepad-2": Gamepad2,
+  lightbulb: Lightbulb, rocket: Rocket, "share-2": Share2,
   users: Users, "building-2": Building2, tent: Tent, sparkles: Sparkles,
   music: Music, briefcase: Briefcase, mic: Mic, user: User,
   "users-round": UsersRound, stadium: Globe, ruler: Ruler,
@@ -86,6 +87,7 @@ export function RecommendationQuiz({ machines }: RecommendationQuizProps) {
         match={rec.match}
         preSelectedCapabilities={rec.preSelectedCapabilities}
         signals={rec.signals}
+        goals={rec.goals}
         machines={machines}
         onReset={reset}
       />
@@ -104,7 +106,7 @@ export function RecommendationQuiz({ machines }: RecommendationQuizProps) {
         {/* Thin gradient progress bar — no numeric counter. */}
         <div
           aria-hidden
-          className="h-1 w-full overflow-hidden rounded-full bg-white/[0.04]"
+          className="h-1 w-full overflow-hidden rounded-full bg-muted/40"
         >
           <div
             className="h-full rounded-full bg-[linear-gradient(90deg,hsl(230,93%,53%),hsl(189,100%,75%))] transition-[width] duration-500"
@@ -138,7 +140,7 @@ export function RecommendationQuiz({ machines }: RecommendationQuizProps) {
                   current.multi ? toggleMulti(opt.value) : pickSingle(opt.value)
                 }
                 className={cn(
-                  "group relative flex items-start gap-3 rounded-[var(--radius-control)] border border-white/[0.08] bg-white/[0.02] p-4 text-left",
+                  "group relative flex items-start gap-3 rounded-[var(--radius-control)] border border-border bg-muted/40 p-4 text-left",
                   "transition-all duration-150",
                   "hover:border-primary/40 hover:bg-primary/8",
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
@@ -150,7 +152,7 @@ export function RecommendationQuiz({ machines }: RecommendationQuizProps) {
                   aria-hidden
                   className={cn(
                     "flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--radius-control)] text-xl",
-                    "border border-white/[0.06] bg-white/[0.03]",
+                    "border border-border/60 bg-muted/40",
                     "transition-colors",
                     isSelected
                       ? "border-primary/40 bg-primary/15"
@@ -179,7 +181,7 @@ export function RecommendationQuiz({ machines }: RecommendationQuizProps) {
                     current.multi ? "rounded-md" : "rounded-full",
                     isSelected
                       ? "border-primary bg-primary text-primary-foreground"
-                      : "border-white/15 bg-white/[0.03] text-transparent group-hover:border-primary/40"
+                      : "border-white/15 bg-muted/40 text-transparent group-hover:border-primary/40"
                   )}
                 >
                   {current.multi ? (
@@ -233,10 +235,6 @@ export function RecommendationQuiz({ machines }: RecommendationQuizProps) {
             </span>
           )}
         </div>
-
-        <p className="pt-1 text-center text-xs text-muted-foreground sm:text-left">
-          No commitment — this is just a conversation.
-        </p>
       </CardContent>
     </Card>
   );

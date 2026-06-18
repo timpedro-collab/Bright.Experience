@@ -60,11 +60,19 @@ interface Props {
   games: GameForConfig[];
   /** Pre-select a machine by slug (e.g. from quiz flow). */
   preSelectedMachine?: string;
+  /** Pre-select capability add-ons (capability slugs) carried from the quiz. */
+  preSelectedAddons?: string[];
 }
 
 const STEPS = ["Machine", "Game", "Add-ons", "Dates"] as const;
 
-export function ConfigureClient({ pkg, machines, games, preSelectedMachine }: Props) {
+export function ConfigureClient({
+  pkg,
+  machines,
+  games,
+  preSelectedMachine,
+  preSelectedAddons,
+}: Props) {
   const router = useRouter();
   const preselectedId = preSelectedMachine
     ? (machines.find((m) => m.slug === preSelectedMachine)?.id ?? "")
@@ -72,7 +80,9 @@ export function ConfigureClient({ pkg, machines, games, preSelectedMachine }: Pr
   const [step, setStep] = useState(preselectedId ? 1 : 0);
   const [machineId, setMachineId] = useState<string>(preselectedId);
   const [gameId, setGameId] = useState<string>("");
-  const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
+  const [selectedAddons, setSelectedAddons] = useState<string[]>(
+    preSelectedAddons ?? []
+  );
   const [dateStart, setDateStart] = useState("");
   const [dateEnd, setDateEnd] = useState("");
 
@@ -204,7 +214,7 @@ export function ConfigureClient({ pkg, machines, games, preSelectedMachine }: Pr
             </Button>
           ) : (
             <Button onClick={handleContinue} disabled={!canAdvance}>
-              Continue to Checkout <ArrowRight className="h-4 w-4" />
+              Review &amp; confirm <ArrowRight className="h-4 w-4" />
             </Button>
           )}
         </div>

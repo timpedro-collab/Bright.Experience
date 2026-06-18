@@ -30,9 +30,9 @@ export function ProposalBreakdown({
         <CardTitle className="text-2xl">Investment breakdown</CardTitle>
       </CardHeader>
       <CardContent className="space-y-6 px-10 pb-10 md:px-12 md:pb-12">
-        <div className="overflow-hidden rounded-[var(--radius-control)] border border-white/[0.06]">
+        <div className="overflow-hidden rounded-[var(--radius-control)] border border-border/60">
           <table className="w-full text-sm">
-            <thead className="bg-white/[0.02] print:table-header-group">
+            <thead className="bg-muted/40 print:table-header-group">
               <tr className="text-left text-muted-foreground">
                 <th className="px-5 py-3 font-medium">Item</th>
                 <th className="px-5 py-3 font-medium">Category</th>
@@ -43,7 +43,7 @@ export function ProposalBreakdown({
               {sorted.map((item) => (
                 <tr
                   key={item.id}
-                  className="border-t border-white/[0.04] print-break-inside-avoid"
+                  className="border-t border-border/60 print-break-inside-avoid"
                 >
                   <td className="px-5 py-4 text-foreground">{item.label}</td>
                   <td className="px-5 py-4 text-muted-foreground capitalize">
@@ -56,7 +56,7 @@ export function ProposalBreakdown({
               ))}
             </tbody>
             <tfoot>
-              <tr className="border-t border-white/[0.1] bg-primary/[0.04] print-break-inside-avoid">
+              <tr className="border-t border-border bg-primary/[0.04] print-break-inside-avoid">
                 <td
                   colSpan={2}
                   className="px-5 py-4 text-right text-sm font-semibold text-foreground"
@@ -72,7 +72,7 @@ export function ProposalBreakdown({
         </div>
 
         {notes && (
-          <div className="rounded-[var(--radius-control)] border border-white/[0.06] bg-white/[0.02] p-5">
+          <div className="rounded-[var(--radius-control)] border border-border/60 bg-muted/40 p-5">
             <p className="text-overline text-muted-foreground mb-2">Notes</p>
             <p className="text-sm text-foreground whitespace-pre-line leading-relaxed">
               {notes}

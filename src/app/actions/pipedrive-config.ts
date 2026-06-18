@@ -17,7 +17,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { getUser } from "@/lib/auth";
-import { isInternalRole } from "@/lib/roles";
+import { isAdminRole } from "@/lib/roles";
 import { getServiceRoleClient } from "@/lib/supabase/service-role";
 import { drainOutbox, type DrainResult } from "@/lib/pipedrive/drain";
 import {
@@ -40,8 +40,8 @@ const configSchema = z.object({
 async function ensureInternal(): Promise<{ ok: false; error: string } | { ok: true }> {
   const user = await getUser();
   if (!user) return { ok: false, error: "Not authenticated" };
-  if (!isInternalRole(user.role)) {
-    return { ok: false, error: "Internal role required" };
+  if (!isAdminRole(user.role)) {
+    return { ok: false, error: "Admin role required" };
   }
   return { ok: true };
 }

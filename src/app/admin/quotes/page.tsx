@@ -6,7 +6,7 @@ import { QuoteQueueTable } from "@/components/quotes/QuoteQueueTable";
 import { Pagination } from "@/components/ui/Pagination";
 
 import { getUser } from "@/lib/auth";
-import { isInternalRole } from "@/lib/roles";
+import { canViewCommercial } from "@/lib/roles";
 import { getQuotesPaginated } from "@/lib/queries/quotes";
 import { getUnreadCount } from "@/lib/queries/notifications";
 import { parsePage } from "@/lib/pagination";
@@ -18,7 +18,7 @@ interface QuotesPageProps {
 export default async function QuotesPage({ searchParams }: QuotesPageProps) {
   const user = await getUser();
   if (!user) redirect("/login");
-  if (!isInternalRole(user.role)) redirect("/");
+  if (!canViewCommercial(user.role)) redirect("/");
 
   const params = await searchParams;
   const page = parsePage(params);

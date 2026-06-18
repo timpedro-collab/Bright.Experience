@@ -27,10 +27,14 @@ const COPY: Record<Variant, { icon: React.ElementType; title: string; sub: strin
 interface AllClearStateProps {
   variant: Variant;
   className?: string;
+  title?: string;
+  description?: string;
 }
 
-export function AllClearState({ variant, className }: AllClearStateProps) {
-  const { icon: Icon, title, sub } = COPY[variant];
+export function AllClearState({ variant, className, title: titleOverride, description }: AllClearStateProps) {
+  const { icon: Icon, title: defaultTitle, sub: defaultSub } = COPY[variant];
+  const title = titleOverride ?? defaultTitle;
+  const sub = description ?? defaultSub;
 
   return (
     <motion.div
@@ -43,7 +47,7 @@ export function AllClearState({ variant, className }: AllClearStateProps) {
       transition={{ duration: 0.5, ease: "easeOut" }}
     >
       <motion.div
-        className="flex items-center justify-center size-16 rounded-2xl border border-white/10 bg-white/[0.03] mb-6"
+        className="flex items-center justify-center size-16 rounded-2xl border border-border/60 bg-muted/40 mb-6"
         initial={{ scale: 0.5 }}
         animate={{ scale: 1 }}
         transition={{ type: "spring", stiffness: 400, damping: 20, delay: 0.1 }}

@@ -110,6 +110,72 @@ export async function getAccountsPaginated(
   };
 }
 
+export interface AccountDetail {
+  id: string;
+  name: string;
+  slug: string;
+  logoUrl: string | null;
+  createdAt: string | null;
+  users: { id: string; name: string | null; email: string; role: string; isActive: boolean }[];
+  events: {
+    id: string;
+    name: string;
+    currentStage: string;
+    healthStatus: string;
+    eventDateStart: string;
+  }[];
+}
+
+/** Full detail for one account — profile, its users, and its events. */
+export async function getAccountDetail(
+  accountId: string,
+): Promise<AccountDetail | null> {
+  const supabase = await createClient();
+
+  const { data: account, error } = await supabase
+    .from("accounts")
+    .select("*")
+    .eq("id", accountId)
+    .maybeSingle();
+  if (error || !account) return null;
+
+  const [{ data: users }, { data: events }] = await Promise.all([
+    supabase
+      .from("profiles")
+      .select("id, name, email, role, is_active")
+      .eq("account_id", accountId)
+      .order("created_at", { ascending: true }),
+    supabase
+      .from("events")
+      .select("id, name, current_stage, health_status, event_date_start")
+      .eq("account_id", accountId)
+      .order("event_date_start", { ascending: false }),
+  ]);
+
+  const acct = account as Record<string, unknown>;
+  return {
+    id: acct.id as string,
+    name: acct.name as string,
+    slug: acct.slug as string,
+    logoUrl: (acct.logo_url as string) ?? null,
+    createdAt: (acct.created_at as string) ?? null,
+    users: (users ?? []).map((u: Record<string, unknown>) => ({
+      id: u.id as string,
+      name: u.name as string | null,
+      email: u.email as string,
+      role: u.role as string,
+      isActive: (u.is_active as boolean) ?? true,
+    })),
+    events: (events ?? []).map((e: Record<string, unknown>) => ({
+      id: e.id as string,
+      name: e.name as string,
+      currentStage: e.current_stage as string,
+      healthStatus: e.health_status as string,
+      eventDateStart: e.event_date_start as string,
+    })),
+  };
+}
+
 /** Simple account list (no pagination) for lightweight dropdowns. */
 export async function getAccountsList(): Promise<
   Array<{ id: string; name: string; slug: string }>

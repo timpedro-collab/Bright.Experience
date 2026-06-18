@@ -17,9 +17,10 @@
  *   │ <EditionFooter>      bright.blue locations · ⌘K · next page   │
  *   └───────────────────────────────────────────────────────────────┘
  *
- * The shell is theme-aware: pass `theme="light"` to swap the entire
- * subtree into Linen mode. Theme switching is just a class on the
- * outer div — all child surfaces inherit through CSS variables.
+ * The shell is theme-aware and defaults to light (the canonical mode).
+ * Pass `theme="dark"` to swap the entire subtree into Cloud slate. Theme
+ * switching is just a `.theme-dark` class on the outer div — all child
+ * surfaces inherit through CSS variables.
  */
 import * as React from "react";
 import Link from "next/link";
@@ -35,15 +36,15 @@ export type EditionTheme = "dark" | "light";
 
 interface EditionShellProps extends React.HTMLAttributes<HTMLDivElement> {
   /**
-   * Which palette to render this subtree in. Defaults to the global
-   * theme (dark / deep ink). Editorial / customer-facing surfaces tend
-   * to use `light` (linen), operational surfaces use `dark` (deep ink).
+   * Which palette to render this subtree in. Defaults to `light` (the
+   * canonical Cloud cool-white). Pass `dark` for the few intentionally
+   * cinematic operational surfaces that opt into Cloud slate.
    */
   theme?: EditionTheme;
 }
 
 export function EditionShell({
-  theme = "dark",
+  theme = "light",
   className,
   children,
   ...props
@@ -51,7 +52,7 @@ export function EditionShell({
   return (
     <div
       className={cn(
-        theme === "light" ? "theme-light" : "",
+        theme === "dark" ? "theme-dark" : "",
         "relative isolate min-h-screen bg-background text-foreground",
         className,
       )}
@@ -190,7 +191,7 @@ export function RidgeHero({
         {/* Slim ridge accent — keeps the maze-of-lines identity at a whisper. */}
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-x-0 top-0 h-32 ridge-color-cobalt opacity-[0.10]"
+          className="pointer-events-none absolute inset-x-0 top-0 h-32 ridge-color-cobalt ridge-veil-faint"
         >
           <RidgeArtwork
             seed={seed}
@@ -236,7 +237,7 @@ export function RidgeHero({
       aria-labelledby="ridge-hero-title"
     >
       <div
-        className="absolute inset-x-0 top-0 ridge-color-cobalt"
+        className="absolute inset-x-0 top-0 ridge-color-cobalt ridge-veil"
         style={{ height: artworkHeight }}
       >
         <RidgeArtwork

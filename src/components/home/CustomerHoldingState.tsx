@@ -31,6 +31,10 @@ interface PendingQuote {
   total_amount?: number | null;
 }
 
+// Keys must match the quote.status values actually written by the booking
+// flow (see src/app/actions/quotes.ts): draft → submitted → proposal_sent →
+// accepted. Terminal states (declined/expired/etc.) are filtered out upstream
+// by getPendingQuotesForCustomer, so they never reach this component.
 const STATUS_COPY: Record<string, { label: string; blurb: string }> = {
   draft: {
     label: "Being prepared",
@@ -40,11 +44,7 @@ const STATUS_COPY: Record<string, { label: string; blurb: string }> = {
     label: "With our team",
     blurb: "We've received your request and are pricing it up now.",
   },
-  pending: {
-    label: "Being prepared",
-    blurb: "Our team is finalising the numbers on your proposal.",
-  },
-  sent: {
+  proposal_sent: {
     label: "Ready to review",
     blurb: "Your proposal is ready — take a look and let us know.",
   },

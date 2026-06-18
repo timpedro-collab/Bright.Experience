@@ -27,8 +27,9 @@ import { z } from "zod";
 
 import { createClient } from "@/lib/supabase/server";
 import { dispatchNotification } from "@/lib/notifications/dispatch";
-import { isInternal } from "@/lib/notifications/roles";
+import { canReviewCreativeAssets } from "@/lib/roles";
 import { enqueueAssetReviewDecision } from "@/lib/pipedrive/triggers";
+import type { UserRole } from "@/types";
 
 const submitReviewSchema = z.object({
   assetId: z.string().uuid(),
@@ -61,8 +62,14 @@ export async function submitAssetReview(input: unknown) {
     .select("role")
     .eq("id", user.id)
     .single();
-  if (!isInternal(reviewerProfile?.role)) {
-    return { success: false as const, error: "Reviewer role required" };
+  const reviewerRole = reviewerProfile?.role as UserRole | undefined;
+  // Creative sign-off belongs to the Creative team (+ admin/developer).
+  // Events Lead, Ops and QA cannot decide on creative assets.
+  if (!reviewerRole || !canReviewCreativeAssets(reviewerRole)) {
+    return {
+      success: false as const,
+      error: "Only the Creative team can review creative assets.",
+    };
   }
 
   const { data: existing } = await supabase
@@ -164,5 +171,7 @@ export async function submitAssetReview(input: unknown) {
 
   revalidatePath(`/events/${existing.event_id}/assets`);
   revalidatePath("/admin/asset-reviews");
+  revalidatePath(`/events/${existing.event_id}`);
+  revalidatePath("/");
   return { success: true as const };
 }

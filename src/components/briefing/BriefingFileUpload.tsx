@@ -10,9 +10,11 @@ import { uploadBriefingFile } from "@/app/actions/briefing";
 interface BriefingFileUploadProps {
   eventId: string;
   existingFiles: { name: string; path: string; url: string | null }[];
+  /** Internal viewers see the customer's files but don't upload here. */
+  readOnly?: boolean;
 }
 
-export function BriefingFileUpload({ eventId, existingFiles }: BriefingFileUploadProps) {
+export function BriefingFileUpload({ eventId, existingFiles, readOnly = false }: BriefingFileUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, startTransition] = useTransition();
   const [files, setFiles] = useState(existingFiles);
@@ -49,19 +51,21 @@ export function BriefingFileUpload({ eventId, existingFiles }: BriefingFileUploa
         <p className="text-sm font-medium text-foreground">
           Brand kit &amp; reference files
         </p>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => inputRef.current?.click()}
-          disabled={uploading}
-        >
-          {uploading ? (
-            <Loader2 size={14} className="animate-spin" />
-          ) : (
-            <Upload size={14} />
-          )}
-          {uploading ? "Uploading…" : "Upload file"}
-        </Button>
+        {!readOnly && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => inputRef.current?.click()}
+            disabled={uploading}
+          >
+            {uploading ? (
+              <Loader2 size={14} className="animate-spin" />
+            ) : (
+              <Upload size={14} />
+            )}
+            {uploading ? "Uploading…" : "Upload file"}
+          </Button>
+        )}
         <input
           ref={inputRef}
           type="file"
@@ -71,16 +75,23 @@ export function BriefingFileUpload({ eventId, existingFiles }: BriefingFileUploa
       </div>
 
       <p className="text-xs text-muted-foreground">
-        Upload brand guidelines, logo packs, font files, reference images, or any other materials
-        that help the creative team understand your brand.
+        {readOnly
+          ? "Brand guidelines, logo packs, font files, and reference materials the customer has shared."
+          : "Upload brand guidelines, logo packs, font files, reference images, or any other materials that help the creative team understand your brand."}
       </p>
+
+      {readOnly && files.length === 0 && (
+        <p className="text-xs text-muted-foreground italic">
+          The customer hasn&apos;t shared any files yet.
+        </p>
+      )}
 
       {files.length > 0 && (
         <ul className="space-y-1.5">
           {files.map((f) => (
             <li
               key={f.path}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/[0.02] border border-white/[0.06] text-sm"
+              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/40 border border-border/60 text-sm"
             >
               <FileText size={14} className="text-muted-foreground shrink-0" />
               {f.url ? (

@@ -45,7 +45,7 @@ export function TourWelcomeScreen() {
 
   return (
     <motion.div
-      className="fixed inset-0 z-[10000] flex items-center justify-center"
+      className="theme-dark fixed inset-0 z-[10000] flex items-center justify-center text-foreground"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}

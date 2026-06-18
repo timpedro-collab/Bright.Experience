@@ -85,7 +85,7 @@ function RequirementRow({
   }
 
   return (
-    <div className="flex items-start gap-3 p-3 rounded-lg bg-white/[0.02] border border-white/[0.04]">
+    <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/40 border border-border/60">
       {isInternal ? (
         <button
           onClick={handleToggle}
@@ -118,7 +118,7 @@ function RequirementRow({
             {REQUIREMENT_TYPE_LABELS[req.requirementType]}
           </span>
         </div>
-        {req.notes && (
+        {req.notes && isInternal && (
           <p className="text-xs text-muted-foreground mt-0.5">{req.notes}</p>
         )}
       </div>
@@ -154,11 +154,11 @@ function AddRequirementForm({ eventId }: { eventId: string }) {
   }
 
   return (
-    <div className="mt-3 p-4 rounded-xl border border-white/[0.06] bg-white/[0.02] space-y-3">
+    <div className="mt-3 p-4 rounded-xl border border-border/60 bg-muted/40 space-y-3">
       <select
         value={type}
         onChange={(e) => setType(e.target.value as VenueRequirementType)}
-        className="px-3 py-2 rounded-[var(--radius-control)] border border-white/[0.08] bg-white/[0.02] text-sm text-foreground outline-none"
+        className="px-3 py-2 rounded-[var(--radius-control)] border border-border bg-muted/40 text-sm text-foreground outline-none"
       >
         {Object.entries(REQUIREMENT_TYPE_LABELS).map(([key, label]) => (
           <option key={key} value={key}>{label}</option>
@@ -168,7 +168,7 @@ function AddRequirementForm({ eventId }: { eventId: string }) {
         value={description}
         onChange={(e) => setDescription(e.target.value)}
         placeholder="Describe the requirement..."
-        className="w-full px-3 py-2 rounded-[var(--radius-control)] border border-white/[0.08] bg-white/[0.02] text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-ring"
+        className="w-full px-3 py-2 rounded-[var(--radius-control)] border border-border bg-muted/40 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-ring"
       />
       <div className="flex gap-2">
         <Button size="sm" variant="brand" onClick={handleSubmit} disabled={pending}>

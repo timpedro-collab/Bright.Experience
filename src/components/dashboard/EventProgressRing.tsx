@@ -43,7 +43,7 @@ export function EventProgressRing({
           fill="none"
           stroke="currentColor"
           strokeWidth={strokeWidth}
-          className="text-white/[0.06]"
+          className="text-border"
         />
         <motion.circle
           cx={size / 2}

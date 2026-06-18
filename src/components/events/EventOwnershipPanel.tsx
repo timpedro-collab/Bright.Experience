@@ -79,10 +79,10 @@ export function EventOwnershipPanel({
                 href={ctaHref}
                 className={cn(
                   "group flex items-center justify-between gap-3 rounded-[var(--radius-control)] border p-3",
-                  "transition-all hover:border-white/16",
+                  "transition-all hover:border-border",
                   isYou
                     ? "border-warning/30 bg-warning/[0.06] hover:bg-warning/[0.1]"
-                    : "border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04]"
+                    : "border-border/60 bg-muted/40 hover:bg-accent"
                 )}
               >
                 <div className="min-w-0">

@@ -11,6 +11,8 @@ import {
   ExternalLink,
   Image as ImageIcon,
   Film,
+  FileText,
+  ThumbsUp,
 } from "lucide-react";
 
 import { AdminPageShell, EditorialEyebrow, Hairline } from "@/components/brand";
@@ -24,7 +26,7 @@ import { getAllStudioRequests } from "@/lib/queries/studio";
 import type { StudioRequestWithContext } from "@/lib/queries/studio";
 import { getUnreadCount } from "@/lib/queries/notifications";
 import { getUser } from "@/lib/auth";
-import { isInternalRole } from "@/lib/roles";
+import { canViewCreativeProduct } from "@/lib/roles";
 import { timeSince } from "@/lib/dates";
 
 const STATUS_CONFIG: Record<
@@ -32,6 +34,8 @@ const STATUS_CONFIG: Record<
   { label: string; variant: "info" | "default" | "warning" | "success" | "muted"; Icon: React.ElementType }
 > = {
   submitted: { label: "New", variant: "info", Icon: Clock },
+  quoted: { label: "Quoted", variant: "info", Icon: FileText },
+  approved: { label: "Approved", variant: "default", Icon: ThumbsUp },
   confirmed: { label: "Confirmed", variant: "default", Icon: CheckCircle2 },
   in_progress: { label: "In progress", variant: "warning", Icon: Play },
   delivered: { label: "Delivered", variant: "success", Icon: Truck },
@@ -41,7 +45,7 @@ const STATUS_CONFIG: Record<
 export default async function StudioDashboardPage() {
   const user = await getUser();
   if (!user) redirect("/login");
-  if (!isInternalRole(user.role)) redirect("/");
+  if (!canViewCreativeProduct(user.role)) redirect("/");
 
   const [requests, unread] = await Promise.all([
     getAllStudioRequests(),
@@ -50,15 +54,24 @@ export default async function StudioDashboardPage() {
 
   const actionable = requests.filter(
     (r) =>
-      r.status === "submitted" || r.status === "confirmed" || r.status === "in_progress"
+      r.status === "submitted" ||
+      r.status === "quoted" ||
+      r.status === "approved" ||
+      r.status === "confirmed" ||
+      r.status === "in_progress"
   );
   const completed = requests.filter(
     (r) => r.status === "delivered" || r.status === "cancelled"
   );
 
-  const newCount = requests.filter((r) => r.status === "submitted").length;
+  const newCount = requests.filter(
+    (r) => r.status === "submitted" || r.status === "quoted"
+  ).length;
   const inProgressCount = requests.filter(
-    (r) => r.status === "in_progress" || r.status === "confirmed"
+    (r) =>
+      r.status === "in_progress" ||
+      r.status === "confirmed" ||
+      r.status === "approved"
   ).length;
   const deliveredCount = requests.filter((r) => r.status === "delivered").length;
 
@@ -196,7 +209,7 @@ function RequestRow({
       style={{ "--stagger-index": index } as React.CSSProperties}
     >
       <CardContent className="flex items-start gap-4 p-5">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--radius-control)] border border-white/[0.06] bg-white/[0.03]">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--radius-control)] border border-border/60 bg-muted/40">
           {isDesign ? (
             <ImageIcon size={18} className="text-info" />
           ) : (

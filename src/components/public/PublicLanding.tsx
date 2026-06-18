@@ -1,126 +1,108 @@
 import Link from "next/link";
-import {
-  ArrowRight,
-  Zap,
-  BarChart3,
-  Shield,
-  Sparkles,
-  Play,
-  Users,
-} from "lucide-react";
+import Image from "next/image";
+import { ArrowRight, Zap, Sparkles, Play } from "lucide-react";
 
 import { Container, Section } from "@/components/ui/section";
 import { Button } from "@/components/ui/button";
-import { BrandLockup } from "@/components/ui/brand-mark";
 import { RidgeArtwork } from "@/components/brand";
 import { LogosStrip } from "@/components/catalog/LogosStrip";
+import { PublicSiteChrome } from "@/components/public/PublicSiteChrome";
+import { LiveShowFloorStats } from "@/components/public/LiveShowFloorStats";
+import { CLIENT_LOGOS } from "@/lib/marketing/client-logos";
+
+/** The three jobs one activation does on the floor. */
+const PILLARS = [
+  {
+    icon: "/brand-icons/Showoff.svg",
+    title: "Draw the Crowd",
+    description:
+      "Branded, animated, tap-to-play moments that stop people mid-stride and pull a queue around your stand.",
+  },
+  {
+    icon: "/brand-icons/Gift.svg",
+    title: "Sample & Reward",
+    description:
+      "Hand out drinks, snacks, beauty, merch, or prizes on the spot — ideal for launches, promos, and giveaways.",
+  },
+  {
+    icon: "/brand-icons/Leads.svg",
+    title: "Capture the Data",
+    description:
+      "Every play runs through a GDPR-compliant form, so each interaction becomes clean, structured first-party data.",
+  },
+];
+
+/** What we handle end-to-end so the activation just works. */
+const PLATFORM_CAPABILITIES = [
+  {
+    icon: "/brand-icons/Custom-Content.svg",
+    title: "Custom Content",
+    description: "Games, quizzes, surveys, and brand storytelling, designed around each event.",
+  },
+  {
+    icon: "/brand-icons/Dynamic-Delivery.svg",
+    title: "Dynamic Delivery",
+    description: "Swap in videos, sponsor creative, or campaign messaging whenever you need to.",
+  },
+  {
+    icon: "/brand-icons/Instant-Gratification.svg",
+    title: "Instant Rewards",
+    description: "Samples and prizes drop the moment someone plays — every dispense tracked.",
+  },
+  {
+    icon: "/brand-icons/Lead-Collection-Tools.svg",
+    title: "Lead Collection",
+    description: "Names, emails, preferences, and survey answers gathered through one smooth flow.",
+  },
+  {
+    icon: "/brand-icons/Engagement-Data.svg",
+    title: "Live Engagement Data",
+    description: "See interactions, conversions, and product movement as they happen.",
+  },
+  {
+    icon: "/brand-icons/End-to-End-Support.svg",
+    title: "End-to-End Support",
+    description: "Setup, creative build, product loading, delivery, and close-out reporting — all handled.",
+  },
+];
 
 const CAPABILITIES = [
   {
     icon: Sparkles,
-    title: "Browse the catalog",
+    title: "Browse the Catalog",
     description:
-      "Interactive machines, games, and packages — explore what's possible for your next activation.",
+      "Explore interactive machines, games, and packages, and picture what's possible for your next activation.",
     href: "/catalog",
-    cta: "Explore catalog",
+    cta: "Explore the catalog",
   },
   {
     icon: Play,
-    title: "See it in action",
+    title: "See It in Action",
     description:
-      "Real activations from Costa Coffee, Coca-Cola, Samsung, and more — with photos, results, and the full story.",
+      "Real activations with photos, results, and the full story behind the numbers.",
     href: "/catalog/case-studies",
     cta: "View case studies",
   },
   {
     icon: Zap,
-    title: "Find your match",
+    title: "Find Your Match",
     description:
-      "Answer a few questions and we'll recommend the perfect machine, game, and package for your event.",
+      "Answer a few quick questions and get a tailored machine, game, and package recommendation.",
     href: "/quiz",
     cta: "Take the quiz",
   },
 ];
 
-const PLATFORM_FEATURES = [
-  {
-    icon: BarChart3,
-    title: "Live telemetry",
-    description: "Real-time plays, leads, and interactions streaming from the show floor.",
-  },
-  {
-    icon: Shield,
-    title: "GDPR-compliant leads",
-    description: "Clean, structured lead data ready for your CRM — collected with consent.",
-  },
-  {
-    icon: Users,
-    title: "Turnkey delivery",
-    description: "Creative, logistics, QA, and reporting — managed end-to-end by Bright.Blue.",
-  },
-];
-
 export function PublicLanding() {
   return (
-    <div className="flex min-h-screen flex-col bg-background text-foreground">
-      <header className="sticky top-0 z-50 bg-background/85 backdrop-blur-md border-b border-border/40">
-        <Container className="flex h-16 items-center justify-between gap-6">
-          <Link href="/" className="flex items-center gap-2.5">
-            <BrandLockup />
-          </Link>
-          <nav className="hidden lg:flex items-center gap-1">
-            <NavLink href="/catalog">Catalog</NavLink>
-            <NavLink href="/catalog/case-studies">Case Studies</NavLink>
-            <NavLink href="/quiz">Find Your Match</NavLink>
-            <NavLink href="/proposal">Get a Quote</NavLink>
-          </nav>
-          <div className="flex items-center gap-3">
-            <Link
-              href="/login"
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Sign in
-            </Link>
-            <Button variant="brand" size="sm" asChild>
-              <Link href="/catalog">
-                Explore <ArrowRight className="size-3.5" />
-              </Link>
-            </Button>
-          </div>
-        </Container>
-      </header>
-
-      <main className="flex-1">
-        <HeroSection />
-        <LogosStrip
-          overline="Trusted by leading brands"
-          logos={[
-            { name: "Costa Coffee" },
-            { name: "Coca-Cola" },
-            { name: "Samsung" },
-            { name: "Red Bull" },
-            { name: "Porsche" },
-            { name: "Pepsi" },
-          ]}
-        />
-        <CapabilitiesSection />
-        <PlatformSection />
-        <CtaSection />
-      </main>
-
-      <Footer />
-    </div>
-  );
-}
-
-function NavLink({ href, children }: { href: string; children: React.ReactNode }) {
-  return (
-    <Link
-      href={href}
-      className="rounded-sm px-3 py-1.5 text-xs font-medium uppercase tracking-wider text-muted-foreground transition-colors hover:bg-accent/40 hover:text-foreground"
-    >
-      {children}
-    </Link>
+    <PublicSiteChrome>
+      <HeroSection />
+      <LogosStrip overline="Trusted by Leading Brands" logos={CLIENT_LOGOS} />
+      <PillarsSection />
+      <CapabilitiesSection />
+      <PlatformSection />
+      <CtaSection />
+    </PublicSiteChrome>
   );
 }
 
@@ -144,17 +126,18 @@ function HeroSection() {
       <Container className="relative py-28 md:py-40">
         <div className="mx-auto max-w-4xl text-center">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--color-bb-cyan)] mb-5">
-            The post-sale delivery portal
+            Make your moment count
           </p>
           <h1 className="text-[clamp(2.5rem,7vw,5.5rem)] font-bold leading-[1.02] text-foreground text-balance">
-            Your activation,{" "}
+            Your Next Activation,{" "}
             <span className="bg-gradient-to-r from-[var(--color-bb-cobalt)] to-[var(--color-bb-cyan)] bg-clip-text text-transparent">
-              beautifully managed.
+              Beautifully Delivered
             </span>
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground md:text-xl leading-relaxed text-balance">
-            From briefing and creative build through to live telemetry and
-            proof-of-performance reporting — everything in one premium workspace.
+            Browse crowd-stopping machines and games, find your match in minutes,
+            and track every detail through to live results — all in one
+            workspace built for the people running the event.
           </p>
           <div className="mt-10 flex items-center justify-center gap-4 flex-wrap">
             <Button size="lg" variant="brand" asChild>
@@ -172,16 +155,66 @@ function HeroSection() {
   );
 }
 
-function CapabilitiesSection() {
+function PillarsSection() {
   return (
-    <Section className="border-t border-white/[0.06]">
+    <Section className="border-t border-border/60">
       <Container>
         <div className="mx-auto max-w-2xl text-center mb-14">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground mb-3">
-            Get started
+            On the Show Floor
+          </p>
+          <h2 className="text-3xl font-bold text-foreground md:text-4xl text-balance">
+            One Machine, Three Jobs Done at Once
+          </h2>
+          <p className="mt-4 text-muted-foreground leading-relaxed">
+            Drop a fully automated activation into any exhibition, conference, or
+            brand event — and watch it earn its place on the floor.
+          </p>
+        </div>
+        <div className="grid gap-6 md:grid-cols-3">
+          {PILLARS.map((p, i) => (
+            <div
+              key={p.title}
+              className="group relative rounded-2xl border border-border bg-muted/40 p-8 transition-colors hover:border-[var(--color-bb-cyan)]/30"
+            >
+              <span className="absolute right-6 top-6 text-sm font-semibold tabular-nums text-muted-foreground/40">
+                0{i + 1}
+              </span>
+              <div className="mb-5 flex size-14 items-center justify-center rounded-xl bg-[var(--color-bb-cobalt)]/10 ring-1 ring-[var(--color-bb-cobalt)]/20">
+                <Image
+                  src={p.icon}
+                  alt=""
+                  width={40}
+                  height={40}
+                  aria-hidden
+                  unoptimized
+                  className="h-8 w-8"
+                />
+              </div>
+              <h3 className="text-lg font-semibold text-foreground mb-2">
+                {p.title}
+              </h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                {p.description}
+              </p>
+            </div>
+          ))}
+        </div>
+      </Container>
+    </Section>
+  );
+}
+
+function CapabilitiesSection() {
+  return (
+    <Section className="border-t border-border/60">
+      <Container>
+        <div className="mx-auto max-w-2xl text-center mb-14">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground mb-3">
+            Get Started
           </p>
           <h2 className="text-3xl font-bold text-foreground md:text-4xl">
-            Three ways in.
+            Three Ways In
           </h2>
         </div>
         <div className="grid gap-6 md:grid-cols-3">
@@ -191,9 +224,9 @@ function CapabilitiesSection() {
               <Link
                 key={cap.title}
                 href={cap.href}
-                className="group relative overflow-hidden rounded-2xl border border-white/8 bg-white/[0.02] p-8 transition-all hover:border-white/15 hover:bg-white/[0.04]"
+                className="group relative overflow-hidden rounded-2xl border border-border bg-muted/40 p-8 transition-all hover:border-white/15 hover:bg-accent"
               >
-                <div className="flex size-12 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] mb-5">
+                <div className="flex size-12 items-center justify-center rounded-xl border border-border bg-muted/40 mb-5">
                   <Icon className="size-5 text-[var(--color-bb-cyan)]" />
                 </div>
                 <h3 className="text-lg font-semibold text-foreground mb-2">
@@ -216,66 +249,62 @@ function CapabilitiesSection() {
 
 function PlatformSection() {
   return (
-    <Section className="border-t border-white/[0.06]">
+    <Section className="border-t border-border/60">
       <Container>
-        <div className="grid gap-12 md:grid-cols-2 md:items-center">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground mb-3">
-              The platform
-            </p>
-            <h2 className="text-3xl font-bold text-foreground md:text-4xl">
-              More than a booking tool.
-            </h2>
-            <p className="mt-4 text-muted-foreground leading-relaxed">
-              Bright.Experience is the delivery platform that powers every
-              Bright.Blue activation. Your customers get a premium workspace.
-              Your team gets operational clarity. Everyone gets live data.
-            </p>
-            <div className="mt-8 space-y-6">
-              {PLATFORM_FEATURES.map((f) => {
-                const Icon = f.icon;
-                return (
-                  <div key={f.title} className="flex gap-4">
-                    <div className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-white/8 bg-white/[0.03]">
-                      <Icon className="size-4 text-[var(--color-bb-cyan)]" />
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-semibold text-foreground">{f.title}</h3>
-                      <p className="text-sm text-muted-foreground">{f.description}</p>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-          <div className="relative aspect-square overflow-hidden rounded-2xl border border-white/8 bg-gradient-to-br from-[var(--color-bb-deep-ink)] via-[#0d1147] to-[var(--color-bb-cobalt)]">
-            <RidgeArtwork
-              seed="landing::platform"
-              lines={20}
-              amplitude={60}
-              className="text-[hsl(230,93%,53%)] opacity-40"
-            />
-            <div className="absolute inset-0 flex flex-col items-center justify-center p-10 text-center">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--color-bb-cyan)] mb-3">
-                Live from the show floor
-              </p>
-              <p className="text-5xl font-bold text-white tabular-nums">1,247</p>
-              <p className="text-sm text-white/50 mt-1">leads captured today</p>
-              <div className="mt-8 grid grid-cols-3 gap-6 text-center">
-                <div>
-                  <p className="text-2xl font-bold text-white tabular-nums">3,891</p>
-                  <p className="text-[10px] uppercase tracking-widest text-white/40">plays</p>
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-white tabular-nums">42s</p>
-                  <p className="text-[10px] uppercase tracking-widest text-white/40">avg dwell</p>
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-white tabular-nums">94%</p>
-                  <p className="text-[10px] uppercase tracking-widest text-white/40">opt-in</p>
-                </div>
+        <div className="mx-auto max-w-2xl text-center mb-14">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground mb-3">
+            What We Handle
+          </p>
+          <h2 className="text-3xl font-bold text-foreground md:text-4xl text-balance">
+            Everything Behind the Activation, Covered
+          </h2>
+          <p className="mt-4 text-muted-foreground leading-relaxed">
+            From the first idea to the post-event report, the work is done for
+            you — so the activation simply shows up and performs.
+          </p>
+        </div>
+
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {PLATFORM_CAPABILITIES.map((c) => (
+            <div
+              key={c.title}
+              className="flex gap-4 rounded-2xl border border-border bg-muted/40 p-7"
+            >
+              <div className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-background/60 ring-1 ring-border">
+                <Image
+                  src={c.icon}
+                  alt=""
+                  width={32}
+                  height={32}
+                  aria-hidden
+                  unoptimized
+                  className="h-7 w-7"
+                />
+              </div>
+              <div>
+                <h3 className="text-base font-semibold text-foreground mb-1.5">
+                  {c.title}
+                </h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  {c.description}
+                </p>
               </div>
             </div>
+          ))}
+        </div>
+
+        <div className="relative mt-12 overflow-hidden rounded-2xl border border-white/8 bg-gradient-to-br from-[var(--color-bb-deep-ink)] via-[#0d1147] to-[var(--color-bb-cobalt)] p-10 md:p-14">
+          <RidgeArtwork
+            seed="landing::platform"
+            lines={20}
+            amplitude={60}
+            className="text-[hsl(230,93%,53%)] opacity-40"
+          />
+          <div className="relative text-center">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--color-bb-cyan)] mb-3">
+              Live from the Show Floor
+            </p>
+            <LiveShowFloorStats />
           </div>
         </div>
       </Container>
@@ -285,11 +314,11 @@ function PlatformSection() {
 
 function CtaSection() {
   return (
-    <Section className="border-t border-white/[0.06]">
+    <Section className="border-t border-border/60">
       <Container size="md">
         <div className="text-center">
           <h2 className="text-3xl font-bold text-foreground md:text-4xl">
-            Ready to see what&apos;s possible?
+            Ready to See What&apos;s Possible?
           </h2>
           <p className="mt-3 text-muted-foreground max-w-lg mx-auto">
             Browse the full catalog, take the quiz to find your perfect setup,
@@ -314,47 +343,3 @@ function CtaSection() {
   );
 }
 
-function Footer() {
-  const LINKS = [
-    { label: "Catalog", href: "/catalog" },
-    { label: "Case Studies", href: "/catalog/case-studies" },
-    { label: "Quiz", href: "/quiz" },
-    { label: "Get a Quote", href: "/proposal" },
-    { label: "Partners", href: "/partners/join" },
-    { label: "Sign in", href: "/login" },
-  ];
-
-  return (
-    <footer className="border-t border-border/40 bg-[hsl(233,66%,5%)]">
-      <Container className="py-12">
-        <div className="flex flex-col items-center gap-6 text-center">
-          <BrandLockup size="md" />
-          <nav className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
-            {LINKS.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-              >
-                {link.label}
-              </Link>
-            ))}
-          </nav>
-          <div className="flex items-center gap-4 text-xs text-muted-foreground">
-            <span>© {new Date().getFullYear()} Bright.Blue Events</span>
-            <Link href="/terms" className="hover:text-foreground transition-colors">Terms</Link>
-            <Link href="/privacy" className="hover:text-foreground transition-colors">Privacy</Link>
-            <a
-              href="https://bright.blue"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-foreground transition-colors"
-            >
-              bright.blue
-            </a>
-          </div>
-        </div>
-      </Container>
-    </footer>
-  );
-}

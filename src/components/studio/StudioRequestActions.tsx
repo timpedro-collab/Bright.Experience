@@ -7,12 +7,20 @@ import {
   XCircle,
   Loader2,
   Truck,
+  FileText,
+  ThumbsUp,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { updateStudioRequestStatus } from "@/app/actions/studio";
 
-type AllowedStatus = "confirmed" | "in_progress" | "delivered" | "cancelled";
+type AllowedStatus =
+  | "quoted"
+  | "approved"
+  | "confirmed"
+  | "in_progress"
+  | "delivered"
+  | "cancelled";
 
 type ButtonVariant = React.ComponentProps<typeof Button>["variant"];
 
@@ -32,8 +40,17 @@ interface TransitionAction {
 
 const TRANSITIONS: Record<string, TransitionAction[]> = {
   submitted: [
-    { label: "Confirm Order", status: "confirmed", Icon: CheckCircle2, variant: "brand" },
+    { label: "Send Quote", status: "quoted", Icon: FileText, variant: "brand" },
+    { label: "Confirm Order", status: "confirmed", Icon: CheckCircle2, variant: "outline" },
     { label: "Decline", status: "cancelled", Icon: XCircle, variant: "ghost", destructive: true },
+  ],
+  quoted: [
+    { label: "Mark Approved", status: "approved", Icon: ThumbsUp, variant: "brand" },
+    { label: "Cancel", status: "cancelled", Icon: XCircle, variant: "ghost", destructive: true },
+  ],
+  approved: [
+    { label: "Start Work", status: "in_progress", Icon: Play, variant: "brand" },
+    { label: "Cancel", status: "cancelled", Icon: XCircle, variant: "ghost", destructive: true },
   ],
   confirmed: [
     { label: "Start Work", status: "in_progress", Icon: Play, variant: "brand" },
@@ -65,7 +82,7 @@ export function StudioRequestActions({
   }
 
   return (
-    <div className="flex items-center gap-2 mt-3 pt-3 border-t border-white/[0.06]">
+    <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border/60">
       {actions.map((action) => (
         <Button
           key={action.status}

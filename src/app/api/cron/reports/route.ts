@@ -10,23 +10,15 @@ import { NextResponse } from "next/server";
 import * as Sentry from "@sentry/nextjs";
 
 import { getServiceRoleClient } from "@/lib/supabase/service-role";
+import { requireCron } from "@/lib/cron-auth";
 import { generateEventReportSystem } from "@/app/actions/reports";
 import { dispatchNotification } from "@/lib/notifications/dispatch";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-function authed(request: Request): boolean {
-  if (request.headers.get("x-vercel-cron")) return true;
-  const auth = request.headers.get("authorization");
-  if (!auth) return false;
-  const secret = process.env.CRON_SECRET;
-  if (!secret) return false;
-  return auth === `Bearer ${secret}`;
-}
-
 export async function GET(request: Request) {
-  if (!authed(request)) {
+  if (!requireCron(request)) {
     return NextResponse.json({ error: "unauthorised" }, { status: 401 });
   }
 

@@ -28,7 +28,7 @@ export function BriefingTabs() {
   }
 
   return (
-    <div className="flex items-center gap-1 p-1 rounded-[var(--radius-card)] bg-white/[0.03] border border-white/[0.06] w-fit">
+    <div className="flex items-center gap-1 p-1 rounded-[var(--radius-card)] bg-muted/40 border border-border/60 w-fit">
       {TABS.map(({ id, label, icon: Icon }) => (
         <button
           key={id}
@@ -37,7 +37,7 @@ export function BriefingTabs() {
             "flex items-center gap-2 px-4 py-2 rounded-[calc(var(--radius-card)-4px)] text-sm font-medium transition-all",
             active === id
               ? "bg-[var(--color-bb-cobalt)] text-white shadow-sm"
-              : "text-muted-foreground hover:text-foreground hover:bg-white/[0.04]"
+              : "text-muted-foreground hover:text-foreground hover:bg-accent"
           )}
         >
           <Icon size={14} />

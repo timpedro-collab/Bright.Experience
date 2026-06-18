@@ -3,15 +3,19 @@
 /** Admin actions for managing user profiles and accounts. */
 
 import { requireInternalUser } from "@/lib/auth";
+import { isAdminRole } from "@/lib/roles";
 import { createClient } from "@/lib/supabase/server";
 import type { ActionResult } from "@/types/actions";
 
-/** Toggle a user's is_active flag. Internal-only. */
+/** Toggle a user's is_active flag. Admin-only. */
 export async function toggleUserActive(
   userId: string,
   isActive: boolean,
 ): Promise<ActionResult> {
-  await requireInternalUser();
+  const { profile } = await requireInternalUser();
+  if (!isAdminRole(profile.role)) {
+    return { success: false, error: "Forbidden: admin access only" };
+  }
   const supabase = await createClient();
 
   const { error } = await supabase
@@ -23,12 +27,15 @@ export async function toggleUserActive(
   return { success: true, data: undefined };
 }
 
-/** Update an account's name. Internal-only. */
+/** Update an account's name. Admin-only. */
 export async function updateAccountName(
   accountId: string,
   name: string,
 ): Promise<ActionResult> {
-  await requireInternalUser();
+  const { profile } = await requireInternalUser();
+  if (!isAdminRole(profile.role)) {
+    return { success: false, error: "Forbidden: admin access only" };
+  }
   if (!name.trim()) return { success: false, error: "Name is required" };
 
   const supabase = await createClient();

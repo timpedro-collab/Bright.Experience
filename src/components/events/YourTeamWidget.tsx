@@ -47,7 +47,7 @@ export function YourTeamWidget({ eventId, members }: YourTeamWidgetProps) {
   ];
 
   return (
-    <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 space-y-3">
+    <div className="rounded-xl border border-border/60 bg-muted/40 p-4 space-y-3">
       <p className="text-overline text-muted-foreground uppercase tracking-wider text-[11px] font-medium">
         Your team
       </p>

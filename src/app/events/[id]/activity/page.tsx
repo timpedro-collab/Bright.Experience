@@ -10,6 +10,7 @@ import { getEventById } from "@/lib/queries/events";
 import { getAuditEntriesForEvent } from "@/lib/queries/audit";
 import { getUnreadCount } from "@/lib/queries/notifications";
 import { isInternalRole } from "@/lib/roles";
+import { canViewSection } from "@/lib/event-access";
 import { parsePage } from "@/lib/pagination";
 
 export default async function ActivityPage({
@@ -22,6 +23,10 @@ export default async function ActivityPage({
   const user = await getUser();
   if (!user) redirect("/login");
   const { id } = await params;
+  // The audit trail is for orchestration + engineering debugging (Events
+  // Lead / Admin / Developer). The specialist delivery roles don't need the
+  // full cross-event record, so it's scoped to full-access roles only.
+  if (!canViewSection(user.role, "activity")) redirect(`/events/${id}`);
   const sp = await searchParams;
   const page = parsePage(sp);
 

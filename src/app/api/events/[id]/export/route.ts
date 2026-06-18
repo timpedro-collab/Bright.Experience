@@ -7,6 +7,8 @@
 
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { isInternalRole } from "@/lib/roles";
+import { canViewSection } from "@/lib/event-access";
 import { toCsv, csvResponse } from "@/lib/exports/csv";
 import { excelResponse } from "@/lib/exports/excel";
 import { generatePdf } from "@/lib/exports/pdf";
@@ -42,6 +44,43 @@ export async function GET(
 
   if (!eventAccess) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  // Section access is enforced per the same matrix that drives the nav.
+  // Leads + Reports are scoped — Ops/Creative/QA can't export them at all,
+  // and customers can only export a report once it's published.
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .maybeSingle();
+  const role = profile?.role ?? null;
+
+  if (view === "leads" && !(role && canViewSection(role, "leads"))) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  const isReportsView = view === "reports" || (format === "pdf" && view !== "live");
+  if (isReportsView) {
+    if (!(role && canViewSection(role, "reports"))) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+    const isInternal = role ? isInternalRole(role) : false;
+    if (!isInternal) {
+      const { data: latestReport } = await supabase
+        .from("event_reports")
+        .select("is_published")
+        .eq("event_id", id)
+        .order("generated_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (!latestReport || latestReport.is_published !== true) {
+        return NextResponse.json(
+          { error: "Report not available" },
+          { status: 403 },
+        );
+      }
+    }
   }
 
   const eventName = String(eventAccess.name).replace(/[^a-zA-Z0-9-_ ]/g, "");

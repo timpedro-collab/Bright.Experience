@@ -59,7 +59,7 @@ describe("submitAssetReview — auth", () => {
     expect(result.success).toBe(false);
   });
 
-  it("rejects callers without an internal role", async () => {
+  it("rejects callers without a creative-review role", async () => {
     supabase.setUser({ id: "u1" });
     supabase.setTableResponse("profiles", {
       data: { role: "customer_admin" },
@@ -71,7 +71,22 @@ describe("submitAssetReview — auth", () => {
       decision: "approved",
     });
     expect(result.success).toBe(false);
-    if (!result.success) expect(result.error).toMatch(/Reviewer role/);
+    if (!result.success) expect(result.error).toMatch(/Creative team/);
+  });
+
+  it("rejects internal non-creative roles (ops can't review creative)", async () => {
+    supabase.setUser({ id: "u1" });
+    supabase.setTableResponse("profiles", {
+      data: { role: "operations_lead" },
+      error: null,
+    });
+    const { submitAssetReview } = await import("./asset-review");
+    const result = await submitAssetReview({
+      assetId: validAssetId,
+      decision: "approved",
+    });
+    expect(result.success).toBe(false);
+    if (!result.success) expect(result.error).toMatch(/Creative team/);
   });
 
   it("rejects when the asset does not exist", async () => {

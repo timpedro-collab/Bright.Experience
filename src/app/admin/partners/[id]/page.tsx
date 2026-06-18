@@ -5,7 +5,7 @@ import { AdminPageShell } from "@/components/brand";
 import { PartnerDetailView } from "./PartnerDetailView";
 
 import { getUser } from "@/lib/auth";
-import { isInternalRole } from "@/lib/roles";
+import { canViewCommercial } from "@/lib/roles";
 import { getPartners } from "@/lib/queries/partners";
 import { getAttributionsByPartner } from "@/lib/queries/partner-attributions";
 import { getUnreadCount } from "@/lib/queries/notifications";
@@ -20,7 +20,7 @@ export default async function AdminPartnerDetailPage({
   const { id } = await params;
   const user = await getUser();
   if (!user) redirect("/login");
-  if (!isInternalRole(user.role)) redirect("/");
+  if (!canViewCommercial(user.role)) redirect("/");
 
   const [partners, attributions, unread] = await Promise.all([
     getPartners(),

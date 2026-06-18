@@ -15,6 +15,7 @@ import {
 import { getUnreadCount } from "@/lib/queries/notifications";
 import { getUser } from "@/lib/auth";
 import { isInternalRole } from "@/lib/roles";
+import { canViewSection } from "@/lib/event-access";
 
 export default async function ConfigurationPage({
   params,
@@ -24,6 +25,7 @@ export default async function ConfigurationPage({
   const user = await getUser();
   if (!user) redirect("/login");
   const { id } = await params;
+  if (!canViewSection(user.role, "configuration")) redirect(`/events/${id}`);
 
   const [event, gameConfig, productConfig, unread] = await Promise.all([
     getEventById(id),
@@ -72,7 +74,7 @@ export default async function ConfigurationPage({
                 <GameConfigForm
                   eventId={id}
                   config={gameConfig}
-                  isInternal={isInternal}
+                  viewerRole={user.role}
                 />
               </div>
             </section>
@@ -87,6 +89,7 @@ export default async function ConfigurationPage({
                 <ProductConfigForm
                   eventId={id}
                   config={productConfig}
+                  viewerRole={user.role}
                 />
               </div>
             </section>

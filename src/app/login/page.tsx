@@ -18,7 +18,7 @@ import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowRight } from "lucide-react";
 
-import { createClient } from "@/lib/supabase/client";
+import { signInWithPassword } from "@/app/actions/auth";
 import { BrandLockup } from "@/components/ui/brand-mark";
 import {
   EditorialEyebrow,
@@ -48,14 +48,10 @@ export default function LoginPage() {
     setLoading(true);
     setError(null);
 
-    const supabase = createClient();
-    const { error: signInError } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    const result = await signInWithPassword(email, password);
 
-    if (signInError) {
-      setError(signInError.message);
+    if (!result.success) {
+      setError(result.error);
       setLoading(false);
     } else {
       router.push(redirectTo);

@@ -19,7 +19,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { timeSince } from "@/lib/dates";
 
 import { getUser } from "@/lib/auth";
-import { isInternalRole } from "@/lib/roles";
+import { canViewCommercial } from "@/lib/roles";
 import { createClient } from "@/lib/supabase/server";
 import { getUnreadCount } from "@/lib/queries/notifications";
 import { STUCK_CUSTOMER_DAYS } from "@/lib/queries/admin-queues";
@@ -50,8 +50,7 @@ function ageDays(iso: string): number {
 export default async function CustomerQueuePage() {
   const user = await getUser();
   if (!user) redirect("/login");
-  const isInternal = isInternalRole(user.role);
-  if (!isInternal) redirect("/");
+  if (!canViewCommercial(user.role)) redirect("/");
 
   const supabase = await createClient();
   // Server Components run once per request; reading the current time here

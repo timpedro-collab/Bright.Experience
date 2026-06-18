@@ -11,6 +11,7 @@ import { getComplianceDocuments } from "@/app/actions/compliance";
 import { getUnreadCount } from "@/lib/queries/notifications";
 import { getUser } from "@/lib/auth";
 import { isInternalRole } from "@/lib/roles";
+import { canViewSection } from "@/lib/event-access";
 
 export default async function CompliancePage({
   params,
@@ -20,6 +21,7 @@ export default async function CompliancePage({
   const user = await getUser();
   if (!user) redirect("/login");
   const { id } = await params;
+  if (!canViewSection(user.role, "compliance")) redirect(`/events/${id}`);
 
   const [event, documents, unread] = await Promise.all([
     getEventById(id),
@@ -66,11 +68,7 @@ export default async function CompliancePage({
           <EmptyState
             icon={ShieldCheck}
             title="No compliance requirements"
-            description={
-              isInternal
-                ? "Add compliance document requirements from the client's account profile, or add them manually below."
-                : "No documents are required from you at this time. We'll let you know if anything changes."
-            }
+            description="Add compliance document requirements from the client's account profile, or add them manually below."
           />
           {isInternal && (
             <ComplianceChecklist

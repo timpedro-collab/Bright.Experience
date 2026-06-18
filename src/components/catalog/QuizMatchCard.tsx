@@ -25,7 +25,7 @@ import {
   getCapabilities,
   type QuizSignals,
 } from "@/lib/capabilities";
-import type { QuizMatch } from "./quiz-data";
+import { goalLabel, type QuizMatch } from "./quiz-data";
 import { RefineDrawer } from "./RefineDrawer";
 
 interface MachineSummary {
@@ -39,6 +39,8 @@ interface QuizMatchCardProps {
   match: QuizMatch;
   preSelectedCapabilities: string[];
   signals: QuizSignals;
+  /** Every goal the customer picked on step 1 — echoed back so the match feels remembered. */
+  goals: string[];
   /** All catalog machines, used to look up the image for the matched machine. */
   machines: MachineSummary[];
   /** Called when the customer clicks the small "Start over" affordance. */
@@ -107,10 +109,12 @@ function readableObjective(value?: string | null): string | null {
       return "pipeline";
     case "sampling":
       return "product trial";
-    case "entertainment":
-      return "the crowd reaction";
-    case "employee-engagement":
-      return "team energy";
+    case "research":
+      return "gathering insight";
+    case "product-launch":
+      return "the launch";
+    case "social":
+      return "growing your following";
     default:
       return null;
   }
@@ -120,6 +124,7 @@ export function QuizMatchCard({
   match,
   preSelectedCapabilities,
   signals,
+  goals,
   machines,
   onReset,
 }: QuizMatchCardProps) {
@@ -143,6 +148,7 @@ export function QuizMatchCard({
   const bookHref = `/book/configure?${new URLSearchParams({
     machine: match.machineSlug,
     package: match.packageSlug ?? "",
+    addons: encodeCapabilityParam(selected),
   }).toString()}`;
 
   return (
@@ -163,8 +169,26 @@ export function QuizMatchCard({
             </p>
           </div>
 
+          {goals.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-overline text-muted-foreground">
+                You told us you want to
+              </p>
+              <ul className="flex flex-wrap gap-2">
+                {goals.map((goal) => (
+                  <li
+                    key={goal}
+                    className="inline-flex items-center rounded-full border border-border bg-muted/40 px-3 py-1.5 text-sm font-medium text-foreground"
+                  >
+                    {goalLabel(goal)}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
           {machine?.hero_image_url ? (
-            <div className="relative mx-auto aspect-[4/3] w-full max-w-md overflow-hidden rounded-[var(--radius-card)] border border-white/[0.06] bg-white/[0.02]">
+            <div className="relative mx-auto aspect-[4/3] w-full max-w-md overflow-hidden rounded-[var(--radius-card)] border border-border/60 bg-muted/40">
               <Image
                 src={machine.hero_image_url}
                 alt="The Bright.Blue Experience Portal"
@@ -175,7 +199,7 @@ export function QuizMatchCard({
               />
             </div>
           ) : (
-            <div className="mx-auto flex aspect-[4/3] w-full max-w-md items-center justify-center rounded-[var(--radius-card)] border border-white/[0.06] bg-white/[0.02] text-2xl font-semibold text-muted-foreground">
+            <div className="mx-auto flex aspect-[4/3] w-full max-w-md items-center justify-center rounded-[var(--radius-card)] border border-border/60 bg-muted/40 text-2xl font-semibold text-muted-foreground">
               Your Experience Portal
             </div>
           )}
@@ -221,6 +245,13 @@ export function QuizMatchCard({
             <Button variant="outline" size="lg" className="w-full" asChild>
               <Link href={proposalHref}>Get my tailored proposal</Link>
             </Button>
+            {/* Reciprocity lever: low-friction email capture of the personalized rec */}
+            <a
+              href={`mailto:?subject=My%20Bright.Blue%20recommendation&body=Hi%2C%0A%0AHere%20is%20the%20recommendation%20from%20my%20quiz%3A%0A%0AMachine%3A%20${encodeURIComponent(match.machineSlug)}%0AGoals%3A%20${encodeURIComponent(goals.join(', '))}%0A%0ASee%20more%20at%20https%3A%2F%2Fbright.blue%2Fquiz`}
+              className="block w-full rounded-full border border-border py-3 text-center text-sm font-medium text-muted-foreground transition hover:bg-muted/60 hover:text-foreground"
+            >
+              Email me this recommendation
+            </a>
             <p className="text-center text-xs text-muted-foreground">
               Book directly, or request a custom proposal — no commitment yet.
             </p>

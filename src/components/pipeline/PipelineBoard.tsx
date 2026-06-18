@@ -36,6 +36,8 @@ const HEALTH_OPTIONS: { value: HealthStatus | "all"; label: string }[] = [
 interface PipelineBoardProps {
   events: PipelineEvent[];
   owners: string[];
+  /** Whether this viewer's role may advance the pipeline stage by dragging. */
+  canManageStage?: boolean;
 }
 
 /** The stage immediately after `stage`, or null at the end of the pipeline. */
@@ -44,7 +46,11 @@ function nextStageOf(stage: Stage): Stage | null {
   return DISPLAY_STAGES.find((s) => STAGE_CONFIG[s].order === order + 1) ?? null;
 }
 
-export function PipelineBoard({ events, owners }: PipelineBoardProps) {
+export function PipelineBoard({
+  events,
+  owners,
+  canManageStage = false,
+}: PipelineBoardProps) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [search, setSearch] = useState("");
@@ -52,7 +58,8 @@ export function PipelineBoard({ events, owners }: PipelineBoardProps) {
   const [ownerFilter, setOwnerFilter] = useState<string>("all");
 
   // Drag-to-advance: only the dragged event's immediate next stage is a
-  // valid drop target; the server still enforces the gate on drop.
+  // valid drop target; the server still enforces the gate on drop. Only
+  // orchestration roles (events_lead/admin) can drag at all.
   const [dragging, setDragging] = useState<{ id: string; from: Stage } | null>(
     null,
   );
@@ -175,13 +182,14 @@ export function PipelineBoard({ events, owners }: PipelineBoardProps) {
                     items.map((e) => (
                       <div
                         key={e.id}
-                        draggable={!pending}
+                        draggable={canManageStage && !pending}
                         onDragStart={() =>
+                          canManageStage &&
                           setDragging({ id: e.id, from: e.currentStage })
                         }
                         onDragEnd={() => setDragging(null)}
                         className={cn(
-                          "cursor-grab active:cursor-grabbing",
+                          canManageStage && "cursor-grab active:cursor-grabbing",
                           dragging?.id === e.id && "opacity-40",
                         )}
                       >

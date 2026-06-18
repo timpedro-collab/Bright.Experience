@@ -50,7 +50,8 @@ export interface EventFilters {
   q?: string;
   stage?: string;
   health?: string;
-  owner?: string;
+  /** Filter by customer account name. */
+  account?: string;
 }
 
 /** Paginated event list for admin / library views, with optional filters. */
@@ -60,15 +61,21 @@ export async function getEventsPaginated(
   filters?: EventFilters,
 ): Promise<{ data: Event[]; totalCount: number; totalPages: number }> {
   const supabase = await createClient();
+  // Inner-join accounts so account-name filters (search + account picker)
+  // actually constrain the result set rather than just nulling the embed.
+  const needsAccountFilter = Boolean(filters?.q || filters?.account);
   let query = supabase
     .from("events")
-    .select("*, accounts(*)", { count: "exact" })
+    .select(
+      needsAccountFilter ? "*, accounts!inner(*)" : "*, accounts(*)",
+      { count: "exact" },
+    )
     .order("event_date_start");
 
   if (filters?.stage) query = query.eq("current_stage", filters.stage);
   if (filters?.health) query = query.eq("health_status", filters.health);
   if (filters?.q) query = query.or(`name.ilike.%${filters.q}%,accounts.name.ilike.%${filters.q}%`);
-  if (filters?.owner) query = query.eq("accounts.name", filters.owner);
+  if (filters?.account) query = query.eq("accounts.name", filters.account);
 
   const { data, error, count } = await paginateQuery(query, page, pageSize);
   if (error || !data) return { data: [], totalCount: 0, totalPages: 1 };

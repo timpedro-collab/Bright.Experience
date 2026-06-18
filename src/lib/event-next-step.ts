@@ -48,7 +48,7 @@ const STAGE_NEXT_STEP: Record<Stage, StageNextStepEntry> = {
       tone: "brand",
       primaryLabel: "Start the brief",
       primaryHref: "briefing",
-      secondary: { label: "See the plan", href: "timeline" },
+      secondary: { label: "See the plan", href: "deadlines" },
     },
     internal: {
       eyebrow: "Kickoff",
@@ -131,8 +131,8 @@ const STAGE_NEXT_STEP: Record<Stage, StageNextStepEntry> = {
       description:
         "You'll be asked to approve the first proof shortly. Keep an eye on this page.",
       tone: "info",
-      primaryLabel: "See timeline",
-      primaryHref: "timeline",
+      primaryLabel: "See the schedule",
+      primaryHref: "deadlines",
     },
     internal: {
       eyebrow: "Studio production",
@@ -152,14 +152,14 @@ const STAGE_NEXT_STEP: Record<Stage, StageNextStepEntry> = {
       description:
         "Bright.Blue QA is testing hardware, software and creative end-to-end.",
       tone: "info",
-      primaryLabel: "Open QA",
-      primaryHref: "qa",
+      primaryLabel: "See progress",
+      primaryHref: "timeline",
     },
     internal: {
       eyebrow: "QA in progress",
       title: "Run the QA checklist",
       description:
-        "Pass, fail and document each check — readiness score signs off the build.",
+        "Pass, fail and document each check, then record the QA sign-off to clear the gate.",
       tone: "brand",
       primaryLabel: "Open QA",
       primaryHref: "qa",
@@ -172,8 +172,8 @@ const STAGE_NEXT_STEP: Record<Stage, StageNextStepEntry> = {
       description:
         "Confirm the on-site contact and access requirements for setup day.",
       tone: "brand",
-      primaryLabel: "Confirm logistics",
-      primaryHref: "logistics",
+      primaryLabel: "Complete setup details",
+      primaryHref: "actions",
     },
     internal: {
       eyebrow: "Logistics",
@@ -316,14 +316,26 @@ export function resolveEventNextStep({
 
   // 1. Health red → fix the blocker (regardless of stage).
   if (event.healthStatus === "red") {
+    if (isInternal) {
+      return {
+        eyebrow: "Action needed",
+        title:
+          blockingTasks[0]?.title ??
+          "Resolve blocking issues to unblock delivery",
+        description:
+          "This event is flagged as blocked. Address blocking actions to get it back on track.",
+        primaryAction: { label: "Open actions", href: `${eventBase}/actions` },
+        tone: "warning",
+      };
+    }
+    // Customer-safe: no "blocked"/"blocking" jargon, surface their own item.
+    const customerBlocker = blockingTasks.find((t) => t.customerVisible);
     return {
-      eyebrow: "Action needed",
-      title:
-        blockingTasks[0]?.title ??
-        "Resolve blocking issues to unblock delivery",
+      eyebrow: "Needs your attention",
+      title: customerBlocker?.title ?? "A few things need your sign-off",
       description:
-        "This event is flagged as blocked. Address blocking actions to get it back on track.",
-      primaryAction: { label: "Open actions", href: `${eventBase}/actions` },
+        "Complete the items on your list to keep your event moving.",
+      primaryAction: { label: "Review your actions", href: `${eventBase}/actions` },
       tone: "warning",
     };
   }
@@ -339,32 +351,41 @@ export function resolveEventNextStep({
 
   // 3. Cross-cutting customer-facing blockers — these override the
   //    default stage CTA because they're explicit asks.
+  const customerName = event.account?.name ?? "the customer";
   if (pendingApprovals.length > 0) {
     const first = pendingApprovals[0];
+    const n = pendingApprovals.length;
     return {
-      eyebrow: "Awaiting approval",
-      title: `${pendingApprovals.length} item${
-        pendingApprovals.length === 1 ? "" : "s"
-      } need${pendingApprovals.length === 1 ? "s" : ""} a decision`,
-      description: first?.title
-        ? `Latest: ${first.title}`
-        : "Approve creative and configuration to advance the event.",
+      eyebrow: isInternal ? "Awaiting customer" : "Awaiting approval",
+      title: isInternal
+        ? `${n} item${n === 1 ? "" : "s"} awaiting ${customerName} sign-off`
+        : `${n} item${n === 1 ? "" : "s"} need${n === 1 ? "s" : ""} a decision`,
+      description: isInternal
+        ? first?.title
+          ? `Latest: ${first.title}. Nudge the customer if it stalls.`
+          : "Waiting on the customer to approve or request changes."
+        : first?.title
+          ? `Latest: ${first.title}`
+          : "Approve creative and configuration to advance the event.",
       primaryAction: {
-        label: "Review approvals",
+        label: isInternal ? "View approvals" : "Review approvals",
         href: `${eventBase}/approvals`,
       },
       tone: "brand",
     };
   }
   if (missingAssets.length > 0) {
+    const n = missingAssets.length;
     return {
       eyebrow: "Assets due",
-      title: `${missingAssets.length} asset${
-        missingAssets.length === 1 ? "" : "s"
-      } still required`,
-      description:
-        "Upload your creative files so the Studio team can finalise your build.",
-      primaryAction: { label: "Upload assets", href: `${eventBase}/assets` },
+      title: `${n} asset${n === 1 ? "" : "s"} still ${isInternal ? "outstanding" : "required"}`,
+      description: isInternal
+        ? `Waiting on ${customerName} to upload before Studio can build.`
+        : "Upload your creative files so the Studio team can finalise your build.",
+      primaryAction: {
+        label: isInternal ? "View assets" : "Upload assets",
+        href: `${eventBase}/assets`,
+      },
       tone: "brand",
     };
   }
@@ -382,7 +403,9 @@ export function resolveEventNextStep({
     description: isInternal
       ? "All clear from the customer side. Advance the stage when your team is ready."
       : "All required items from your side are complete. We'll let you know when there's a new action.",
-    primaryAction: { label: "View timeline", href: `${eventBase}/timeline` },
+    primaryAction: isInternal
+      ? { label: "View timeline", href: `${eventBase}/timeline` }
+      : { label: "Back to overview", href: eventBase },
     tone: "success",
   };
 }

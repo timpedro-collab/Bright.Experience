@@ -2,7 +2,20 @@
 "use server";
 
 import { requireInternalUser } from "@/lib/auth";
+import { canViewCommercial } from "@/lib/roles";
 import { revalidatePath } from "next/cache";
+
+/**
+ * Guard: resolve the caller and require a commercial role
+ * (events_lead / admin / developer) — campaigns are a commercial surface.
+ */
+async function requireCommercialUser() {
+  const ctx = await requireInternalUser();
+  if (!canViewCommercial(ctx.profile.role)) {
+    throw new Error("Forbidden: commercial access only");
+  }
+  return ctx;
+}
 
 /** Create a new campaign in draft status. */
 export async function createCampaign(data: {
@@ -12,7 +25,7 @@ export async function createCampaign(data: {
   startDate?: string;
   endDate?: string;
 }) {
-  const { supabase } = await requireInternalUser();
+  const { supabase } = await requireCommercialUser();
 
   const { data: campaign, error } = await supabase
     .from("campaigns")
@@ -35,7 +48,7 @@ export async function createCampaign(data: {
 
 /** Link an event to a campaign. */
 export async function addEventToCampaign(campaignId: string, eventId: string) {
-  const { supabase } = await requireInternalUser();
+  const { supabase } = await requireCommercialUser();
 
   const { data: existing } = await supabase
     .from("campaign_events")
@@ -71,7 +84,7 @@ export async function addEventToCampaign(campaignId: string, eventId: string) {
 
 /** Remove an event from a campaign. */
 export async function removeEventFromCampaign(campaignId: string, eventId: string) {
-  const { supabase } = await requireInternalUser();
+  const { supabase } = await requireCommercialUser();
 
   const { error } = await supabase
     .from("campaign_events")
@@ -88,7 +101,7 @@ export async function removeEventFromCampaign(campaignId: string, eventId: strin
 
 /** Update a campaign's lifecycle status. */
 export async function updateCampaignStatus(id: string, status: string) {
-  const { supabase } = await requireInternalUser();
+  const { supabase } = await requireCommercialUser();
 
   const { error } = await supabase
     .from("campaigns")
@@ -108,7 +121,7 @@ export async function duplicateEventForCampaign(
   newDates: { start: string; end: string },
   newLocation?: string
 ) {
-  const { supabase } = await requireInternalUser();
+  const { supabase } = await requireCommercialUser();
 
   const { data: source, error: fetchError } = await supabase
     .from("events")

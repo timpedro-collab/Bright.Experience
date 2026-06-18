@@ -95,7 +95,7 @@ export function PartnerOnboardingWizard() {
 
   if (submitted) {
     return (
-      <Card className="mx-auto max-w-lg border-white/[0.06] bg-white/[0.02] backdrop-blur-sm">
+      <Card className="mx-auto max-w-lg border-border/60 bg-muted/40 backdrop-blur-sm">
         <CardContent className="flex flex-col items-center gap-4 p-12 text-center">
           <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500/10">
             <CheckCircle2 size={32} className="text-emerald-400" />
@@ -117,7 +117,7 @@ export function PartnerOnboardingWizard() {
     <div className="mx-auto max-w-2xl space-y-8">
       <StepIndicator currentStep={step} />
 
-      <Card className="border-white/[0.06] bg-white/[0.02] backdrop-blur-sm">
+      <Card className="border-border/60 bg-muted/40 backdrop-blur-sm">
         <CardContent className="p-8">
           {step === 0 && <StepCompany form={form} update={update} />}
           {step === 1 && <StepContact form={form} update={update} />}
@@ -133,7 +133,7 @@ export function PartnerOnboardingWizard() {
               variant="outline"
               onClick={() => setStep((s) => s - 1)}
               disabled={step === 0}
-              className="border-white/[0.06] bg-white/[0.02] text-foreground hover:bg-white/[0.06]"
+              className="border-border/60 bg-muted/40 text-foreground hover:bg-accent"
             >
               <ArrowLeft size={14} className="mr-2" />
               Back
@@ -178,7 +178,7 @@ function StepIndicator({ currentStep }: { currentStep: number }) {
                   "flex h-10 w-10 items-center justify-center rounded-full border transition-colors",
                   isActive && "border-brand bg-brand/10 text-brand",
                   isComplete && "border-emerald-500/20 bg-emerald-500/10 text-emerald-400",
-                  !isActive && !isComplete && "border-white/[0.06] bg-white/[0.02] text-muted-foreground"
+                  !isActive && !isComplete && "border-border/60 bg-muted/40 text-muted-foreground"
                 )}
               >
                 {isComplete ? <CheckCircle2 size={18} /> : <Icon size={18} />}
@@ -196,7 +196,7 @@ function StepIndicator({ currentStep }: { currentStep: number }) {
               <div
                 className={cn(
                   "mx-2 h-px flex-1",
-                  isComplete ? "bg-emerald-500/30" : "bg-white/[0.06]"
+                  isComplete ? "bg-emerald-500/30" : "bg-border"
                 )}
               />
             )}
@@ -220,17 +220,17 @@ function StepCompany({
         Company Information
       </h3>
       <FieldGroup label="Company Name" required>
-        <Input value={form.companyName} onChange={(e) => update("companyName", e.target.value)} placeholder="Acme Events Ltd" className="border-white/[0.06] bg-white/[0.02] text-foreground placeholder:text-muted-foreground" />
+        <Input value={form.companyName} onChange={(e) => update("companyName", e.target.value)} placeholder="Acme Events Ltd" className="border-border/60 bg-muted/40 text-foreground placeholder:text-muted-foreground" />
       </FieldGroup>
       <FieldGroup label="Website">
-        <Input value={form.website} onChange={(e) => update("website", e.target.value)} placeholder="https://example.com" className="border-white/[0.06] bg-white/[0.02] text-foreground placeholder:text-muted-foreground" />
+        <Input value={form.website} onChange={(e) => update("website", e.target.value)} placeholder="https://example.com" className="border-border/60 bg-muted/40 text-foreground placeholder:text-muted-foreground" />
       </FieldGroup>
       <div className="grid grid-cols-2 gap-4">
         <FieldGroup label="Industry">
-          <Input value={form.industry} onChange={(e) => update("industry", e.target.value)} placeholder="e.g. Marketing, Events" className="border-white/[0.06] bg-white/[0.02] text-foreground placeholder:text-muted-foreground" />
+          <Input value={form.industry} onChange={(e) => update("industry", e.target.value)} placeholder="e.g. Marketing, Events" className="border-border/60 bg-muted/40 text-foreground placeholder:text-muted-foreground" />
         </FieldGroup>
         <FieldGroup label="Company Size">
-          <Input value={form.companySize} onChange={(e) => update("companySize", e.target.value)} placeholder="e.g. 10-50" className="border-white/[0.06] bg-white/[0.02] text-foreground placeholder:text-muted-foreground" />
+          <Input value={form.companySize} onChange={(e) => update("companySize", e.target.value)} placeholder="e.g. 10-50" className="border-border/60 bg-muted/40 text-foreground placeholder:text-muted-foreground" />
         </FieldGroup>
       </div>
     </div>
@@ -251,17 +251,17 @@ function StepContact({
       </h3>
       <div className="grid grid-cols-2 gap-4">
         <FieldGroup label="Full Name" required>
-          <Input value={form.contactName} onChange={(e) => update("contactName", e.target.value)} placeholder="Jane Smith" className="border-white/[0.06] bg-white/[0.02] text-foreground placeholder:text-muted-foreground" />
+          <Input value={form.contactName} onChange={(e) => update("contactName", e.target.value)} placeholder="Jane Smith" className="border-border/60 bg-muted/40 text-foreground placeholder:text-muted-foreground" />
         </FieldGroup>
         <FieldGroup label="Job Title">
-          <Input value={form.contactRole} onChange={(e) => update("contactRole", e.target.value)} placeholder="e.g. Partnerships Manager" className="border-white/[0.06] bg-white/[0.02] text-foreground placeholder:text-muted-foreground" />
+          <Input value={form.contactRole} onChange={(e) => update("contactRole", e.target.value)} placeholder="e.g. Partnerships Manager" className="border-border/60 bg-muted/40 text-foreground placeholder:text-muted-foreground" />
         </FieldGroup>
       </div>
       <FieldGroup label="Email" required>
-        <Input type="email" value={form.contactEmail} onChange={(e) => update("contactEmail", e.target.value)} placeholder="jane@example.com" className="border-white/[0.06] bg-white/[0.02] text-foreground placeholder:text-muted-foreground" />
+        <Input type="email" value={form.contactEmail} onChange={(e) => update("contactEmail", e.target.value)} placeholder="jane@example.com" className="border-border/60 bg-muted/40 text-foreground placeholder:text-muted-foreground" />
       </FieldGroup>
       <FieldGroup label="Phone">
-        <Input type="tel" value={form.contactPhone} onChange={(e) => update("contactPhone", e.target.value)} placeholder="+27 12 345 6789" className="border-white/[0.06] bg-white/[0.02] text-foreground placeholder:text-muted-foreground" />
+        <Input type="tel" value={form.contactPhone} onChange={(e) => update("contactPhone", e.target.value)} placeholder="+27 12 345 6789" className="border-border/60 bg-muted/40 text-foreground placeholder:text-muted-foreground" />
       </FieldGroup>
     </div>
   );
@@ -289,7 +289,7 @@ function StepType({
               "flex flex-col gap-1 rounded-xl border p-4 text-left transition-colors",
               form.partnerType === pt.value
                 ? "border-brand/30 bg-brand/5"
-                : "border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04]"
+                : "border-border/60 bg-muted/40 hover:bg-accent"
             )}
           >
             <span className="text-sm font-medium text-foreground">
@@ -300,7 +300,7 @@ function StepType({
         ))}
       </div>
       <FieldGroup label="How did you hear about us?">
-        <Input value={form.referralSource} onChange={(e) => update("referralSource", e.target.value)} placeholder="e.g. LinkedIn, colleague, event" className="border-white/[0.06] bg-white/[0.02] text-foreground placeholder:text-muted-foreground" />
+        <Input value={form.referralSource} onChange={(e) => update("referralSource", e.target.value)} placeholder="e.g. LinkedIn, colleague, event" className="border-border/60 bg-muted/40 text-foreground placeholder:text-muted-foreground" />
       </FieldGroup>
       <FieldGroup label="Additional Notes">
         <textarea
@@ -308,7 +308,7 @@ function StepType({
           onChange={(e) => update("notes", e.target.value)}
           rows={3}
           placeholder="Anything else you'd like us to know…"
-          className="w-full rounded-md border border-white/[0.06] bg-white/[0.02] px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="w-full rounded-md border border-border/60 bg-muted/40 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         />
       </FieldGroup>
     </div>
@@ -357,7 +357,7 @@ function StepReview({ form }: { form: FormData }) {
           <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             {section.title}
           </h4>
-          <div className="divide-y divide-white/[0.06] rounded-xl border border-white/[0.06] bg-white/[0.01]">
+          <div className="divide-y divide-border rounded-xl border border-border/60 bg-muted/40">
             {section.items.map(([label, value]) => (
               <div key={label} className="flex items-center justify-between px-4 py-2.5">
                 <span className="text-sm text-muted-foreground">{label}</span>

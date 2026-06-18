@@ -19,6 +19,8 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { getUser } from "@/lib/auth";
+import { canAdvanceEventStage } from "@/lib/roles";
 import { dispatchNotification } from "@/lib/notifications/dispatch";
 import { enqueueStageAdvance } from "@/lib/pipedrive/triggers";
 import { writeAudit } from "@/lib/audit";
@@ -92,6 +94,22 @@ export async function canAdvanceStage(
     }
   }
 
+  // QA sign-off gate: leaving qa_readiness requires every QA item to be
+  // passed/fixed/na — the readiness score is not just cosmetic.
+  if (currentStage === "qa_readiness") {
+    const { data: outstandingQa } = await supabase
+      .from("qa_items")
+      .select("id", { count: "exact" })
+      .eq("event_id", eventId)
+      .not("status", "in", '("passed","fixed","na")');
+    const outstandingCount = outstandingQa?.length ?? 0;
+    if (outstandingCount > 0) {
+      blockers.push(
+        `${outstandingCount} QA check${outstandingCount === 1 ? "" : "s"} still outstanding`,
+      );
+    }
+  }
+
   return { canAdvance: blockers.length === 0, blockers };
 }
 
@@ -104,6 +122,14 @@ export async function advanceStage(
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return { success: false, error: "Not authenticated" };
+
+  const profile = await getUser();
+  if (!profile || !canAdvanceEventStage(profile.role)) {
+    return {
+      success: false,
+      error: "Only the Events Lead or an admin can advance stages.",
+    };
+  }
 
   const { canAdvance, blockers } = await canAdvanceStage(eventId);
   if (!canAdvance) {
@@ -181,5 +207,8 @@ export async function advanceStage(
 
   revalidatePath(`/events/${eventId}`);
   revalidatePath(`/events/${eventId}/timeline`);
+  revalidatePath("/pipeline");
+  revalidatePath("/ops");
+  revalidatePath("/");
   return { success: true, data: { from: currentStage, to: nextStage } };
 }

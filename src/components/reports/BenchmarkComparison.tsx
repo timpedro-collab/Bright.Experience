@@ -44,7 +44,7 @@ export function BenchmarkComparison({
   }));
 
   return (
-    <Card className="border-white/[0.08] bg-card-dark/72 backdrop-blur-xl">
+    <Card className="border-border bg-card/72 backdrop-blur-xl">
       <CardHeader className="pb-3">
         <CardTitle className="text-heading text-base font-semibold text-foreground">
           Benchmark Comparison

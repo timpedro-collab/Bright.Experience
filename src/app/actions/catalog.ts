@@ -2,8 +2,22 @@
 "use server";
 
 import { requireInternalUser } from "@/lib/auth";
+import { canViewCreativeProduct } from "@/lib/roles";
 import { revalidatePath } from "next/cache";
 import type { ActionResult } from "@/types/actions";
+
+/**
+ * Resolve the acting user and confirm they own the creative/product catalog
+ * (creative_lead, events_lead, admin, developer). Catalog mutations are not a
+ * general internal-staff capability — Ops/QA must not edit or delete catalog.
+ */
+async function requireCatalogEditor() {
+  const { supabase, profile } = await requireInternalUser();
+  if (!canViewCreativeProduct(profile.role)) {
+    return { ok: false as const, error: "Forbidden: creative access only" };
+  }
+  return { ok: true as const, supabase };
+}
 
 /** Insert a new machine into the catalog. */
 export async function createMachine(data: {
@@ -14,7 +28,9 @@ export async function createMachine(data: {
   heroImageUrl?: string;
   videoUrl?: string;
 }): Promise<ActionResult<{ id: string }>> {
-  const { supabase } = await requireInternalUser();
+  const auth = await requireCatalogEditor();
+  if (!auth.ok) return { success: false, error: auth.error };
+  const { supabase } = auth;
 
   const { data: machine, error } = await supabase
     .from("machines")
@@ -49,7 +65,9 @@ export async function updateMachine(
     isActive: boolean;
   }>,
 ): Promise<ActionResult<{ id: string }>> {
-  const { supabase } = await requireInternalUser();
+  const auth = await requireCatalogEditor();
+  if (!auth.ok) return { success: false, error: auth.error };
+  const { supabase } = auth;
 
   const updates: Record<string, unknown> = {};
   if (data.name !== undefined) updates.name = data.name;
@@ -83,7 +101,9 @@ export async function createGame(data: {
   previewVideoUrl?: string;
   category?: string;
 }): Promise<ActionResult<{ id: string }>> {
-  const { supabase } = await requireInternalUser();
+  const auth = await requireCatalogEditor();
+  if (!auth.ok) return { success: false, error: auth.error };
+  const { supabase } = auth;
 
   const { data: game, error } = await supabase
     .from("games")
@@ -118,7 +138,9 @@ export async function updateGame(
     isActive: boolean;
   }>,
 ): Promise<ActionResult<{ id: string }>> {
-  const { supabase } = await requireInternalUser();
+  const auth = await requireCatalogEditor();
+  if (!auth.ok) return { success: false, error: auth.error };
+  const { supabase } = auth;
 
   const updates: Record<string, unknown> = {};
   if (data.name !== undefined) updates.name = data.name;
@@ -148,7 +170,9 @@ export async function linkGameToMachine(
   machineId: string,
   gameId: string,
 ): Promise<ActionResult<{ id: string }>> {
-  const { supabase } = await requireInternalUser();
+  const auth = await requireCatalogEditor();
+  if (!auth.ok) return { success: false, error: auth.error };
+  const { supabase } = auth;
 
   const { data: row, error } = await supabase
     .from("machine_games")
@@ -168,7 +192,9 @@ export async function linkGameToMachine(
 export async function deleteCatalogMachine(
   id: string,
 ): Promise<ActionResult> {
-  const { supabase } = await requireInternalUser();
+  const auth = await requireCatalogEditor();
+  if (!auth.ok) return { success: false, error: auth.error };
+  const { supabase } = auth;
 
   const { error } = await supabase.from("machines").delete().eq("id", id);
   if (error) {
@@ -181,7 +207,9 @@ export async function deleteCatalogMachine(
 
 /** Delete a game from the catalog. */
 export async function deleteCatalogGame(id: string): Promise<ActionResult> {
-  const { supabase } = await requireInternalUser();
+  const auth = await requireCatalogEditor();
+  if (!auth.ok) return { success: false, error: auth.error };
+  const { supabase } = auth;
 
   const { error } = await supabase.from("games").delete().eq("id", id);
   if (error) {

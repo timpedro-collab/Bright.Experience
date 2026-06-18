@@ -40,12 +40,12 @@ export default function CatalogLoading() {
             {Array.from({ length: 6 }).map((_, i) => (
               <div
                 key={i}
-                className="rounded-[var(--radius-card)] border border-white/[0.06] bg-white/[0.02] overflow-hidden"
+                className="rounded-[var(--radius-card)] border border-border/60 bg-muted/40 overflow-hidden"
               >
-                <div className="aspect-[16/10] bg-white/[0.04] animate-pulse" />
+                <div className="aspect-[16/10] bg-muted/40 animate-pulse" />
                 <div className="p-5 space-y-3">
-                  <div className="h-5 w-2/3 rounded bg-white/[0.05] animate-pulse" />
-                  <div className="h-4 w-1/2 rounded bg-white/[0.04] animate-pulse" />
+                  <div className="h-5 w-2/3 rounded bg-muted/40 animate-pulse" />
+                  <div className="h-4 w-1/2 rounded bg-muted/40 animate-pulse" />
                 </div>
               </div>
             ))}

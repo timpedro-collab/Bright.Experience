@@ -61,7 +61,7 @@ export function RefineDrawer({
         side="right"
         className="flex w-full flex-col p-0 sm:max-w-md"
       >
-        <SheetHeader className="border-b border-white/[0.06] px-6 pb-4 pt-6">
+        <SheetHeader className="border-b border-border/60 px-6 pb-4 pt-6">
           <SheetTitle className="text-heading text-xl text-foreground">
             Tailor the experience
           </SheetTitle>
@@ -112,7 +112,7 @@ function CapabilityRow({ capability, on, onToggle }: CapabilityRowProps) {
       aria-checked={on}
       onClick={onToggle}
       className={cn(
-        "group flex w-full items-center gap-4 rounded-[var(--radius-control)] border border-white/[0.06] bg-white/[0.02] p-4 text-left",
+        "group flex w-full items-center gap-4 rounded-[var(--radius-control)] border border-border/60 bg-muted/40 p-4 text-left",
         "transition-all duration-150",
         "hover:border-primary/30 hover:bg-primary/5",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
@@ -133,7 +133,7 @@ function CapabilityRow({ capability, on, onToggle }: CapabilityRowProps) {
           "relative h-6 w-11 shrink-0 rounded-full border transition-colors",
           on
             ? "border-primary/60 bg-[linear-gradient(90deg,hsl(230,93%,53%),hsl(189,100%,75%))]"
-            : "border-white/15 bg-white/[0.04]"
+            : "border-white/15 bg-muted/40"
         )}
       >
         <span

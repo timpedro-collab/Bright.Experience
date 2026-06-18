@@ -15,6 +15,8 @@ import { getEventReports } from "@/lib/queries/event-reports";
 import { getLatestEventMetrics } from "@/lib/queries/event-metrics";
 import { getBenchmarkForComparison } from "@/lib/queries/benchmarks";
 import { getUser } from "@/lib/auth";
+import { isInternalRole } from "@/lib/roles";
+import { canViewSection } from "@/lib/event-access";
 import {
   costPerLeadPence,
   normaliseHighlights,
@@ -38,6 +40,12 @@ export default async function ReportPrintPage({
   if (!event) return notFound();
   const report = reports?.[0];
   if (!report) return notFound();
+  // Reports are scoped to the customer + the account/admin/dev roles. Ops,
+  // Creative, and QA never see post-event reporting.
+  if (!canViewSection(user.role, "reports")) return notFound();
+  // Draft (unpublished) reports are internal-only — customers must not be
+  // able to reach them via the print route, which the PDF export renders.
+  if (!isInternalRole(user.role) && !report.isPublished) return notFound();
 
   const [latestMetrics, benchmarkList] = await Promise.all([
     getLatestEventMetrics(id),

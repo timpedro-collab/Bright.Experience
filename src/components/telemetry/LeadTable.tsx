@@ -103,7 +103,7 @@ export function LeadTable({ leads }: LeadTableProps) {
             placeholder="Filter by name or email…"
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
-            className="pl-9 bg-white/[0.03] border-glass-border"
+            className="pl-9 bg-muted/40 border-glass-border"
           />
         </div>
         <Button
@@ -120,7 +120,7 @@ export function LeadTable({ leads }: LeadTableProps) {
       <div className="rounded-[var(--radius-card)] border border-glass-border overflow-hidden">
         <Table>
           <TableHeader>
-            <TableRow className="border-white/[0.06] hover:bg-transparent">
+            <TableRow className="border-border/60 hover:bg-transparent">
               <SortableHead
                 label="Name"
                 field="contactName"
@@ -166,7 +166,7 @@ export function LeadTable({ leads }: LeadTableProps) {
               sorted.map((lead) => (
                 <TableRow
                   key={lead.id}
-                  className="border-white/[0.04] hover:bg-white/[0.02]"
+                  className="border-border/60 hover:bg-accent"
                 >
                   <TableCell className="font-medium text-foreground">
                     {lead.contactName}

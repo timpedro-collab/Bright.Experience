@@ -7,7 +7,7 @@ function Skeleton({
   return (
     <div
       className={cn(
-        "skeleton bg-[hsl(233,48%,15%,0.6)] rounded-[var(--radius-chip)]",
+        "skeleton rounded-[var(--radius-chip)]",
         className
       )}
       {...props}

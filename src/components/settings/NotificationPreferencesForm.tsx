@@ -43,7 +43,7 @@ const EMAIL_OPTIONS: { value: EmailMode; label: string; hint: string }[] = [
   {
     value: "digest",
     label: "Daily digest",
-    hint: "Bundle into one daily email at 5pm UTC.",
+    hint: "Bundle into one daily email, sent at your chosen local time below.",
   },
   { value: "off", label: "Off", hint: "Don't email me — portal only." },
 ];
@@ -177,7 +177,7 @@ function PreferenceRow({
   return (
     <div
       id={kind}
-      className="rounded-[var(--radius-control)] border border-white/[0.06] bg-white/[0.02] p-4"
+      className="rounded-[var(--radius-control)] border border-border/60 bg-muted/40 p-4"
     >
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
@@ -248,7 +248,7 @@ function SegmentedToggle<T extends string | boolean>({
   disabled?: boolean;
 }) {
   return (
-    <div className="inline-flex rounded-[var(--radius-control)] border border-white/[0.06] bg-white/[0.02] p-0.5">
+    <div className="inline-flex rounded-[var(--radius-control)] border border-border/60 bg-muted/40 p-0.5">
       {options.map((option) => {
         const active = option.value === value;
         return (

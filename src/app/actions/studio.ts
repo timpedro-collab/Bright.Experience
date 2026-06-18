@@ -12,7 +12,9 @@ import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { sendStudioOrderNotification } from "@/lib/email";
 import { dispatchNotification } from "@/lib/notifications/dispatch";
-import type { StudioServiceType } from "@/types";
+import { canReviewCreativeAssets } from "@/lib/roles";
+import { hasPermission } from "@/lib/rbac";
+import type { StudioServiceType, UserRole } from "@/types";
 import type { ActionResult } from "@/types/actions";
 
 /** Submit a new studio request for an event. */
@@ -24,6 +26,20 @@ export async function createStudioRequest(
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return { success: false, error: "Not authenticated" };
+
+  // Only roles permitted to order studio work may raise a request.
+  const { data: actorProfile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+  const actorRole = actorProfile?.role as UserRole | undefined;
+  if (!actorRole || !hasPermission(actorRole, "studio.order")) {
+    return {
+      success: false,
+      error: "Your role can't order Bright.Studio work.",
+    };
+  }
 
   const eventId = formData.get("eventId") as string;
   const serviceType = formData.get("serviceType") as StudioServiceType;
@@ -112,6 +128,21 @@ export async function requestStudioFixForAsset(
   } = await supabase.auth.getUser();
   if (!user) return { success: false, error: "Not authenticated" };
 
+  // Handing an asset to Bright.Studio is a creative-review action — same
+  // ownership as approving/requesting a revision.
+  const { data: actorProfile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+  const actorRole = actorProfile?.role as UserRole | undefined;
+  if (!actorRole || !canReviewCreativeAssets(actorRole)) {
+    return {
+      success: false,
+      error: "Only the Creative team can hand an asset to Bright.Studio.",
+    };
+  }
+
   const { data: asset } = await supabase
     .from("assets")
     .select("event_id, name, asset_type, required_format, required_dimensions, review_feedback")
@@ -177,7 +208,13 @@ export async function requestStudioFixForAsset(
 export async function updateStudioRequestStatus(
   requestId: string,
   eventId: string,
-  status: "confirmed" | "in_progress" | "delivered" | "cancelled",
+  status:
+    | "quoted"
+    | "approved"
+    | "confirmed"
+    | "in_progress"
+    | "delivered"
+    | "cancelled",
   note?: string
 ): Promise<ActionResult> {
   const supabase = await createClient();
@@ -185,6 +222,20 @@ export async function updateStudioRequestStatus(
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return { success: false, error: "Not authenticated" };
+
+  // Managing a studio order's lifecycle is a creative-team action.
+  const { data: actorProfile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+  const actorRole = actorProfile?.role as UserRole | undefined;
+  if (!actorRole || !canReviewCreativeAssets(actorRole)) {
+    return {
+      success: false,
+      error: "Only the Creative team can manage Bright.Studio orders.",
+    };
+  }
 
   const updateData: Record<string, unknown> = { status };
   if (status === "delivered") {
@@ -239,6 +290,20 @@ export async function cancelStudioRequest(
   } = await supabase.auth.getUser();
   if (!user) return { success: false, error: "Not authenticated" };
 
+  // Cancelling a studio order is a creative-team action.
+  const { data: actorProfile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+  const actorRole = actorProfile?.role as UserRole | undefined;
+  if (!actorRole || !canReviewCreativeAssets(actorRole)) {
+    return {
+      success: false,
+      error: "Only the Creative team can manage Bright.Studio orders.",
+    };
+  }
+
   const { error } = await supabase
     .from("studio_requests")
     .update({ status: "cancelled" })
@@ -255,5 +320,6 @@ export async function cancelStudioRequest(
   });
 
   revalidatePath(`/events/${eventId}/studio`);
+  revalidatePath("/studio");
   return { success: true, data: undefined };
 }

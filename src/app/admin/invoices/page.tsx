@@ -12,7 +12,7 @@ import {
 } from "@/components/cloud";
 import { Badge } from "@/components/ui/badge";
 import { getUser } from "@/lib/auth";
-import { isInternalRole } from "@/lib/roles";
+import { canViewCommercial } from "@/lib/roles";
 import { getUnreadCount } from "@/lib/queries/notifications";
 import { getOutstandingInvoices, type Invoice } from "@/app/actions/invoices";
 import { InvoiceActions } from "@/components/invoices/InvoiceActions";
@@ -48,7 +48,7 @@ function agingBadge(invoice: Invoice) {
 export default async function InvoicesPage() {
   const user = await getUser();
   if (!user) redirect("/login");
-  if (!isInternalRole(user.role)) redirect("/");
+  if (!canViewCommercial(user.role)) redirect("/");
 
   const [invoices, unread] = await Promise.all([
     getOutstandingInvoices(),

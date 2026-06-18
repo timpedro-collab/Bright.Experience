@@ -42,7 +42,7 @@ export default async function MachineDetailPage({ params }: PageProps) {
 
   return (
     <>
-      <Section spacing="md" className="border-b border-white/[0.06]">
+      <Section spacing="md" className="border-b border-border/60">
         <Container>
           <nav className="mb-6 flex flex-wrap items-center gap-1 text-xs text-muted-foreground">
             <Link href="/catalog" className="hover:text-foreground">Catalog</Link>
@@ -82,7 +82,7 @@ export default async function MachineDetailPage({ params }: PageProps) {
                 </Button>
               </div>
             </div>
-            <div className="relative aspect-[4/3] overflow-hidden rounded-[var(--radius-card)] border border-white/10 bg-[radial-gradient(ellipse_at_center,hsl(230,93%,53%,0.25),transparent_55%)]">
+            <div className="relative aspect-[4/3] overflow-hidden rounded-[var(--radius-card)] border border-border bg-[radial-gradient(ellipse_at_center,hsl(230,93%,53%,0.25),transparent_55%)]">
               {machine.hero_image_url ? (
                 <Image
                   src={machine.hero_image_url}
@@ -112,7 +112,7 @@ export default async function MachineDetailPage({ params }: PageProps) {
         }));
         if (galleryItems.length === 0) return null;
         return (
-          <Section className="border-b border-white/[0.06]">
+          <Section className="border-b border-border/60">
             <Container>
               <div className="mb-6">
                 <p className="text-overline text-muted-foreground mb-2">Gallery</p>
@@ -127,7 +127,7 @@ export default async function MachineDetailPage({ params }: PageProps) {
       })()}
 
       {games.length > 0 && (
-        <Section className="border-b border-white/[0.06]">
+        <Section className="border-b border-border/60">
           <Container>
             <div className="mb-8">
               <p className="text-overline text-muted-foreground mb-2">Compatible games</p>

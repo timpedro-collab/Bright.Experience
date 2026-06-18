@@ -12,6 +12,8 @@ import {
 
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { canViewCommercial, canViewCreativeQueue } from "@/lib/roles";
+import type { UserRole } from "@/types";
 
 interface WorkQueueItem {
   label: string;
@@ -20,6 +22,12 @@ interface WorkQueueItem {
   href: string;
   icon: React.ElementType;
   tone?: "default" | "warning" | "destructive" | "info";
+  /**
+   * Whether this queue belongs to the viewer — only they see/action it.
+   * Mirrors the access helper that gates the surface the card links to, so a
+   * role never sees a count for a page it cannot open.
+   */
+  canView: (role: UserRole) => boolean;
 }
 
 interface InternalWorkQueueProps {
@@ -32,10 +40,21 @@ interface InternalWorkQueueProps {
     overdueAssetReviews?: number;
     stuckCustomerActions: number;
   };
+  /** The viewer's role — used to show only the queues they own. */
+  viewerRole: UserRole;
 }
 
-export function InternalWorkQueue({ queues }: InternalWorkQueueProps) {
-  const items: WorkQueueItem[] = [
+// Orchestrator roles that own portfolio-health and customer-success queues
+// that sit outside the commercial/creative back-office split.
+const ORCHESTRATOR: UserRole[] = ["events_lead", "admin", "developer"];
+const isOrchestrator = (role: UserRole) => ORCHESTRATOR.includes(role);
+// Partner sign-ups are an owner/break-glass surface only.
+const PARTNER_QUEUE_ROLES: UserRole[] = ["admin", "developer"];
+const canViewPartnerQueue = (role: UserRole) =>
+  PARTNER_QUEUE_ROLES.includes(role);
+
+export function InternalWorkQueue({ queues, viewerRole }: InternalWorkQueueProps) {
+  const allItems: WorkQueueItem[] = [
     {
       label: "New quote requests",
       description: "Customers waiting for a proposal or confirmation",
@@ -43,6 +62,7 @@ export function InternalWorkQueue({ queues }: InternalWorkQueueProps) {
       href: "/admin/quotes",
       icon: Briefcase,
       tone: queues.newQuotes > 0 ? "info" : "default",
+      canView: canViewCommercial,
     },
     {
       label: "Studio orders to action",
@@ -51,6 +71,7 @@ export function InternalWorkQueue({ queues }: InternalWorkQueueProps) {
       href: "/studio",
       icon: Sparkles,
       tone: queues.newStudioOrders > 0 ? "info" : "default",
+      canView: canViewCreativeQueue,
     },
     {
       label: "Asset reviews",
@@ -67,6 +88,7 @@ export function InternalWorkQueue({ queues }: InternalWorkQueueProps) {
           : queues.assetReviews > 0
             ? "info"
             : "default",
+      canView: canViewCreativeQueue,
     },
     {
       label: "Stuck customers",
@@ -75,6 +97,7 @@ export function InternalWorkQueue({ queues }: InternalWorkQueueProps) {
       href: "/admin/customer-queue",
       icon: AlertTriangle,
       tone: queues.stuckCustomerActions > 0 ? "warning" : "default",
+      canView: canViewCommercial,
     },
     {
       label: "Partner applications",
@@ -83,21 +106,29 @@ export function InternalWorkQueue({ queues }: InternalWorkQueueProps) {
       href: "/admin/partners",
       icon: Handshake,
       tone: queues.pendingPartnerApps > 0 ? "warning" : "default",
+      canView: canViewPartnerQueue,
     },
     {
       label: "Blocked events",
       description: "Events at red health flag requiring intervention",
       count: queues.blockedEvents,
-      href: "/?filter=blocked",
+      href: "/?health=red",
       icon: AlertOctagon,
       tone: queues.blockedEvents > 0 ? "destructive" : "default",
+      canView: isOrchestrator,
     },
   ];
+
+  const items = allItems.filter((item) => item.canView(viewerRole));
+
+  // Specialist lanes (ops/QA) own no cross-event admin queues — render
+  // nothing rather than an empty shell.
+  if (items.length === 0) return null;
 
   return (
     <Card tone="subtle" className="overflow-hidden">
       <CardContent className="p-0">
-        <div className="flex items-center justify-between border-b border-white/[0.06] px-5 py-3">
+        <div className="flex items-center justify-between border-b border-border/60 px-5 py-3">
           <div>
             <p className="text-overline text-muted-foreground">Work queue</p>
             <p className="text-sm font-medium text-foreground">
@@ -108,7 +139,7 @@ export function InternalWorkQueue({ queues }: InternalWorkQueueProps) {
             {items.reduce((sum, i) => sum + i.count, 0)} open
           </span>
         </div>
-        <div className="grid divide-y divide-white/[0.06] sm:grid-cols-2 sm:divide-x sm:divide-y-0 lg:grid-cols-3 xl:grid-cols-6">
+        <div className="grid divide-y divide-border sm:grid-cols-2 sm:divide-x sm:divide-y-0 lg:grid-cols-3 xl:grid-cols-6">
           {items.map((item) => (
             <WorkQueueRow key={item.href} item={item} />
           ))}
@@ -131,7 +162,7 @@ function WorkQueueRow({ item }: { item: WorkQueueItem }) {
       href={item.href}
       className={cn(
         "group relative flex flex-col gap-2 p-5 transition-colors",
-        "hover:bg-white/[0.03] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
+        "hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
       )}
     >
       <div className="flex items-center justify-between">

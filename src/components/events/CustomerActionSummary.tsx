@@ -16,6 +16,12 @@ import type { CustomerActionItem } from "@/lib/queries/deadlines";
 interface CustomerActionSummaryProps {
   eventId: string;
   items: CustomerActionItem[];
+  /**
+   * When set, only the first N items render inline and the rest collapse into
+   * a "see all" teaser pointing at the canonical Tasks page. Leave undefined to
+   * render the full list (e.g. on the dedicated Tasks page itself).
+   */
+  teaserLimit?: number;
 }
 
 function EntityIcon({ type }: { type: CustomerActionItem["entityType"] }) {
@@ -40,7 +46,11 @@ function linkForItem(eventId: string, item: CustomerActionItem): string {
   }
 }
 
-export function CustomerActionSummary({ eventId, items }: CustomerActionSummaryProps) {
+export function CustomerActionSummary({
+  eventId,
+  items,
+  teaserLimit,
+}: CustomerActionSummaryProps) {
   if (items.length === 0) {
     return (
       <div className="flex items-center gap-3 p-6 rounded-xl bg-success/5 border border-success/20">
@@ -58,6 +68,9 @@ export function CustomerActionSummary({ eventId, items }: CustomerActionSummaryP
   }
 
   const overdueCount = items.filter((i) => i.urgency === "overdue").length;
+  const visibleItems =
+    teaserLimit != null ? items.slice(0, teaserLimit) : items;
+  const hiddenCount = items.length - visibleItems.length;
 
   return (
     <div className="space-y-3">
@@ -70,14 +83,14 @@ export function CustomerActionSummary({ eventId, items }: CustomerActionSummaryP
       )}
 
       <ul className="space-y-1">
-        {items.map((item) => (
+        {visibleItems.map((item) => (
           <li key={item.id}>
             <Link
               href={linkForItem(eventId, item)}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/[0.04] transition-colors group"
+              className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-accent transition-colors group"
             >
               <EntityIcon type={item.entityType} />
-              <span className="text-sm text-foreground truncate flex-1">
+              <span className="text-sm text-foreground flex-1 min-w-0 leading-snug">
                 {item.title}
               </span>
               {item.dueDate && (
@@ -108,6 +121,16 @@ export function CustomerActionSummary({ eventId, items }: CustomerActionSummaryP
           </li>
         ))}
       </ul>
+
+      {(hiddenCount > 0 || teaserLimit != null) && (
+        <Link
+          href={`/events/${eventId}/actions`}
+          className="flex items-center justify-center gap-1.5 rounded-lg border border-border/60 px-3 py-2 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+        >
+          {hiddenCount > 0 ? `See all ${items.length} tasks` : "Go to your tasks"}
+          <ArrowRight size={12} />
+        </Link>
+      )}
     </div>
   );
 }

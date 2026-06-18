@@ -105,6 +105,17 @@ export async function provisionEventFromQuote(
     console.error("[provisionEventFromQuote] quote link failed", linkErr);
   }
 
+  // Carry partner attribution forward from the quote to the new event so a
+  // reseller's commission stays tied to the live booking (not just the lead).
+  const { error: attrErr } = await supabase
+    .from("partner_attributions")
+    .update({ event_id: eventId })
+    .eq("quote_id", quoteId)
+    .is("event_id", null);
+  if (attrErr) {
+    console.error("[provisionEventFromQuote] attribution link failed", attrErr);
+  }
+
   // Seed compliance document requirements from account profile
   try {
     await seedComplianceFromAccount(eventId, accountId);
@@ -142,5 +153,10 @@ export async function provisionEventFromQuote(
 
   revalidatePath("/");
   revalidatePath(`/events/${eventId}`);
+  revalidatePath("/pipeline");
+  revalidatePath("/ops");
+  revalidatePath("/admin/quotes");
+  revalidatePath("/admin/customer-queue");
+  revalidatePath("/admin/partners");
   return { success: true, data: { eventId, accountId } };
 }

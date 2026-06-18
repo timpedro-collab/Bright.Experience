@@ -61,7 +61,7 @@ export function MyTasksPanel({ tasks, totalCount }: MyTasksPanelProps) {
   return (
     <Card tone="subtle" className="overflow-hidden">
       <CardContent className="p-0">
-        <div className="flex items-center justify-between border-b border-white/[0.06] px-5 py-3">
+        <div className="flex items-center justify-between border-b border-border/60 px-5 py-3">
           <div className="flex items-center gap-3">
             <Inbox className="size-4 text-muted-foreground" aria-hidden />
             <div>
@@ -94,14 +94,14 @@ export function MyTasksPanel({ tasks, totalCount }: MyTasksPanelProps) {
             </p>
           </div>
         ) : (
-          <ul className="divide-y divide-white/[0.04]">
+          <ul className="divide-y divide-border">
             {visible.map((task) => (
               <li key={task.id}>
                 <TaskRow task={task} />
               </li>
             ))}
             {hiddenCount > 0 && (
-              <li className="flex items-center justify-between bg-white/[0.02] px-5 py-3 text-xs text-muted-foreground">
+              <li className="flex items-center justify-between bg-muted/40 px-5 py-3 text-xs text-muted-foreground">
                 <span>
                   + {hiddenCount} more open task{hiddenCount === 1 ? "" : "s"}
                 </span>
@@ -132,7 +132,7 @@ function TaskRow({ task }: { task: AssignedTaskWithContext }) {
       href={`/events/${task.eventId}/actions`}
       className={cn(
         "group flex items-center gap-4 px-5 py-3 transition-colors",
-        "hover:bg-white/[0.03] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
+        "hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
       )}
     >
       <DueChip dueDate={task.dueDate} overdue={overdue} dueSoon={dueSoon} />
@@ -180,13 +180,13 @@ function DueChip({
   }
   if (dueDate) {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 text-[10px] font-medium text-muted-foreground whitespace-nowrap min-w-[78px] justify-center">
+      <span className="inline-flex items-center gap-1 rounded-full border border-border bg-muted/40 px-2 py-0.5 text-[10px] font-medium text-muted-foreground whitespace-nowrap min-w-[78px] justify-center">
         <CalendarClock className="size-2.5" /> {formatDateShort(dueDate)}
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 text-[10px] font-medium text-muted-foreground whitespace-nowrap min-w-[78px] justify-center">
+    <span className="inline-flex items-center gap-1 rounded-full border border-border bg-muted/40 px-2 py-0.5 text-[10px] font-medium text-muted-foreground whitespace-nowrap min-w-[78px] justify-center">
       <Clock className="size-2.5" /> No date
     </span>
   );

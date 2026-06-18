@@ -9,9 +9,13 @@ import { ExportMenu } from "@/components/ui/ExportMenu";
 
 import { getUser } from "@/lib/auth";
 import { isInternalRole } from "@/lib/roles";
+import { canViewSection } from "@/lib/event-access";
 import { getEventById } from "@/lib/queries/events";
-import { getLeadsByEventPaginated, getLeadCount } from "@/lib/queries/leads";
-import { getLatestEventMetrics } from "@/lib/queries/event-metrics";
+import {
+  getLeadsByEventPaginated,
+  getLeadCount,
+  getLeadAggregates,
+} from "@/lib/queries/leads";
 import { getUnreadCount } from "@/lib/queries/notifications";
 import { parsePage } from "@/lib/pagination";
 import { Pagination } from "@/components/ui/Pagination";
@@ -26,34 +30,23 @@ export default async function LeadsPage({
   const user = await getUser();
   if (!user) redirect("/login");
   const { id } = await params;
+  if (!canViewSection(user.role, "leads")) redirect(`/events/${id}`);
   const sp = await searchParams;
   const page = parsePage(sp);
 
-  const [event, leadsResult, leadCount, metrics, unread] = await Promise.all([
+  const [event, leadsResult, leadCount, aggregates, unread] = await Promise.all([
     getEventById(id),
     getLeadsByEventPaginated(id, page),
     getLeadCount(id),
-    getLatestEventMetrics(id),
+    getLeadAggregates(id),
     getUnreadCount(user.id),
   ]);
   if (!event) return notFound();
 
   const leads = leadsResult.data;
 
-  const todayStart = new Date();
-  todayStart.setHours(0, 0, 0, 0);
-  const todaysLeads = leads.filter(
-    (l: { captured_at: string }) => new Date(l.captured_at) >= todayStart,
-  ).length;
-
-  const sourceMap: Record<string, number> = {};
-  leads.forEach((l: { source: string }) => {
-    sourceMap[l.source] = (sourceMap[l.source] ?? 0) + 1;
-  });
-  const topSource =
-    Object.keys(sourceMap).length > 0
-      ? Object.entries(sourceMap).sort((a, b) => b[1] - a[1])[0][0]
-      : "—";
+  const todaysLeads = aggregates.today;
+  const topSource = aggregates.topSource;
 
   const tableLeads = leads.map(
     (l: {
@@ -104,11 +97,7 @@ export default async function LeadsPage({
           />
           <MetricCard
             label="Avg per hour"
-            value={
-              metrics?.total_leads != null
-                ? Math.round(Number(metrics.total_leads) / 8)
-                : "—"
-            }
+            value={aggregates.perHour > 0 ? aggregates.perHour : "—"}
             icon={<Clock size={20} />}
           />
         </div>

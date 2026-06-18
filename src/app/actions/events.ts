@@ -80,6 +80,8 @@ export async function createEvent(
   }
 
   revalidatePath("/");
+  revalidatePath("/pipeline");
+  revalidatePath("/ops");
   return { success: true, data: { id: data.id as string } };
 }
 
@@ -124,6 +126,8 @@ export async function createEventInternal(
   }
 
   revalidatePath("/");
+  revalidatePath("/pipeline");
+  revalidatePath("/ops");
   return { success: true, data: { id: data.id as string } };
 }
 
@@ -170,6 +174,8 @@ export async function duplicateEvent(
   }
 
   revalidatePath("/");
+  revalidatePath("/pipeline");
+  revalidatePath("/ops");
   return { success: true, data: { id: copy.id as string } };
 }
 

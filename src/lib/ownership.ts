@@ -78,6 +78,20 @@ export function ownerLabelFor(
 }
 
 /**
+ * Resolve the responsible party for a single task.
+ *
+ * `task_type` is the primary signal: a `customer_action` is ALWAYS owned by
+ * the customer, regardless of which work area (`category`) it touches —
+ * "upload your brand guidelines" is a creative-category task but the
+ * customer owns it, not Bright.Blue creative. Only internal work falls
+ * through to the category → team mapping.
+ */
+export function ownerForTask(task: Task): OwnerRole {
+  if (task.taskType === "customer_action") return "customer";
+  return CATEGORY_TO_OWNER[task.category] ?? "ae";
+}
+
+/**
  * Compute the owner for a milestone from its first blocking incomplete
  * task. Returns `null` for milestones that are already complete or that
  * have no open blocking work (i.e. the milestone is implicitly waiting
@@ -95,7 +109,7 @@ export function ownerForMilestone(
       t.status !== "skipped"
   );
   if (!blocking) return null;
-  return CATEGORY_TO_OWNER[blocking.category] ?? "ae";
+  return ownerForTask(blocking);
 }
 
 interface OwnershipBucket {
@@ -113,7 +127,7 @@ export function groupOpenTasksByOwner(tasks: Task[]): OwnershipBucket[] {
   );
   const map = new Map<OwnerRole, Task[]>();
   for (const t of open) {
-    const owner = CATEGORY_TO_OWNER[t.category] ?? "ae";
+    const owner = ownerForTask(t);
     const bucket = map.get(owner) ?? [];
     bucket.push(t);
     map.set(owner, bucket);

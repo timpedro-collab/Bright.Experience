@@ -30,7 +30,7 @@ export function RebookCTA(props: RebookCTAProps) {
 
   return (
     <div className="relative rounded-[var(--radius-card)] p-[1px] bg-gradient-to-br from-brand via-brand-soft to-brand">
-      <Card className="rounded-[var(--radius-card)] border-0 bg-card-dark">
+      <Card className="rounded-[var(--radius-card)] border-0 bg-card">
         <CardContent className="p-5">
           <div className="flex items-center gap-3 mb-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand/10 border border-brand/15">

@@ -64,10 +64,10 @@ export default async function PartnerClientsPage({ params }: ClientsPageProps) {
           size="sm"
         />
       ) : (
-        <div className="rounded-[var(--radius-card)] border border-white/[0.06] bg-white/[0.02] backdrop-blur-sm overflow-hidden">
+        <div className="rounded-[var(--radius-card)] border border-border/60 bg-muted/40 backdrop-blur-sm overflow-hidden">
           <Table>
             <TableHeader>
-              <TableRow className="border-white/[0.06] hover:bg-transparent">
+              <TableRow className="border-border/60 hover:bg-transparent">
                 <TableHead className="text-muted-foreground">Date</TableHead>
                 <TableHead className="text-muted-foreground">Type</TableHead>
                 <TableHead className="text-muted-foreground">Reference</TableHead>
@@ -78,7 +78,7 @@ export default async function PartnerClientsPage({ params }: ClientsPageProps) {
               {clientAttributions.map((attr: Record<string, unknown>) => {
                 const status = String(attr.commission_status ?? "pending");
                 return (
-                  <TableRow key={String(attr.id)} className="border-white/[0.06]">
+                  <TableRow key={String(attr.id)} className="border-border/60">
                     <TableCell className="text-muted-foreground">
                       {new Date(String(attr.created_at)).toLocaleDateString("en-ZA", {
                         day: "numeric",

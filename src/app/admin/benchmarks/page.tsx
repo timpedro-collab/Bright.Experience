@@ -16,7 +16,7 @@ import {
 import { RecalculateBenchmarksButton } from "@/components/reports/RecalculateBenchmarksButton";
 
 import { getUser } from "@/lib/auth";
-import { isInternalRole } from "@/lib/roles";
+import { canViewCommercial } from "@/lib/roles";
 import { getBenchmarks } from "@/lib/queries/benchmarks";
 import { getUnreadCount } from "@/lib/queries/notifications";
 import type { Benchmark } from "@/types";
@@ -28,7 +28,7 @@ function formatLabel(key: string): string {
 export default async function BenchmarksPage() {
   const user = await getUser();
   if (!user) redirect("/login");
-  if (!isInternalRole(user.role)) redirect("/");
+  if (!canViewCommercial(user.role)) redirect("/");
 
   const [benchmarks, unread] = await Promise.all([
     getBenchmarks(),

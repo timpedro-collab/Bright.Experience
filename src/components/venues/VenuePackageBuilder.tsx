@@ -1,7 +1,8 @@
 /** Form to create and manage venue event packages. */
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Package, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { createVenuePackage } from "@/app/actions/venues";
 
 interface VenuePackageBuilderProps {
   venueId: string;
@@ -19,20 +21,43 @@ export function VenuePackageBuilder({
   venueId,
   existingPackages,
 }: VenuePackageBuilderProps) {
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
   const [includesBrightBlue, setIncludesBrightBlue] = useState(false);
 
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    // TODO: wire to server action createVenuePackage
+  function resetForm() {
     setShowForm(false);
     setName("");
     setDescription("");
     setPrice("");
     setIncludesBrightBlue(false);
+    setError(null);
+  }
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    const parsedPrice = price.trim() === "" ? undefined : Number(price);
+    startTransition(async () => {
+      const result = await createVenuePackage({
+        venueId,
+        name,
+        description,
+        price: Number.isFinite(parsedPrice) ? parsedPrice : undefined,
+        includesBrightBlue,
+      });
+      if (result.success) {
+        resetForm();
+        router.refresh();
+      } else {
+        setError(result.error);
+      }
+    });
   }
 
   return (
@@ -121,7 +146,7 @@ export function VenuePackageBuilder({
                   "flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors",
                   includesBrightBlue
                     ? "border-brand/40 bg-brand/10 text-brand"
-                    : "border-white/10 text-muted-foreground hover:border-white/20"
+                    : "border-border text-muted-foreground hover:border-foreground/30"
                 )}
               >
                 <div
@@ -129,7 +154,7 @@ export function VenuePackageBuilder({
                     "flex h-4 w-4 items-center justify-center rounded border",
                     includesBrightBlue
                       ? "border-brand bg-brand"
-                      : "border-white/20"
+                      : "border-border"
                   )}
                 >
                   {includesBrightBlue && (
@@ -141,15 +166,20 @@ export function VenuePackageBuilder({
 
               <input type="hidden" name="venueId" value={venueId} />
 
+              {error ? (
+                <p className="text-xs text-destructive">{error}</p>
+              ) : null}
+
               <div className="flex gap-2">
-                <Button type="submit" size="sm">
-                  Create Package
+                <Button type="submit" size="sm" disabled={isPending || !name.trim()}>
+                  {isPending ? "Creating…" : "Create Package"}
                 </Button>
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={() => setShowForm(false)}
+                  onClick={resetForm}
+                  disabled={isPending}
                 >
                   Cancel
                 </Button>

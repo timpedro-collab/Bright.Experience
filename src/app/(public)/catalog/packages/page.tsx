@@ -84,7 +84,7 @@ export default async function PackagesIndexPage({
             />
           </div>
           {filtered.length === 0 ? (
-            <div className="rounded-[var(--radius-card)] border border-white/[0.06] bg-white/[0.02] p-12 text-center text-muted-foreground">
+            <div className="rounded-[var(--radius-card)] border border-border/60 bg-muted/40 p-12 text-center text-muted-foreground">
               {tier
                 ? `No ${tier} packages are available right now. Try removing the filter, or request a tailored proposal.`
                 : "Package pricing is being finalised. Please request a proposal for tailored pricing."}
@@ -110,7 +110,7 @@ export default async function PackagesIndexPage({
         </Container>
       </Section>
 
-      <Section className="border-t border-white/[0.06]" spacing="md">
+      <Section className="border-t border-border/60" spacing="md">
         <Container size="sm">
           <h2 className="text-heading text-center text-2xl font-semibold md:text-3xl">
             What&apos;s included
@@ -129,7 +129,7 @@ export default async function PackagesIndexPage({
 
 function Inclusion({ title, body }: { title: string; body: string }) {
   return (
-    <div className="rounded-[var(--radius-card)] border border-white/[0.06] bg-white/[0.02] p-5">
+    <div className="rounded-[var(--radius-card)] border border-border/60 bg-muted/40 p-5">
       <h3 className="text-heading text-base font-semibold text-foreground">{title}</h3>
       <p className="mt-1 text-sm text-muted-foreground">{body}</p>
     </div>

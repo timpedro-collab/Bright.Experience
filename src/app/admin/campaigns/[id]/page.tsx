@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { CampaignDashboard } from "@/components/campaigns/CampaignDashboard";
 
 import { getUser } from "@/lib/auth";
-import { isInternalRole } from "@/lib/roles";
+import { canViewCommercial } from "@/lib/roles";
 import { getCampaignById } from "@/lib/queries/campaigns";
 import { getUnreadCount } from "@/lib/queries/notifications";
 
@@ -24,7 +24,7 @@ export default async function CampaignDetailPage({
 }) {
   const user = await getUser();
   if (!user) redirect("/login");
-  if (!isInternalRole(user.role)) redirect("/");
+  if (!canViewCommercial(user.role)) redirect("/");
 
   const { id } = await params;
   const [campaign, unread] = await Promise.all([

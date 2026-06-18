@@ -52,7 +52,7 @@ docs/
 2. **`npm run lint`, `npm run typecheck`, `npm test` must be green** before opening a PR.
 3. **Never drop coverage** below the thresholds in `vitest.config.ts`.
 4. **Always update docs in the same PR** as the code change.
-5. **Files cap at ~200 lines.** If a file is growing past that, split it.
+5. **Keep files focused — prefer small, single-purpose modules; most files stay well under ~300 lines.** Split large domains into focused files rather than letting a monolith grow.
 6. **No `any` outside of test files.**
 
 The pre-commit hook (Husky + lint-staged) runs `eslint --fix` and
@@ -129,7 +129,7 @@ Before requesting review:
 - [ ] Docs updated (`docs/`, `CHANGELOG.md` if user-facing)
 - [ ] No `console.log` left in code
 - [ ] No `any` outside of tests
-- [ ] No file over 200 lines
+- [ ] Files stay focused and single-purpose (most well under ~300 lines)
 
 ## Questions
 

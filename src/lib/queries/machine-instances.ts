@@ -30,6 +30,27 @@ export async function getMachineInstanceBySerial(serial: string) {
   return data;
 }
 
+/**
+ * Catalog machine slugs for the instances deployed to an event.
+ * Used to resolve which machine variant drives the on-machine asset previews.
+ */
+export async function getMachineSlugsByEvent(eventId: string): Promise<string[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("machine_instances")
+    .select("machines:machine_type_id(slug)")
+    .eq("current_event_id", eventId);
+
+  if (error || !data) return [];
+  return data
+    .map((row) => {
+      const machines = (row as { machines?: { slug?: string } | { slug?: string }[] }).machines;
+      if (Array.isArray(machines)) return machines[0]?.slug;
+      return machines?.slug;
+    })
+    .filter((slug): slug is string => Boolean(slug));
+}
+
 /** Fetch all machine instances currently deployed to a specific event. */
 export async function getMachineInstancesByEvent(eventId: string) {
   const supabase = await createClient();

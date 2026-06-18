@@ -42,14 +42,20 @@ export async function getQuotesPaginated(
  * Used to show a real "proposal in progress / awaiting confirmation" state
  * instead of dropping a customer with no event back into the public funnel.
  * Returns [] gracefully (incl. when RLS hides quotes from this viewer).
+ *
+ * A quote is "in flight" when it is neither terminal nor already converted
+ * into an event workspace. The old filter only matched statuses the booking
+ * flow never actually writes ("converted"/"cancelled"/"closed") while missing
+ * the real conversion signal — a populated `event_id` — so a customer whose
+ * quote had already become an event stayed stuck on the holding screen.
  */
 const TERMINAL_QUOTE_STATUSES = new Set([
-  "converted",
   "rejected",
   "declined",
   "expired",
   "cancelled",
   "closed",
+  "converted",
 ]);
 
 export async function getPendingQuotesForCustomer(email?: string) {
@@ -57,14 +63,19 @@ export async function getPendingQuotesForCustomer(email?: string) {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("quotes")
-    .select(QUOTE_LIST_COLUMNS)
+    .select(`${QUOTE_LIST_COLUMNS}, event_id`)
     .eq("contact_email", email)
     .order("created_at", { ascending: false });
 
   if (error || !data) return [];
-  return data.filter(
-    (q) => !TERMINAL_QUOTE_STATUSES.has(String(q.status ?? "")),
-  );
+  return data.filter((q) => {
+    const status = String(q.status ?? "");
+    if (TERMINAL_QUOTE_STATUSES.has(status)) return false;
+    // Already provisioned into an event — the customer belongs in that
+    // workspace, not the "awaiting confirmation" holding state.
+    if ((q as { event_id?: string | null }).event_id) return false;
+    return true;
+  });
 }
 
 /** Fetch a single quote by ID with its line items. */

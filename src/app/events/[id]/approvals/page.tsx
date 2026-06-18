@@ -16,12 +16,14 @@ import { EventPageShell, EditorialEyebrow, Hairline } from "@/components/brand";
 import { ApprovalStatusBadge } from "@/components/ui/StatusBadge";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ApprovalActions } from "@/components/approvals/ApprovalActions";
+import { AutoRefresh } from "@/components/system/AutoRefresh";
 
 import { getEventById } from "@/lib/queries/events";
 import { getApprovalsByEvent } from "@/lib/queries/approvals";
 import { getUnreadCount } from "@/lib/queries/notifications";
 import { getUser } from "@/lib/auth";
 import { isInternalRole } from "@/lib/roles";
+import { canViewSection } from "@/lib/event-access";
 import { formatDateMedium, timeSince } from "@/lib/dates";
 import type { Approval } from "@/types";
 
@@ -33,6 +35,7 @@ export default async function ApprovalsPage({
   const user = await getUser();
   if (!user) redirect("/login");
   const { id } = await params;
+  if (!canViewSection(user.role, "approvals")) redirect(`/events/${id}`);
   const [event, approvals, unread] = await Promise.all([
     getEventById(id),
     getApprovalsByEvent(id),
@@ -40,6 +43,7 @@ export default async function ApprovalsPage({
   ]);
   if (!event) return notFound();
   const isInternal = isInternalRole(user.role);
+  const accountName = event.account.name;
 
   const pending = approvals.filter(
     (a) => a.status === "pending" || a.status === "revision_requested",
@@ -50,9 +54,13 @@ export default async function ApprovalsPage({
 
   const subtitle =
     approvals.length === 0
-      ? "Approval requests will appear here once creative deliverables are ready for your review."
+      ? isInternal
+        ? `Sign-off items will appear here once creative deliverables are sent to ${accountName} for review.`
+        : "Approval requests will appear here once creative deliverables are ready for your review."
       : pending.length > 0
-        ? `${pending.length} item${pending.length === 1 ? "" : "s"} need your review. Approve or request a revision to keep delivery moving.`
+        ? isInternal
+          ? `${pending.length} item${pending.length === 1 ? "" : "s"} waiting on ${accountName} to approve or request changes.`
+          : `${pending.length} item${pending.length === 1 ? "" : "s"} need your review. Approve or request a revision to keep delivery moving.`
         : "All deliverables have been reviewed. Nice work.";
 
   return (
@@ -61,7 +69,7 @@ export default async function ApprovalsPage({
       user={user}
       unreadCount={unread}
       section="Approvals"
-      title="Sign-off."
+      title={isInternal ? "Customer sign-off." : "Sign-off."}
       subtitle={subtitle}
       isInternal={isInternal}
       viewerRole={user.role}
@@ -81,15 +89,25 @@ export default async function ApprovalsPage({
         <EmptyState
           icon={CheckCircle2}
           title="No approvals pending"
-          description="Approval requests will appear here once creative deliverables are ready for your review."
-          action={{ label: "View timeline", href: `/events/${id}/timeline` }}
+          description={
+            isInternal
+              ? `Sign-off items will appear here once creative deliverables are sent to ${accountName}.`
+              : "Approval requests will appear here once creative deliverables are ready for your review."
+          }
+          action={
+            isInternal
+              ? { label: "View timeline", href: `/events/${id}/timeline` }
+              : { label: "Back to overview", href: `/events/${id}` }
+          }
         />
       ) : (
         <>
           {pending.length > 0 && (
             <section className="py-10">
               <div className="mb-4 flex items-baseline justify-between gap-3">
-                <EditorialEyebrow accent>Awaiting your review</EditorialEyebrow>
+                <EditorialEyebrow accent>
+                  {isInternal ? "Awaiting customer review" : "Awaiting your review"}
+                </EditorialEyebrow>
                 <span className="text-overline text-muted-foreground tabular-nums">
                   {pending.length} pending
                 </span>
@@ -100,6 +118,7 @@ export default async function ApprovalsPage({
                     key={approval.id}
                     approval={approval}
                     showActions
+                    isInternal={isInternal}
                   />
                 ))}
               </ul>
@@ -127,6 +146,7 @@ export default async function ApprovalsPage({
           )}
         </>
       )}
+      <AutoRefresh />
     </EventPageShell>
   );
 }
@@ -134,9 +154,11 @@ export default async function ApprovalsPage({
 function ApprovalRow({
   approval,
   showActions = false,
+  isInternal = false,
 }: {
   approval: Approval;
   showActions?: boolean;
+  isInternal?: boolean;
 }) {
   const isPending =
     approval.status === "pending" ||
@@ -212,10 +234,23 @@ function ApprovalRow({
 
         {showActions && isPending && (
           <div className="md:text-right">
-            <ApprovalActions
-              approvalId={approval.id}
-              eventId={approval.eventId}
-            />
+            {isInternal ? (
+              <details className="md:text-left md:min-w-[18rem]">
+                <summary className="cursor-pointer list-none inline-flex items-center gap-1.5 text-overline text-[var(--color-bb-cobalt)] underline decoration-from-font underline-offset-4">
+                  Waiting on customer · Record their decision
+                </summary>
+                <ApprovalActions
+                  approvalId={approval.id}
+                  eventId={approval.eventId}
+                  onBehalf
+                />
+              </details>
+            ) : (
+              <ApprovalActions
+                approvalId={approval.id}
+                eventId={approval.eventId}
+              />
+            )}
           </div>
         )}
       </div>

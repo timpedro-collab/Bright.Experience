@@ -1,10 +1,10 @@
 /**
  * App-wide light/dark theme, persisted to localStorage.
  *
- * Light (the Cloud cool-white palette) is the default. Dark (Cloud slate) is
- * opt-in. Light is applied by toggling the `.theme-light` class on <html>,
- * which remaps every semantic token (see globals.css). A blocking inline
- * script in the root layout sets the class before paint to avoid a flash.
+ * Light (the Cloud cool-white palette) is the default and the CSS baseline.
+ * Dark (Cloud slate) is opt-in, applied by toggling the `.theme-dark` class on
+ * <html>, which remaps every semantic token (see globals.css). A blocking
+ * inline script in the root layout sets the class before paint to avoid a flash.
  */
 "use client";
 
@@ -25,8 +25,8 @@ export const THEME_STORAGE_KEY = "bright.theme";
 
 function applyTheme(theme: Theme) {
   const root = document.documentElement;
-  root.classList.toggle("theme-light", theme === "light");
-  root.style.colorScheme = theme === "light" ? "light" : "dark";
+  root.classList.toggle("theme-dark", theme === "dark");
+  root.style.colorScheme = theme === "dark" ? "dark" : "light";
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
@@ -81,4 +81,4 @@ export function useTheme(): ThemeContextValue {
 }
 
 /** Inline, render-blocking script that sets the theme class before paint. */
-export const themeInitScript = `(function(){try{var t=localStorage.getItem('${THEME_STORAGE_KEY}');if(t!=='dark'){document.documentElement.classList.add('theme-light');document.documentElement.style.colorScheme='light';}}catch(e){}})();`;
+export const themeInitScript = `(function(){try{var t=localStorage.getItem('${THEME_STORAGE_KEY}');if(t==='dark'){document.documentElement.classList.add('theme-dark');document.documentElement.style.colorScheme='dark';}}catch(e){}})();`;

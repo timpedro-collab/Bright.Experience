@@ -45,7 +45,7 @@ export default async function PackageDetailPage({ params }: PageProps) {
 
   return (
     <>
-      <Section spacing="md" className="border-b border-white/[0.06]">
+      <Section spacing="md" className="border-b border-border/60">
         <Container>
           <nav className="mb-4 text-xs text-muted-foreground">
             <Link href="/catalog" className="hover:text-foreground">Catalog</Link>
@@ -106,7 +106,7 @@ export default async function PackageDetailPage({ params }: PageProps) {
                 </Button>
               </div>
             </div>
-            <div className="rounded-[var(--radius-card)] border border-white/[0.06] bg-white/[0.02] p-6 backdrop-blur-md">
+            <div className="rounded-[var(--radius-card)] border border-border/60 bg-muted/40 p-6 backdrop-blur-md">
               <p className="text-overline text-muted-foreground mb-3">What&apos;s included</p>
               {features.length === 0 ? (
                 <p className="text-sm text-muted-foreground">Details available on request.</p>

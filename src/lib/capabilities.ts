@@ -49,7 +49,7 @@ export interface Capability {
 }
 
 /* ----------------------------------------------------------------------------
- * The catalogue — five always-on + nine tailorable
+ * The catalogue — five always-on + seven tailorable
  * ------------------------------------------------------------------------- */
 
 /**
@@ -120,29 +120,14 @@ export const CAPABILITIES: ReadonlyArray<Capability> = [
       eventType === "experiential-activation",
   },
   {
-    slug: "voucher-redemption",
-    outcome: "A branded discount code arrives at the end of play",
-    mechanism: "Voucher delivered to player on the final screen",
-    capability: "Instant Gratification",
-    kind: "tailorable",
-    defaultPricePence: 45_000,
-    preSelect: ({ audience, objective }) =>
-      audience === "B2C" ||
-      audience === "mixed" ||
-      objective === "brand-awareness" ||
-      objective === "sales",
-  },
-  {
     slug: "linkedin-follow",
     outcome: "Follow-to-unlock on the prize screen",
     mechanism: "LinkedIn follow gate before reward",
     capability: "Custom Content",
     kind: "tailorable",
     defaultPricePence: 35_000,
-    preSelect: ({ audience, eventType }) =>
-      audience === "B2B" ||
-      eventType === "trade-show" ||
-      eventType === "conference",
+    // Opt-in only: shown as a toggle in Refine, never auto-promised.
+    preSelect: () => false,
   },
   {
     slug: "survey-layer",
@@ -151,10 +136,8 @@ export const CAPABILITIES: ReadonlyArray<Capability> = [
     capability: "Custom Content",
     kind: "tailorable",
     defaultPricePence: 40_000,
-    preSelect: ({ objective, eventType }) =>
-      objective === "engagement" ||
-      objective === "research" ||
-      eventType === "conference",
+    // Opt-in only: shown as a toggle in Refine, never auto-promised.
+    preSelect: () => false,
   },
   {
     slug: "dynamic-sponsors",
@@ -169,25 +152,14 @@ export const CAPABILITIES: ReadonlyArray<Capability> = [
       audience === "B2C",
   },
   {
-    slug: "app-qr-drive",
-    outcome: "Final-screen QR drives to your app or store",
-    mechanism: "App / store download QR on the win screen",
-    capability: "Custom Content",
-    kind: "tailorable",
-    defaultPricePence: 25_000,
-    preSelect: ({ objective, audience }) =>
-      (objective === "brand-awareness" || objective === "sales") &&
-      audience !== "B2B",
-  },
-  {
     slug: "age-verification",
     outcome: "Age-gated unlock for alcohol or 18+ products",
     mechanism: "Age verification before play",
     capability: "Age Verification",
     kind: "tailorable",
     defaultPricePence: 55_000,
-    preSelect: ({ industry }) =>
-      industry === "alcohol" || industry === "tobacco" || industry === "gambling",
+    // Opt-in only: shown as a toggle in Refine, never auto-promised.
+    preSelect: () => false,
   },
   {
     slug: "payments-onunit",
@@ -196,8 +168,8 @@ export const CAPABILITIES: ReadonlyArray<Capability> = [
     capability: "Payments Platform",
     kind: "tailorable",
     defaultPricePence: 120_000,
-    preSelect: ({ eventType, objective }) =>
-      eventType === "experiential-activation" && objective === "sales",
+    // Opt-in only: shown as a toggle in Refine, never auto-promised.
+    preSelect: () => false,
   },
 ] as const;
 

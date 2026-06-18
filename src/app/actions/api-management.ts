@@ -2,6 +2,7 @@
 "use server";
 
 import { requireInternalUser } from "@/lib/auth";
+import { isAdminRole } from "@/lib/roles";
 import { revalidatePath } from "next/cache";
 
 /** Generate a cryptographically random API key string. */
@@ -34,7 +35,10 @@ export async function createApiKey(data: {
   partnerId?: string;
   permissions: string[];
 }) {
-  const { supabase } = await requireInternalUser();
+  const { supabase, profile } = await requireInternalUser();
+  if (!isAdminRole(profile.role)) {
+    return { success: false as const, error: "Forbidden: admin access only" };
+  }
   const rawKey = generateApiKey();
   const keyHash = await hashKey(rawKey);
   const keyPrefix = rawKey.slice(0, 11);
@@ -61,7 +65,10 @@ export async function createApiKey(data: {
 
 /** Revoke an API key by marking it inactive. */
 export async function revokeApiKey(id: string) {
-  const { supabase } = await requireInternalUser();
+  const { supabase, profile } = await requireInternalUser();
+  if (!isAdminRole(profile.role)) {
+    return { success: false as const, error: "Forbidden: admin access only" };
+  }
 
   const { error } = await supabase
     .from("api_keys")
@@ -81,7 +88,10 @@ export async function createWebhookSubscription(data: {
   accountId?: string;
   partnerId?: string;
 }) {
-  const { supabase } = await requireInternalUser();
+  const { supabase, profile } = await requireInternalUser();
+  if (!isAdminRole(profile.role)) {
+    return { success: false as const, error: "Forbidden: admin access only" };
+  }
   const secret = generateApiKey();
 
   const { data: webhook, error } = await supabase
@@ -105,7 +115,10 @@ export async function createWebhookSubscription(data: {
 
 /** Delete a webhook subscription. */
 export async function deleteWebhookSubscription(id: string) {
-  const { supabase } = await requireInternalUser();
+  const { supabase, profile } = await requireInternalUser();
+  if (!isAdminRole(profile.role)) {
+    return { success: false as const, error: "Forbidden: admin access only" };
+  }
 
   const { error } = await supabase
     .from("webhook_subscriptions")

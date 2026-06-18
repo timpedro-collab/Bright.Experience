@@ -58,7 +58,7 @@ export function CommissionTracker({
           return (
             <Card
               key={card.label}
-              className="border-white/[0.06] bg-white/[0.02] backdrop-blur-sm"
+              className="border-border/60 bg-muted/40 backdrop-blur-sm"
             >
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -78,7 +78,7 @@ export function CommissionTracker({
         })}
       </div>
 
-      <Card className="border-white/[0.06] bg-white/[0.02] backdrop-blur-sm">
+      <Card className="border-border/60 bg-muted/40 backdrop-blur-sm">
         <CardContent className="p-6">
           <div className="flex items-center justify-between mb-3">
             <span className="text-sm font-medium text-muted-foreground">

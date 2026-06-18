@@ -6,7 +6,7 @@ import { Box, Gamepad2, Package, BookOpen, ArrowRight } from "lucide-react";
 import { AdminPageShell, EditorialEyebrow } from "@/components/brand";
 
 import { getUser } from "@/lib/auth";
-import { isInternalRole } from "@/lib/roles";
+import { canViewCreativeProduct } from "@/lib/roles";
 import { getUnreadCount } from "@/lib/queries/notifications";
 
 const SECTIONS = [
@@ -39,7 +39,7 @@ const SECTIONS = [
 export default async function CatalogAdminPage() {
   const user = await getUser();
   if (!user) redirect("/login");
-  if (!isInternalRole(user.role)) redirect("/");
+  if (!canViewCreativeProduct(user.role)) redirect("/");
 
   const unread = await getUnreadCount(user.id);
 

@@ -6,7 +6,7 @@ import { AdminPartnerTable } from "./AdminPartnerTable";
 import { Pagination } from "@/components/ui/Pagination";
 
 import { getUser } from "@/lib/auth";
-import { isInternalRole } from "@/lib/roles";
+import { canViewCommercial } from "@/lib/roles";
 import { getPartnersPaginated } from "@/lib/queries/partners";
 import { getUnreadCount } from "@/lib/queries/notifications";
 import { parsePage } from "@/lib/pagination";
@@ -18,7 +18,7 @@ interface AdminPartnersPageProps {
 export default async function AdminPartnersPage({ searchParams }: AdminPartnersPageProps) {
   const user = await getUser();
   if (!user) redirect("/login");
-  if (!isInternalRole(user.role)) redirect("/");
+  if (!canViewCommercial(user.role)) redirect("/");
 
   const params = await searchParams;
   const page = parsePage(params);

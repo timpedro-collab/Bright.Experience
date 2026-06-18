@@ -14,6 +14,7 @@ import { getAllStudioPricing } from "@/lib/queries/studio-pricing";
 import { getUnreadCount } from "@/lib/queries/notifications";
 import { getUser } from "@/lib/auth";
 import { isInternalRole } from "@/lib/roles";
+import { canViewSection } from "@/lib/event-access";
 import type { StudioRequest } from "@/types";
 import { timeSince } from "@/lib/dates";
 
@@ -38,6 +39,7 @@ export default async function StudioEventPage({
   const user = await getUser();
   if (!user) redirect("/login");
   const { id } = await params;
+  if (!canViewSection(user.role, "studio")) redirect(`/events/${id}`);
   const [event, requests, unread, pricing] = await Promise.all([
     getEventById(id),
     getStudioRequestsByEvent(id),

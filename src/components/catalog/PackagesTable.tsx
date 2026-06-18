@@ -38,8 +38,8 @@ export function PackagesTable({ packages, allMachines }: PackagesTableProps) {
 
       {showNew && <PackageForm machines={allMachines} onClose={() => setShowNew(false)} />}
 
-      <div className="border-t border-b border-border/40 overflow-hidden">
-        <table className="w-full text-sm">
+      <div className="border-t border-b border-border/40 overflow-x-auto">
+        <table className="w-full min-w-[640px] text-sm">
           <thead>
             <tr className="border-b border-border/40 text-left">
               <th className="px-4 py-3 text-overline text-muted-foreground font-normal">Name</th>

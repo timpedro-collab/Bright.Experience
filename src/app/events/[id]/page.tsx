@@ -30,7 +30,6 @@ import {
   KpiCard,
 } from "@/components/cloud";
 import { HealthBadge, StageBadge } from "@/components/ui/StatusBadge";
-import { StageProgressBar } from "@/components/events/StageProgressBar";
 import { TaskChecklist } from "@/components/events/TaskChecklist";
 import { OverviewNextStep } from "@/components/events/OverviewNextStep";
 import { OverviewSidebar } from "@/components/events/OverviewSidebar";
@@ -46,7 +45,8 @@ import { getUnreadCount } from "@/lib/queries/notifications";
 import { getRecentAuditEntries } from "@/lib/queries/audit";
 import { getTeamForEvent } from "@/lib/queries/team";
 import { getUser } from "@/lib/auth";
-import { isInternalRole } from "@/lib/roles";
+import { isInternalRole, canAdvanceEventStage } from "@/lib/roles";
+import { stageLabelFor } from "@/lib/customer-copy";
 import { STAGE_CONFIG } from "@/types";
 import type { Event } from "@/types";
 import { formatDateLong, daysUntilDate, isOverdue } from "@/lib/dates";
@@ -94,6 +94,11 @@ export default async function EventOverviewPage({
     : pendingCustomerTasks;
   const days = daysUntilDate(event.eventDateStart);
   const stageConfig = STAGE_CONFIG[event.currentStage];
+  const stageLabel = stageLabelFor(event.currentStage, !isInternal);
+  // Lifecycle is driven by STAGE, not the calendar — an event is only
+  // "wrapped" once it reaches reporting/complete, never because its date passed.
+  const delivered =
+    event.currentStage === "reporting" || event.currentStage === "complete";
 
   const nextStep = resolveEventNextStep({
     event,
@@ -114,12 +119,19 @@ export default async function EventOverviewPage({
       isOverdue(m.targetDate),
   ).length;
 
+  const venue = event.venueName ?? (isInternal ? "the venue" : "your venue");
   const heroSubtitle = (() => {
-    if (days > 0) {
-      return `Live in ${days} ${days === 1 ? "day" : "days"} at ${event.venueName ?? "your venue"}. Currently at ${stageConfig.label}.`;
+    if (delivered) {
+      return isInternal
+        ? `Delivered — report published for ${event.account.name}. Currently at ${stageConfig.label}.`
+        : `Delivered — reports and reads are in your inbox. Currently at ${stageConfig.label}.`;
     }
-    if (days === 0) return `Live today at ${event.venueName ?? "your venue"}.`;
-    return `Wrapped ${Math.abs(days)} ${Math.abs(days) === 1 ? "day" : "days"} ago. Reports and reads landing in your inbox.`;
+    if (days > 0) {
+      return `Live in ${days} ${days === 1 ? "day" : "days"} at ${venue}. Currently at ${stageConfig.label}.`;
+    }
+    if (days === 0) return `Live today at ${venue}.`;
+    // Date has passed but the event isn't reported yet — still being delivered.
+    return `Live now at ${venue}. Currently at ${stageConfig.label}.`;
   })();
 
   return (
@@ -136,20 +148,22 @@ export default async function EventOverviewPage({
       viewerRole={user.role}
       heroRight={
         <div className="flex items-center gap-2 flex-wrap justify-end">
-          <HealthBadge status={event.healthStatus} />
-          <StageBadge stage={event.currentStage} />
+          <HealthBadge status={event.healthStatus} isCustomer={!isInternal} />
+          <StageBadge stage={event.currentStage} isCustomer={!isInternal} />
           <Link
             href={`/events/${id}/communications`}
             className="inline-flex items-center gap-1.5 text-overline text-muted-foreground hover:text-foreground transition-colors"
           >
             <MessageCircle className="h-3.5 w-3.5" /> Messages
           </Link>
-          <Link
-            href={`/events/${id}/timeline`}
-            className="inline-flex items-center gap-1.5 text-overline text-[var(--color-bb-cobalt)] hover:opacity-80 transition-opacity"
-          >
-            <Share2 className="h-3.5 w-3.5" /> Timeline
-          </Link>
+          {isInternal && (
+            <Link
+              href={`/events/${id}/timeline`}
+              className="inline-flex items-center gap-1.5 text-overline text-[var(--color-bb-cobalt)] hover:opacity-80 transition-opacity"
+            >
+              <Share2 className="h-3.5 w-3.5" /> Timeline
+            </Link>
+          )}
         </div>
       }
     >
@@ -158,6 +172,7 @@ export default async function EventOverviewPage({
           <OverviewNextStep
             nextStep={nextStep}
             isInternal={isInternal}
+            canManageStage={canAdvanceEventStage(user.role)}
             eventId={id}
             currentStage={event.currentStage}
             canAdvance={stageGate.canAdvance}
@@ -168,7 +183,7 @@ export default async function EventOverviewPage({
         <KpiGrid>
           <KpiCard
             label="Time to event"
-            value={days > 0 ? `${days}d` : days === 0 ? "Today" : "Wrapped"}
+            value={delivered ? "Wrapped" : days > 0 ? `${days}d` : days === 0 ? "Today" : "Live"}
             icon={CalendarClock}
             hint={event.venueName ?? undefined}
           />
@@ -176,30 +191,16 @@ export default async function EventOverviewPage({
             label={isInternal ? "Open actions" : "Your actions"}
             value={isInternal ? myTasks.length : pendingCustomerTasks.length}
             icon={ListChecks}
-            hint={
-              isInternal
-                ? "assigned to you"
-                : `${completedCount}/${customerTasks.length} done`
-            }
+            hint={isInternal ? "assigned to you" : undefined}
           />
           <KpiCard label="Assets" value={assets.length} icon={Files} />
           <KpiCard
             label="Stage"
             value={`${stageConfig.order + 1}/10`}
             icon={GitBranch}
-            hint={stageConfig.label}
+            hint={stageLabel}
           />
         </KpiGrid>
-
-        <GlassCard>
-          <GlassCardHeader
-            title="The journey"
-            description={`Stage ${stageConfig.order + 1} of 10 · ${stageConfig.label}`}
-          />
-          <div className="p-6">
-            <StageProgressBar currentStage={event.currentStage} />
-          </div>
-        </GlassCard>
 
         <section className="grid grid-cols-1 lg:grid-cols-[1fr_22rem] gap-6">
           <div className="space-y-6 min-w-0">
@@ -247,7 +248,7 @@ export default async function EventOverviewPage({
                     something needs your eyes.
                   </p>
                 ) : (
-                  <TaskChecklist tasks={customerTasks} />
+                  <TaskChecklist tasks={customerTasks} viewerRole={user.role} />
                 )}
                 <Link
                   href={`/events/${id}/actions`}

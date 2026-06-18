@@ -3,7 +3,20 @@
 
 import { redirect } from "next/navigation";
 import { requireInternalUser } from "@/lib/auth";
+import { canViewCommercial } from "@/lib/roles";
 import type { ActionResult } from "@/types/actions";
+
+/**
+ * Guard: resolve the caller and require a commercial role
+ * (events_lead / admin / developer) — templates are a commercial surface.
+ */
+async function requireCommercialUser() {
+  const ctx = await requireInternalUser();
+  if (!canViewCommercial(ctx.profile.role)) {
+    throw new Error("Forbidden: commercial access only");
+  }
+  return ctx;
+}
 
 /**
  * Create a new event template from the admin form.
@@ -14,7 +27,7 @@ export async function createTemplate(
   _prev: ActionResult<{ id: string }> | null,
   formData: FormData
 ): Promise<ActionResult<{ id: string }>> {
-  const { supabase } = await requireInternalUser();
+  const { supabase } = await requireCommercialUser();
 
   const name = String(formData.get("name") ?? "").trim();
   if (!name || name.length < 2) {
@@ -63,7 +76,7 @@ export async function saveTemplateData(
     product_config_defaults_json?: Record<string, unknown> | null;
   }
 ): Promise<ActionResult> {
-  const { supabase } = await requireInternalUser();
+  const { supabase } = await requireCommercialUser();
 
   const { error } = await supabase
     .from("event_templates")
@@ -79,7 +92,7 @@ export async function saveEventAsTemplate(
   eventId: string,
   templateName: string
 ): Promise<ActionResult<{ id: string }>> {
-  const { supabase } = await requireInternalUser();
+  const { supabase } = await requireCommercialUser();
 
   const { data: event } = await supabase
     .from("events")

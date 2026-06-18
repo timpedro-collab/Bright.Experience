@@ -15,7 +15,20 @@ const ROLE_PERMISSIONS: Record<string, UserRole[]> = {
   "events.read": [...INTERNAL_ROLES, "customer_user", "customer_admin"],
   "events.write": INTERNAL_ROLES,
   "events.create": ["events_lead", "admin"],
-  "approvals.decide": [...INTERNAL_ROLES, "customer_admin"],
+  "stages.advance": ["events_lead", "admin", "developer"],
+  // Customer sign-off is the customer's call. The only internal roles that
+  // may record it on their behalf are the customer-facing ones — Events
+  // Lead, Creative, admin/developer. Ops and QA never touch sign-off.
+  "approvals.decide": [
+    "events_lead",
+    "creative_lead",
+    "admin",
+    "developer",
+    "customer_admin",
+  ],
+  // Reviewing the creative assets a customer uploads belongs to the
+  // Creative team (+ admin/developer break-glass).
+  "assets.review": ["creative_lead", "admin", "developer"],
   "assets.upload": [...INTERNAL_ROLES, "customer_user", "customer_admin"],
   "studio.manage": ["creative_lead", "admin"],
   "studio.order": [...INTERNAL_ROLES, "customer_admin"],
@@ -23,6 +36,10 @@ const ROLE_PERMISSIONS: Record<string, UserRole[]> = {
   "quotes.manage": ["events_lead", "admin"],
   "partners.manage": ["admin"],
   "catalog.manage": ["admin", "creative_lead"],
+  // Partner portal surfaces (referral link, pipeline, commissions). Internal
+  // admins can view for support; partners see their own (data-scoped by slug).
+  "partner.portal": ["partner_member", "partner_admin", "admin", "events_lead"],
+  "partner.commissions.manage": ["partner_admin", "admin"],
 };
 
 /** Check if a role is an internal (non-customer) role */

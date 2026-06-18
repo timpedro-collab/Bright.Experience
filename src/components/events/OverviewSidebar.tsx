@@ -2,15 +2,16 @@
 import Link from "next/link";
 
 import { EditorialEyebrow, Hairline } from "@/components/brand";
-import { Badge } from "@/components/ui/badge";
 import { ExportMenu } from "@/components/ui/ExportMenu";
 import { MilestoneTimeline } from "@/components/timeline/MilestoneTimeline";
 import { EventOwnershipPanel } from "@/components/events/EventOwnershipPanel";
 import { ActivityFeed } from "@/components/events/ActivityFeed";
 import { TeamRequestButton } from "@/components/events/TeamRequestButton";
+import { TeamApprovalButtons } from "@/components/events/TeamApprovalButtons";
 import { MetricRow } from "@/components/events/MetricRow";
 import { YourTeamWidget } from "@/components/events/YourTeamWidget";
 import { isInternalRole } from "@/lib/roles";
+import { canViewSection } from "@/lib/event-access";
 import { formatDueProximity } from "@/lib/dates";
 import type { Milestone, Task, Approval, EventTeamMember, UserRole } from "@/types";
 import type { AuditRow } from "@/lib/queries/audit";
@@ -99,11 +100,9 @@ export function OverviewSidebar({
                 <span className="truncate text-foreground">
                   {m.profile?.name ?? m.email}
                 </span>
-                {m.status === "pending" && (
-                  <Badge variant="muted" className="ml-auto text-[0.6rem]">
-                    Pending approval
-                  </Badge>
-                )}
+                {m.status === "pending" ? (
+                  <TeamApprovalButtons memberId={m.id} />
+                ) : null}
               </li>
             ))}
           </ul>
@@ -185,12 +184,14 @@ export function OverviewSidebar({
             <div className="mt-4">
               <ActivityFeed entries={recentActivity} compact />
             </div>
-            <Link
-              href={`/events/${eventId}/activity`}
-              className="mt-3 inline-block text-overline text-[var(--color-bb-cobalt)] underline decoration-from-font underline-offset-4 font-medium"
-            >
-              View all activity →
-            </Link>
+            {canViewSection(viewerRole, "activity") && (
+              <Link
+                href={`/events/${eventId}/activity`}
+                className="mt-3 inline-block text-overline text-[var(--color-bb-cobalt)] underline decoration-from-font underline-offset-4 font-medium"
+              >
+                View all activity →
+              </Link>
+            )}
           </div>
         </>
       )}

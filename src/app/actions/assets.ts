@@ -25,7 +25,9 @@ import {
   buildSpecWarnings,
   imageDimensionsFromBuffer,
 } from "@/lib/asset-requirements/validate";
+import { isInternalRole, canReviewCreativeAssets } from "@/lib/roles";
 import type { ActionResult } from "@/types/actions";
+import type { UserRole } from "@/types";
 
 const ASSET_BUCKET: StorageBucket = "event-assets";
 
@@ -36,6 +38,21 @@ export async function uploadAsset(formData: FormData): Promise<ActionResult> {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return { success: false, error: "Not authenticated" };
+
+  // Among internal staff only the Creative team may upload on the customer's
+  // behalf — mirror the page's `canUpload` gate. Customers upload their own.
+  const { data: actorProfile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .maybeSingle();
+  const actorRole = actorProfile?.role as UserRole | undefined;
+  if (actorRole && isInternalRole(actorRole) && !canReviewCreativeAssets(actorRole)) {
+    return {
+      success: false,
+      error: "Only the Creative team can upload on the customer's behalf.",
+    };
+  }
 
   const assetId = formData.get("assetId") as string;
   const eventId = formData.get("eventId") as string;
@@ -222,5 +239,8 @@ export async function uploadAsset(formData: FormData): Promise<ActionResult> {
   bumpStreak().catch(() => {});
 
   revalidatePath(`/events/${eventId}/assets`);
+  revalidatePath("/admin/asset-reviews");
+  revalidatePath(`/events/${eventId}`);
+  revalidatePath("/ops");
   return { success: true, data: undefined };
 }

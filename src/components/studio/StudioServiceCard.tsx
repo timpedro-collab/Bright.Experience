@@ -88,7 +88,7 @@ export function StudioTierCard({
               </ul>
             </div>
 
-            <div className="pt-4 border-t border-white/[0.06]">
+            <div className="pt-4 border-t border-border/60">
               <div className="text-center mb-4">
                 <span className="text-heading text-2xl font-bold text-foreground">
                   {tier.price}

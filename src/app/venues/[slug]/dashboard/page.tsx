@@ -154,7 +154,7 @@ export default async function VenueDashboardPage({ params }: Props) {
                 {weeks.map((week, idx) => (
                   <div
                     key={idx}
-                    className="flex items-center gap-3 rounded-[var(--radius-control)] border border-white/[0.06] bg-white/[0.02] px-3 py-2"
+                    className="flex items-center gap-3 rounded-[var(--radius-control)] border border-border/60 bg-muted/40 px-3 py-2"
                   >
                     <div className="w-20 shrink-0">
                       <p className="text-overline text-muted-foreground">Wk {idx + 1}</p>

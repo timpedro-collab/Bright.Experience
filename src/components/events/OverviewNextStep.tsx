@@ -23,6 +23,8 @@ export interface NextStepData {
 interface OverviewNextStepProps {
   nextStep: NextStepData;
   isInternal: boolean;
+  /** Whether this viewer's role may advance the pipeline stage. */
+  canManageStage?: boolean;
   eventId: string;
   currentStage: Stage;
   canAdvance: boolean;
@@ -32,6 +34,7 @@ interface OverviewNextStepProps {
 export function OverviewNextStep({
   nextStep,
   isInternal,
+  canManageStage = false,
   eventId,
   currentStage,
   canAdvance,
@@ -78,7 +81,7 @@ export function OverviewNextStep({
           )}
         </div>
       </div>
-      {isInternal && (
+      {isInternal && canManageStage && (
         <div className="mt-6 max-w-md">
           <EditorialEyebrow>Internal · stage gate</EditorialEyebrow>
           <div className="mt-2">

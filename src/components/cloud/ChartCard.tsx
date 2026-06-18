@@ -28,6 +28,8 @@ import {
   YAxis,
 } from "recharts";
 
+import { LineChart as LineChartIcon } from "lucide-react";
+
 import { cn } from "@/lib/utils";
 import { GlassCard, GlassCardHeader } from "./GlassCard";
 
@@ -41,14 +43,18 @@ export interface ChartColors {
   foreground: string;
 }
 
+// Light-theme defaults — used during SSR / first paint before the live
+// design tokens are read off <html>, so charts don't flash dark-mode colours
+// on the now light-default app. useChartColors() overwrites these on mount
+// and tracks theme switches thereafter.
 const FALLBACK: ChartColors = {
   primary: "hsl(230, 93%, 53%)",
-  accent: "hsl(190, 90%, 50%)",
-  grid: "hsl(217, 33%, 18%)",
-  axis: "hsl(215, 20%, 55%)",
-  tooltipBg: "hsl(222, 44%, 9%)",
-  tooltipBorder: "hsl(217, 33%, 18%)",
-  foreground: "hsl(210, 40%, 96%)",
+  accent: "hsl(190, 90%, 45%)",
+  grid: "hsl(214, 32%, 82%)",
+  axis: "hsl(215, 16%, 47%)",
+  tooltipBg: "hsl(0, 0%, 100%)",
+  tooltipBorder: "hsl(214, 32%, 82%)",
+  foreground: "hsl(222, 47%, 11%)",
 };
 
 function readColors(): ChartColors {
@@ -116,6 +122,40 @@ export function ChartCard({
   );
 }
 
+/**
+ * Shared in-chart placeholder shown when a Cloud chart has no data. Fills
+ * the chart's allotted height so the card keeps its shape instead of
+ * collapsing to bare axes. Centralised here so every chart shape (bar,
+ * area, and any future ones) renders an identical, theme-aware empty state.
+ */
+export function ChartEmpty({ message }: { message?: string }) {
+  return (
+    <div className="flex h-full w-full flex-col items-center justify-center gap-2 text-center">
+      <span className="flex size-10 items-center justify-center rounded-full bg-muted text-muted-foreground">
+        <LineChartIcon className="size-5" />
+      </span>
+      <p className="text-sm text-muted-foreground">
+        {message ?? "No data to chart yet"}
+      </p>
+    </div>
+  );
+}
+
+/** Skeleton shown while a Cloud chart's data is loading. */
+export function ChartLoading() {
+  return (
+    <div className="flex h-full w-full items-end gap-2 px-1 pb-1" aria-hidden>
+      {[0.45, 0.7, 0.35, 0.85, 0.55, 0.95, 0.6, 0.4].map((h, i) => (
+        <div
+          key={i}
+          className="skeleton flex-1 rounded-t-md"
+          style={{ height: `${Math.round(h * 100)}%` }}
+        />
+      ))}
+    </div>
+  );
+}
+
 function tooltipStyles(colors: ChartColors) {
   return {
     contentStyle: {
@@ -154,6 +194,8 @@ export function CloudBarChart<T extends Record<string, unknown>>({
   const t = tooltipStyles(colors);
   const colorFor = (s: CloudSeries) =>
     s.tone === "accent" ? colors.accent : colors.primary;
+
+  if (!data || data.length === 0) return <ChartEmpty />;
 
   return (
     <ResponsiveContainer width="100%" height="100%">
@@ -215,6 +257,8 @@ export function CloudAreaChart<T extends Record<string, unknown>>({
   const colors = useChartColors();
   const t = tooltipStyles(colors);
   const gradientId = React.useId();
+
+  if (!data || data.length === 0) return <ChartEmpty />;
 
   return (
     <ResponsiveContainer width="100%" height="100%">

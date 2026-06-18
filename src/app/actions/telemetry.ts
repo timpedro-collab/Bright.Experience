@@ -81,6 +81,8 @@ export async function captureLead(data: {
   }
 
   revalidatePath("/admin/events");
+  revalidatePath(`/events/${data.eventId}/leads`);
+  revalidatePath(`/events/${data.eventId}/reports`);
   return { success: true as const, data: { id: lead.id } };
 }
 
@@ -156,6 +158,7 @@ export async function refreshEventMetrics(eventId: string) {
   }
 
   revalidatePath(`/events/${eventId}`);
+  revalidatePath(`/events/${eventId}/reports`);
   revalidatePath(`/admin/events/${eventId}`);
   return { success: true as const, data: { date: today } };
 }

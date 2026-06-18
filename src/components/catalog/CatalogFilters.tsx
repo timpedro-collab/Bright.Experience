@@ -58,7 +58,7 @@ export function CatalogFilters({ param, options, label }: Props) {
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
               selected
                 ? "bg-primary text-primary-foreground shadow-sm"
-                : "bg-white/[0.04] text-muted-foreground hover:bg-white/[0.08] hover:text-foreground"
+                : "bg-muted/40 text-muted-foreground hover:bg-accent hover:text-foreground"
             )}
           >
             {opt.label}

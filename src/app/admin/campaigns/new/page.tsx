@@ -5,13 +5,13 @@ import { AdminPageShell, EditorialEyebrow } from "@/components/brand";
 import { NewCampaignForm } from "@/components/campaigns/NewCampaignForm";
 
 import { getUser } from "@/lib/auth";
-import { isInternalRole } from "@/lib/roles";
+import { canViewCommercial } from "@/lib/roles";
 import { getUnreadCount } from "@/lib/queries/notifications";
 
 export default async function NewCampaignPage() {
   const user = await getUser();
   if (!user) redirect("/login");
-  if (!isInternalRole(user.role)) redirect("/");
+  if (!canViewCommercial(user.role)) redirect("/");
 
   const unread = await getUnreadCount(user.id);
 

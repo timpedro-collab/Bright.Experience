@@ -18,7 +18,7 @@ const STATUS_STYLES: Record<string, { bg: string; text: string; label: string }>
   available: { bg: "bg-success/10", text: "text-success", label: "Available" },
   deployed: { bg: "bg-brand/10", text: "text-brand", label: "Deployed" },
   maintenance: { bg: "bg-warning/10", text: "text-warning", label: "Maintenance" },
-  retired: { bg: "bg-white/[0.06]", text: "text-muted-foreground", label: "Retired" },
+  retired: { bg: "bg-muted", text: "text-muted-foreground", label: "Retired" },
 };
 
 function getRelativeTime(timestamp: string): string {

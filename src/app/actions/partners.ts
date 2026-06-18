@@ -2,6 +2,7 @@
 "use server";
 
 import { requireInternalUser } from "@/lib/auth";
+import { isAdminRole } from "@/lib/roles";
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 
@@ -57,7 +58,10 @@ export async function applyAsPartner(data: {
 
 /** Approve a pending partner, setting status to 'active'. */
 export async function approvePartner(partnerId: string) {
-  const { supabase } = await requireInternalUser();
+  const { supabase, profile } = await requireInternalUser();
+  if (!isAdminRole(profile.role)) {
+    return { success: false as const, error: "Forbidden: admin access only" };
+  }
 
   const { error } = await supabase
     .from("partners")
@@ -76,7 +80,10 @@ export async function approvePartner(partnerId: string) {
 
 /** Suspend an active partner. */
 export async function suspendPartner(partnerId: string) {
-  const { supabase } = await requireInternalUser();
+  const { supabase, profile } = await requireInternalUser();
+  if (!isAdminRole(profile.role)) {
+    return { success: false as const, error: "Forbidden: admin access only" };
+  }
 
   const { error } = await supabase
     .from("partners")
@@ -96,7 +103,10 @@ export async function addPartnerUser(
   profileId: string,
   role: string = "member"
 ) {
-  const supabase = await createClient();
+  const { supabase, profile } = await requireInternalUser();
+  if (!isAdminRole(profile.role)) {
+    return { success: false as const, error: "Forbidden: admin access only" };
+  }
 
   const { data: membership, error } = await supabase
     .from("partner_users")
@@ -170,7 +180,10 @@ export async function recordAttribution(input: {
 
 /** Approve a commission with a specific amount. */
 export async function approveCommission(attributionId: string, amount: number) {
-  const { supabase } = await requireInternalUser();
+  const { supabase, profile } = await requireInternalUser();
+  if (!isAdminRole(profile.role)) {
+    return { success: false as const, error: "Forbidden: admin access only" };
+  }
 
   const { error } = await supabase
     .from("partner_attributions")
@@ -188,7 +201,10 @@ export async function approveCommission(attributionId: string, amount: number) {
 
 /** Mark a commission as paid. */
 export async function markCommissionPaid(attributionId: string) {
-  const supabase = await createClient();
+  const { supabase, profile } = await requireInternalUser();
+  if (!isAdminRole(profile.role)) {
+    return { success: false as const, error: "Forbidden: admin access only" };
+  }
 
   const { error } = await supabase
     .from("partner_attributions")

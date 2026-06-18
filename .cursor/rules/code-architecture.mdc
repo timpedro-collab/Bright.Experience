@@ -5,12 +5,12 @@ alwaysApply: true
 
 # Code Architecture Standards
 
-## File Size Limits
+## File Size
 
-- No single file should exceed 200 lines. If it does, split it.
-- Components: one component per file, max 150 lines including imports
-- Server Actions: group by domain (e.g., `actions/quotes.ts`, `actions/events.ts`), max 200 lines per file
-- Queries: one file per entity (e.g., `queries/events.ts`, `queries/quotes.ts`), max 150 lines
+- Keep files focused — prefer small, single-purpose modules; most files stay well under ~300 lines. Large domains are split into focused files rather than left as monoliths. A handful of registry/data and dashboard files run longer by design.
+- Components: one component per file — split when a file renders more than one distinct section.
+- Server Actions: group by domain (e.g., `actions/quotes.ts`, `actions/events.ts`), split large domains into focused files.
+- Queries: one file per entity (e.g., `queries/events.ts`, `queries/quotes.ts`).
 
 ## Naming Conventions
 

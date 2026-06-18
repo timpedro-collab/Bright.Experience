@@ -58,7 +58,7 @@ export default function HowItWorksPage() {
 
       <HowItWorks />
 
-      <Section className="border-t border-white/[0.06]">
+      <Section className="border-t border-border/60">
         <Container size="md">
           <div className="text-center">
             <h2 className="text-heading text-3xl font-bold text-foreground md:text-4xl">

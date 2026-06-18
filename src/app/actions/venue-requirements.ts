@@ -61,6 +61,7 @@ export async function addVenueRequirement(
 
   if (error) return { success: false, error: `Failed to add requirement: ${error.message}` };
   revalidatePath(`/events/${eventId}/logistics`);
+  revalidatePath(`/events/${eventId}`);
   return { success: true, data: { id: data.id } };
 }
 
@@ -76,5 +77,6 @@ export async function toggleVenueRequirement(
     .eq("id", requirementId);
   if (error) return { success: false, error: `Update failed: ${error.message}` };
   revalidatePath(`/events/${eventId}/logistics`);
+  revalidatePath(`/events/${eventId}`);
   return { success: true, data: undefined };
 }

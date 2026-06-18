@@ -13,6 +13,7 @@ import { getDeadlinesByEvent } from "@/lib/queries/deadlines";
 import { getUnreadCount } from "@/lib/queries/notifications";
 import { getUser } from "@/lib/auth";
 import { isInternalRole } from "@/lib/roles";
+import { canViewSection } from "@/lib/event-access";
 
 export default async function DeadlinesPage({
   params,
@@ -22,6 +23,7 @@ export default async function DeadlinesPage({
   const user = await getUser();
   if (!user) redirect("/login");
   const { id } = await params;
+  if (!canViewSection(user.role, "deadlines")) redirect(`/events/${id}`);
 
   const [event, deadlines, unread] = await Promise.all([
     getEventById(id),
@@ -81,6 +83,7 @@ export default async function DeadlinesPage({
           </p>
           <div className="mt-5">
             <DeadlineTimeline
+              isInternal={isInternal}
               deadlines={
                 isInternal
                   ? deadlines

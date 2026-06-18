@@ -85,7 +85,7 @@ export function PostIntakeCard({
             </p>
           </div>
 
-          <div className="rounded-[var(--radius-card)] border border-white/[0.06] bg-white/[0.02] p-5">
+          <div className="rounded-[var(--radius-card)] border border-border/60 bg-muted/40 p-5">
             <ul className="space-y-2 text-sm text-foreground">
               <li className="flex gap-2">
                 <span aria-hidden className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />

@@ -6,13 +6,21 @@ import { useRouter } from "next/navigation";
 import {
   LayoutDashboard, CalendarCheck, Sparkles, BarChart3, Bell, Settings,
   Users, Handshake, Building2, Lightbulb, Key, Layers, FileText, MapPin,
-  ArrowUpRight, Search, CheckSquare, Loader2,
+  ArrowUpRight, Search, CheckSquare, Loader2, Inbox, GitBranch, Clock,
+  Receipt, Gauge,
 } from "lucide-react";
 import {
   CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem,
   CommandList, CommandSeparator, CommandShortcut,
 } from "@/components/ui/command";
 import { Kbd } from "@/components/ui/kbd";
+import {
+  canViewCreativeQueue,
+  canViewCommercial,
+  canViewCreativeProduct,
+  canViewLocations,
+} from "@/lib/roles";
+import type { UserRole } from "@/types";
 
 interface SearchResults {
   events: { id: string; name: string; accountName: string | null }[];
@@ -22,12 +30,14 @@ interface SearchResults {
 
 interface CommandPaletteProps {
   isInternal?: boolean;
+  /** Viewer role — lets us scope admin shortcuts to the roles that own them. */
+  role?: UserRole;
   partnerSlug?: string;
   venueSlug?: string;
   eventId?: string;
 }
 
-export function CommandPalette({ isInternal, partnerSlug, venueSlug, eventId }: CommandPaletteProps) {
+export function CommandPalette({ isInternal, role, partnerSlug, venueSlug, eventId }: CommandPaletteProps) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResults | null>(null);
@@ -72,13 +82,13 @@ export function CommandPalette({ isInternal, partnerSlug, venueSlug, eventId }: 
   return (
     <>
       <button type="button" onClick={() => setOpen(true)} aria-label="Open command palette" data-tour="command-palette"
-        className="hidden lg:flex h-9 w-full max-w-md items-center gap-3 rounded-[var(--radius-control)] border border-white/8 bg-white/[0.03] px-3 text-left text-sm text-muted-foreground transition-colors hover:bg-white/[0.05] hover:border-white/12 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background">
+        className="hidden lg:flex h-9 w-full max-w-md items-center gap-3 rounded-[var(--radius-control)] border border-border bg-muted/40 px-3 text-left text-sm text-muted-foreground transition-colors hover:bg-accent hover:border-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background">
         <ArrowUpRight className="h-3.5 w-3.5 shrink-0" />
         <span className="flex-1 truncate">Search or jump to…</span>
         <span className="flex items-center gap-1"><Kbd>⌘</Kbd><Kbd>K</Kbd></span>
       </button>
       <button type="button" onClick={() => setOpen(true)} aria-label="Open command palette"
-        className="lg:hidden flex h-9 w-9 items-center justify-center rounded-[var(--radius-control)] border border-white/8 bg-white/[0.03] text-muted-foreground transition-colors hover:bg-white/[0.05]">
+        className="lg:hidden flex h-9 w-9 items-center justify-center rounded-[var(--radius-control)] border border-border bg-muted/40 text-muted-foreground transition-colors hover:bg-accent">
         <ArrowUpRight className="h-4 w-4" />
       </button>
 
@@ -123,14 +133,26 @@ export function CommandPalette({ isInternal, partnerSlug, venueSlug, eventId }: 
             </>
           )}
 
-          {showStatic && <StaticGroups go={go} isInternal={isInternal} eventId={eventId} partnerSlug={partnerSlug} venueSlug={venueSlug} />}
+          {showStatic && <StaticGroups go={go} isInternal={isInternal} role={role} eventId={eventId} partnerSlug={partnerSlug} venueSlug={venueSlug} />}
         </CommandList>
       </CommandDialog>
     </>
   );
 }
 
-function StaticGroups({ go, isInternal, eventId, partnerSlug, venueSlug }: { go: (h: string) => void; isInternal?: boolean; eventId?: string; partnerSlug?: string; venueSlug?: string }) {
+function StaticGroups({ go, isInternal, role, eventId, partnerSlug, venueSlug }: { go: (h: string) => void; isInternal?: boolean; role?: UserRole; eventId?: string; partnerSlug?: string; venueSlug?: string }) {
+  // When we know the role, scope ownership-specific shortcuts. When we
+  // don't (legacy call sites), fall back to showing them to any internal
+  // user — the destination pages still enforce their own guards.
+  const isAdmin = role === "admin" || role === "developer";
+  const canCreativeQueue = role ? canViewCreativeQueue(role) : true;
+  // Commercial / account-management surfaces (quotes, invoices, customers,
+  // templates, campaigns, benchmarks, recommendations, partners).
+  const canCommercial = role ? canViewCommercial(role) : true;
+  // Creative / product back-office (catalog + Studio orders).
+  const canCreativeProduct = role ? canViewCreativeProduct(role) : true;
+  // Locations (venues / delivery) — logistics-adjacent.
+  const canLocations = role ? canViewLocations(role) : true;
   return (
     <>
       <CommandGroup heading="Workspace">
@@ -164,16 +186,22 @@ function StaticGroups({ go, isInternal, eventId, partnerSlug, venueSlug }: { go:
       </CommandGroup></>)}
 
       {isInternal && (<><CommandSeparator /><CommandGroup heading="Admin">
-        <CommandItem onSelect={() => go("/studio")}><Sparkles /><span>Studio orders</span></CommandItem>
-        <CommandItem onSelect={() => go("/admin/quotes")}><FileText /><span>Quotes pipeline</span></CommandItem>
-        <CommandItem onSelect={() => go("/admin/partners")}><Handshake /><span>Partners</span></CommandItem>
-        <CommandItem onSelect={() => go("/admin/campaigns")}><Layers /><span>Campaigns</span></CommandItem>
-        <CommandItem onSelect={() => go("/admin/templates")}><FileText /><span>Templates</span></CommandItem>
-        <CommandItem onSelect={() => go("/admin/catalog")}><Sparkles /><span>Catalog</span></CommandItem>
-        <CommandItem onSelect={() => go("/admin/locations")}><MapPin /><span>Locations</span></CommandItem>
-        <CommandItem onSelect={() => go("/admin/benchmarks")}><BarChart3 /><span>Benchmarks</span></CommandItem>
-        <CommandItem onSelect={() => go("/admin/recommendations")}><Lightbulb /><span>Recommendations</span></CommandItem>
-        <CommandItem onSelect={() => go("/admin/api")}><Key /><span>API & integrations</span></CommandItem>
+        <CommandItem onSelect={() => go("/ops")}><Gauge /><span>Command center</span></CommandItem>
+        <CommandItem onSelect={() => go("/inbox")}><Inbox /><span>Inbox</span></CommandItem>
+        <CommandItem onSelect={() => go("/pipeline")}><GitBranch /><span>Pipeline</span></CommandItem>
+        {canCreativeQueue && <CommandItem onSelect={() => go("/admin/asset-reviews")}><CheckSquare /><span>Asset reviews</span></CommandItem>}
+        {canCommercial && <CommandItem onSelect={() => go("/admin/customer-queue")}><Clock /><span>Customer queue</span></CommandItem>}
+        {canCommercial && <CommandItem onSelect={() => go("/admin/invoices")}><Receipt /><span>Invoices</span></CommandItem>}
+        {canCreativeProduct && <CommandItem onSelect={() => go("/studio")}><Sparkles /><span>Studio orders</span></CommandItem>}
+        {canCommercial && <CommandItem onSelect={() => go("/admin/quotes")}><FileText /><span>Quotes pipeline</span></CommandItem>}
+        {canCommercial && <CommandItem onSelect={() => go("/admin/partners")}><Handshake /><span>Partners</span></CommandItem>}
+        {canCommercial && <CommandItem onSelect={() => go("/admin/campaigns")}><Layers /><span>Campaigns</span></CommandItem>}
+        {canCommercial && <CommandItem onSelect={() => go("/admin/templates")}><FileText /><span>Templates</span></CommandItem>}
+        {canCreativeProduct && <CommandItem onSelect={() => go("/admin/catalog")}><Sparkles /><span>Catalog</span></CommandItem>}
+        {canLocations && <CommandItem onSelect={() => go("/admin/locations")}><MapPin /><span>Locations</span></CommandItem>}
+        {canCommercial && <CommandItem onSelect={() => go("/admin/benchmarks")}><BarChart3 /><span>Benchmarks</span></CommandItem>}
+        {canCommercial && <CommandItem onSelect={() => go("/admin/recommendations")}><Lightbulb /><span>Recommendations</span></CommandItem>}
+        {isAdmin && <CommandItem onSelect={() => go("/admin/api")}><Key /><span>API & integrations</span></CommandItem>}
       </CommandGroup></>)}
 
       <CommandSeparator />

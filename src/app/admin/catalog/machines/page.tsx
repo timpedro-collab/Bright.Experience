@@ -5,14 +5,14 @@ import { AdminPageShell, EditorialEyebrow } from "@/components/brand";
 import { MachinesTable } from "@/components/catalog/MachinesTable";
 
 import { getUser } from "@/lib/auth";
-import { isInternalRole } from "@/lib/roles";
+import { canViewCreativeProduct } from "@/lib/roles";
 import { getAllMachines } from "@/lib/queries/admin-catalog";
 import { getUnreadCount } from "@/lib/queries/notifications";
 
 export default async function MachinesAdminPage() {
   const user = await getUser();
   if (!user) redirect("/login");
-  if (!isInternalRole(user.role)) redirect("/");
+  if (!canViewCreativeProduct(user.role)) redirect("/");
 
   const [machines, unread] = await Promise.all([
     getAllMachines(),

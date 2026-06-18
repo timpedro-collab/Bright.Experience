@@ -8,16 +8,16 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { getUser } from "@/lib/auth";
-import { isInternalRole } from "@/lib/roles";
+import { canViewCommercial } from "@/lib/roles";
 import type { ActionResult } from "@/types/actions";
 
-/** Guard: resolve the current user and require an internal role. */
+/** Guard: resolve the current user and require a commercial role. */
 async function requireInternal(): Promise<
   { ok: true; userId: string } | { ok: false; error: string }
 > {
   const user = await getUser();
   if (!user) return { ok: false, error: "Not authenticated" };
-  if (!isInternalRole(user.role)) {
+  if (!canViewCommercial(user.role)) {
     return { ok: false, error: "Only internal staff can manage invoices." };
   }
   return { ok: true, userId: user.id };

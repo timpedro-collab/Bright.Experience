@@ -53,7 +53,7 @@ export function ProfileForm({ initialName, email }: Props) {
             setSaved(false);
           }}
           placeholder="Your full name"
-          className="w-full px-4 py-2.5 rounded-[var(--radius-control)] border border-white/[0.08] bg-white/[0.02] text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-ring"
+          className="w-full px-4 py-2.5 rounded-[var(--radius-control)] border border-border bg-muted/40 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-ring"
         />
       </div>
 
@@ -65,7 +65,7 @@ export function ProfileForm({ initialName, email }: Props) {
           type="email"
           value={email}
           disabled
-          className="w-full px-4 py-2.5 rounded-[var(--radius-control)] border border-white/[0.06] bg-white/[0.01] text-sm text-muted-foreground cursor-not-allowed"
+          className="w-full px-4 py-2.5 rounded-[var(--radius-control)] border border-border/60 bg-muted/40 text-sm text-muted-foreground cursor-not-allowed"
         />
         <p className="mt-1 text-xs text-muted-foreground">
           Managed by your authentication provider.

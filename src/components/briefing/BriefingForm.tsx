@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { saveBriefingResponse } from "@/app/actions/briefing";
+import { BrandColorsField } from "@/components/briefing/BrandColorsField";
 import { celebrateFromElement } from "@/lib/celebrate";
 
 const CREATIVE_BRIEFING_FIELDS = [
@@ -32,7 +33,7 @@ const CREATIVE_BRIEFING_FIELDS = [
   },
   {
     id: "color_preferences",
-    label: "Colour Preferences",
+    label: "Brand Colours",
     type: "text" as const,
     placeholder: "Primary brand colours (hex codes if available)",
   },
@@ -67,12 +68,15 @@ interface BriefingFormProps {
   eventId: string;
   initialResponses: Record<string, unknown>;
   isSubmitted: boolean;
+  /** Internal viewers read the customer's brief — they never fill it in. */
+  readOnly?: boolean;
 }
 
 export function BriefingForm({
   eventId,
   initialResponses,
   isSubmitted: initiallySubmitted,
+  readOnly = false,
 }: BriefingFormProps) {
   const [responses, setResponses] = useState<Record<string, string>>(
     (initialResponses as Record<string, string>) || {}
@@ -123,6 +127,48 @@ export function BriefingForm({
     }
   }
 
+  if (readOnly) {
+    const hasAny = CREATIVE_BRIEFING_FIELDS.some(
+      (f) => (responses[f.id] ?? "").trim().length > 0
+    );
+    return (
+      <Card tone="subtle" className="p-6">
+        {!hasAny ? (
+          <p className="text-sm text-muted-foreground">
+            The customer hasn&apos;t shared their creative brief yet. Their
+            answers will appear here once submitted.
+          </p>
+        ) : (
+          <div className="space-y-4">
+            {CREATIVE_BRIEFING_FIELDS.map((field) => (
+              <div
+                key={field.id}
+                className="py-3 border-b border-border/60 last:border-0"
+              >
+                <p className="text-overline text-muted-foreground mb-1">
+                  {field.label}
+                </p>
+                {field.id === "color_preferences" ? (
+                  <BrandColorsField
+                    value={responses[field.id] || ""}
+                    onChange={() => {}}
+                    readOnly
+                  />
+                ) : (
+                  <p className="text-sm text-foreground whitespace-pre-line">
+                    {responses[field.id]?.trim()
+                      ? responses[field.id]
+                      : "Not provided"}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </Card>
+    );
+  }
+
   if (isSubmitted) {
     return (
       <Card tone="subtle" className="p-8">
@@ -140,11 +186,19 @@ export function BriefingForm({
 
         <div className="mt-8 space-y-4">
           {CREATIVE_BRIEFING_FIELDS.map((field) => (
-            <div key={field.id} className="py-3 border-b border-white/[0.04]">
+            <div key={field.id} className="py-3 border-b border-border/60">
               <p className="text-overline text-muted-foreground mb-1">{field.label}</p>
-              <p className="text-sm text-foreground whitespace-pre-line">
-                {responses[field.id] || "—"}
-              </p>
+              {field.id === "color_preferences" ? (
+                <BrandColorsField
+                  value={responses[field.id] || ""}
+                  onChange={() => {}}
+                  readOnly
+                />
+              ) : (
+                <p className="text-sm text-foreground whitespace-pre-line">
+                  {responses[field.id] || "—"}
+                </p>
+              )}
             </div>
           ))}
         </div>
@@ -160,13 +214,18 @@ export function BriefingForm({
             <label className="block text-sm font-medium text-foreground mb-1.5">
               {field.label}
             </label>
-            {field.type === "textarea" ? (
+            {field.id === "color_preferences" ? (
+              <BrandColorsField
+                value={responses[field.id] || ""}
+                onChange={(v) => updateField(field.id, v)}
+              />
+            ) : field.type === "textarea" ? (
               <textarea
                 value={responses[field.id] || ""}
                 onChange={(e) => updateField(field.id, e.target.value)}
                 placeholder={field.placeholder}
                 rows={3}
-                className="w-full px-4 py-2.5 rounded-[var(--radius-control)] border border-white/[0.08] bg-white/[0.02] text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-ring resize-none"
+                className="w-full px-4 py-2.5 rounded-[var(--radius-control)] border border-border bg-muted/40 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-ring resize-none"
               />
             ) : (
               <input
@@ -174,14 +233,14 @@ export function BriefingForm({
                 value={responses[field.id] || ""}
                 onChange={(e) => updateField(field.id, e.target.value)}
                 placeholder={field.placeholder}
-                className="w-full px-4 py-2.5 rounded-[var(--radius-control)] border border-white/[0.08] bg-white/[0.02] text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-ring"
+                className="w-full px-4 py-2.5 rounded-[var(--radius-control)] border border-border bg-muted/40 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-ring"
               />
             )}
           </div>
         ))}
       </div>
 
-      <div className="flex flex-col-reverse gap-3 mt-8 pt-6 border-t border-white/[0.06] sm:flex-row sm:items-center">
+      <div className="flex flex-col-reverse gap-3 mt-8 pt-6 border-t border-border/60 sm:flex-row sm:items-center">
         <Button
           onClick={handleSave}
           disabled={saving}

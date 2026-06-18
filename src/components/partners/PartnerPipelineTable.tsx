@@ -45,7 +45,7 @@ function formatCurrency(amount: number): string {
 export function PartnerPipelineTable({ attributions }: PartnerPipelineTableProps) {
   if (attributions.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center rounded-[var(--radius-card)] border border-white/[0.06] bg-white/[0.02] p-12 text-center">
+      <div className="flex flex-col items-center justify-center rounded-[var(--radius-card)] border border-border/60 bg-muted/40 p-12 text-center">
         <FileText size={32} className="mb-3 text-muted-foreground" />
         <p className="text-sm text-muted-foreground">No attributions yet</p>
         <p className="mt-1 text-xs text-muted-foreground">
@@ -56,10 +56,10 @@ export function PartnerPipelineTable({ attributions }: PartnerPipelineTableProps
   }
 
   return (
-    <div className="rounded-[var(--radius-card)] border border-white/[0.06] bg-white/[0.02] backdrop-blur-sm overflow-hidden">
+    <div className="rounded-[var(--radius-card)] border border-border/60 bg-muted/40 backdrop-blur-sm overflow-hidden">
       <Table>
         <TableHeader>
-          <TableRow className="border-white/[0.06] hover:bg-transparent">
+          <TableRow className="border-border/60 hover:bg-transparent">
             <TableHead className="text-muted-foreground">Date</TableHead>
             <TableHead className="text-muted-foreground">Type</TableHead>
             <TableHead className="text-muted-foreground">Commission</TableHead>
@@ -72,7 +72,7 @@ export function PartnerPipelineTable({ attributions }: PartnerPipelineTableProps
             const statusConfig = STATUS_MAP[attr.commissionStatus] ?? STATUS_MAP.pending;
 
             return (
-              <TableRow key={attr.id} className="border-white/[0.06]">
+              <TableRow key={attr.id} className="border-border/60">
                 <TableCell className="text-muted-foreground">
                   {new Date(attr.createdAt).toLocaleDateString("en-ZA", {
                     day: "numeric",

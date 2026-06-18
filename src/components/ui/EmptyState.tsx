@@ -44,7 +44,7 @@ export function EmptyState({
         "relative overflow-hidden rounded-[var(--radius-card)]",
         "flex flex-col items-center justify-center text-center",
         tone === "glass"
-          ? "border border-white/[0.06] bg-card/45 backdrop-blur-md"
+          ? "border border-border/60 bg-card/45 backdrop-blur-md"
           : "border border-border/30 bg-transparent",
         sizeStyles[size],
         className
@@ -60,7 +60,7 @@ export function EmptyState({
       <div className={cn(
         "relative mb-5 flex h-16 w-16 items-center justify-center rounded-[var(--radius-card)]",
         tone === "glass"
-          ? "border border-white/8 bg-white/[0.03] shadow-[inset_0_1px_0_0_hsl(0,0%,100%,0.04)]"
+          ? "border border-border/60 bg-muted/40"
           : "border border-border/40 bg-muted/20"
       )}>
         <Icon size={26} className="text-muted-foreground" />

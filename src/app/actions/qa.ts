@@ -12,7 +12,12 @@ import { revalidatePath } from "next/cache";
 import { updateQAItemSchema, addQAItemSchema } from "@/lib/validations/qa";
 import { autoCompleteTaskByPath } from "@/app/actions/tasks";
 import { bumpStreak } from "./streak";
+import { getUser } from "@/lib/auth";
+import type { UserRole } from "@/types";
 import type { ActionResult } from "@/types/actions";
+
+/** Roles allowed to record a QA sign-off. */
+const QA_SIGN_OFF_ROLES: UserRole[] = ["qa_lead", "events_lead", "admin", "developer"];
 
 /** Update a QA item status. Failed items require notes as failure_reason; fixed items set fix_description. */
 export async function updateQAItem(
@@ -81,6 +86,51 @@ export async function updateQAItem(
   }
 
   revalidatePath(`/events/${item.event_id}/qa`);
+  revalidatePath(`/events/${item.event_id}`);
+  return { success: true, data: undefined };
+}
+
+/**
+ * Record a QA sign-off for an event. Requires every QA item to be resolved
+ * (passed / fixed / na). Writes a durable audit entry and completes the QA
+ * task so the stage gate reads it. (DB columns for who/when are deferred to
+ * handoff; the audit trail captures it in the meantime.)
+ */
+export async function signOffQA(eventId: string): Promise<ActionResult> {
+  const profile = await getUser();
+  if (!profile) return { success: false, error: "Not authenticated" };
+  if (!QA_SIGN_OFF_ROLES.includes(profile.role)) {
+    return { success: false, error: "Only QA or the Events Lead can sign off readiness." };
+  }
+
+  const supabase = await createClient();
+  const { data: outstanding } = await supabase
+    .from("qa_items")
+    .select("id")
+    .eq("event_id", eventId)
+    .not("status", "in", '("passed","fixed","na")')
+    .limit(1);
+
+  if (outstanding && outstanding.length > 0) {
+    return {
+      success: false,
+      error: "Resolve every QA check before signing off.",
+    };
+  }
+
+  await supabase.from("audit_entries").insert({
+    event_id: eventId,
+    actor_id: profile.id,
+    action: "qa_signed_off",
+    entity_type: "event",
+    entity_id: eventId,
+    metadata: { signed_off_by: profile.name ?? profile.email ?? profile.id },
+  });
+
+  await autoCompleteTaskByPath(eventId, "qa");
+
+  revalidatePath(`/events/${eventId}/qa`);
+  revalidatePath(`/events/${eventId}/timeline`);
   return { success: true, data: undefined };
 }
 
@@ -138,5 +188,6 @@ export async function addQAItem(
   });
 
   revalidatePath(`/events/${eventId}/qa`);
+  revalidatePath(`/events/${eventId}`);
   return { success: true, data: { id: item.id } };
 }

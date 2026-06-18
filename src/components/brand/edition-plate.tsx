@@ -95,7 +95,7 @@ export function EditionPlate({
           lines={14}
           amplitude={40}
           strokeWidth={0.9}
-          className="text-[hsl(230,93%,53%)]"
+          className="text-[hsl(230,93%,53%)] ridge-veil"
         />
         <div
           aria-hidden

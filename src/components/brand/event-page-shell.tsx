@@ -102,7 +102,7 @@ export function EventPageShell({
           <>
             <Link
               href="/help"
-              className="inline-flex items-center justify-center size-9 rounded-[var(--radius-control)] text-muted-foreground hover:text-foreground hover:bg-white/[0.04] transition-colors"
+              className="inline-flex items-center justify-center size-9 rounded-[var(--radius-control)] text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
               aria-label="Help center"
             >
               <HelpCircle size={18} />
@@ -127,8 +127,7 @@ export function EventPageShell({
       <EventTabNav
         eventId={event.id}
         currentSection={currentSection}
-        isInternal={isInternal}
-        viewerRole={viewerRole}
+        viewerRole={viewerRole ?? user.role}
       />
       <EditionBody>{children}</EditionBody>
       <EditionFooter
@@ -141,7 +140,7 @@ export function EventPageShell({
           </Link>
         }
       />
-      <CommandPalette eventId={event.id} isInternal={isInternal} />
+      <CommandPalette eventId={event.id} isInternal={isInternal} role={user.role} />
     </EditionShell>
   );
 }

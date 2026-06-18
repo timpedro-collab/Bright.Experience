@@ -159,7 +159,7 @@ export function TemplateEditor({ template }: TemplateEditorProps) {
           <div key={section.key} className="border border-border/60 rounded-lg overflow-hidden">
             <button
               onClick={() => toggle(section.key)}
-              className="flex items-center gap-3 w-full px-5 py-3.5 text-left hover:bg-white/[0.02] transition-colors"
+              className="flex items-center gap-3 w-full px-5 py-3.5 text-left hover:bg-accent transition-colors"
             >
               {isOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
               <Icon size={16} className="text-[var(--color-bb-cobalt)]" />
@@ -224,7 +224,7 @@ function ArraySectionEditor({
       {items.map((item, idx) => (
         <div
           key={idx}
-          className="grid gap-2 p-3 bg-white/[0.02] border border-border/30 rounded-md"
+          className="grid gap-2 p-3 bg-muted/40 border border-border/30 rounded-md"
           style={{ gridTemplateColumns: `repeat(${Math.min(fields.length, 4)}, 1fr) auto` }}
         >
           {fields.map((field) => (

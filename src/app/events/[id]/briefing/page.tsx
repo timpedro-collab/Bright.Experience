@@ -17,6 +17,7 @@ import { getEventById } from "@/lib/queries/events";
 import { getUnreadCount } from "@/lib/queries/notifications";
 import { getUser } from "@/lib/auth";
 import { isInternalRole } from "@/lib/roles";
+import { canViewSection } from "@/lib/event-access";
 import { createClient } from "@/lib/supabase/server";
 import { getBriefingFiles } from "@/app/actions/briefing";
 
@@ -30,6 +31,7 @@ export default async function BriefingPage({
   const user = await getUser();
   if (!user) redirect("/login");
   const { id } = await params;
+  if (!canViewSection(user.role, "briefing")) redirect(`/events/${id}`);
   const sp = await searchParams;
   const activeTab = sp.tab === "ops" ? "ops" : "creative";
 
@@ -59,11 +61,21 @@ export default async function BriefingPage({
   const creativeSubmitted = creativeBrief?.is_submitted ?? false;
   const opsSubmitted = opsBrief?.is_submitted ?? false;
   const bothSubmitted = creativeSubmitted && opsSubmitted;
+  const isInternal = isInternalRole(user.role);
+  const accountName = event.account.name;
 
-  const heroTitle =
-    activeTab === "ops" ? "The logistics." : "Tell us your story.";
-  const heroSubtitle =
-    activeTab === "ops"
+  const heroTitle = isInternal
+    ? activeTab === "ops"
+      ? "Logistics brief."
+      : "Creative brief."
+    : activeTab === "ops"
+      ? "The logistics."
+      : "Tell us your story.";
+  const heroSubtitle = isInternal
+    ? activeTab === "ops"
+      ? `Venue and logistics details ${accountName} has shared for the build.`
+      : `What ${accountName} told us about their brand and goals — use this to guide the creative.`
+    : activeTab === "ops"
       ? "Help our ops team plan the perfect build by sharing your venue and logistics details."
       : "A few prompts help our creative team design something that actually feels like your brand.";
 
@@ -82,7 +94,7 @@ export default async function BriefingPage({
       eyebrow={`${event.account.name} · Briefing`}
       title={heroTitle}
       subtitle={heroSubtitle}
-      isInternal={isInternalRole(user.role)}
+      isInternal={isInternal}
       heroRight={
         <div className="inline-flex items-center gap-1.5">
           <FileText className="size-3" />
@@ -107,12 +119,22 @@ export default async function BriefingPage({
       <section className="grid grid-cols-1 lg:grid-cols-[1fr_18rem] gap-x-12 gap-y-8 py-10">
         <div>
           <EditorialEyebrow accent>
-            {activeTab === "ops" ? "Your logistics" : "Your brief"}
+            {isInternal
+              ? activeTab === "ops"
+                ? "Customer logistics"
+                : "Customer brief"
+              : activeTab === "ops"
+                ? "Your logistics"
+                : "Your brief"}
           </EditorialEyebrow>
           <p className="mt-2 text-sm text-muted-foreground max-w-[58ch]">
-            {activeTab === "ops"
-              ? "Fill in what you know now. We'll confirm the rest on a planning call."
-              : "Answer what you can. Anything you skip we'll ask about on the kickoff call."}
+            {isInternal
+              ? activeTab === "ops"
+                ? `Submitted by ${accountName}. Reference this when planning the build.`
+                : `Submitted by ${accountName}. Reference this when building the creative.`
+              : activeTab === "ops"
+                ? "Fill in what you know now. We'll confirm the rest on a planning call."
+                : "Answer what you can. Anything you skip we'll ask about on the kickoff call."}
           </p>
           <div className="mt-6">
             {activeTab === "ops" ? (
@@ -120,18 +142,20 @@ export default async function BriefingPage({
                 eventId={id}
                 initialResponses={opsBrief?.responses ?? {}}
                 isSubmitted={opsSubmitted}
+                readOnly={isInternal}
               />
             ) : (
               <BriefingForm
                 eventId={id}
                 initialResponses={creativeBrief?.responses ?? {}}
                 isSubmitted={creativeSubmitted}
+                readOnly={isInternal}
               />
             )}
           </div>
         </div>
 
-        <BriefingSidebar activeTab={activeTab} eventId={id} />
+        <BriefingSidebar activeTab={activeTab} eventId={id} isInternal={isInternal} />
       </section>
 
       <Hairline className="opacity-40" />
@@ -139,10 +163,11 @@ export default async function BriefingPage({
       <section className="py-8">
         <EditorialEyebrow accent>Supporting files</EditorialEyebrow>
         <p className="mt-2 text-sm text-muted-foreground max-w-[58ch] mb-6">
-          Brand guidelines, logo packs, font files, or reference materials — anything that
-          helps the creative team understand your brand.
+          {isInternal
+            ? `Brand guidelines, logo packs, font files, and reference materials ${accountName} has shared with the creative team.`
+            : "Brand guidelines, logo packs, font files, or reference materials — anything that helps the creative team understand your brand."}
         </p>
-        <BriefingFileUpload eventId={id} existingFiles={briefingFiles} />
+        <BriefingFileUpload eventId={id} existingFiles={briefingFiles} readOnly={isInternal} />
       </section>
     </EventPageShell>
   );

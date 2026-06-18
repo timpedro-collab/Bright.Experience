@@ -5,14 +5,14 @@ import { AdminPageShell, EditorialEyebrow } from "@/components/brand";
 import { CaseStudiesTable } from "@/components/catalog/CaseStudiesTable";
 
 import { getUser } from "@/lib/auth";
-import { isInternalRole } from "@/lib/roles";
+import { canViewCreativeProduct } from "@/lib/roles";
 import { getAllCaseStudies } from "@/lib/queries/admin-catalog";
 import { getUnreadCount } from "@/lib/queries/notifications";
 
 export default async function CaseStudiesAdminPage() {
   const user = await getUser();
   if (!user) redirect("/login");
-  if (!isInternalRole(user.role)) redirect("/");
+  if (!canViewCreativeProduct(user.role)) redirect("/");
 
   const [studies, unread] = await Promise.all([
     getAllCaseStudies(),

@@ -3,10 +3,11 @@ import { redirect, notFound } from "next/navigation";
 
 import { AdminPageShell } from "@/components/brand";
 import { QuoteStatusBadge } from "@/components/quotes/QuoteStatusBadge";
+import { WalkthroughControl } from "@/components/quotes/proposal/WalkthroughControl";
 import { ProposalBuilder } from "./ProposalBuilder";
 
 import { getUser } from "@/lib/auth";
-import { isInternalRole } from "@/lib/roles";
+import { canViewCommercial } from "@/lib/roles";
 import { getQuoteById } from "@/lib/queries/quotes";
 import { getUnreadCount } from "@/lib/queries/notifications";
 
@@ -18,7 +19,7 @@ export default async function QuoteDetailPage({
   const { id } = await params;
   const user = await getUser();
   if (!user) redirect("/login");
-  if (!isInternalRole(user.role)) redirect("/");
+  if (!canViewCommercial(user.role)) redirect("/");
 
   const [quote, unread] = await Promise.all([
     getQuoteById(id),
@@ -43,7 +44,12 @@ export default async function QuoteDetailPage({
       backHref="/admin/quotes"
       backLabel="Back to queue"
     >
-      <div className="py-8">
+      <div className="py-8 space-y-8">
+        <WalkthroughControl
+          quoteId={quote.id}
+          initialUrl={quote.walkthrough_url ?? null}
+          completedAt={quote.walkthrough_completed_at ?? null}
+        />
         <ProposalBuilder quote={quote} />
       </div>
     </AdminPageShell>

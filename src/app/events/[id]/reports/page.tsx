@@ -21,6 +21,7 @@ import { ExportMenu } from "@/components/ui/ExportMenu";
 
 import { getUnreadCount } from "@/lib/queries/notifications";
 import { getEventById } from "@/lib/queries/events";
+import { getRebookSlugsForEvent } from "@/lib/queries/rebook";
 import { getEventReports } from "@/lib/queries/event-reports";
 import { getLatestEventMetrics } from "@/lib/queries/event-metrics";
 import { getBenchmarkForComparison } from "@/lib/queries/benchmarks";
@@ -29,6 +30,7 @@ import { ScheduledExportManager } from "@/components/reports/ScheduledExportMana
 import { getScheduledExports } from "@/app/actions/scheduled-exports";
 import { getUser } from "@/lib/auth";
 import { isInternalRole } from "@/lib/roles";
+import { canViewSection } from "@/lib/event-access";
 import {
   costPerLeadPence,
   normaliseHighlights,
@@ -56,6 +58,7 @@ export default async function ReportsPage({
   const user = await getUser();
   if (!user) redirect("/login");
   const { id } = await params;
+  if (!canViewSection(user.role, "reports")) redirect(`/events/${id}`);
   const [event, reports, unread] = await Promise.all([
     getEventById(id),
     getEventReports(id),
@@ -63,6 +66,8 @@ export default async function ReportsPage({
   ]);
   const isInternal = isInternalRole(user.role);
   if (!event) return notFound();
+
+  const rebookSlugs = await getRebookSlugsForEvent(id, event.machineType);
 
   const report = reports?.[0] ?? null;
 
@@ -116,7 +121,7 @@ export default async function ReportsPage({
           <EmptyState
             icon={BarChart3}
             title="Your report is being finalised"
-            description="Your report is being finalized by the team. You'll be notified as soon as it's ready to view."
+            description="Your report is being finalised by the team. You'll be notified as soon as it's ready to view."
           />
         </section>
       </EventPageShell>
@@ -272,7 +277,13 @@ export default async function ReportsPage({
             isPublished={report.isPublished}
           />
         )}
-        <RebookCTA />
+        {(isInternal || report.isPublished) && (
+          <RebookCTA
+            eventType={event.eventType}
+            machineSlug={rebookSlugs.machineSlug}
+            gameSlug={rebookSlugs.gameSlug}
+          />
+        )}
       </section>
     </EventPageShell>
   );

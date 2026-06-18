@@ -11,6 +11,7 @@ import { getQAItemsByEvent } from "@/lib/queries/qa-items";
 import { getUnreadCount } from "@/lib/queries/notifications";
 import { getUser } from "@/lib/auth";
 import { isInternalRole } from "@/lib/roles";
+import { canViewSection } from "@/lib/event-access";
 
 export default async function QAPage({
   params,
@@ -20,7 +21,7 @@ export default async function QAPage({
   const user = await getUser();
   if (!user) redirect("/login");
   const { id } = await params;
-  if (!isInternalRole(user.role)) redirect(`/events/${id}`);
+  if (!canViewSection(user.role, "qa")) redirect(`/events/${id}`);
   const [event, qaItems, unread] = await Promise.all([
     getEventById(id),
     getQAItemsByEvent(id),
@@ -50,7 +51,7 @@ export default async function QAPage({
             action={{ label: "View timeline", href: `/events/${id}/timeline` }}
           />
         ) : (
-          <QAChecklist eventId={id} items={qaItems} isInternal={isInternal} />
+          <QAChecklist eventId={id} items={qaItems} isInternal={isInternal} viewerRole={user.role} />
         )}
       </section>
     </EventPageShell>

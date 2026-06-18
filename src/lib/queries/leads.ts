@@ -49,3 +49,54 @@ export async function getLeadCount(eventId: string) {
   if (error) return 0;
   return count ?? 0;
 }
+
+export interface LeadAggregates {
+  total: number;
+  today: number;
+  topSource: string;
+  /** Leads per hour across the active capture window (first → last lead). */
+  perHour: number;
+}
+
+/**
+ * Aggregate lead metrics across the WHOLE event, not just the current page.
+ *
+ * The leads table is paginated, so any headline computed from the page slice
+ * (today's count, top source) would silently under-report once an event has
+ * more than one page of leads. This scans the lightweight columns for the full
+ * set so the headline cards are always accurate.
+ */
+export async function getLeadAggregates(eventId: string): Promise<LeadAggregates> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("leads")
+    .select("source, captured_at")
+    .eq("event_id", eventId)
+    .order("captured_at", { ascending: true });
+
+  if (error || !data || data.length === 0) {
+    return { total: 0, today: 0, topSource: "—", perHour: 0 };
+  }
+
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+
+  let today = 0;
+  const sourceMap: Record<string, number> = {};
+  for (const lead of data as { source: string; captured_at: string }[]) {
+    if (new Date(lead.captured_at) >= todayStart) today += 1;
+    const src = lead.source || "unknown";
+    sourceMap[src] = (sourceMap[src] ?? 0) + 1;
+  }
+
+  const topSource =
+    Object.entries(sourceMap).sort((a, b) => b[1] - a[1])[0]?.[0] ?? "—";
+
+  const rows = data as { captured_at: string }[];
+  const firstAt = new Date(rows[0].captured_at).getTime();
+  const lastAt = new Date(rows[rows.length - 1].captured_at).getTime();
+  const hours = Math.max((lastAt - firstAt) / 3_600_000, 1);
+  const perHour = Math.round(data.length / hours);
+
+  return { total: data.length, today, topSource, perHour };
+}

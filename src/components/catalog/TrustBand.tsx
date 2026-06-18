@@ -32,17 +32,17 @@ interface TrustBandProps {
 }
 
 const DEFAULT_STATS: [TrustStat, TrustStat, TrustStat] = [
-  { value: "4,800+", label: "Activations delivered" },
-  { value: "1.2M+", label: "Leads captured" },
-  { value: "92%", label: "Client rebook rate" },
+  { value: "Up to 40%", label: "More booth engagement" },
+  { value: "GDPR", label: "Compliant lead capture" },
+  { value: "Turnkey", label: "Delivery, creative & reporting" },
 ];
 
 const DEFAULT_QUOTE: PullQuote = {
   text:
-    "The Bright.Blue team turned what is normally three weeks of agency back-and-forth into one shared workspace. Our trade show booth went from idea to crowd magnet in days.",
-  author: "Amelia Hart",
-  role: "Head of Experiential",
-  company: "Heineken UK",
+    "Bright.Blue brought our DMEXCO booth to life. The interactive machine became a magnet for attendees, giving us both a fun experience and high-quality data — automatically.",
+  author: "Ioana Grapa",
+  role: "Head of Global Events",
+  company: "Storyblok",
 };
 
 export function TrustBand({
@@ -53,7 +53,7 @@ export function TrustBand({
   quote = DEFAULT_QUOTE,
 }: TrustBandProps) {
   return (
-    <Section className="border-t border-white/[0.06]">
+    <Section className="border-t border-border/60">
       <Container size="lg">
         <div className="mx-auto max-w-2xl text-center">
           <p className="text-overline text-muted-foreground mb-2">{eyebrow}</p>

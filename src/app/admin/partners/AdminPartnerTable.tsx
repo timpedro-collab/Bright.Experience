@@ -44,17 +44,17 @@ export function AdminPartnerTable({ partners }: AdminPartnerTableProps) {
 
   if (partners.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center rounded-[var(--radius-card)] border border-white/[0.06] bg-white/[0.02] p-16 text-center">
+      <div className="flex flex-col items-center justify-center rounded-[var(--radius-card)] border border-border/60 bg-muted/40 p-16 text-center">
         <p className="text-sm text-muted-foreground">No partner applications yet</p>
       </div>
     );
   }
 
   return (
-    <div className="rounded-[var(--radius-card)] border border-white/[0.06] bg-white/[0.02] backdrop-blur-sm overflow-hidden">
+    <div className="rounded-[var(--radius-card)] border border-border/60 bg-muted/40 backdrop-blur-sm overflow-hidden">
       <Table>
         <TableHeader>
-          <TableRow className="border-white/[0.06] hover:bg-transparent">
+          <TableRow className="border-border/60 hover:bg-transparent">
             <TableHead className="text-muted-foreground">Company</TableHead>
             <TableHead className="text-muted-foreground">Type</TableHead>
             <TableHead className="text-muted-foreground">Code</TableHead>
@@ -70,7 +70,7 @@ export function AdminPartnerTable({ partners }: AdminPartnerTableProps) {
             const statusConfig = STATUS_MAP[status] ?? STATUS_MAP.pending;
 
             return (
-              <TableRow key={id} className="border-white/[0.06]">
+              <TableRow key={id} className="border-border/60">
                 <TableCell className="font-medium text-foreground">
                   {String(p.company_name ?? p.name ?? "—")}
                 </TableCell>
@@ -78,7 +78,7 @@ export function AdminPartnerTable({ partners }: AdminPartnerTableProps) {
                   {String(p.type ?? "referral")}
                 </TableCell>
                 <TableCell>
-                  <code className="rounded bg-white/[0.06] px-1.5 py-0.5 font-mono text-xs text-brand">
+                  <code className="rounded bg-muted/40 px-1.5 py-0.5 font-mono text-xs text-brand">
                     {String(p.partner_code ?? "—")}
                   </code>
                 </TableCell>

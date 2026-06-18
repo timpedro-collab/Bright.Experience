@@ -1,5 +1,5 @@
 import type { Stage } from "@/types";
-import { STAGE_CONFIG } from "@/types";
+import { stageShortLabelFor } from "@/lib/customer-copy";
 
 const STAGES_ORDERED: Stage[] = [
   "confirmed",
@@ -14,7 +14,13 @@ const STAGES_ORDERED: Stage[] = [
   "complete",
 ];
 
-export function StageProgressBar({ currentStage }: { currentStage: Stage }) {
+export function StageProgressBar({
+  currentStage,
+  isCustomer = false,
+}: {
+  currentStage: Stage;
+  isCustomer?: boolean;
+}) {
   const currentIndex = STAGES_ORDERED.indexOf(currentStage);
 
   return (
@@ -34,7 +40,7 @@ export function StageProgressBar({ currentStage }: { currentStage: Stage }) {
                       ? "bg-success/60"
                       : isCurrent
                         ? "bg-brand"
-                        : "bg-white/[0.06]"
+                        : "bg-muted"
                   }`}
                   style={{
                     width: isPast || isCurrent ? "100%" : "100%",
@@ -51,7 +57,6 @@ export function StageProgressBar({ currentStage }: { currentStage: Stage }) {
       <div className="flex justify-between mt-2">
         {STAGES_ORDERED.filter((_, i) => i % 3 === 0 || i === STAGES_ORDERED.length - 1).map(
           (stage) => {
-            const config = STAGE_CONFIG[stage];
             const isCurrent = stage === currentStage;
             return (
               <span
@@ -61,7 +66,7 @@ export function StageProgressBar({ currentStage }: { currentStage: Stage }) {
                 }`}
                 style={{ fontFamily: "var(--bb-font-overline)" }}
               >
-                {config.shortLabel}
+                {stageShortLabelFor(stage, isCustomer)}
               </span>
             );
           }

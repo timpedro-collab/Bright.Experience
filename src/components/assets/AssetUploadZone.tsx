@@ -32,7 +32,8 @@ import { Button } from "@/components/ui/button";
 import { MachinePreview } from "@/components/assets/MachinePreview";
 import { uploadAsset } from "@/app/actions/assets";
 import { celebrateFromElement } from "@/lib/celebrate";
-import { placementPreviewFor } from "@/lib/asset-requirements/placements";
+import { slotForAsset } from "@/lib/asset-requirements/machine-placements";
+import { DEFAULT_MACHINE_SLUG, type MachineSlug } from "@/lib/asset-requirements/slot-registry";
 import { cn } from "@/lib/utils";
 import type { Asset } from "@/types";
 
@@ -214,7 +215,16 @@ function CriteriaList({ criteria }: { criteria: Criterion[] }) {
   );
 }
 
-export function AssetUploadZone({ asset }: { asset: Asset }) {
+export function AssetUploadZone({
+  asset,
+  machineSlug = DEFAULT_MACHINE_SLUG,
+  asCreative = false,
+}: {
+  asset: Asset;
+  machineSlug?: MachineSlug;
+  /** Creative team uploading on the customer's behalf — tweaks the copy. */
+  asCreative?: boolean;
+}) {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const zoneRef = useRef<HTMLDivElement | null>(null);
@@ -261,7 +271,8 @@ export function AssetUploadZone({ asset }: { asset: Asset }) {
   }, [asset, preview]);
 
   const hasFailures = criteria.some((c) => c.status === "fail");
-  const machine = placementPreviewFor(asset.name);
+  const slot = slotForAsset(asset.name, machineSlug);
+  const machine = slot?.preview ?? null;
 
   async function doUpload() {
     if (!staged) return;
@@ -300,7 +311,9 @@ export function AssetUploadZone({ asset }: { asset: Asset }) {
     }
     toast.success("Asset uploaded", {
       id: toastId,
-      description: "Bright.Blue creative will review and get back to you.",
+      description: asCreative
+        ? "Uploaded on the customer's behalf. Review and approve it in the queue when ready."
+        : "Bright.Blue creative will review and get back to you.",
     });
     celebrateFromElement(zoneRef.current);
     clearStaged();

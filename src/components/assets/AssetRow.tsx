@@ -12,9 +12,9 @@ import {
 
 import { AssetStatusBadge } from "@/components/ui/StatusBadge";
 import { AssetUploadZone } from "@/components/assets/AssetUploadZone";
-import { StudioFixButton } from "@/components/assets/StudioFixButton";
 import { MachinePreview } from "@/components/assets/MachinePreview";
-import { placementPreviewFor } from "@/lib/asset-requirements/placements";
+import { slotForAsset } from "@/lib/asset-requirements/machine-placements";
+import { DEFAULT_MACHINE_SLUG, type MachineSlug } from "@/lib/asset-requirements/slot-registry";
 import { AssetReviewBadge } from "@/components/assets/AssetReviewBadge";
 import { AssetCommentSection } from "@/components/assets/AssetCommentSection";
 import { AssetSpecCard } from "@/components/assets/AssetSpecCard";
@@ -46,9 +46,19 @@ interface AssetRowProps {
   comments?: Comment[];
   commentCount?: number;
   currentUserId?: string;
+  /** Whether the viewer is internal Bright.Blue staff. */
+  isInternal?: boolean;
+  /**
+   * Whether the viewer may upload. Customers always can; among internal
+   * staff only the creative team can (full creative control — upload on the
+   * customer's behalf). Other internal roles see a read-only state.
+   */
+  canUpload?: boolean;
+  /** Catalog machine variant driving the on-machine placement preview. */
+  machineSlug?: MachineSlug;
 }
 
-export function AssetRow({ asset, comments = [], commentCount = 0, currentUserId }: AssetRowProps) {
+export function AssetRow({ asset, comments = [], commentCount = 0, currentUserId, isInternal = false, canUpload = false, machineSlug = DEFAULT_MACHINE_SLUG }: AssetRowProps) {
   const overdue =
     asset.status === "required" &&
     asset.dueDate &&
@@ -96,11 +106,22 @@ export function AssetRow({ asset, comments = [], commentCount = 0, currentUserId
             <h3 className="text-sm font-semibold text-foreground truncate">
               {asset.name}
             </h3>
-            <AssetReviewBadge
-              reviewStatus={asset.reviewStatus}
-              hasUpload={Boolean(asset.fileUrl)}
-            />
-            <AssetStatusBadge status={asset.status} />
+            {(() => {
+              // Single reconciled status pill — never show two competing states.
+              // Terminal upload states win; otherwise surface the review stage.
+              const uploaded = Boolean(asset.fileUrl);
+              if (asset.status === "accepted" || asset.reviewStatus === "approved")
+                return <AssetStatusBadge status="accepted" />;
+              if (asset.status === "rejected")
+                return <AssetStatusBadge status="rejected" />;
+              if (uploaded && asset.reviewStatus === "revision_requested")
+                return (
+                  <AssetReviewBadge reviewStatus="revision_requested" hasUpload />
+                );
+              if (uploaded)
+                return <AssetReviewBadge reviewStatus="pending_review" hasUpload />;
+              return <AssetStatusBadge status={asset.status} />;
+            })()}
           </div>
 
           {asset.description && (
@@ -159,18 +180,20 @@ export function AssetRow({ asset, comments = [], commentCount = 0, currentUserId
           <AssetSpecCard asset={asset} />
 
           {(() => {
-            const machinePreview = placementPreviewFor(asset.name);
+            const slot = slotForAsset(asset.name, machineSlug);
+            if (!slot) return null;
             const fileName = asset.fileName ?? "";
             const isImageUpload =
               Boolean(asset.fileUrl) && /\.(png|jpe?g|webp|gif)$/i.test(fileName);
             const isVideoUpload =
               Boolean(asset.fileUrl) && /\.(mp4|webm|mov)$/i.test(fileName);
-            if (!machinePreview || (!isImageUpload && !isVideoUpload)) return null;
+            const hasPreviewableUpload = isImageUpload || isVideoUpload;
             return (
               <div className="mt-3 max-w-[260px]">
                 <MachinePreview
-                  preview={machinePreview}
-                  overlaySrc={asset.fileUrl}
+                  preview={slot.preview}
+                  slot={slot}
+                  overlaySrc={hasPreviewableUpload ? asset.fileUrl : null}
                   overlayKind={isVideoUpload ? "video" : "image"}
                 />
               </div>
@@ -197,11 +220,24 @@ export function AssetRow({ asset, comments = [], commentCount = 0, currentUserId
                 <p className="text-sm text-foreground/90 whitespace-pre-line leading-snug">
                   {asset.reviewFeedback}
                 </p>
-                <StudioFixButton assetId={asset.id} />
               </div>
             )}
 
-          {needsAction && <AssetUploadZone asset={asset} />}
+          {needsAction &&
+            (canUpload ? (
+              <AssetUploadZone
+                asset={asset}
+                machineSlug={machineSlug}
+                asCreative={isInternal}
+              />
+            ) : isInternal ? (
+              <p className="mt-3 inline-flex items-center gap-1.5 text-overline text-muted-foreground">
+                <Clock className="size-3" />
+                {asset.reviewStatus === "revision_requested"
+                  ? "Waiting on customer to re-upload"
+                  : "Waiting on customer to upload"}
+              </p>
+            ) : null)}
         </div>
 
         <div className="flex md:flex-col md:justify-end md:items-end gap-2">

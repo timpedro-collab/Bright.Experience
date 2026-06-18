@@ -7,6 +7,7 @@ import type { DeadlineItem, DeadlineUrgency } from "@/lib/queries/deadlines";
 
 interface DeadlineTimelineProps {
   deadlines: DeadlineItem[];
+  isInternal?: boolean;
 }
 
 const URGENCY_STYLES: Record<DeadlineUrgency, { dot: string; text: string; badge: string }> = {
@@ -44,12 +45,14 @@ function EntityIcon({ type }: { type: DeadlineItem["entityType"] }) {
   }
 }
 
-export function DeadlineTimeline({ deadlines }: DeadlineTimelineProps) {
+export function DeadlineTimeline({ deadlines, isInternal = false }: DeadlineTimelineProps) {
   if (deadlines.length === 0) {
     return (
       <div className="flex items-center gap-2 py-6 text-sm text-muted-foreground">
         <CheckCircle2 size={16} className="text-success" />
-        No pending deadlines — you&apos;re all clear.
+        {isInternal
+          ? "No pending deadlines on this event."
+          : "Nothing on your plate right now — you're all clear."}
       </div>
     );
   }
@@ -84,7 +87,7 @@ export function DeadlineTimeline({ deadlines }: DeadlineTimelineProps) {
               {idx < deadlines.length - 1 && (
                 <span
                   aria-hidden
-                  className="absolute left-[7px] top-5 bottom-0 w-px bg-white/[0.06]"
+                  className="absolute left-[7px] top-5 bottom-0 w-px bg-border"
                 />
               )}
 
@@ -109,7 +112,7 @@ export function DeadlineTimeline({ deadlines }: DeadlineTimelineProps) {
                   </Badge>
                   <Badge
                     variant="outline"
-                    className="text-[10px] text-muted-foreground border-white/[0.08]"
+                    className="text-[10px] text-muted-foreground border-border"
                   >
                     <EntityIcon type={d.entityType} />
                     <span className="ml-1 capitalize">{d.entityType}</span>
@@ -117,9 +120,11 @@ export function DeadlineTimeline({ deadlines }: DeadlineTimelineProps) {
                 </div>
                 <p className={cn("text-xs mt-0.5", styles.text)}>
                   {formatDateShort(d.dueDate)}
-                  <span className="text-muted-foreground ml-2">
-                    · {d.owner === "customer" ? "Customer" : "Internal"}
-                  </span>
+                  {isInternal && (
+                    <span className="text-muted-foreground ml-2">
+                      · {d.owner === "customer" ? "Customer" : "Internal"}
+                    </span>
+                  )}
                 </p>
               </div>
             </div>

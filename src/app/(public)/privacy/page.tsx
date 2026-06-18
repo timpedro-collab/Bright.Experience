@@ -51,7 +51,7 @@ export default function PrivacyPage() {
           </li>
           <li>
             <strong>Booking data:</strong> event details, dates, venue, package
-            selections, payment information.
+            selections, and billing details for invoicing.
           </li>
           <li>
             <strong>Lead data:</strong> contact details captured at activations
@@ -97,10 +97,9 @@ export default function PrivacyPage() {
       </Block>
       <Block heading="5. Sharing &amp; Transfers">
         <p>
-          We share data only with: payment processors (Stripe), email delivery
-          (Resend), hosting infrastructure (Vercel, Supabase), and — where you
-          have booked via a partner — your referring partner for commission
-          purposes. All processors are bound by data processing agreements.
+          We share data only with: email delivery (Resend), hosting
+          infrastructure (Vercel, Supabase), and — where you have booked via a
+          partner — your referring partner for commission purposes. All processors are bound by data processing agreements.
           Data is stored in the EU/UK; any onward transfer to a third country
           relies on Standard Contractual Clauses or an adequacy decision.
         </p>

@@ -173,7 +173,7 @@ function ComplianceRow({
   }
 
   return (
-    <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.04]">
+    <div className="p-4 rounded-xl bg-muted/40 border border-border/60">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0">
           <span className="shrink-0">{cfg.icon}</span>
@@ -235,7 +235,7 @@ function ComplianceRow({
         </div>
       </div>
 
-      {doc.notes && (
+      {doc.notes && isInternal && (
         <p className="mt-2 text-xs text-muted-foreground ml-7">
           {doc.notes}
         </p>

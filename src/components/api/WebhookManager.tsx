@@ -117,7 +117,7 @@ export function WebhookManager({ subscriptions }: WebhookManagerProps) {
                         "rounded-full px-3 py-1 text-xs font-medium border transition-colors",
                         selectedEvents.includes(evt)
                           ? "bg-brand/20 text-brand border-brand/30"
-                          : "bg-muted text-muted-foreground border-transparent hover:border-white/10"
+                          : "bg-muted text-muted-foreground border-transparent hover:border-border"
                       )}
                     >
                       {evt}

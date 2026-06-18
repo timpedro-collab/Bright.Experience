@@ -52,9 +52,9 @@ describe("ownerForMilestone", () => {
     expect(ownerForMilestone(milestoneId, tasks)).toBeNull();
   });
 
-  it("returns the category-mapped owner of the first blocking incomplete task", () => {
+  it("maps an internal task to its category's team", () => {
     const tasks = [
-      makeTask({ milestoneId, isBlocking: true, category: "creative", status: "pending" }),
+      makeTask({ milestoneId, isBlocking: true, taskType: "internal_action", category: "creative", status: "pending" }),
     ];
     expect(ownerForMilestone(milestoneId, tasks)).toBe("creative");
   });
@@ -66,9 +66,10 @@ describe("ownerForMilestone", () => {
     expect(ownerForMilestone(milestoneId, tasks)).toBeNull();
   });
 
-  it("admin category maps to customer", () => {
+  it("attributes a customer_action to the customer even in a Bright.Blue work area", () => {
     const tasks = [
-      makeTask({ milestoneId, isBlocking: true, category: "admin", status: "pending" }),
+      // "Upload brand guidelines" is creative-category work, but the customer owns it.
+      makeTask({ milestoneId, isBlocking: true, taskType: "customer_action", category: "creative", status: "pending" }),
     ];
     expect(ownerForMilestone(milestoneId, tasks)).toBe("customer");
   });
@@ -85,10 +86,10 @@ describe("groupOpenTasksByOwner", () => {
 
   it("groups by owner and returns them in canonical order", () => {
     const tasks = [
-      makeTask({ status: "pending", category: "qa" }),
-      makeTask({ status: "pending", category: "admin" }),
-      makeTask({ status: "pending", category: "creative" }),
-      makeTask({ status: "pending", category: "operations" }),
+      makeTask({ status: "pending", taskType: "internal_action", category: "qa" }),
+      makeTask({ status: "pending", taskType: "customer_action", category: "creative" }),
+      makeTask({ status: "pending", taskType: "internal_action", category: "creative" }),
+      makeTask({ status: "pending", taskType: "internal_action", category: "operations" }),
     ];
     const buckets = groupOpenTasksByOwner(tasks);
     expect(buckets.map((b) => b.owner)).toEqual([
@@ -99,11 +100,23 @@ describe("groupOpenTasksByOwner", () => {
     ]);
   });
 
-  it("collects all tasks for a given owner into one bucket", () => {
+  it("buckets every customer_action under the customer regardless of work area", () => {
     const tasks = [
-      makeTask({ id: "t1", status: "pending", category: "creative" }),
-      makeTask({ id: "t2", status: "pending", category: "creative" }),
-      makeTask({ id: "t3", status: "pending", category: "qa" }),
+      makeTask({ id: "t1", status: "pending", taskType: "customer_action", category: "creative" }),
+      makeTask({ id: "t2", status: "pending", taskType: "customer_action", category: "operations" }),
+      makeTask({ id: "t3", status: "pending", taskType: "customer_action", category: "logistics" }),
+    ];
+    const buckets = groupOpenTasksByOwner(tasks);
+    expect(buckets).toHaveLength(1);
+    expect(buckets[0].owner).toBe("customer");
+    expect(buckets[0].tasks).toHaveLength(3);
+  });
+
+  it("collects all internal tasks for a given team into one bucket", () => {
+    const tasks = [
+      makeTask({ id: "t1", status: "pending", taskType: "internal_action", category: "creative" }),
+      makeTask({ id: "t2", status: "pending", taskType: "internal_action", category: "creative" }),
+      makeTask({ id: "t3", status: "pending", taskType: "internal_action", category: "qa" }),
     ];
     const buckets = groupOpenTasksByOwner(tasks);
     expect(buckets).toHaveLength(2);

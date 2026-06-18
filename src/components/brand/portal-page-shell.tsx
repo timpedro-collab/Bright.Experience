@@ -86,7 +86,7 @@ export function PortalPageShell({
           <>
             <Link
               href="/help"
-              className="inline-flex items-center justify-center size-9 rounded-[var(--radius-control)] text-muted-foreground hover:text-foreground hover:bg-white/[0.04] transition-colors"
+              className="inline-flex items-center justify-center size-9 rounded-[var(--radius-control)] text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
               aria-label="Help center"
             >
               <HelpCircle size={18} />

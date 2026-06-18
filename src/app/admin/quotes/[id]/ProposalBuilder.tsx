@@ -14,6 +14,19 @@ import { Plus, Trash2 } from "lucide-react";
 
 interface LineItem { label: string; amount: string; category: string }
 
+const SCOPE_LABELS: Record<string, string> = {
+  one_off: "One-off event",
+  campaign: "Part of a wider campaign",
+  series: "A series of events",
+  unsure: "Not sure yet",
+};
+
+/** Readable label for the stored engagement-scope code (falls back to legacy budget value). */
+function scopeLabel(value: unknown): string {
+  if (typeof value !== "string" || !value) return "—";
+  return SCOPE_LABELS[value] ?? value;
+}
+
 interface ProposalBuilderProps {
   quote: Record<string, unknown>;
 }
@@ -118,7 +131,7 @@ function IntakeDataCard({ quote }: { quote: Record<string, unknown> }) {
           )}
         />
         <Row label="Creative" value={String(quote.creative_needs ?? "—")} />
-        <Row label="Budget" value={String(quote.budget_indication ?? "—")} />
+        <Row label="Scope" value={scopeLabel(quote.engagement_scope)} />
         <Separator />
         <Row label="Contact" value={String(quote.contact_name)} />
         <Row label="Email" value={String(quote.contact_email)} />

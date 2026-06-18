@@ -13,9 +13,10 @@ import { ConfigureClient } from "@/components/quotes/ConfigureClient";
 import { getPackageBySlug } from "@/lib/queries/packages";
 import { getMachines } from "@/lib/queries/machines";
 import { getGames } from "@/lib/queries/games";
+import { decodeCapabilityParam } from "@/lib/capabilities";
 
 interface ConfigurePageProps {
-  searchParams: Promise<{ package?: string; machine?: string }>;
+  searchParams: Promise<{ package?: string; machine?: string; addons?: string }>;
 }
 
 export const metadata = {
@@ -26,7 +27,7 @@ export const metadata = {
 export default async function ConfigurePage({
   searchParams,
 }: ConfigurePageProps) {
-  const { package: pkgSlug, machine: machineSlug } = await searchParams;
+  const { package: pkgSlug, machine: machineSlug, addons } = await searchParams;
   if (!pkgSlug) {
     redirect("/catalog/packages");
   }
@@ -37,6 +38,17 @@ export default async function ConfigurePage({
   }
 
   const [machines, games] = await Promise.all([getMachines(), getGames()]);
+
+  // Carry the capability add-ons the customer refined on the quiz match card,
+  // intersected with the add-ons this package actually offers.
+  const offeredSlugs = new Set(
+    ((pkg as { package_addons?: PackageAddonRow[] }).package_addons ?? [])
+      .map((a) => a.capability_slug)
+      .filter(Boolean) as string[]
+  );
+  const preSelectedAddons = decodeCapabilityParam(addons).filter((s) =>
+    offeredSlugs.has(s)
+  );
 
   return (
     <ConfigureClient
@@ -68,6 +80,7 @@ export default async function ConfigurePage({
         category: g.category ?? null,
       }))}
       preSelectedMachine={machineSlug}
+      preSelectedAddons={preSelectedAddons}
     />
   );
 }

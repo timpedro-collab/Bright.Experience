@@ -12,6 +12,7 @@ import { getTasksByEvent } from "@/lib/queries/tasks";
 import { getUnreadCount } from "@/lib/queries/notifications";
 import { getUser } from "@/lib/auth";
 import { isInternalRole } from "@/lib/roles";
+import { canViewSection } from "@/lib/event-access";
 
 export default async function ActionsPage({
   params,
@@ -23,6 +24,7 @@ export default async function ActionsPage({
   const user = await getUser();
   if (!user) redirect("/login");
   const { id } = await params;
+  if (!canViewSection(user.role, "actions")) redirect(`/events/${id}`);
   const { view } = await searchParams;
   const [event, tasks, unread] = await Promise.all([
     getEventById(id),
@@ -71,9 +73,13 @@ export default async function ActionsPage({
           : `${total - completed} item${total - completed === 1 ? "" : "s"} remaining.`
       }
       subtitle={
-        blocking > 0
-          ? `${blocking} blocking action${blocking === 1 ? "" : "s"} need${blocking === 1 ? "s" : ""} your attention to keep delivery on track.`
-          : "Tick off these items to keep your event moving forward."
+        isInternal
+          ? blocking > 0
+            ? `${blocking} blocking item${blocking === 1 ? "" : "s"} in view across the delivery team.`
+            : "Open actions for this event. Switch views to see your own or everyone's."
+          : blocking > 0
+            ? `${blocking} blocking action${blocking === 1 ? "" : "s"} need${blocking === 1 ? "s" : ""} your attention to keep delivery on track.`
+            : "Tick off these items to keep your event moving forward."
       }
       heroRight={
         total > 0 ? (
@@ -135,6 +141,7 @@ export default async function ActionsPage({
               tasks={visibleTasks}
               showInternalTasks={isInternal}
               isInternal={isInternal}
+              viewerRole={user.role}
             />
           </div>
         </section>

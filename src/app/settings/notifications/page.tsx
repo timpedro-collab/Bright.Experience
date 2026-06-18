@@ -25,6 +25,8 @@ import {
   Hairline,
 } from "@/components/brand";
 import { NotificationPreferencesForm } from "@/components/settings/NotificationPreferencesForm";
+import { NotificationTimingForm } from "@/components/settings/NotificationTimingForm";
+import { DEFAULT_DIGEST_TIMING } from "@/lib/notifications/digest-timing";
 
 import { getUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
@@ -39,13 +41,30 @@ export default async function NotificationSettingsPage() {
   if (!user) redirect("/login");
 
   const supabase = await createClient();
-  const [{ data: preferences }, unread] = await Promise.all([
+  const [{ data: preferences }, { data: timingRow }, unread] = await Promise.all([
     supabase
       .from("notification_preferences")
       .select("kind, in_portal, email_mode")
       .eq("user_id", user.id),
+    supabase
+      .from("notification_user_settings")
+      .select("timezone, digest_hour, quiet_start_hour, quiet_end_hour")
+      .eq("user_id", user.id)
+      .maybeSingle(),
     getUnreadCount(user.id),
   ]);
+
+  const timing = {
+    timezone: (timingRow?.timezone as string) ?? DEFAULT_DIGEST_TIMING.timezone,
+    digestHour:
+      (timingRow?.digest_hour as number) ?? DEFAULT_DIGEST_TIMING.digestHour,
+    quietStartHour:
+      (timingRow?.quiet_start_hour as number) ??
+      DEFAULT_DIGEST_TIMING.quietStartHour,
+    quietEndHour:
+      (timingRow?.quiet_end_hour as number) ??
+      DEFAULT_DIGEST_TIMING.quietEndHour,
+  };
 
   const prefMap: Record<
     string,
@@ -96,6 +115,17 @@ export default async function NotificationSettingsPage() {
             </p>
             <div className="mt-6">
               <NotificationPreferencesForm initialPreferences={prefMap} />
+            </div>
+
+            <div className="mt-8">
+              <EditorialEyebrow accent>Digest timing</EditorialEyebrow>
+              <p className="mt-2 text-sm text-muted-foreground max-w-[60ch]">
+                Your daily digest is sent once a day at the local time you
+                choose, and we hold emails during your quiet hours.
+              </p>
+              <div className="mt-6 max-w-md">
+                <NotificationTimingForm initial={timing} />
+              </div>
             </div>
           </div>
 

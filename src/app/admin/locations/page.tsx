@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Pagination } from "@/components/ui/Pagination";
 
 import { getUser } from "@/lib/auth";
-import { isInternalRole } from "@/lib/roles";
+import { canViewLocations } from "@/lib/roles";
 import { getLocationsPaginated } from "@/lib/queries/locations";
 import { getUnreadCount } from "@/lib/queries/notifications";
 import { parsePage } from "@/lib/pagination";
@@ -18,7 +18,7 @@ interface LocationsPageProps {
 export default async function LocationsPage({ searchParams }: LocationsPageProps) {
   const user = await getUser();
   if (!user) redirect("/login");
-  if (!isInternalRole(user.role)) redirect("/");
+  if (!canViewLocations(user.role)) redirect("/");
 
   const params = await searchParams;
   const page = parsePage(params);
@@ -38,8 +38,8 @@ export default async function LocationsPage({ searchParams }: LocationsPageProps
     >
       <section className="py-8">
         <EditorialEyebrow accent>The tier map</EditorialEyebrow>
-        <div className="mt-4 border-t border-b border-border/40 overflow-hidden">
-          <table className="w-full text-sm">
+        <div className="mt-4 border-t border-b border-border/40 overflow-x-auto">
+          <table className="w-full min-w-[640px] text-sm">
             <thead>
               <tr className="border-b border-border/40 text-left">
                 <th className="px-4 py-3 text-overline text-muted-foreground font-normal">

@@ -30,7 +30,7 @@ interface CommandDialogProps extends React.ComponentProps<typeof Dialog> {
 
 const CommandDialog = ({ children, ...props }: CommandDialogProps) => (
   <Dialog {...props}>
-    <DialogContent className="overflow-hidden p-0 max-w-2xl border-white/10 bg-[hsl(233,56%,13%,0.92)] backdrop-blur-2xl shadow-[0_24px_60px_-20px_hsl(0,0%,0%,0.7)]">
+    <DialogContent className="overflow-hidden p-0 max-w-2xl border-border bg-popover/95 backdrop-blur-2xl shadow-[0_24px_60px_-20px_hsl(0,0%,0%,0.35)]">
       <Command
         shouldFilter={props.shouldFilter ?? true}
         className="[&_[cmdk-group-heading]]:px-3 [&_[cmdk-group-heading]]:py-2 [&_[cmdk-group-heading]]:text-overline [&_[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-group]:not([hidden])_~[cmdk-group]]:pt-0 [&_[cmdk-group]]:px-2 [&_[cmdk-input-wrapper]_svg]:h-4 [&_[cmdk-input-wrapper]_svg]:w-4 [&_[cmdk-input]]:h-12 [&_[cmdk-item]]:px-3 [&_[cmdk-item]]:py-2.5 [&_[cmdk-item]_svg]:h-4 [&_[cmdk-item]_svg]:w-4"
@@ -45,7 +45,7 @@ const CommandInput = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.Input>,
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.Input>
 >(({ className, ...props }, ref) => (
-  <div className="flex items-center gap-3 border-b border-white/8 px-4" cmdk-input-wrapper="">
+  <div className="flex items-center gap-3 border-b border-border px-4" cmdk-input-wrapper="">
     <Search className="size-4 shrink-0 text-muted-foreground" />
     <CommandPrimitive.Input
       ref={ref}
@@ -102,7 +102,7 @@ const CommandSeparator = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <CommandPrimitive.Separator
     ref={ref}
-    className={cn("-mx-1 h-px bg-white/8", className)}
+    className={cn("-mx-1 h-px bg-border", className)}
     {...props}
   />
 ));
@@ -116,7 +116,7 @@ const CommandItem = React.forwardRef<
     ref={ref}
     className={cn(
       "relative flex cursor-pointer select-none items-center gap-3 rounded-[var(--radius-control)] px-3 py-2.5 text-sm outline-none",
-      "data-[selected=true]:bg-white/[0.06] data-[selected=true]:text-foreground",
+      "data-[selected=true]:bg-accent data-[selected=true]:text-accent-foreground",
       "data-[disabled=true]:pointer-events-none data-[disabled=true]:opacity-50",
       "transition-colors",
       className

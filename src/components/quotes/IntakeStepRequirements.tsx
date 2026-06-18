@@ -21,10 +21,10 @@ export function IntakeStepRequirements(props: IntakeStepRequirementsProps) {
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="machinePreference">A machine you&apos;ve seen?</Label>
+          <Label htmlFor="machinePreference">A setup you&apos;ve seen?</Label>
           <Input
             id="machinePreference"
-            placeholder="The Claw, the Spin, the Grab — or leave it to us."
+            placeholder="Describe what caught your eye — or leave it to us."
             value={props.machinePreference}
             onChange={(e) => props.onChange("machinePreference", e.target.value)}
           />

@@ -8,14 +8,14 @@ import { Button } from "@/components/ui/button";
 import { CampaignCard } from "@/components/campaigns/CampaignCard";
 
 import { getUser } from "@/lib/auth";
-import { isInternalRole } from "@/lib/roles";
+import { canViewCommercial } from "@/lib/roles";
 import { getCampaigns } from "@/lib/queries/campaigns";
 import { getUnreadCount } from "@/lib/queries/notifications";
 
 export default async function CampaignsAdminPage() {
   const user = await getUser();
   if (!user) redirect("/login");
-  if (!isInternalRole(user.role)) redirect("/");
+  if (!canViewCommercial(user.role)) redirect("/");
 
   const [campaigns, unread] = await Promise.all([
     getCampaigns(),
@@ -64,8 +64,10 @@ export default async function CampaignsAdminPage() {
               No campaigns created yet. Create one to coordinate events
               across locations.
             </p>
-            <Button variant="outline" size="sm">
-              <Plus size={16} /> Create first campaign
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/admin/campaigns/new">
+                <Plus size={16} /> Create first campaign
+              </Link>
             </Button>
           </div>
         ) : (

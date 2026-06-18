@@ -10,24 +10,24 @@ import {
 } from "./edition-shell";
 
 describe("EditionShell", () => {
-  it("applies the theme-light class when theme=light", () => {
+  it("applies the theme-dark class when theme=dark", () => {
     const { container } = render(
-      <EditionShell theme="light">
+      <EditionShell theme="dark">
         <p>hello</p>
       </EditionShell>,
     );
-    expect(container.firstElementChild?.className).toContain("theme-light");
-    expect(container.firstElementChild?.getAttribute("data-theme")).toBe("light");
+    expect(container.firstElementChild?.className).toContain("theme-dark");
+    expect(container.firstElementChild?.getAttribute("data-theme")).toBe("dark");
   });
 
-  it("omits the theme-light class when theme=dark", () => {
+  it("omits the theme-dark class and defaults to light", () => {
     const { container } = render(
-      <EditionShell theme="dark">
+      <EditionShell>
         <p>hi</p>
       </EditionShell>,
     );
-    expect(container.firstElementChild?.className).not.toContain("theme-light");
-    expect(container.firstElementChild?.getAttribute("data-theme")).toBe("dark");
+    expect(container.firstElementChild?.className).not.toContain("theme-dark");
+    expect(container.firstElementChild?.getAttribute("data-theme")).toBe("light");
   });
 });
 

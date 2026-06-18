@@ -9,23 +9,38 @@ import { CheckCircle2 } from "lucide-react";
 import { AdminPageShell } from "@/components/brand";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { AssetReviewQueue } from "@/components/admin/AssetReviewQueue";
+import { AutoRefresh } from "@/components/system/AutoRefresh";
 
 import { getUser } from "@/lib/auth";
-import { isInternalRole } from "@/lib/roles";
-import { getAssetsPendingReview } from "@/lib/queries/assets";
+import { canViewCreativeQueue, canReviewCreativeAssets } from "@/lib/roles";
+import { getAssetsPendingReviewPaginated } from "@/lib/queries/assets";
 import { getUnreadCount } from "@/lib/queries/notifications";
+import { parsePage } from "@/lib/pagination";
+import { Pagination } from "@/components/ui/Pagination";
 
 export const metadata = {
   title: "Asset reviews · Bright.Experience",
 };
 
-export default async function AssetReviewsPage() {
+interface AssetReviewsPageProps {
+  searchParams: Promise<{ page?: string }>;
+}
+
+export default async function AssetReviewsPage({
+  searchParams,
+}: AssetReviewsPageProps) {
   const user = await getUser();
   if (!user) redirect("/login");
-  if (!isInternalRole(user.role)) redirect("/");
+  // Creative-only surface. Events Lead gets read-only oversight; Ops/QA
+  // and customers are bounced.
+  if (!canViewCreativeQueue(user.role)) redirect("/");
+  const canReview = canReviewCreativeAssets(user.role);
 
-  const [pending, unread] = await Promise.all([
-    getAssetsPendingReview(),
+  const params = await searchParams;
+  const page = parsePage(params as Record<string, string | string[] | undefined>);
+
+  const [{ data: pending, totalCount, totalPages }, unread] = await Promise.all([
+    getAssetsPendingReviewPaginated(page),
     getUnreadCount(user.id),
   ]);
 
@@ -36,22 +51,25 @@ export default async function AssetReviewsPage() {
       section="Asset reviews"
       title="Creative review queue."
       subtitle={
-        pending.length === 0
+        totalCount === 0
           ? "Queue empty. Nothing waiting for a creative decision."
-          : `${pending.length} asset${pending.length === 1 ? "" : "s"} waiting for a decision. Oldest first.`
+          : canReview
+            ? `${totalCount} asset${totalCount === 1 ? "" : "s"} waiting for a decision. Oldest first.`
+            : `${totalCount} asset${totalCount === 1 ? "" : "s"} with the Creative team for sign-off. Oversight view — read only.`
       }
       heroRight={
-        pending.length > 0 ? (
+        totalCount > 0 ? (
           <div className="text-overline text-muted-foreground tabular-nums">
             <span className="text-foreground text-base font-semibold">
-              {pending.length}
+              {totalCount}
             </span>{" "}
             pending
           </div>
         ) : null
       }
     >
-      {pending.length === 0 ? (
+      <AutoRefresh />
+      {totalCount === 0 ? (
         <EmptyState
           icon={CheckCircle2}
           title="You're all caught up"
@@ -60,7 +78,12 @@ export default async function AssetReviewsPage() {
         />
       ) : (
         <div className="py-8">
-          <AssetReviewQueue items={pending} />
+          <AssetReviewQueue items={pending} canReview={canReview} />
+          <Pagination
+            currentPage={page}
+            totalPages={totalPages}
+            basePath="/admin/asset-reviews"
+          />
         </div>
       )}
     </AdminPageShell>

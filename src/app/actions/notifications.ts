@@ -51,6 +51,58 @@ export async function markAllRead(): Promise<ActionResult> {
 }
 
 /**
+ * Save the current user's digest delivery timing (timezone + quiet hours).
+ *
+ * Backs the controls on /settings/notifications. The hourly digest cron reads
+ * these values to send each recipient their digest at their own local time.
+ */
+export async function updateNotificationTiming(input: {
+  timezone: string;
+  digestHour: number;
+  quietStartHour: number;
+  quietEndHour: number;
+}): Promise<ActionResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { success: false, error: "Not authenticated" };
+
+  const validHour = (h: number) =>
+    Number.isInteger(h) && h >= 0 && h <= 23 ? h : null;
+  const digestHour = validHour(input.digestHour);
+  const quietStartHour = validHour(input.quietStartHour);
+  const quietEndHour = validHour(input.quietEndHour);
+  if (digestHour === null || quietStartHour === null || quietEndHour === null) {
+    return { success: false, error: "Hours must be between 0 and 23" };
+  }
+
+  try {
+    // Throws RangeError for an unknown IANA zone.
+    new Intl.DateTimeFormat("en-US", { timeZone: input.timezone });
+  } catch {
+    return { success: false, error: "Unknown timezone" };
+  }
+
+  const { error } = await supabase.from("notification_user_settings").upsert(
+    {
+      user_id: user.id,
+      timezone: input.timezone,
+      digest_hour: digestHour,
+      quiet_start_hour: quietStartHour,
+      quiet_end_hour: quietEndHour,
+    },
+    { onConflict: "user_id" },
+  );
+
+  if (error) {
+    return { success: false, error: `Failed to save timing: ${error.message}` };
+  }
+  revalidatePath("/settings/notifications");
+  return { success: true, data: undefined };
+}
+
+/**
  * Create a single ad-hoc notification row.
  *
  * **Prefer `dispatchNotification` from `@/lib/notifications/dispatch` for

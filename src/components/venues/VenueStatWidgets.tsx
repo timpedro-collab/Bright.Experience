@@ -49,7 +49,7 @@ export function DetailRow({
   value: React.ReactNode;
 }) {
   return (
-    <div className="flex items-center justify-between gap-3 border-b border-white/[0.04] py-2 last:border-0">
+    <div className="flex items-center justify-between gap-3 border-b border-border/60 py-2 last:border-0">
       <span className="flex items-center gap-2 text-muted-foreground">
         <Icon size={14} />
         {label}

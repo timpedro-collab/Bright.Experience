@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { EditorialEyebrow } from "@/components/brand";
 import { submitBookNowQuote } from "@/app/actions/quotes";
+import { getCapabilities } from "@/lib/capabilities";
 
 interface CheckoutPageProps {
   searchParams: Promise<{
@@ -42,6 +43,13 @@ export default function CheckoutPage({ searchParams }: CheckoutPageProps) {
   const [terms, setTerms] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Translate raw capability slugs into the customer-facing outcome labels
+  // they saw on the quiz match card (never expose internal slugs at checkout).
+  const addonSlugs = params.addons
+    ? params.addons.split(",").filter(Boolean)
+    : [];
+  const addonLabels = getCapabilities(addonSlugs).map((c) => c.outcome);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -78,10 +86,11 @@ export default function CheckoutPage({ searchParams }: CheckoutPageProps) {
     <section className="mx-auto max-w-2xl px-6 py-16">
       <EditorialEyebrow accent>Book now · Final step</EditorialEyebrow>
       <h1 className="mt-2 text-display text-[clamp(2rem,3.5vw,3rem)] leading-[1.1] text-foreground">
-        Checkout.
+        Confirm your booking.
       </h1>
       <p className="mt-3 max-w-xl text-base text-muted-foreground leading-relaxed">
-        Last few details and we&apos;ll send confirmation within minutes.
+        Share your details and submit your request — your account manager
+        confirms the specifics and arranges invoicing. No card needed today.
       </p>
 
       <form onSubmit={handleSubmit} className="mt-10 space-y-10">
@@ -145,11 +154,8 @@ export default function CheckoutPage({ searchParams }: CheckoutPageProps) {
               <Row label="Start" value={params.dateStart} />
             )}
             {params.dateEnd && <Row label="End" value={params.dateEnd} />}
-            {params.addons && params.addons.length > 0 && (
-              <Row
-                label="Add-ons"
-                value={params.addons.split(",").filter(Boolean).join(", ")}
-              />
+            {addonLabels.length > 0 && (
+              <Row label="Add-ons" value={addonLabels.join(", ")} />
             )}
           </div>
         </section>

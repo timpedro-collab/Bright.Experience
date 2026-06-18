@@ -13,9 +13,12 @@ import { celebrateFromElement } from "@/lib/celebrate";
 export function ApprovalActions({
   approvalId,
   eventId,
+  onBehalf = false,
 }: {
   approvalId: string;
   eventId: string;
+  /** Internal staff recording the decision on the customer's behalf. */
+  onBehalf?: boolean;
 }) {
   const [loading, setLoading] = useState<"approved" | "rejected" | null>(null);
   const [showFeedback, setShowFeedback] = useState(false);
@@ -31,23 +34,33 @@ export function ApprovalActions({
     }
 
     setLoading(decision);
-    const result = await decideApproval(approvalId, eventId, decision, feedback || undefined);
+    const result = await decideApproval(
+      approvalId,
+      eventId,
+      decision,
+      feedback || undefined,
+      onBehalf,
+    );
     setLoading(null);
     if (!result.success) {
-      toast.error("Couldn't save your decision", {
+      toast.error("Couldn't save the decision", {
         description: result.error,
       });
       return;
     }
     setDecided(decision);
     if (decision === "approved") {
-      toast.success("Approved", {
-        description: "We'll let the team know straight away.",
+      toast.success(onBehalf ? "Recorded on the customer's behalf" : "Approved", {
+        description: onBehalf
+          ? "Logged against your name in the activity trail."
+          : "We'll let the team know straight away.",
       });
       celebrateFromElement(approveRef.current);
     } else {
       toast.info("Changes requested", {
-        description: "Your feedback has been shared with the team.",
+        description: onBehalf
+          ? "Logged on the customer's behalf and shared with the team."
+          : "Your feedback has been shared with the team.",
       });
     }
     router.refresh();
@@ -55,7 +68,7 @@ export function ApprovalActions({
 
   if (decided) {
     return (
-      <div className="flex items-center gap-2 mt-4 pt-4 border-t border-white/[0.06]">
+      <div className="flex items-center gap-2 mt-4 pt-4 border-t border-border/60">
         {decided === "approved" ? (
           <span className="flex items-center gap-1.5 text-sm text-success">
             <CheckCircle2 size={16} />
@@ -72,7 +85,13 @@ export function ApprovalActions({
   }
 
   return (
-    <div className="mt-4 pt-4 border-t border-white/[0.06]">
+    <div className="mt-4 pt-4 border-t border-border/60">
+      {onBehalf && (
+        <p className="mb-3 text-xs text-muted-foreground leading-snug max-w-[42ch]">
+          Only record a decision if the customer has asked you to sign off on
+          their behalf — it&apos;s logged against your name.
+        </p>
+      )}
       {showFeedback && (
         <div className="mb-3">
           <label className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1.5">
@@ -84,7 +103,7 @@ export function ApprovalActions({
             onChange={(e) => setFeedback(e.target.value)}
             placeholder="What changes are needed?"
             rows={3}
-            className="w-full px-3 py-2 rounded-[var(--radius-control)] border border-white/[0.08] bg-white/[0.02] text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-ring resize-none"
+            className="w-full px-3 py-2 rounded-[var(--radius-control)] border border-border bg-muted/40 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-ring resize-none"
           />
         </div>
       )}
@@ -101,7 +120,7 @@ export function ApprovalActions({
           ) : (
             <CheckCircle2 size={14} />
           )}
-          Approve
+          {onBehalf ? "Approve for customer" : "Approve"}
         </Button>
         <Button
           onClick={() => handleDecision("rejected")}
@@ -114,7 +133,11 @@ export function ApprovalActions({
           ) : (
             <XCircle size={14} />
           )}
-          {showFeedback ? "Submit changes" : "Request changes"}
+          {showFeedback
+            ? "Submit changes"
+            : onBehalf
+              ? "Request changes for customer"
+              : "Request changes"}
         </Button>
       </div>
     </div>

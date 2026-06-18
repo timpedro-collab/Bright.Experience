@@ -116,7 +116,7 @@ export function MessageThread({
                   "max-w-[70%] rounded-xl p-3",
                   isOwn
                     ? "bg-brand/10 border border-brand/20"
-                    : "bg-white/[0.04] border border-white/[0.06]"
+                    : "bg-muted/40 border border-border/60"
                 )}
               >
                 <div className="flex items-center gap-2 mb-1">
@@ -246,7 +246,7 @@ function ComposeArea({
   }
 
   return (
-    <div className="mt-4 pt-4 border-t border-white/[0.06]">
+    <div className="mt-4 pt-4 border-t border-border/60">
       {isInternal && (
         <div className="flex items-center gap-3 mb-2">
           <button
@@ -264,7 +264,7 @@ function ComposeArea({
           <select
             value={topic}
             onChange={(e) => onTopicChange(e.target.value as MessageTopic)}
-            className="px-2 py-1 rounded-lg border border-white/[0.06] bg-transparent text-xs text-muted-foreground outline-none"
+            className="px-2 py-1 rounded-lg border border-border/60 bg-transparent text-xs text-muted-foreground outline-none"
           >
             {TOPIC_OPTIONS.map((opt) => (
               <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -278,7 +278,7 @@ function ComposeArea({
           {attachments.map((att, i) => (
             <span
               key={i}
-              className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-white/[0.04] border border-white/[0.06] text-xs text-muted-foreground"
+              className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-muted/40 border border-border/60 text-xs text-muted-foreground"
             >
               <FileText size={10} />
               <span className="truncate max-w-[140px]">{att.name}</span>

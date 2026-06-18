@@ -2,8 +2,23 @@
 "use server";
 
 import { requireInternalUser } from "@/lib/auth";
+import { canViewCreativeProduct } from "@/lib/roles";
 import { revalidatePath } from "next/cache";
 import type { ActionResult } from "@/types/actions";
+
+/**
+ * Resolve the acting user and confirm they own the creative/product catalog
+ * (creative_lead, events_lead, admin, developer). Package and case-study
+ * mutations are not a general internal-staff capability — Ops/QA must not
+ * edit, publish, or delete catalog content.
+ */
+async function requireCatalogEditor() {
+  const { supabase, profile } = await requireInternalUser();
+  if (!canViewCreativeProduct(profile.role)) {
+    return { ok: false as const, error: "Forbidden: creative access only" };
+  }
+  return { ok: true as const, supabase };
+}
 
 /** Insert a new package into the catalog. */
 export async function createPackage(data: {
@@ -16,7 +31,9 @@ export async function createPackage(data: {
   featuresJson?: Record<string, unknown>;
   isBookable?: boolean;
 }): Promise<ActionResult<{ id: string }>> {
-  const { supabase } = await requireInternalUser();
+  const auth = await requireCatalogEditor();
+  if (!auth.ok) return { success: false, error: auth.error };
+  const { supabase } = auth;
 
   const { data: pkg, error } = await supabase
     .from("packages")
@@ -54,7 +71,9 @@ export async function updatePackage(
     isBookable: boolean;
   }>,
 ): Promise<ActionResult<{ id: string }>> {
-  const { supabase } = await requireInternalUser();
+  const auth = await requireCatalogEditor();
+  if (!auth.ok) return { success: false, error: auth.error };
+  const { supabase } = auth;
 
   const updates: Record<string, unknown> = {};
   if (data.name !== undefined) updates.name = data.name;
@@ -82,7 +101,9 @@ export async function updatePackage(
 
 /** Delete a package from the catalog. */
 export async function deletePackage(id: string): Promise<ActionResult> {
-  const { supabase } = await requireInternalUser();
+  const auth = await requireCatalogEditor();
+  if (!auth.ok) return { success: false, error: auth.error };
+  const { supabase } = auth;
 
   const { error } = await supabase.from("packages").delete().eq("id", id);
   if (error) {
@@ -103,7 +124,9 @@ export async function createCaseStudy(data: {
   description?: string;
   heroImageUrl?: string;
 }): Promise<ActionResult<{ id: string }>> {
-  const { supabase } = await requireInternalUser();
+  const auth = await requireCatalogEditor();
+  if (!auth.ok) return { success: false, error: auth.error };
+  const { supabase } = auth;
 
   const { data: study, error } = await supabase
     .from("case_studies")
@@ -140,7 +163,9 @@ export async function updateCaseStudy(
     heroImageUrl: string;
   }>,
 ): Promise<ActionResult<{ id: string }>> {
-  const { supabase } = await requireInternalUser();
+  const auth = await requireCatalogEditor();
+  if (!auth.ok) return { success: false, error: auth.error };
+  const { supabase } = auth;
 
   const updates: Record<string, unknown> = {};
   if (data.title !== undefined) updates.title = data.title;
@@ -169,7 +194,9 @@ export async function updateCaseStudy(
 export async function publishCaseStudy(
   id: string,
 ): Promise<ActionResult<{ id: string }>> {
-  const { supabase } = await requireInternalUser();
+  const auth = await requireCatalogEditor();
+  if (!auth.ok) return { success: false, error: auth.error };
+  const { supabase } = auth;
 
   const { data: study, error } = await supabase
     .from("case_studies")
@@ -191,7 +218,9 @@ export async function publishCaseStudy(
 
 /** Delete a case study from the catalog. */
 export async function deleteCaseStudy(id: string): Promise<ActionResult> {
-  const { supabase } = await requireInternalUser();
+  const auth = await requireCatalogEditor();
+  if (!auth.ok) return { success: false, error: auth.error };
+  const { supabase } = auth;
 
   const { error } = await supabase.from("case_studies").delete().eq("id", id);
   if (error) {

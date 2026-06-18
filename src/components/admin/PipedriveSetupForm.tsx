@@ -143,7 +143,7 @@ export function PipedriveSetupForm({ initialValues, tokenConfigured }: Props) {
         />
       </div>
 
-      <div className="flex flex-wrap items-center gap-3 border-t border-white/[0.06] pt-5">
+      <div className="flex flex-wrap items-center gap-3 border-t border-border/60 pt-5">
         <Button type="submit" variant="brand" disabled={pending}>
           {pending ? "Saving…" : "Save settings"}
         </Button>

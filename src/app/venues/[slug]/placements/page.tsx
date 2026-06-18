@@ -85,7 +85,7 @@ export default async function PlacementsPage({ params }: Props) {
                 {placements.map((p) => (
                   <div
                     key={p.id}
-                    className="flex items-center justify-between rounded-lg border border-white/[0.06] p-4"
+                    className="flex items-center justify-between rounded-lg border border-border/60 p-4"
                   >
                     <div className="space-y-1">
                       <p className="text-sm font-medium text-foreground">

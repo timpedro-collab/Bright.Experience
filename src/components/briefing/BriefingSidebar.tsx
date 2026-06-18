@@ -5,9 +5,76 @@ import { EditorialEyebrow, Hairline } from "@/components/brand";
 interface BriefingSidebarProps {
   activeTab: "creative" | "ops";
   eventId: string;
+  isInternal?: boolean;
 }
 
-export function BriefingSidebar({ activeTab, eventId }: BriefingSidebarProps) {
+export function BriefingSidebar({ activeTab, eventId, isInternal = false }: BriefingSidebarProps) {
+  if (isInternal) {
+    return (
+      <aside className="space-y-8 lg:border-l lg:border-border/40 lg:pl-8">
+        {activeTab === "creative" ? (
+          <>
+            <div>
+              <EditorialEyebrow>How to use this</EditorialEyebrow>
+              <p className="mt-3 text-sm text-muted-foreground leading-relaxed">
+                These are the customer&apos;s own words. Anchor the creative to
+                them — brand voice, on-screen copy, and the cues that land with
+                their audience.
+              </p>
+            </div>
+            <Hairline />
+            <div>
+              <EditorialEyebrow>What to check for</EditorialEyebrow>
+              <NumberedList
+                items={[
+                  "Gaps or vague answers to raise on the kickoff call",
+                  "Must-include elements and things to avoid",
+                  "Brand colours and reference material in the files",
+                ]}
+              />
+            </div>
+          </>
+        ) : (
+          <>
+            <div>
+              <EditorialEyebrow>How to use this</EditorialEyebrow>
+              <p className="mt-3 text-sm text-muted-foreground leading-relaxed">
+                The customer&apos;s logistics detail for the build. Confirm
+                anything missing before locking the delivery plan.
+              </p>
+            </div>
+            <Hairline />
+            <div>
+              <EditorialEyebrow>What to check for</EditorialEyebrow>
+              <NumberedList
+                items={[
+                  "Venue access, power, and connectivity confirmed",
+                  "Risk assessment and H&S documentation in place",
+                  "Loading, parking, and staffing needs covered",
+                ]}
+              />
+            </div>
+          </>
+        )}
+
+        <Hairline />
+
+        <div>
+          <EditorialEyebrow>Need detail?</EditorialEyebrow>
+          <p className="mt-3 text-sm text-muted-foreground leading-relaxed">
+            Anything unclear or missing? Message the customer to fill the gaps.
+          </p>
+          <Link
+            href={`/events/${eventId}/communications`}
+            className="mt-3 inline-block text-overline text-[var(--color-bb-cobalt)] underline decoration-from-font underline-offset-4 font-medium"
+          >
+            Message the customer →
+          </Link>
+        </div>
+      </aside>
+    );
+  }
+
   return (
     <aside className="space-y-8 lg:border-l lg:border-border/40 lg:pl-8">
       {activeTab === "creative" ? (

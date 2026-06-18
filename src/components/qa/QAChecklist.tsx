@@ -12,13 +12,17 @@ import { updateQAItem, addQAItem } from "@/app/actions/qa";
 import { celebrateFromElement } from "@/lib/celebrate";
 import { CelebrationCheck } from "@/components/ui/CelebrationCheck";
 import { AllClearState } from "@/components/ui/AllClearState";
-import type { QAItem, QACategory } from "@/types";
+import { QASignOffPanel } from "@/components/qa/QASignOffPanel";
+import type { QAItem, QACategory, UserRole } from "@/types";
 
 interface QAChecklistProps {
   eventId: string;
   items: QAItem[];
   isInternal: boolean;
+  viewerRole?: UserRole;
 }
+
+const QA_SIGN_OFF_ROLES: UserRole[] = ["qa_lead", "events_lead", "admin", "developer"];
 
 const CATEGORY_LABELS: Record<QACategory, string> = {
   machine: "Machine",
@@ -39,12 +43,17 @@ const STATUS_CONFIG = {
   na: { label: "N/A", className: "bg-muted text-muted-foreground" },
 } as const;
 
-export function QAChecklist({ eventId, items, isInternal }: QAChecklistProps) {
+export function QAChecklist({ eventId, items, isInternal, viewerRole }: QAChecklistProps) {
   const grouped = groupByCategory(items);
 
   const passed = items.filter((i) => i.status === "passed").length;
   const total = items.filter((i) => i.status !== "na").length;
   const readinessScore = total > 0 ? Math.round((passed / total) * 100) : 0;
+  const outstanding = items.filter(
+    (i) => i.status !== "passed" && i.status !== "fixed" && i.status !== "na",
+  ).length;
+  const allResolved = items.length > 0 && outstanding === 0;
+  const canSignOff = viewerRole ? QA_SIGN_OFF_ROLES.includes(viewerRole) : false;
 
   return (
     <div className="space-y-8">
@@ -53,11 +62,13 @@ export function QAChecklist({ eventId, items, isInternal }: QAChecklistProps) {
           {readinessScore}%
         </span>
         <span className="text-overline text-muted-foreground">
-          readiness · {passed} of {total} checks passed
+          checks complete · {passed} of {total} passed
         </span>
       </div>
 
-      {readinessScore === 100 && <AllClearState variant="qa" />}
+      {allResolved && <AllClearState variant="qa" />}
+
+      {allResolved && canSignOff && <QASignOffPanel eventId={eventId} />}
 
       {Object.entries(grouped).map(([category, categoryItems]) => (
         <section key={category}>
@@ -108,7 +119,7 @@ function QARow({ item, isInternal }: { item: QAItem; isInternal: boolean }) {
   }
 
   return (
-    <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.04]">
+    <div className="p-3 rounded-xl bg-muted/40 border border-border/60">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0">
           <StatusIcon status={item.status} />
@@ -163,7 +174,7 @@ function QARow({ item, isInternal }: { item: QAItem; isInternal: boolean }) {
             onChange={(e) => setNotes(e.target.value)}
             placeholder="Describe the failure…"
             rows={2}
-            className="w-full px-3 py-2 rounded-[var(--radius-control)] border border-white/[0.08] bg-white/[0.02] text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-ring resize-none"
+            className="w-full px-3 py-2 rounded-[var(--radius-control)] border border-border bg-muted/40 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-ring resize-none"
           />
           <div className="flex gap-2">
             <Button size="sm" variant="brand" onClick={() => handleAction("failed")}>
@@ -229,17 +240,17 @@ function AddQAItemForm({ eventId }: { eventId: string }) {
   }
 
   return (
-    <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 space-y-3">
+    <div className="rounded-xl border border-border/60 bg-muted/40 p-4 space-y-3">
       <input
         value={title}
         onChange={(e) => setTitle(e.target.value)}
         placeholder="Check title"
-        className="w-full px-3 py-2 rounded-[var(--radius-control)] border border-white/[0.08] bg-white/[0.02] text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-ring"
+        className="w-full px-3 py-2 rounded-[var(--radius-control)] border border-border bg-muted/40 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-ring"
       />
       <select
         value={category}
         onChange={(e) => setCategory(e.target.value)}
-        className="px-3 py-2 rounded-[var(--radius-control)] border border-white/[0.08] bg-white/[0.02] text-sm text-foreground outline-none focus:ring-2 focus:ring-ring"
+        className="px-3 py-2 rounded-[var(--radius-control)] border border-border bg-muted/40 text-sm text-foreground outline-none focus:ring-2 focus:ring-ring"
       >
         {Object.entries(CATEGORY_LABELS).map(([key, label]) => (
           <option key={key} value={key}>

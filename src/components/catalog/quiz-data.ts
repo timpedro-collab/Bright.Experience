@@ -47,10 +47,10 @@ export const QUIZ_STEPS: QuizStep[] = [
         description: "Eyes on the brand. Dwell time, share-worthy moments.",
       },
       {
-        label: "Build a pipeline",
+        label: "Capture leads",
         value: "lead-generation",
         icon: "target",
-        description: "Opted-in contacts straight into your CRM.",
+        description: "Collect opted-in contacts and first-party data from every play.",
       },
       {
         label: "Put product in hands",
@@ -59,16 +59,22 @@ export const QUIZ_STEPS: QuizStep[] = [
         description: "Win-to-unlock sampling that earns its sticker price.",
       },
       {
-        label: "Throw a crowd-pleaser",
-        value: "entertainment",
-        icon: "gamepad-2",
-        description: "Pure delight. Queues that move themselves.",
+        label: "Gather insight",
+        value: "research",
+        icon: "lightbulb",
+        description: "Survey and qualifying questions built into play — so sales follow up with context, not just a name and email.",
       },
       {
-        label: "Recharge the team",
-        value: "employee-engagement",
-        icon: "users",
-        description: "Internal play with branded prizes — morale you can measure.",
+        label: "Launch something new",
+        value: "product-launch",
+        icon: "rocket",
+        description: "Put a new product or campaign in the spotlight with a moment that lands.",
+      },
+      {
+        label: "Grow our following",
+        value: "social",
+        icon: "share-2",
+        description: "Follow-to-unlock and social gates that turn plays into new followers.",
       },
     ],
   },
@@ -243,6 +249,18 @@ export interface QuizRecommendation {
   preSelectedCapabilities: string[];
   /** The signals we extracted from the answers — handed to the proposal route so the form is pre-filled. */
   signals: QuizSignals;
+  /**
+   * Every goal the customer picked on the (multi-select) first step, in the
+   * order they were chosen. Surfaced back to them on the match card so the
+   * experience visibly remembers what they said they wanted.
+   */
+  goals: string[];
+}
+
+/** The customer-facing label for a goal value, as it appeared on step 1. */
+export function goalLabel(value: string): string {
+  const opt = QUIZ_STEPS[0].options.find((o) => o.value === value);
+  return opt?.label ?? value;
 }
 
 /**
@@ -269,9 +287,10 @@ export function getRecommendation(
   const wantsLeads = objectives.includes("lead-generation");
   const wantsSampling = objectives.includes("sampling");
   const wantsAwareness = objectives.includes("brand-awareness");
-  const wantsEntertainment =
-    objectives.includes("entertainment") ||
-    objectives.includes("employee-engagement");
+  const wantsEngagement =
+    objectives.includes("research") ||
+    objectives.includes("product-launch") ||
+    objectives.includes("social");
   const isLargeCrowd =
     footfall === "2000-5000" || footfall === "5000-plus";
   const isOpenSpace =
@@ -293,7 +312,7 @@ export function getRecommendation(
           machineName: "Experience Portal Compact",
           packageName: "Single day",
         };
-  } else if (wantsLeads || wantsAwareness || wantsEntertainment) {
+  } else if (wantsLeads || wantsAwareness || wantsEngagement) {
     const tourScale = isLargeCrowd && isOpenSpace;
     match = tourScale
       ? {
@@ -357,5 +376,6 @@ export function getRecommendation(
     match,
     preSelectedCapabilities: preSelected,
     signals: primarySignals,
+    goals: objectives,
   };
 }

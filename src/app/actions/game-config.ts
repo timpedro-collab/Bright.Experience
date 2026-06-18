@@ -9,7 +9,20 @@ import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { getUser } from "@/lib/auth";
 import { isInternalRole } from "@/lib/roles";
+import { autoCompleteTaskByPath } from "@/app/actions/tasks";
 import type { ActionResult } from "@/types/actions";
+import type { MachineLane } from "@/lib/configuration/machine-config";
+
+// Re-exported for backwards compatibility — the machine build types + the
+// SPIRAL_SIZES value now live in a plain module (a "use server" file may
+// only export async functions). Import the SPIRAL_SIZES *value* directly
+// from "@/lib/configuration/machine-config".
+export type {
+  MachineMechanism,
+  MachineWidth,
+  SpiralSize,
+  MachineLane,
+} from "@/lib/configuration/machine-config";
 
 export type PrizeMode = "random" | "score_based" | "guaranteed";
 export type GameConfigStatus = "draft" | "submitted" | "configured" | "tested";
@@ -49,10 +62,11 @@ export interface GameConfiguration {
 export interface ProductConfiguration {
   id: string;
   eventId: string;
-  productsJson: { name: string; sku?: string; slot?: number; stockRatio?: number; preparationNotes?: string; imageUrl?: string }[];
+  productsJson: { name: string; sku?: string; slot?: number; stockRatio?: number; imageUrl?: string }[];
   totalUnits: number | null;
   samplesReceivedAt: string | null;
   samplesTested: boolean;
+  machineConfigJson: MachineLane[];
   notes: string | null;
   createdAt: string;
   updatedAt: string;
@@ -86,6 +100,7 @@ function mapProductConfig(row: Record<string, unknown>): ProductConfiguration {
     totalUnits: (row.total_units as number | null) ?? null,
     samplesReceivedAt: (row.samples_received_at as string | null) ?? null,
     samplesTested: Boolean(row.samples_tested),
+    machineConfigJson: (row.machine_config_json as MachineLane[]) ?? [],
     notes: (row.notes as string | null) ?? null,
     createdAt: row.created_at as string,
     updatedAt: row.updated_at as string,
@@ -131,6 +146,15 @@ export async function saveGameConfiguration(
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { success: false, error: "Not authenticated" };
 
+  // QA verifies the configuration; it does not author it.
+  const profile = await getUser();
+  if (profile && profile.role === "qa_lead") {
+    return {
+      success: false,
+      error: "QA can verify the configuration but not edit it.",
+    };
+  }
+
   const now = new Date().toISOString();
   const upsertData: Record<string, unknown> = {
     event_id: eventId,
@@ -155,6 +179,14 @@ export async function saveGameConfiguration(
     .upsert(upsertData, { onConflict: "event_id" });
 
   if (error) return { success: false, error: `Save failed: ${error.message}` };
+
+  // Submitting (not just saving a draft) is what fulfils the customer's
+  // "Confirm prize details and quantities" task, so close it out here rather
+  // than letting anyone tick it off without entering the details.
+  if (submit) {
+    await autoCompleteTaskByPath(eventId, "configuration");
+  }
+
   revalidatePath(`/events/${eventId}/configuration`);
   return { success: true, data: undefined };
 }
@@ -171,6 +203,16 @@ export async function saveProductConfiguration(
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { success: false, error: "Not authenticated" };
 
+  // QA verifies the configuration; it does not author it. Mirrors
+  // saveGameConfiguration so QA/Ops can't author the customer's product mix.
+  const profile = await getUser();
+  if (profile && profile.role === "qa_lead") {
+    return {
+      success: false,
+      error: "QA can verify the configuration but not edit it.",
+    };
+  }
+
   const { error } = await supabase
     .from("product_configurations")
     .upsert({
@@ -182,6 +224,62 @@ export async function saveProductConfiguration(
     }, { onConflict: "event_id" });
 
   if (error) return { success: false, error: `Save failed: ${error.message}` };
+
+  // Product configuration has no separate "submit" step — providing at least
+  // one product is the customer supplying their prize/sampling details, so
+  // that fulfils the "Confirm prize details and quantities" task.
+  if (config.productsJson.length > 0) {
+    await autoCompleteTaskByPath(eventId, "configuration");
+  }
+
+  revalidatePath(`/events/${eventId}/configuration`);
+  return { success: true, data: undefined };
+}
+
+/**
+ * Save the physical machine build (lanes) + sample handling for an event.
+ *
+ * Operations authors this; QA verifies but does not edit (mirrors the game
+ * configuration rule). Merges onto the existing product_configurations row so
+ * the customer's product mix and notes are untouched.
+ */
+export async function saveMachineConfiguration(
+  eventId: string,
+  config: {
+    machineConfigJson: MachineLane[];
+    samplesReceivedAt?: string | null;
+    samplesTested?: boolean;
+  }
+): Promise<ActionResult> {
+  const user = await getUser();
+  if (!user) return { success: false, error: "Not authenticated" };
+  if (!isInternalRole(user.role)) {
+    return { success: false, error: "Only the Bright.Blue team configures the machine." };
+  }
+  if (user.role === "qa_lead") {
+    return { success: false, error: "QA can verify the machine build but not edit it." };
+  }
+
+  const supabase = await createClient();
+  const upsertData: Record<string, unknown> = {
+    event_id: eventId,
+    machine_config_json: config.machineConfigJson,
+    updated_at: new Date().toISOString(),
+  };
+  if (config.samplesReceivedAt !== undefined) {
+    upsertData.samples_received_at = config.samplesReceivedAt;
+  }
+  if (config.samplesTested !== undefined) {
+    upsertData.samples_tested = config.samplesTested;
+  }
+
+  const { error } = await supabase
+    .from("product_configurations")
+    .upsert(upsertData, { onConflict: "event_id" });
+
+  if (error) return { success: false, error: `Save failed: ${error.message}` };
+
+  revalidatePath(`/events/${eventId}/machine`);
   revalidatePath(`/events/${eventId}/configuration`);
   return { success: true, data: undefined };
 }

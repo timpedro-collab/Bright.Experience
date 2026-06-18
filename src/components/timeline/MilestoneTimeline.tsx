@@ -49,8 +49,8 @@ export function MilestoneTimeline({
                   isComplete
                     ? "bg-success/30"
                     : isActive
-                      ? "bg-gradient-to-b from-brand/30 to-white/[0.06]"
-                      : "bg-white/[0.06]"
+                      ? "bg-gradient-to-b from-brand/30 to-border"
+                      : "bg-border"
                 }`}
                 style={{ bottom: compact ? "-4px" : "-8px" }}
               />
@@ -71,7 +71,7 @@ export function MilestoneTimeline({
                   <ArrowRight size={14} className="text-brand" />
                 </div>
               ) : (
-                <div className="flex h-[30px] w-[30px] items-center justify-center rounded-full bg-white/[0.04] ring-2 ring-white/[0.08]">
+                <div className="flex h-[30px] w-[30px] items-center justify-center rounded-full bg-muted/40 ring-2 ring-border">
                   <Circle size={10} className="text-muted-foreground" />
                 </div>
               )}
@@ -126,7 +126,7 @@ export function MilestoneTimeline({
                     className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium leading-none ${
                       waitingLabel === "Waiting on you"
                         ? "border border-warning/30 bg-warning/10 text-warning"
-                        : "border border-white/[0.08] bg-white/[0.04] text-muted-foreground"
+                        : "border border-border bg-muted/40 text-muted-foreground"
                     }`}
                   >
                     {waitingLabel}

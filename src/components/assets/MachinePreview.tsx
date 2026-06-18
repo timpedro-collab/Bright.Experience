@@ -22,6 +22,8 @@ import {
   type PlacementPreview,
   type Rect,
 } from "@/lib/asset-requirements/placements";
+import type { PlacementSlotDefinition } from "@/lib/asset-requirements/slot-registry";
+import { PlacementPlaceholder } from "@/components/assets/PlacementPlaceholder";
 
 const EASE = "cubic-bezier(0.4, 0, 0.2, 1)";
 
@@ -29,6 +31,8 @@ export function MachinePreview({
   preview,
   overlaySrc,
   overlayKind = "image",
+  slot,
+  showPlaceholder = true,
   className,
   debug = false,
 }: {
@@ -37,6 +41,14 @@ export function MachinePreview({
   overlaySrc?: string | null;
   /** Whether the creative is a still or a video (autoplays muted/looping). */
   overlayKind?: "image" | "video";
+  /**
+   * Slot definition driving the labeled placeholder when no creative is
+   * present. This is the seam Theo extends: once real art/preview lands the
+   * placeholder simply stops rendering (or `showPlaceholder` is turned off).
+   */
+  slot?: PlacementSlotDefinition;
+  /** Render the labeled placeholder when `overlaySrc` is absent. Defaults to true. */
+  showPlaceholder?: boolean;
   className?: string;
   /** Draw an outline on the overlay rect (calibration aid). */
   debug?: boolean;
@@ -108,6 +120,16 @@ export function MachinePreview({
                 style={overlayRectStyle}
               />
             )
+          ) : showPlaceholder && slot ? (
+            <PlacementPlaceholder
+              slot={slot}
+              style={{
+                left: `${overlay.x}%`,
+                top: `${overlay.y}%`,
+                width: `${overlay.w}%`,
+                height: `${overlay.h}%`,
+              }}
+            />
           ) : null}
           {debug ? (
             <div

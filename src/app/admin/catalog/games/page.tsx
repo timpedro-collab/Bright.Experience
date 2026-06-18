@@ -5,14 +5,14 @@ import { AdminPageShell, EditorialEyebrow } from "@/components/brand";
 import { GamesTable } from "@/components/catalog/GamesTable";
 
 import { getUser } from "@/lib/auth";
-import { isInternalRole } from "@/lib/roles";
+import { canViewCreativeProduct } from "@/lib/roles";
 import { getAllGames } from "@/lib/queries/admin-catalog";
 import { getUnreadCount } from "@/lib/queries/notifications";
 
 export default async function GamesAdminPage() {
   const user = await getUser();
   if (!user) redirect("/login");
-  if (!isInternalRole(user.role)) redirect("/");
+  if (!canViewCreativeProduct(user.role)) redirect("/");
 
   const [games, unread] = await Promise.all([
     getAllGames(),

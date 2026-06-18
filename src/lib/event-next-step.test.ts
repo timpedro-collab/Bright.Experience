@@ -110,12 +110,12 @@ describe("resolveEventNextStep", () => {
     expect(step?.primaryAction.href).toBe("/events/evt-1/assets");
   });
 
-  it("falls through to the per-stage default for the customer view", () => {
+  it("routes the customer to a safe destination at qa_readiness (never /qa)", () => {
     const step = resolveEventNextStep({
       ...base,
       event: makeEvent({ currentStage: "qa_readiness" }),
     });
-    expect(step?.primaryAction.href).toBe("/events/evt-1/qa");
+    expect(step?.primaryAction.href).toBe("/events/evt-1/timeline");
     expect(step?.eyebrow).toMatch(/quality assurance/i);
   });
 
@@ -127,6 +127,43 @@ describe("resolveEventNextStep", () => {
     });
     expect(step?.primaryAction.href).toBe("/events/evt-1/qa");
     expect(step?.eyebrow).toMatch(/QA in progress/i);
+  });
+
+  it("never sends the customer to sections they cannot open", () => {
+    const forbidden = ["/qa", "/logistics", "/activity"];
+    const stages = [
+      "confirmed",
+      "kickoff_complete",
+      "creative_assets",
+      "approvals",
+      "build_configuration",
+      "qa_readiness",
+      "logistics_confirmed",
+      "event_live",
+      "reporting",
+      "complete",
+    ] as const;
+    for (const stage of stages) {
+      const step = resolveEventNextStep({
+        ...base,
+        event: makeEvent({ currentStage: stage }),
+      });
+      for (const f of forbidden) {
+        expect(step?.primaryAction.href.endsWith(f)).toBe(false);
+        if (step?.secondaryAction) {
+          expect(step.secondaryAction.href.endsWith(f)).toBe(false);
+        }
+      }
+    }
+  });
+
+  it("gives the customer a non-jargon CTA when health is red", () => {
+    const step = resolveEventNextStep({
+      ...base,
+      event: makeEvent({ healthStatus: "red" }),
+    });
+    expect(step?.primaryAction.href).toBe("/events/evt-1/actions");
+    expect(step?.description).not.toMatch(/block/i);
   });
 });
 

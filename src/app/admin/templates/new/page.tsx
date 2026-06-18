@@ -5,13 +5,13 @@ import { AdminPageShell } from "@/components/brand";
 import { CreateTemplateForm } from "@/components/templates/CreateTemplateForm";
 
 import { getUser } from "@/lib/auth";
-import { isInternalRole } from "@/lib/roles";
+import { canViewCommercial } from "@/lib/roles";
 import { getUnreadCount } from "@/lib/queries/notifications";
 
 export default async function NewTemplatePage() {
   const user = await getUser();
   if (!user) redirect("/login");
-  if (!isInternalRole(user.role)) redirect("/");
+  if (!canViewCommercial(user.role)) redirect("/");
 
   const unread = await getUnreadCount(user.id);
 

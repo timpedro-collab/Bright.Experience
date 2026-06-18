@@ -2,7 +2,7 @@
 "use server";
 
 import { requireInternalUser } from "@/lib/auth";
-import { createClient } from "@/lib/supabase/server";
+import { canViewCommercial } from "@/lib/roles";
 import { getServiceRoleClient } from "@/lib/supabase/service-role";
 import { getPostShowReport } from "@/lib/brightblue/client";
 import { revalidatePath } from "next/cache";
@@ -166,37 +166,45 @@ export async function publishReport(reportId: string) {
 
   const shareToken = crypto.randomUUID();
 
-  const { error } = await supabase
+  const { data: report, error } = await supabase
     .from("event_reports")
     .update({
       is_published: true,
       share_token: shareToken,
       published_at: new Date().toISOString(),
     })
-    .eq("id", reportId);
+    .eq("id", reportId)
+    .select("event_id")
+    .single();
 
   if (error) {
     return { success: false as const, error: "Failed to publish report" };
   }
 
   revalidatePath("/admin/reports");
+  if (report?.event_id) revalidatePath(`/events/${report.event_id}/reports`);
+  revalidatePath(`/report/${shareToken}`);
   return { success: true as const, data: { shareToken } };
 }
 
 /** Unpublish a report: removes public access. */
 export async function unpublishReport(reportId: string) {
-  const supabase = await createClient();
+  const { supabase } = await requireInternalUser();
 
-  const { error } = await supabase
+  const { data: report, error } = await supabase
     .from("event_reports")
     .update({ is_published: false })
-    .eq("id", reportId);
+    .eq("id", reportId)
+    .select("event_id, share_token")
+    .single();
 
   if (error) {
     return { success: false as const, error: "Failed to unpublish report" };
   }
 
   revalidatePath("/admin/reports");
+  if (report?.event_id) revalidatePath(`/events/${report.event_id}/reports`);
+  if (report?.share_token) revalidatePath(`/report/${report.share_token}`);
   return { success: true as const, data: { id: reportId } };
 }
 
@@ -207,7 +215,10 @@ export async function unpublishReport(reportId: string) {
  * median for core metrics, then upserts into the benchmarks table.
  */
 export async function updateBenchmarks() {
-  await requireInternalUser();
+  const { profile } = await requireInternalUser();
+  if (!canViewCommercial(profile.role)) {
+    return { success: false as const, error: "Only commercial staff can update benchmarks" };
+  }
   const supabase = getServiceRoleClient();
 
   const { data: events, error: evtErr } = await supabase

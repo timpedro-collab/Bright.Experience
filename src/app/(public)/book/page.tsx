@@ -17,7 +17,7 @@ import { RidgeArtwork, EditorialEyebrow } from "@/components/brand";
 export const metadata: Metadata = {
   title: "Book Now",
   description:
-    "Choose a Bright.Blue package, configure your machine and game, and check out in minutes.",
+    "Choose a Bright.Blue package, configure your machine and game, and submit your booking request in minutes.",
 };
 
 export default async function BookPage() {
@@ -47,7 +47,7 @@ export default async function BookPage() {
         </div>
         <Container className="relative pt-20 md:pt-24 pb-10 text-center">
           <EditorialEyebrow accent className="mb-3 inline-block">
-            Self-serve · Booked in minutes
+            Self-serve · Request in minutes
           </EditorialEyebrow>
           <h1
             id="book-hero"
@@ -57,7 +57,8 @@ export default async function BookPage() {
           </h1>
           <p className="mt-4 max-w-2xl mx-auto text-muted-foreground md:text-lg leading-relaxed">
             Choose a package that fits your event. Configure your machine,
-            game, and add-ons — then checkout in minutes.
+            game, and add-ons — then send your booking request and we&apos;ll
+            confirm the details.
           </p>
         </Container>
       </section>

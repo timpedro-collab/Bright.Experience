@@ -7,7 +7,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { RecommendationCard } from "@/components/campaigns/RecommendationCard";
 
 import { getUser } from "@/lib/auth";
-import { isInternalRole } from "@/lib/roles";
+import { canViewCommercial } from "@/lib/roles";
 import { getRecommendations } from "@/lib/queries/recommendations";
 import { getUnreadCount } from "@/lib/queries/notifications";
 
@@ -26,7 +26,7 @@ const CATEGORY_LABELS: Record<string, string> = {
 export default async function RecommendationsPage() {
   const user = await getUser();
   if (!user) redirect("/login");
-  if (!isInternalRole(user.role)) redirect("/");
+  if (!canViewCommercial(user.role)) redirect("/");
 
   const [allRecs, unread] = await Promise.all([
     getRecommendations(),

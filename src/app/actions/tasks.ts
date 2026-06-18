@@ -13,16 +13,69 @@ import { createClient } from "@/lib/supabase/server";
 import { getServiceRoleClient } from "@/lib/supabase/service-role";
 import { revalidatePath } from "next/cache";
 import { dispatchNotification } from "@/lib/notifications/dispatch";
+import { isInternalRole } from "@/lib/roles";
 import { bumpStreak } from "./streak";
 import type { ActionResult } from "@/types/actions";
+import type { UserRole } from "@/types";
 
-/** Mark a task as complete — clears blocking gates when applicable. */
-export async function completeTask(taskId: string): Promise<ActionResult> {
+type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
+
+/** Resolve the caller's role from their profile (request-scoped client). */
+async function getActorRole(
+  supabase: SupabaseServerClient,
+  userId: string
+): Promise<UserRole | undefined> {
+  const { data } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", userId)
+    .maybeSingle();
+  return (data?.role as UserRole | undefined) ?? undefined;
+}
+
+/**
+ * Mark a task as complete — clears blocking gates when applicable.
+ *
+ * Ownership is enforced here so neither side ticks off the other's work
+ * by accident: customers can't complete internal delivery tasks, and
+ * internal staff can only complete a `customer_action` task on the
+ * customer's behalf via the explicit `onBehalf` flag (audited).
+ */
+export async function completeTask(
+  taskId: string,
+  onBehalf = false
+): Promise<ActionResult> {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return { success: false, error: "Not authenticated" };
+
+  const { data: existing } = await supabase
+    .from("tasks")
+    .select("task_type")
+    .eq("id", taskId)
+    .maybeSingle();
+  if (!existing) {
+    return { success: false, error: "Could not complete task — it may already be done." };
+  }
+
+  const actorRole = await getActorRole(supabase, user.id);
+  const actingInternal = actorRole ? isInternalRole(actorRole) : false;
+  const isCustomerTask = existing.task_type === "customer_action";
+  if (actingInternal && isCustomerTask && !onBehalf) {
+    return {
+      success: false,
+      error:
+        "This is the customer's task. Use “Mark done for customer” to complete it on their behalf.",
+    };
+  }
+  if (!actingInternal && !isCustomerTask) {
+    return {
+      success: false,
+      error: "The Bright.Blue team will complete this step for you.",
+    };
+  }
 
   const now = new Date().toISOString();
 
@@ -48,7 +101,11 @@ export async function completeTask(taskId: string): Promise<ActionResult> {
     action: "task_completed",
     entity_type: "task",
     entity_id: taskId,
-    metadata: { title: task.title },
+    metadata: {
+      title: task.title,
+      onBehalfOfCustomer: actingInternal && isCustomerTask && onBehalf ? true : undefined,
+      actorRole,
+    },
   });
 
   if (task.is_blocking) {
@@ -75,6 +132,8 @@ export async function completeTask(taskId: string): Promise<ActionResult> {
   revalidatePath(`/events/${task.event_id}/actions`);
   revalidatePath(`/events/${task.event_id}`);
   revalidatePath(`/events/${task.event_id}/timeline`);
+  revalidatePath("/inbox");
+  revalidatePath("/");
   return { success: true, data: undefined };
 }
 
@@ -85,6 +144,11 @@ export async function skipTask(taskId: string, reason?: string): Promise<ActionR
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return { success: false, error: "Not authenticated" };
+
+  const actorRole = await getActorRole(supabase, user.id);
+  if (!actorRole || !isInternalRole(actorRole)) {
+    return { success: false, error: "Only the Bright.Blue team can skip tasks." };
+  }
 
   const { data: task, error } = await supabase
     .from("tasks")
@@ -114,6 +178,8 @@ export async function skipTask(taskId: string, reason?: string): Promise<ActionR
   revalidatePath(`/events/${task.event_id}/actions`);
   revalidatePath(`/events/${task.event_id}`);
   revalidatePath(`/events/${task.event_id}/timeline`);
+  revalidatePath("/inbox");
+  revalidatePath("/");
   return { success: true, data: undefined };
 }
 
@@ -138,6 +204,9 @@ export async function startTask(taskId: string): Promise<ActionResult> {
   }
 
   revalidatePath(`/events/${task.event_id}/actions`);
+  revalidatePath(`/events/${task.event_id}`);
+  revalidatePath("/inbox");
+  revalidatePath("/");
   return { success: true, data: undefined };
 }
 
@@ -171,4 +240,49 @@ export async function autoCompleteTaskByPath(
 
   revalidatePath(`/events/${eventId}/actions`);
   revalidatePath(`/events/${eventId}`);
+  revalidatePath("/inbox");
+  revalidatePath("/");
+}
+
+/**
+ * Auto-complete open tasks matching a `target_path` AND a title keyword.
+ *
+ * Some paths host more than one task (e.g. `assets` carries both "Upload
+ * primary brand logo" and "Upload brand guidelines document"), so a plain
+ * path match would over-complete. The keyword scopes it to the right one.
+ */
+export async function autoCompleteTaskByPathAndTitle(
+  eventId: string,
+  targetPath: string,
+  titleKeywords: string[]
+): Promise<void> {
+  const admin = getServiceRoleClient();
+  const now = new Date().toISOString();
+
+  const orFilter = titleKeywords
+    .map((kw) => `title.ilike.%${kw}%`)
+    .join(",");
+
+  const { data: tasks } = await admin
+    .from("tasks")
+    .select("id")
+    .eq("event_id", eventId)
+    .eq("target_path", targetPath)
+    .or(orFilter)
+    .not("status", "in", '("complete","skipped")');
+
+  if (!tasks || tasks.length === 0) return;
+
+  await admin
+    .from("tasks")
+    .update({ status: "complete", completed_at: now })
+    .in(
+      "id",
+      tasks.map((t: { id: string }) => t.id)
+    );
+
+  revalidatePath(`/events/${eventId}/actions`);
+  revalidatePath(`/events/${eventId}`);
+  revalidatePath("/inbox");
+  revalidatePath("/");
 }

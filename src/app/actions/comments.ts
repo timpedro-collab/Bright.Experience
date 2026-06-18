@@ -71,6 +71,7 @@ export async function addComment(
   }).catch(() => {});
 
   revalidatePath(`/events/${eventId}/assets`);
+  revalidatePath("/admin/asset-reviews");
   return { success: true, data: { id: data.id as string } };
 }
 
@@ -104,5 +105,6 @@ export async function deleteComment(commentId: string): Promise<ActionResult> {
   if (error) return { success: false, error: "Could not delete comment. Please try again." };
 
   revalidatePath(`/events/${comment.event_id}/assets`);
+  revalidatePath("/admin/asset-reviews");
   return { success: true, data: undefined };
 }

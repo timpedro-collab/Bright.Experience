@@ -43,7 +43,7 @@ export function EventCard({
       className={cn(
         "group block p-6 rounded-[var(--radius-card)] border bg-card text-card-foreground",
         "shadow-[var(--bb-shadow-card)] transition-all duration-200",
-        "border-border hover:border-white/24 hover:-translate-y-0.5 hover:shadow-[var(--bb-shadow-premium)]",
+        "border-border hover:border-border hover:-translate-y-0.5 hover:shadow-[var(--bb-shadow-premium)]",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
       )}
     >
@@ -71,8 +71,8 @@ export function EventCard({
       </div>
 
       <div className="flex flex-wrap gap-2 mb-4">
-        <StageBadge stage={event.currentStage} />
-        <HealthBadge status={event.healthStatus} />
+        <StageBadge stage={event.currentStage} isCustomer={!isInternal} />
+        <HealthBadge status={event.healthStatus} isCustomer={!isInternal} />
       </div>
 
       <div className="space-y-2 mb-4">

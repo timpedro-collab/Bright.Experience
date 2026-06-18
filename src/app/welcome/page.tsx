@@ -60,6 +60,27 @@ const CAPABILITIES = [
   },
 ];
 
+const INTERNAL_CAPABILITIES = [
+  {
+    icon: CalendarCheck,
+    title: "Deliver every event",
+    description:
+      "Track the whole portfolio through the delivery pipeline, from kickoff to wrap.",
+  },
+  {
+    icon: Sparkles,
+    title: "Coordinate the team",
+    description:
+      "Assign work, advance stages, and keep creative, ops, and QA moving in lock-step.",
+  },
+  {
+    icon: BarChart3,
+    title: "Publish the results",
+    description:
+      "Generate proof-of-performance reports and share them with the customer.",
+  },
+];
+
 function pickFeaturedEvent(events: Event[]): Event | null {
   if (events.length === 0) return null;
   const blocked = events.find((e) => e.healthStatus === "red");
@@ -167,7 +188,11 @@ export default async function WelcomePage() {
           seed="welcome::onboarding"
           eyebrow="Welcome to Bright.Experience"
           title={`Hello, ${firstName}.`}
-          subtitle="Everything you need to manage your Bright.Blue activations lives here."
+          subtitle={
+            isInternal
+              ? "Everything you need to deliver Bright.Blue activations lives here."
+              : "Everything you need to manage your Bright.Blue activations lives here."
+          }
         />
         <EditionBody>
           <div className="max-w-2xl mx-auto py-10 space-y-10">
@@ -208,7 +233,7 @@ export default async function WelcomePage() {
             <EditorialEyebrow>What you can do</EditorialEyebrow>
 
             <div className="grid gap-5 sm:grid-cols-3">
-              {CAPABILITIES.map((cap) => {
+              {(isInternal ? INTERNAL_CAPABILITIES : CAPABILITIES).map((cap) => {
                 const Icon = cap.icon;
                 return (
                   <Card key={cap.title} className="p-5 space-y-3">
@@ -227,7 +252,7 @@ export default async function WelcomePage() {
             <div className="flex flex-col sm:flex-row gap-3 pt-4">
               <Button asChild variant="brand" size="lg">
                 <Link href="/">
-                  Go to my events
+                  {isInternal ? "Go to your library" : "Go to my events"}
                   <ArrowRight size={16} className="ml-2" />
                 </Link>
               </Button>

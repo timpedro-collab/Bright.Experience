@@ -77,7 +77,7 @@ function LogisticsCard({ entry, index, isInternal }: {
         "relative z-10 flex h-12 w-12 shrink-0 items-center justify-center rounded-[var(--radius-control)] border",
         entry.status === "completed"
           ? "bg-success/10 border-success/20"
-          : "bg-card-dark border-border"
+          : "bg-card border-border"
       )}>
         <Icon size={20} className={entry.status === "completed" ? "text-success" : "text-muted-foreground"} />
       </div>

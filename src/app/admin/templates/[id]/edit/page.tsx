@@ -3,7 +3,7 @@ import { redirect, notFound } from "next/navigation";
 
 import { AdminPageShell } from "@/components/brand";
 import { getUser } from "@/lib/auth";
-import { isInternalRole } from "@/lib/roles";
+import { canViewCommercial } from "@/lib/roles";
 import { getUnreadCount } from "@/lib/queries/notifications";
 import { getServiceRoleClient } from "@/lib/supabase/service-role";
 import { TemplateEditor } from "@/components/admin/TemplateEditor";
@@ -16,7 +16,7 @@ export default async function TemplateEditPage({
   const { id } = await params;
   const user = await getUser();
   if (!user) redirect("/login");
-  if (!isInternalRole(user.role)) redirect("/");
+  if (!canViewCommercial(user.role)) redirect("/");
 
   const supabase = getServiceRoleClient();
   const { data: template } = await supabase

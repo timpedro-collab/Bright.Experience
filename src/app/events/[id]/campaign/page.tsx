@@ -11,6 +11,7 @@ import { AddToCampaignPicker } from "@/components/campaigns/AddToCampaignPicker"
 
 import { getUser } from "@/lib/auth";
 import { isInternalRole } from "@/lib/roles";
+import { canViewSection } from "@/lib/event-access";
 import { getEventById } from "@/lib/queries/events";
 import { getCampaignsForEvent, getCampaigns } from "@/lib/queries/campaigns";
 import { getUnreadCount } from "@/lib/queries/notifications";
@@ -33,6 +34,10 @@ export default async function EventCampaignPage({
   const user = await getUser();
   if (!user) redirect("/login");
   const { id } = await params;
+  // Campaign grouping/management is an Events Lead / Admin tool — it groups
+  // and rebooks events across the account. Not relevant to the specialist
+  // delivery roles, so it's scoped to full-access roles only.
+  if (!canViewSection(user.role, "campaign")) redirect(`/events/${id}`);
   const [event, unread] = await Promise.all([
     getEventById(id),
     getUnreadCount(user.id),

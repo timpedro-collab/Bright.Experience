@@ -44,7 +44,7 @@ export function ProposalAssetRequirements() {
           {ASSET_SPECS.map((spec) => (
             <li
               key={spec.slug}
-              className="rounded-[var(--radius-control)] border border-white/[0.06] bg-white/[0.02] p-4"
+              className="rounded-[var(--radius-control)] border border-border/60 bg-muted/40 p-4"
             >
               <div className="flex items-start gap-2">
                 <CheckCircle2

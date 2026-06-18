@@ -36,7 +36,7 @@ export function PredictedVsActual({
   const metrics = Object.keys(predictions);
 
   return (
-    <Card className="border-white/[0.08] bg-card-dark/72 backdrop-blur-xl">
+    <Card className="border-border bg-card/72 backdrop-blur-xl">
       <CardHeader className="pb-3">
         <CardTitle className="text-heading text-base font-semibold text-foreground">
           Predicted vs Actual
@@ -45,7 +45,7 @@ export function PredictedVsActual({
       <CardContent className="pt-0">
         <div className="space-y-0">
           {/* Header row */}
-          <div className="grid grid-cols-4 gap-4 pb-2 border-b border-white/[0.06]">
+          <div className="grid grid-cols-4 gap-4 pb-2 border-b border-border/60">
             <span className="text-overline text-muted-foreground">Metric</span>
             <span className="text-overline text-muted-foreground text-right">
               Predicted
@@ -67,7 +67,7 @@ export function PredictedVsActual({
             return (
               <div
                 key={key}
-                className="grid grid-cols-4 gap-4 py-3 border-b border-white/[0.04] last:border-0"
+                className="grid grid-cols-4 gap-4 py-3 border-b border-border/60 last:border-0"
               >
                 <span className="text-sm text-muted-foreground">
                   {formatLabel(key)}

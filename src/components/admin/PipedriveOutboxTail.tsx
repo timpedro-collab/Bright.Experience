@@ -19,7 +19,7 @@ export function PipedriveOutboxTail({ rows }: { rows: OutboxEntry[] }) {
   return (
     <Card tone="subtle">
       <CardContent className="p-0">
-        <div className="border-b border-white/[0.06] px-5 py-3">
+        <div className="border-b border-border/60 px-5 py-3">
           <p className="text-overline text-muted-foreground">Outbox tail</p>
           <p className="text-sm font-medium text-foreground">
             Last 20 Pipedrive writes
@@ -30,7 +30,7 @@ export function PipedriveOutboxTail({ rows }: { rows: OutboxEntry[] }) {
             The outbox is empty. Notes will appear here as they fire.
           </div>
         ) : (
-          <ul className="divide-y divide-white/[0.04]">
+          <ul className="divide-y divide-border">
             {rows.map((row) => {
               const status: "sent" | "failed" | "pending" = row.sentAt
                 ? "sent"

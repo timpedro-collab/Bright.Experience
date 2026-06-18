@@ -57,7 +57,7 @@ export function LiveFeed({ items }: LiveFeedProps) {
         return (
           <div
             key={item.id}
-            className="flex items-start gap-3 rounded-xl border border-white/[0.04] bg-white/[0.02] px-4 py-3"
+            className="flex items-start gap-3 rounded-xl border border-border/60 bg-muted/40 px-4 py-3"
           >
             <div
               className={cn(
@@ -66,7 +66,7 @@ export function LiveFeed({ items }: LiveFeedProps) {
                 item.type === "play" && "bg-brand/10 text-brand",
                 item.type === "prize" && "bg-warning/10 text-warning",
                 !["lead", "play", "prize"].includes(item.type) &&
-                  "bg-white/[0.06] text-muted-foreground"
+                  "bg-muted text-muted-foreground"
               )}
             >
               <Icon size={14} />

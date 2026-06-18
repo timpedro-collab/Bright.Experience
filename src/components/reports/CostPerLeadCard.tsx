@@ -28,7 +28,7 @@ export function CostPerLeadCard({
       : undefined;
 
   return (
-    <Card className="border-white/[0.08] bg-card-dark/72 backdrop-blur-xl">
+    <Card className="border-border bg-card/72 backdrop-blur-xl">
       <CardHeader className="pb-2">
         <CardTitle className="text-heading text-base font-semibold text-foreground flex items-center gap-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-brand/10 border border-brand/15">

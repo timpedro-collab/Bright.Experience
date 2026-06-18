@@ -35,6 +35,21 @@ Each row tells you:
 
 ---
 
+## Role-aware delivery — follow-ups from the visibility audit
+
+These came out of the "what is shown to who" audit. The view-bleed, access
+guards, and on-behalf controls are **done**; the items below are deferred
+because they're new features (not just visibility fixes).
+
+| What | Where | Why deferred | Replace / build in |
+| --- | --- | --- | --- |
+| **Configuration → Bright.Studio "do it for me" upsell** | `src/app/events/[id]/configuration/page.tsx`, `GameConfigForm`, `ProductConfigForm` | Customers can fill in the game/prize config themselves today. The intended flow also lets them **click-to-select** "have Bright.Studio do this for me", with clear per-line pricing that totals up; on confirm it should create to-dos in the internal Bright.Studio queue. Needs a pricing/selection UI + task generation + (likely) a `studio_requests` line-item model — a feature build, not a visibility tweak. | Next feature sprint. Wire selections → `requestStudioFixForAsset`-style action that seeds Studio tasks. |
+| **Expose Configuration (and Studio storefront) to customers** | `src/lib/event-access.ts` (`CUSTOMER_SECTIONS`) | Role→section visibility is now a single matrix (`event-access.ts`) that drives both the nav AND server guards. Configuration + Studio are currently scoped to internal roles; the customer-facing Configuration self-serve + Bright.Studio upsell isn't built yet, so customers are redirected from those pages rather than shown a half-finished form. | Add `"configuration"` / `"studio"` to `CUSTOMER_SECTIONS` once the upsell above lands and the storefront copy is signed off. The guards + nav update automatically. |
+| **Granular deadline ownership labels** | `src/components/events/DeadlineTimeline.tsx` | Internal deadline rows show a coarse "Customer / Internal" tag rather than the specific team (`Bright.Blue creative`, `QA`, etc.) from `src/lib/ownership.ts`. | Map rows through `ownerForTask` + `OWNER_DISPLAY_LABEL` for team-level labels. |
+| **QA / event_reports RLS hardening** | `supabase/migrations/*` | Page-level guards block customers from QA + draft reports today (and the print/export routes now check publish status). RLS still technically allows customer SELECT on `qa_items` / unpublished `event_reports` — defense-in-depth gap, not an active leak. | DB owners post-handoff: tighten SELECT policies to `is_internal_user()` / `is_published = true`. |
+
+---
+
 ## How to use this file
 
 1. Each phase appends a section like the one above when it ships.

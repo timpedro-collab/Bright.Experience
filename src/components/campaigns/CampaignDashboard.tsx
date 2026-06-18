@@ -90,7 +90,7 @@ export function CampaignDashboard({ campaign, events }: CampaignDashboardProps) 
                 return (
                   <div
                     key={String(ce.id ?? evt.id)}
-                    className="flex items-center justify-between p-3 rounded-xl bg-white/[0.02] border border-white/[0.04]"
+                    className="flex items-center justify-between p-3 rounded-xl bg-muted/40 border border-border/60"
                   >
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-medium text-foreground truncate">

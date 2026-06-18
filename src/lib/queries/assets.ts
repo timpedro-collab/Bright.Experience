@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { createSignedReadUrl } from "@/lib/storage/signed-url";
+import { PAGE_SIZE, paginateQuery, totalPages } from "@/lib/pagination";
 import type {
   Asset,
   AssetAnnotation,
@@ -34,6 +35,7 @@ function mapAsset(row: Record<string, unknown>): Asset {
       (row.review_decided_by as string | null) ?? undefined,
     reviewDecidedAt:
       (row.review_decided_at as string | null) ?? undefined,
+    updatedAt: (row.updated_at as string | null) ?? undefined,
     revisionCount: (row.revision_count as number | null) ?? 0,
     uploadedBy: (row.uploaded_by as string | null) ?? undefined,
     requiredResolutionMin: (row.required_resolution_min as string | null) ?? undefined,
@@ -92,21 +94,33 @@ export async function getAssetsByEvent(eventId: string): Promise<Asset[]> {
 }
 
 /**
- * Every asset waiting on a Bright.Blue creative review, newest-stale first.
- * Powers the `/admin/asset-reviews` queue.
+ * Every asset waiting on a Bright.Blue creative review, oldest-stale first,
+ * paginated for the `/admin/asset-reviews` queue. The queue is unbounded (one
+ * row per customer upload awaiting sign-off), so we page it server-side and
+ * only sign URLs for the current slice.
  */
-export async function getAssetsPendingReview(): Promise<
-  (Asset & { eventName: string | null; uploaderName: string | null })[]
-> {
+export async function getAssetsPendingReviewPaginated(
+  page: number = 1,
+  pageSize: number = PAGE_SIZE,
+): Promise<{
+  data: (Asset & { eventName: string | null; uploaderName: string | null })[];
+  totalCount: number;
+  totalPages: number;
+}> {
   const supabase = await createClient();
-  const { data, error } = await supabase
+  const query = supabase
     .from("assets")
-    .select("*, events(name), uploader:profiles!assets_uploaded_by_fkey(name)")
+    .select(
+      "*, events(name), uploader:profiles!assets_uploaded_by_fkey(name)",
+      { count: "exact" },
+    )
     .eq("review_status", "pending_review")
     .not("file_url", "is", null)
     .order("updated_at", { ascending: true });
 
-  if (error || !data) return [];
+  const { data, error, count } = await paginateQuery(query, page, pageSize);
+  if (error || !data) return { data: [], totalCount: 0, totalPages: 1 };
+
   const enriched = data.map((row) => {
     const r = row as Record<string, unknown>;
     const events = r.events as { name?: string } | null;
@@ -117,7 +131,13 @@ export async function getAssetsPendingReview(): Promise<
       uploaderName: uploader?.name ?? null,
     };
   });
-  return attachSignedUrls(supabase, enriched);
+  const withUrls = await attachSignedUrls(supabase, enriched);
+  const total = count ?? 0;
+  return {
+    data: withUrls,
+    totalCount: total,
+    totalPages: totalPages(total, pageSize),
+  };
 }
 
 /**

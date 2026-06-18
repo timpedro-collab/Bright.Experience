@@ -91,7 +91,7 @@ export function StudioRequestForm({
         <button
           type="button"
           onClick={onClose}
-          className="p-1 rounded-md hover:bg-white/[0.04] text-muted-foreground hover:text-foreground transition-colors"
+          className="p-1 rounded-md hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
           aria-label="Close"
         >
           <X size={16} />
@@ -106,7 +106,7 @@ export function StudioRequestForm({
           <button
             type="button"
             onClick={() => setQuantity(Math.max(1, quantity - 1))}
-            className="h-9 w-9 rounded-[var(--radius-control)] border border-white/[0.08] text-foreground hover:bg-white/[0.04] flex items-center justify-center text-lg transition-colors"
+            className="h-9 w-9 rounded-[var(--radius-control)] border border-border text-foreground hover:bg-accent flex items-center justify-center text-lg transition-colors"
           >
             −
           </button>
@@ -116,7 +116,7 @@ export function StudioRequestForm({
           <button
             type="button"
             onClick={() => setQuantity(quantity + 1)}
-            className="h-9 w-9 rounded-[var(--radius-control)] border border-white/[0.08] text-foreground hover:bg-white/[0.04] flex items-center justify-center text-lg transition-colors"
+            className="h-9 w-9 rounded-[var(--radius-control)] border border-border text-foreground hover:bg-accent flex items-center justify-center text-lg transition-colors"
           >
             +
           </button>
@@ -146,7 +146,7 @@ export function StudioRequestForm({
           rows={3}
           required
           placeholder="Describe the assets you need — file names, what each one should look like, any references..."
-          className="w-full px-3 py-2 rounded-[var(--radius-control)] border border-white/[0.08] bg-white/[0.02] text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-ring resize-none"
+          className="w-full px-3 py-2 rounded-[var(--radius-control)] border border-border bg-muted/40 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-ring resize-none"
         />
       </div>
 
@@ -156,7 +156,7 @@ export function StudioRequestForm({
         className={`flex items-center gap-3 w-full p-3 rounded-[var(--radius-control)] border transition-all text-left ${
           express
             ? "border-warning/30 bg-warning/5"
-            : "border-white/[0.06] hover:bg-white/[0.02]"
+            : "border-border/60 hover:bg-accent"
         }`}
       >
         <Zap
@@ -175,7 +175,7 @@ export function StudioRequestForm({
         </div>
         <div
           className={`h-5 w-9 rounded-full transition-colors relative ${
-            express ? "bg-warning" : "bg-white/[0.1]"
+            express ? "bg-warning" : "bg-muted"
           }`}
         >
           <div

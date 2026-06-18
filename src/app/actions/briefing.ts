@@ -11,7 +11,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { dispatchNotification } from "@/lib/notifications/dispatch";
-import { autoCompleteTaskByPath } from "@/app/actions/tasks";
+import { autoCompleteTaskByPath, autoCompleteTaskByPathAndTitle } from "@/app/actions/tasks";
 import { validateUpload, storagePathFor, createSignedReadUrl } from "@/lib/storage/signed-url";
 import { scanUpload } from "@/lib/storage/scan";
 import { bumpStreak } from "./streak";
@@ -84,6 +84,92 @@ export async function saveBriefingResponse(
     bumpStreak().catch(() => {});
   }
 
+  revalidatePath(`/events/${eventId}/briefing`);
+  revalidatePath(`/events/${eventId}/actions`);
+  return { success: true, data: undefined };
+}
+
+/**
+ * Brand Kit — structured brand identity (colours, fonts, usage rules).
+ *
+ * Stored alongside the creative briefing in the same `briefing_responses`
+ * "creative" blob so the colour values are shared with the briefing's colour
+ * question (edit in either place, see it in both) with no schema change.
+ */
+export interface BrandKit {
+  colors: string;
+  fontHeading: string;
+  fontBody: string;
+  usageDo: string;
+  usageDont: string;
+}
+
+/** Read the brand kit fields from the creative briefing blob. */
+export async function getBrandKit(eventId: string): Promise<BrandKit> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("briefing_responses")
+    .select("responses")
+    .eq("event_id", eventId)
+    .eq("form_type", "creative")
+    .maybeSingle();
+
+  const r = (data?.responses ?? {}) as Record<string, string>;
+  return {
+    colors: r.color_preferences ?? "",
+    fontHeading: r.brand_font_heading ?? "",
+    fontBody: r.brand_font_body ?? "",
+    usageDo: r.brand_usage_do ?? "",
+    usageDont: r.brand_usage_dont ?? "",
+  };
+}
+
+/** Save the brand kit, merging into the existing creative briefing blob. */
+export async function saveBrandKit(eventId: string, kit: BrandKit): Promise<ActionResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { success: false, error: "Not authenticated" };
+
+  // Merge so we never clobber other creative-briefing answers.
+  const { data: existing } = await supabase
+    .from("briefing_responses")
+    .select("responses")
+    .eq("event_id", eventId)
+    .eq("form_type", "creative")
+    .maybeSingle();
+
+  const merged: Record<string, unknown> = {
+    ...((existing?.responses as Record<string, unknown>) ?? {}),
+    color_preferences: kit.colors,
+    brand_font_heading: kit.fontHeading,
+    brand_font_body: kit.fontBody,
+    brand_usage_do: kit.usageDo,
+    brand_usage_dont: kit.usageDont,
+  };
+
+  const { error } = await supabase
+    .from("briefing_responses")
+    .upsert(
+      { event_id: eventId, form_type: "creative", responses: merged },
+      { onConflict: "event_id,form_type" }
+    );
+
+  if (error) return { success: false, error: `Save failed: ${error.message}` };
+
+  // Count the brand kit as "done" once they've given us something usable.
+  const hasContent =
+    [kit.colors, kit.fontHeading, kit.fontBody, kit.usageDo, kit.usageDont].some(
+      (v) => v.trim().length > 0
+    );
+  if (hasContent) {
+    // Matches both the legacy ("…guidelines…") and renamed ("…brand kit…")
+    // task titles so it works against existing and freshly seeded data.
+    await autoCompleteTaskByPathAndTitle(eventId, "assets", ["guidelines", "brand kit"]);
+  }
+
+  revalidatePath(`/events/${eventId}/assets`);
   revalidatePath(`/events/${eventId}/briefing`);
   revalidatePath(`/events/${eventId}/actions`);
   return { success: true, data: undefined };

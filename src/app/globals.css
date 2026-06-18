@@ -38,6 +38,9 @@
 	--color-bb-cyan: hsl(189, 100%, 75%);
 	--color-bb-ink: hsl(233, 70%, 8%);
 	--color-bb-ink-soft: hsl(233, 56%, 12%);
+	/* Deep ink alias — the darkest brand surface, used by gradient panels
+	   and the cinematic onboarding tour. Previously referenced but undefined. */
+	--color-bb-deep-ink: hsl(233, 66%, 5%);
 	--color-bb-linen: hsl(40, 30%, 91%);
 	--color-bb-paper: hsl(40, 30%, 95%);
 	--color-bb-linen-deep: hsl(40, 22%, 84%);
@@ -50,48 +53,50 @@
 	--color-warning: hsl(43, 90%, 56%);
 	--color-info: hsl(199, 89%, 58%);
 
-	/* Legacy dark-only aliases (still consumed by un-migrated code) */
-	--color-dark-bg: hsl(222, 47%, 5%);
-	--color-card-dark: hsl(222, 44%, 9%);
-	--color-surface-glass: hsl(222, 44%, 11%);
-	--color-glass-border: hsl(215, 20%, 65%);
-	--color-text-primary: hsl(210, 40%, 96%);
-	--color-text-secondary: hsl(215, 20%, 65%);
-	--color-text-muted: hsl(215, 16%, 50%);
+	/* Legacy aliases (still consumed by un-migrated code). Default = light;
+	   remapped to dark under `.theme-dark`. */
+	--color-dark-bg: hsl(210, 40%, 98%);
+	--color-card-dark: hsl(0, 0%, 100%);
+	--color-surface-glass: hsl(0, 0%, 100%);
+	--color-glass-border: hsl(214, 32%, 91%);
+	--color-text-primary: hsl(222, 47%, 11%);
+	--color-text-secondary: hsl(215, 16%, 47%);
+	--color-text-muted: hsl(215, 16%, 55%);
 
-	/* ── Semantic surface tokens (default = Cloud Slate / dark) ────
-	   The `.theme-light` selector below remaps every one of these to
-	   the Cloud cool-white palette so every consumer (cards, buttons,
-	   badges) inherits the mode switch automatically. This dark set
-	   mirrors the Cloud redesign's dark mode: near-black slate page,
-	   slate-900 cards, slate-800 hairlines, cool slate text. */
-	--color-background: hsl(222, 47%, 5%);
-	--color-foreground: hsl(210, 40%, 96%);
-	--color-card: hsl(222, 44%, 9%);
-	--color-card-foreground: hsl(210, 40%, 96%);
-	--color-popover: hsl(222, 44%, 9%);
-	--color-popover-foreground: hsl(210, 40%, 96%);
+	/* ── Semantic surface tokens (default = Cloud cool-white / light) ──
+	   Light is the canonical default — it is what every surface renders
+	   in unless an ancestor opts into `.theme-dark`. The `.theme-dark`
+	   selector below remaps every one of these to the Cloud slate palette
+	   so every consumer (cards, buttons, badges) inherits the mode switch
+	   automatically. Crisp SaaS cool-white: slate-50 page, pure-white
+	   cards, slate-200 hairlines, slate-950 text, slate-500 muted. */
+	--color-background: hsl(210, 40%, 98%);
+	--color-foreground: hsl(222, 47%, 11%);
+	--color-card: hsl(0, 0%, 100%);
+	--color-card-foreground: hsl(222, 47%, 11%);
+	--color-popover: hsl(0, 0%, 100%);
+	--color-popover-foreground: hsl(222, 47%, 11%);
 	--color-primary: var(--color-bb-cobalt);
 	--color-primary-foreground: hsl(0, 0%, 100%);
-	--color-secondary: hsl(217, 33%, 14%);
-	--color-secondary-foreground: hsl(210, 40%, 96%);
-	--color-muted: hsl(217, 33%, 14%);
-	--color-muted-foreground: hsl(215, 20%, 65%);
-	--color-accent: hsl(217, 33%, 17%);
-	--color-accent-foreground: hsl(210, 40%, 98%);
-	--color-destructive: hsl(0, 84%, 60%);
+	--color-secondary: hsl(210, 40%, 96%);
+	--color-secondary-foreground: hsl(222, 47%, 11%);
+	--color-muted: hsl(210, 40%, 96%);
+	--color-muted-foreground: hsl(215, 16%, 47%);
+	--color-accent: hsl(210, 40%, 96%);
+	--color-accent-foreground: hsl(222, 47%, 11%);
+	--color-destructive: hsl(0, 72%, 48%);
 	--color-destructive-foreground: hsl(0, 0%, 100%);
-	--color-border: hsl(217, 33%, 18%);
-	--color-input: hsl(217, 33%, 18%);
+	--color-border: hsl(214, 32%, 91%);
+	--color-input: hsl(214, 32%, 91%);
 	--color-ring: var(--color-bb-cobalt);
 
-	--color-sidebar: hsl(222, 47%, 7%);
-	--color-sidebar-foreground: hsl(210, 40%, 96%);
+	--color-sidebar: hsl(0, 0%, 100%);
+	--color-sidebar-foreground: hsl(222, 47%, 11%);
 	--color-sidebar-primary: var(--color-bb-cobalt);
 	--color-sidebar-primary-foreground: hsl(0, 0%, 100%);
-	--color-sidebar-accent: hsl(217, 33%, 14%);
-	--color-sidebar-accent-foreground: hsl(210, 40%, 98%);
-	--color-sidebar-border: hsl(217, 33%, 18%);
+	--color-sidebar-accent: hsl(210, 40%, 96%);
+	--color-sidebar-accent-foreground: hsl(222, 47%, 11%);
+	--color-sidebar-border: hsl(214, 32%, 91%);
 	--color-sidebar-ring: var(--color-bb-cobalt);
 
 	/* ── Typography ──────────────────────────────────────────────
@@ -138,13 +143,14 @@
 	--bb-success: hsl(143, 72%, 42%);
 	--bb-warning: hsl(43, 90%, 56%);
 	--bb-destructive: hsl(0, 84%, 60%);
-	--bb-dark-bg: hsl(222, 47%, 5%);
-	--bb-card-dark: hsl(222, 44%, 9%);
-	--bb-surface-glass: hsl(222, 44%, 11%);
-	--bb-glass-border: hsl(215, 20%, 65%);
-	--bb-text-primary: hsl(210, 40%, 96%);
-	--bb-text-secondary: hsl(215, 20%, 65%);
-	--bb-text-muted: hsl(215, 16%, 50%);
+	/* Light-default legacy aliases (dark values live under `.theme-dark`). */
+	--bb-dark-bg: hsl(210, 40%, 98%);
+	--bb-card-dark: hsl(0, 0%, 100%);
+	--bb-surface-glass: hsl(0, 0%, 100%);
+	--bb-glass-border: hsl(214, 32%, 91%);
+	--bb-text-primary: hsl(222, 47%, 11%);
+	--bb-text-secondary: hsl(215, 16%, 47%);
+	--bb-text-muted: hsl(215, 16%, 55%);
 	--bb-font-heading: var(--font-bright-headings), system-ui, sans-serif;
 	--bb-font-body: var(--font-bright-body), system-ui, sans-serif;
 	--bb-font-overline: var(--font-bright-overline), system-ui, sans-serif;
@@ -180,71 +186,81 @@
    ─────────────────────────────────────────────────────────── */
 
 html {
-	color-scheme: dark;
-}
-
-.theme-light {
 	color-scheme: light;
 }
 
-/* ───────────────────────────────────────────────────────────────
-   Light mode (Linen) — applied via `.theme-light` on any ancestor.
+.theme-dark {
+	color-scheme: dark;
+}
 
-   The dark (Deep Ink) palette in @theme above is the default. This
-   selector remaps every semantic surface token to the warm cream
-   paper palette. Brand cobalt and cyan stay the same in both modes
-   so the brand mark, the ridges, and the cobalt CTAs read the same
-   regardless of theme. EditionShell applies this class on a <div>
-   wrapper so it works without mutating <html>. Editorial surfaces
-   (Customer Home, public proposal, marketing) tend to live in light;
-   operational surfaces (Inbox, Review Queue, internal Library) in dark.
+/* ───────────────────────────────────────────────────────────────
+   Dark mode (Cloud Slate) — applied via `.theme-dark` on any ancestor.
+
+   The light (Cloud cool-white) palette in @theme above is the default.
+   This selector remaps every semantic surface token to the deep-slate
+   palette. Brand cobalt and cyan stay the same in both modes so the
+   brand mark, the ridges, and the cobalt CTAs read the same regardless
+   of theme. EditionShell applies this class on a <div> wrapper (when
+   `theme="dark"`) so it works without mutating <html>; the global
+   ThemeProvider toggles it on <html>. Editorial / customer-facing
+   surfaces stay light; the cinematic onboarding tour and a few
+   intentionally-cinematic moments opt into dark.
    ─────────────────────────────────────────────────────────────── */
-.theme-light {
-	/* Cloud light mode: cool slate-50 page, pure-white cards, slate-200
-	   hairlines, slate-950 text, slate-500 muted. Crisp SaaS, not cream. */
-	--color-background: hsl(210, 40%, 98%);
-	--color-foreground: hsl(222, 47%, 11%);
-	--color-card: hsl(0, 0%, 100%);
-	--color-card-foreground: hsl(222, 47%, 11%);
-	--color-popover: hsl(0, 0%, 100%);
-	--color-popover-foreground: hsl(222, 47%, 11%);
+.theme-dark {
+	/* Cloud dark mode: near-black slate page, slate-900 cards, slate-800
+	   hairlines, cool slate text. */
+	--color-background: hsl(222, 47%, 5%);
+	--color-foreground: hsl(210, 40%, 96%);
+	--color-card: hsl(222, 44%, 9%);
+	--color-card-foreground: hsl(210, 40%, 96%);
+	--color-popover: hsl(222, 44%, 9%);
+	--color-popover-foreground: hsl(210, 40%, 96%);
 	--color-primary: var(--color-bb-cobalt);
 	--color-primary-foreground: hsl(0, 0%, 100%);
-	--color-secondary: hsl(210, 40%, 96%);
-	--color-secondary-foreground: hsl(222, 47%, 11%);
-	--color-muted: hsl(210, 40%, 96%);
-	--color-muted-foreground: hsl(215, 16%, 47%);
-	--color-accent: hsl(210, 40%, 96%);
-	--color-accent-foreground: hsl(222, 47%, 11%);
-	--color-destructive: hsl(0, 72%, 48%);
+	--color-secondary: hsl(217, 33%, 14%);
+	--color-secondary-foreground: hsl(210, 40%, 96%);
+	--color-muted: hsl(217, 33%, 14%);
+	--color-muted-foreground: hsl(215, 20%, 65%);
+	--color-accent: hsl(217, 33%, 17%);
+	--color-accent-foreground: hsl(210, 40%, 98%);
+	--color-destructive: hsl(0, 84%, 60%);
 	--color-destructive-foreground: hsl(0, 0%, 100%);
-	--color-border: hsl(214, 32%, 91%);
-	--color-input: hsl(214, 32%, 91%);
+	--color-border: hsl(217, 33%, 18%);
+	--color-input: hsl(217, 33%, 18%);
 	--color-ring: var(--color-bb-cobalt);
 
-	--color-sidebar: hsl(0, 0%, 100%);
-	--color-sidebar-foreground: hsl(222, 47%, 11%);
+	--color-sidebar: hsl(222, 47%, 7%);
+	--color-sidebar-foreground: hsl(210, 40%, 96%);
 	--color-sidebar-primary: var(--color-bb-cobalt);
 	--color-sidebar-primary-foreground: hsl(0, 0%, 100%);
-	--color-sidebar-accent: hsl(210, 40%, 96%);
-	--color-sidebar-accent-foreground: hsl(222, 47%, 11%);
-	--color-sidebar-border: hsl(214, 32%, 91%);
+	--color-sidebar-accent: hsl(217, 33%, 14%);
+	--color-sidebar-accent-foreground: hsl(210, 40%, 98%);
+	--color-sidebar-border: hsl(217, 33%, 18%);
 
-	/* Legacy aliases keep working under light mode */
-	--color-dark-bg: hsl(210, 40%, 98%);
-	--color-card-dark: hsl(0, 0%, 100%);
-	--color-surface-glass: hsl(0, 0%, 100%);
-	--color-glass-border: hsl(214, 32%, 91%);
-	--color-text-primary: hsl(222, 47%, 11%);
-	--color-text-secondary: hsl(215, 16%, 47%);
-	--color-text-muted: hsl(215, 16%, 55%);
+	/* Legacy aliases remap to dark too */
+	--color-dark-bg: hsl(222, 47%, 5%);
+	--color-card-dark: hsl(222, 44%, 9%);
+	--color-surface-glass: hsl(222, 44%, 11%);
+	--color-glass-border: hsl(215, 20%, 65%);
+	--color-text-primary: hsl(210, 40%, 96%);
+	--color-text-secondary: hsl(215, 20%, 65%);
+	--color-text-muted: hsl(215, 16%, 50%);
+	--bb-dark-bg: hsl(222, 47%, 5%);
+	--bb-card-dark: hsl(222, 44%, 9%);
+	--bb-surface-glass: hsl(222, 44%, 11%);
+	--bb-glass-border: hsl(215, 20%, 65%);
+	--bb-text-primary: hsl(210, 40%, 96%);
+	--bb-text-secondary: hsl(215, 20%, 65%);
+	--bb-text-muted: hsl(215, 16%, 50%);
 }
 
 body {
 	font-family: var(--font-body);
 	background-color: var(--color-background);
+	/* Light default: pull the cobalt glow right back — it reads as a smudge
+	   on cool-white. The fuller glow returns under `.theme-dark` below. */
 	background-image:
-		radial-gradient(ellipse 900px 600px at 50% -260px, hsl(230 93% 53% / 0.07), transparent 70%);
+		radial-gradient(ellipse 1200px 800px at 50% -320px, hsl(230 93% 53% / 0.04), transparent 72%);
 	background-attachment: fixed;
 	color: var(--color-foreground);
 	margin: 0;
@@ -252,12 +268,11 @@ body {
 	-moz-osx-font-smoothing: grayscale;
 }
 
-/* In light mode pull back the radial gradient — the cobalt glow is
-   beautiful on ink but reads as a smudge on cream. */
-.theme-light body,
-.theme-light {
+/* In dark mode the cobalt glow is beautiful on ink — bring it forward. */
+.theme-dark body,
+.theme-dark {
 	background-image:
-		radial-gradient(ellipse 1200px 800px at 50% -320px, hsl(230 93% 53% / 0.04), transparent 72%);
+		radial-gradient(ellipse 900px 600px at 50% -260px, hsl(230 93% 53% / 0.07), transparent 70%);
 }
 
 /* ───────────────────────────────────────────────────────────
@@ -306,29 +321,67 @@ body {
 	color: var(--color-bb-cobalt);
 }
 
+/* Theme-aware "whisper" opacity for the maze-of-lines ridge artwork.
+   Saturated cobalt reads noticeably stronger on the light linen surface
+   than it does dissolving into deep ink, so we dial the lines back in the
+   default light theme and lift them again under .theme-dark — keeping the
+   ridge a consistent faint presence rather than a loud graphic in either. */
+.ridge-veil {
+	opacity: 0.6;
+}
+
+.theme-dark .ridge-veil {
+	opacity: 1;
+}
+
+.ridge-veil-faint {
+	opacity: 0.07;
+}
+
+.theme-dark .ridge-veil-faint {
+	opacity: 0.12;
+}
+
 /* ───────────────────────────────────────────────────────────
    Glass surface utilities (composed via cn() in components)
    ─────────────────────────────────────────────────────────── */
 
+/* Glass surfaces — light default (frosted white over cool-white). Dark mode
+   restores the deep-ink frosted panel below. */
 .glass {
 	backdrop-filter: blur(16px) saturate(120%);
 	-webkit-backdrop-filter: blur(16px) saturate(120%);
-	background-color: hsl(233 56% 11% / 0.72);
-	border: 1px solid hsl(222 24% 68% / 0.12);
+	background-color: hsl(0 0% 100% / 0.72);
+	border: 1px solid hsl(214 32% 70% / 0.28);
 }
 
 .glass-subtle {
 	backdrop-filter: blur(10px) saturate(110%);
 	-webkit-backdrop-filter: blur(10px) saturate(110%);
-	background-color: hsl(233 56% 11% / 0.45);
-	border: 1px solid hsl(222 24% 68% / 0.08);
+	background-color: hsl(0 0% 100% / 0.5);
+	border: 1px solid hsl(214 32% 70% / 0.2);
 }
 
 .glass-strong {
 	backdrop-filter: blur(24px) saturate(140%);
 	-webkit-backdrop-filter: blur(24px) saturate(140%);
+	background-color: hsl(0 0% 100% / 0.9);
+	border: 1px solid hsl(214 32% 70% / 0.32);
+}
+
+.theme-dark .glass {
+	background-color: hsl(233 56% 11% / 0.72);
+	border-color: hsl(222 24% 68% / 0.12);
+}
+
+.theme-dark .glass-subtle {
+	background-color: hsl(233 56% 11% / 0.45);
+	border-color: hsl(222 24% 68% / 0.08);
+}
+
+.theme-dark .glass-strong {
 	background-color: hsl(233 56% 11% / 0.88);
-	border: 1px solid hsl(222 24% 68% / 0.16);
+	border-color: hsl(222 24% 68% / 0.16);
 }
 
 /* ───────────────────────────────────────────────────────────
@@ -338,7 +391,7 @@ body {
 .skeleton {
 	position: relative;
 	overflow: hidden;
-	background-color: hsl(233 48% 15% / 0.6);
+	background-color: hsl(214 32% 88% / 0.8);
 	border-radius: var(--radius-chip);
 	animation: skeleton-breathe 2s ease-in-out infinite;
 }
@@ -350,12 +403,27 @@ body {
 	background: linear-gradient(
 		90deg,
 		transparent 0%,
+		hsl(0 0% 100% / 0.25) 40%,
+		hsl(0 0% 100% / 0.55) 50%,
+		hsl(0 0% 100% / 0.25) 60%,
+		transparent 100%
+	);
+	animation: skeleton-sweep 1.8s ease-in-out infinite;
+}
+
+.theme-dark .skeleton {
+	background-color: hsl(233 48% 15% / 0.6);
+}
+
+.theme-dark .skeleton::after {
+	background: linear-gradient(
+		90deg,
+		transparent 0%,
 		hsl(222 24% 68% / 0.06) 40%,
 		hsl(222 24% 68% / 0.12) 50%,
 		hsl(222 24% 68% / 0.06) 60%,
 		transparent 100%
 	);
-	animation: skeleton-sweep 1.8s ease-in-out infinite;
 }
 
 @keyframes skeleton-breathe {
@@ -366,6 +434,29 @@ body {
 @keyframes skeleton-sweep {
 	0% { transform: translateX(-100%); }
 	100% { transform: translateX(100%); }
+}
+
+/* ───────────────────────────────────────────────────────────
+   Logo marquee — seamless infinite horizontal scroll
+   ─────────────────────────────────────────────────────────── */
+
+@keyframes bb-logo-marquee {
+	from { transform: translateX(0); }
+	to { transform: translateX(-50%); }
+}
+
+.bb-logo-marquee {
+	animation: bb-logo-marquee 40s linear infinite;
+}
+
+.bb-logo-marquee-group:hover .bb-logo-marquee {
+	animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.bb-logo-marquee {
+		animation: none;
+	}
 }
 
 /* ───────────────────────────────────────────────────────────
@@ -427,13 +518,31 @@ body {
 	background-image: linear-gradient(
 		90deg,
 		transparent,
-		hsl(222 24% 68% / 0.18),
+		hsl(215 28% 50% / 0.28),
 		transparent
 	);
 }
 
 .hairline-vertical {
 	width: 1px;
+	background-image: linear-gradient(
+		180deg,
+		transparent,
+		hsl(215 28% 50% / 0.28),
+		transparent
+	);
+}
+
+.theme-dark .hairline {
+	background-image: linear-gradient(
+		90deg,
+		transparent,
+		hsl(222 24% 68% / 0.18),
+		transparent
+	);
+}
+
+.theme-dark .hairline-vertical {
 	background-image: linear-gradient(
 		180deg,
 		transparent,
@@ -519,6 +628,19 @@ body {
    ─────────────────────────────────────────────────────────── */
 
 [data-sonner-toaster] {
+	--normal-bg: hsl(0 0% 100% / 0.98);
+	--normal-border: hsl(214 32% 88%);
+	--normal-text: hsl(222 47% 16%);
+	--success-bg: hsl(143 64% 96%);
+	--success-border: hsl(143 60% 40% / 0.45);
+	--success-text: hsl(143 72% 22%);
+	--error-bg: hsl(0 80% 97%);
+	--error-border: hsl(0 72% 48% / 0.4);
+	--error-text: hsl(0 72% 36%);
+	font-family: var(--font-body) !important;
+}
+
+.theme-dark [data-sonner-toaster] {
 	--normal-bg: hsl(233 56% 13% / 0.96);
 	--normal-border: hsl(222 24% 68% / 0.18);
 	--normal-text: hsl(220 20% 90%);
@@ -528,5 +650,4 @@ body {
 	--error-bg: hsl(0 60% 18% / 0.96);
 	--error-border: hsl(0 84% 60% / 0.4);
 	--error-text: hsl(0 84% 86%);
-	font-family: var(--font-body) !important;
 }

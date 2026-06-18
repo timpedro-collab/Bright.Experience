@@ -70,7 +70,7 @@ export function ProposalROIPanel({
             label="Modelled leads"
             value={hasLeads ? leadsForCalc.toLocaleString("en-GB") : "—"}
           />
-          <div className="rounded-[var(--radius-control)] border border-white/[0.06] bg-white/[0.02] p-4">
+          <div className="rounded-[var(--radius-control)] border border-border/60 bg-muted/40 p-4">
             <Label
               htmlFor="lead-value"
               className="text-overline text-muted-foreground"
@@ -94,7 +94,7 @@ export function ProposalROIPanel({
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-px overflow-hidden rounded-[var(--radius-control)] border border-white/[0.06] bg-white/[0.04] sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-px overflow-hidden rounded-[var(--radius-control)] border border-border/60 bg-muted/40 sm:grid-cols-3">
           <OutputTile
             label="Estimated revenue"
             value={hasLeads ? formatGBP(revenue) : "—"}
@@ -124,7 +124,7 @@ export function ProposalROIPanel({
             {showAssumptions ? "Hide assumptions" : "What does this assume?"}
           </button>
           {showAssumptions && (
-            <div className="mt-3 space-y-1.5 rounded-[var(--radius-control)] border border-white/[0.06] bg-white/[0.02] p-4 text-xs text-muted-foreground">
+            <div className="mt-3 space-y-1.5 rounded-[var(--radius-control)] border border-border/60 bg-muted/40 p-4 text-xs text-muted-foreground">
               <p>
                 <span className="text-foreground">Revenue</span> = modelled
                 leads × average lead value.
@@ -148,7 +148,7 @@ export function ProposalROIPanel({
         </div>
 
         {!hasLeads && (
-          <div className="flex items-start gap-2 rounded-[var(--radius-control)] border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-xs text-muted-foreground">
+          <div className="flex items-start gap-2 rounded-[var(--radius-control)] border border-border/60 bg-muted/40 px-4 py-3 text-xs text-muted-foreground">
             <TrendingUp className="mt-0.5 h-3.5 w-3.5" />
             <p>
               ROI requires a modelled lead count. We&apos;ll add this once your
@@ -163,7 +163,7 @@ export function ProposalROIPanel({
 
 function ContextChip({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-[var(--radius-control)] border border-white/[0.06] bg-white/[0.02] p-4">
+    <div className="rounded-[var(--radius-control)] border border-border/60 bg-muted/40 p-4">
       <p className="text-overline text-muted-foreground">{label}</p>
       <p className="mt-1 text-lg font-semibold tabular-nums text-foreground">
         {value}

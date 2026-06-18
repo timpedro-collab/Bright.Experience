@@ -1,4 +1,14 @@
-/** In-memory token bucket rate limiter for Server Actions and API routes */
+/**
+ * In-memory token bucket rate limiter for Server Actions and API routes.
+ *
+ * NOTE: the store is per-instance process memory, so on serverless/multi-
+ * instance deploys it does not share state across instances and resets on
+ * cold start. This closes the abuse hole immediately; a distributed store
+ * (Upstash Redis / Vercel KV) behind `checkRateLimit` is tracked as a
+ * dev-team handoff item in docs/11-cloud-handoff.md (D3).
+ */
+
+import { headers } from "next/headers";
 
 interface RateLimitEntry {
   tokens: number;
@@ -60,3 +70,15 @@ export const quoteLimiter = createRateLimiter({
   refillRate: 0.5,
   prefix: "quote",
 });
+
+/**
+ * Best-effort caller IP for rate-limit keys. Reads the proxy-forwarded
+ * headers Vercel/most platforms set. Falls back to "unknown" so a missing
+ * header degrades to a shared bucket rather than throwing.
+ */
+export async function getClientIp(): Promise<string> {
+  const h = await headers();
+  const forwarded = h.get("x-forwarded-for");
+  if (forwarded) return forwarded.split(",")[0]!.trim();
+  return h.get("x-real-ip") ?? "unknown";
+}

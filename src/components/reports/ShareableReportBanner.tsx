@@ -60,7 +60,7 @@ export function ShareableReportBanner({
   }
 
   return (
-    <Card className="border-white/[0.08] bg-card-dark/72 backdrop-blur-xl">
+    <Card className="border-border bg-card/72 backdrop-blur-xl">
       <CardContent className="p-5">
         {isPublished && shareToken ? (
           <div className="space-y-3">
@@ -73,7 +73,7 @@ export function ShareableReportBanner({
             </div>
 
             <div className="flex items-center gap-2">
-              <div className="flex-1 flex items-center gap-2 rounded-lg bg-surface-glass/50 border border-white/[0.06] px-3 py-2">
+              <div className="flex-1 flex items-center gap-2 rounded-lg bg-surface-glass/50 border border-border/60 px-3 py-2">
                 <LinkIcon size={12} className="text-muted-foreground shrink-0" />
                 <span className="text-xs text-muted-foreground truncate">
                   {shareUrl}

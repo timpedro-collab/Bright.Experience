@@ -25,6 +25,7 @@ import { IntakeStepContact } from "./IntakeStepContact";
 import { PostIntakeCard } from "./PostIntakeCard";
 import { submitProposalIntake } from "@/app/actions/quotes";
 import { decodeCapabilityParam } from "@/lib/capabilities";
+import { bridgeQuizToIntake } from "@/lib/quiz-intake-bridge";
 import { cn } from "@/lib/utils";
 
 const STEP_LABELS = [
@@ -47,7 +48,7 @@ interface IntakeFormData {
   footfallEstimate: string;
   creativeNeeds: string;
   specialRequirements: string;
-  budgetIndication: string;
+  engagementScope: string;
   contactName: string;
   contactEmail: string;
   contactPhone: string;
@@ -64,9 +65,15 @@ interface IntakeWizardProps {
 }
 
 function makeInitial(searchParams: URLSearchParams): IntakeFormData {
+  // Translate the quiz taxonomy onto intake field values so the radio cards
+  // and objective actually pre-select instead of silently falling through.
+  const prefill = bridgeQuizToIntake({
+    event: searchParams.get("event"),
+    objective: searchParams.get("objective"),
+  });
   return {
-    eventType: searchParams.get("event") ?? "",
-    objective: searchParams.get("objective") ?? "",
+    eventType: prefill.eventType,
+    objective: prefill.objective,
     venueName: "",
     postcode: "",
     eventDateStart: "",
@@ -76,7 +83,7 @@ function makeInitial(searchParams: URLSearchParams): IntakeFormData {
     footfallEstimate: "",
     creativeNeeds: "",
     specialRequirements: "",
-    budgetIndication: "",
+    engagementScope: "",
     contactName: "",
     contactEmail: "",
     contactPhone: "",
@@ -97,7 +104,9 @@ export function IntakeWizard(_props: IntakeWizardProps = {}) {
   );
   const initialPackageSlug = searchParams.get("package") ?? "";
 
-  const [step, setStep] = useState(0);
+  // If the quiz already captured the event type, skip straight to "Where & when"
+  // — the customer shouldn't re-answer step 0.
+  const [step, setStep] = useState(initial.eventType ? 1 : 0);
   const [data, setData] = useState<IntakeFormData>(initial);
   const [addons] = useState<string[]>(initialAddons);
   const [submitted, setSubmitted] = useState<null | { quoteId: string }>(null);
@@ -193,7 +202,7 @@ export function IntakeWizard(_props: IntakeWizardProps = {}) {
         <IntakeStepCreative
           creativeNeeds={data.creativeNeeds}
           specialRequirements={data.specialRequirements}
-          budgetIndication={data.budgetIndication}
+          engagementScope={data.engagementScope}
           onChange={handleChange}
         />
       )}

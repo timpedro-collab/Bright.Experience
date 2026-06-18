@@ -13,20 +13,53 @@ import { revalidatePath } from "next/cache";
 import { dispatchNotification } from "@/lib/notifications/dispatch";
 import { writeAudit } from "@/lib/audit";
 import { enqueueApprovalDecision } from "@/lib/pipedrive/triggers";
+import { isInternalRole, canRecordApprovalOnBehalf } from "@/lib/roles";
 import type { ActionResult } from "@/types/actions";
+import type { UserRole } from "@/types";
 
-/** Record a customer's approve/reject decision on a proof. */
+/**
+ * Record an approve/reject decision on a proof.
+ *
+ * Sign-off is the CUSTOMER's call. Internal staff may only record a
+ * decision on the customer's behalf via an explicit, clearly-labelled
+ * control — `onBehalf` must be set, and we stamp the audit trail so it's
+ * never silent.
+ */
 export async function decideApproval(
   approvalId: string,
   eventId: string,
   decision: "approved" | "rejected",
-  feedback?: string
+  feedback?: string,
+  onBehalf = false
 ): Promise<ActionResult> {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return { success: false, error: "Not authenticated" };
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .maybeSingle();
+  const actorRole = profile?.role as UserRole | undefined;
+  const actingInternal = actorRole ? isInternalRole(actorRole) : false;
+  if (actingInternal && !onBehalf) {
+    return {
+      success: false,
+      error:
+        "Sign-off is the customer's decision. Use “Record customer decision” to log it on their behalf.",
+    };
+  }
+  // Even on the customer's behalf, only customer-facing roles (Events Lead,
+  // Creative, admin) may record a sign-off. Ops/QA never touch approvals.
+  if (actingInternal && onBehalf && (!actorRole || !canRecordApprovalOnBehalf(actorRole))) {
+    return {
+      success: false,
+      error: "Your role can't record customer sign-off.",
+    };
+  }
 
   const updateData: Record<string, unknown> = {
     status: decision === "rejected" ? "revision_requested" : "approved",
@@ -57,7 +90,11 @@ export async function decideApproval(
     action: `approval_${decision}`,
     entityType: "approval",
     entityId: approvalId,
-    metadata: { feedback },
+    metadata: {
+      feedback,
+      onBehalfOfCustomer: actingInternal && onBehalf ? true : undefined,
+      actorRole,
+    },
   });
 
   const { data: eventRow } = await supabase
@@ -94,5 +131,8 @@ export async function decideApproval(
   );
 
   revalidatePath(`/events/${eventId}/approvals`);
+  revalidatePath(`/events/${eventId}`);
+  revalidatePath("/admin/customer-queue");
+  revalidatePath("/");
   return { success: true, data: undefined };
 }

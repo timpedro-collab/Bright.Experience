@@ -17,6 +17,7 @@ import { LiveDashboardClient } from "@/components/telemetry/LiveDashboardClient"
 
 import { getUser } from "@/lib/auth";
 import { isInternalRole } from "@/lib/roles";
+import { canViewSection } from "@/lib/event-access";
 import { getEventById } from "@/lib/queries/events";
 import { getLatestEventMetrics } from "@/lib/queries/event-metrics";
 import { getTelemetryByEvent } from "@/lib/queries/telemetry";
@@ -24,6 +25,7 @@ import { getMachineInstancesByEvent } from "@/lib/queries/machine-instances";
 import { getUnreadCount } from "@/lib/queries/notifications";
 import { formatDateMedium } from "@/lib/dates";
 import { deriveLiveStatus, type LiveStatus } from "@/lib/live-status";
+import type { UserRole } from "@/types";
 
 function LiveBadge({ status }: { status: LiveStatus }) {
   if (status.state === "live") {
@@ -47,7 +49,28 @@ function LiveBadge({ status }: { status: LiveStatus }) {
   );
 }
 
-function LiveContextBanner({ status, eventId }: { status: LiveStatus; eventId: string }) {
+function endedLink(
+  role: UserRole,
+  eventId: string,
+): { href: string; label: string } {
+  if (canViewSection(role, "reports"))
+    return { href: `/events/${eventId}/reports`, label: "View your reports" };
+  if (canViewSection(role, "timeline"))
+    return { href: `/events/${eventId}/timeline`, label: "View the timeline" };
+  if (canViewSection(role, "logistics"))
+    return { href: `/events/${eventId}/logistics`, label: "Review logistics" };
+  return { href: `/events/${eventId}`, label: "Back to overview" };
+}
+
+function LiveContextBanner({
+  status,
+  eventId,
+  viewerRole,
+}: {
+  status: LiveStatus;
+  eventId: string;
+  viewerRole: UserRole;
+}) {
   if (status.state === "scheduled") {
     return (
       <div className="flex items-start gap-3 rounded-lg border border-info/25 bg-info/8 p-4 mb-6">
@@ -65,18 +88,19 @@ function LiveContextBanner({ status, eventId }: { status: LiveStatus; eventId: s
     );
   }
   if (status.state === "ended") {
+    const link = endedLink(viewerRole, eventId);
     return (
-      <div className="flex items-start gap-3 rounded-lg border border-white/8 bg-white/4 p-4 mb-6">
+      <div className="flex items-start gap-3 rounded-lg border border-border bg-muted/40 p-4 mb-6">
         <Info className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
         <p className="text-sm text-muted-foreground">
           This event has concluded.{" "}
           <Link
-            href={`/events/${eventId}/reports`}
+            href={link.href}
             className="font-medium text-primary underline underline-offset-2"
           >
-            View your reports
+            {link.label}
           </Link>{" "}
-          for the full picture.
+          for the wrap-up.
         </p>
       </div>
     );
@@ -92,6 +116,7 @@ export default async function LiveDashboardPage({
   const user = await getUser();
   if (!user) redirect("/login");
   const { id } = await params;
+  if (!canViewSection(user.role, "live")) redirect(`/events/${id}`);
 
   const [event, latestMetrics, telemetry, machines, unread] =
     await Promise.all([
@@ -157,7 +182,7 @@ export default async function LiveDashboardPage({
         </div>
       }
     >
-      <LiveContextBanner status={liveStatus} eventId={id} />
+      <LiveContextBanner status={liveStatus} eventId={id} viewerRole={user.role} />
       <LiveDashboardClient
         eventId={id}
         initialMetrics={{

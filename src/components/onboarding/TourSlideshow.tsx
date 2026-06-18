@@ -18,7 +18,7 @@ export function TourSlideshow() {
 
   return (
     <motion.div
-      className="fixed inset-0 z-[10001] flex isolate"
+      className="theme-dark fixed inset-0 z-[10001] flex isolate text-foreground"
       style={{ isolation: "isolate" }}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}

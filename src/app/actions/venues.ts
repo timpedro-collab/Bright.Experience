@@ -40,6 +40,38 @@ export async function createVenue(data: {
   return { success: true as const, data: { id: venue.id, slug: venue.slug } };
 }
 
+/** Create a new venue event package. */
+export async function createVenuePackage(data: {
+  venueId: string;
+  name: string;
+  description?: string;
+  price?: number;
+  includesBrightBlue?: boolean;
+}) {
+  const { supabase } = await requireInternalUser();
+
+  if (!data.name.trim()) {
+    return { success: false as const, error: "Package name is required" };
+  }
+
+  const { data: pkg, error } = await supabase
+    .from("venue_packages")
+    .insert({
+      venue_id: data.venueId,
+      name: data.name.trim(),
+      description: data.description?.trim() || null,
+      price: data.price ?? null,
+      includes_bright_blue: data.includesBrightBlue ?? false,
+    })
+    .select("id")
+    .single();
+
+  if (error) return { success: false as const, error: "Failed to create package" };
+
+  revalidatePath("/venues");
+  return { success: true as const, data: { id: pkg.id } };
+}
+
 /** Update an existing venue. */
 export async function updateVenue(
   id: string,

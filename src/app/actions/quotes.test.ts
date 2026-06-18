@@ -12,9 +12,13 @@ let supabase: MockSupabase;
 const sendProposalIntakeNotification = vi.fn();
 const dispatchNotification = vi.fn();
 const recordAttribution = vi.fn();
+const getUser = vi.fn();
 
 vi.mock("@/lib/supabase/server", () => ({
   createClient: vi.fn(async () => supabase),
+}));
+vi.mock("@/lib/auth", () => ({
+  getUser: (...args: unknown[]) => getUser(...args),
 }));
 vi.mock("@/lib/email", () => ({
   sendProposalIntakeNotification: (...args: unknown[]) =>
@@ -62,6 +66,15 @@ beforeEach(() => {
   sendProposalIntakeNotification.mockReset().mockResolvedValue(undefined);
   dispatchNotification.mockReset();
   recordAttribution.mockReset().mockResolvedValue({ success: true, data: { id: "att" } });
+  getUser.mockReset().mockResolvedValue({
+    id: "u1",
+    name: "Commercial Lead",
+    email: "lead@bright.test",
+    avatarUrl: null,
+    role: "events_lead",
+    accountId: null,
+    hasCompletedOnboarding: true,
+  });
 });
 
 describe("submitBookNowQuote", () => {
@@ -295,6 +308,26 @@ describe("prepareProposal", () => {
     const row = updateCall!.args[0] as Record<string, unknown>;
     expect(row.total_amount).toBe(250_000);
     expect(row.status).toBe("proposal_sent");
+  });
+
+  it("rejects a caller without commercial access", async () => {
+    getUser.mockResolvedValue({
+      id: "cust",
+      name: "Customer",
+      email: "c@acme.test",
+      avatarUrl: null,
+      role: "customer_admin",
+      accountId: "acc-1",
+      hasCompletedOnboarding: true,
+    });
+    supabase.setTableResponse("quote_line_items", { data: null, error: null });
+    supabase.setTableResponse("quotes", { data: null, error: null });
+    const { prepareProposal } = await import("./quotes");
+    const result = await prepareProposal("q1", {
+      lineItems: [{ label: "Hardware", amount: 1 }],
+    });
+    expect(result.success).toBe(false);
+    expect(supabase.callsFor("quotes").find((c) => c.method === "update")).toBeUndefined();
   });
 
   it("returns failure on line-item insert error", async () => {

@@ -89,7 +89,7 @@ export default async function GamesIndexPage({
             </div>
           )}
           {filtered.length === 0 ? (
-            <div className="rounded-[var(--radius-card)] border border-white/[0.06] bg-white/[0.02] p-12 text-center text-muted-foreground">
+            <div className="rounded-[var(--radius-card)] border border-border/60 bg-muted/40 p-12 text-center text-muted-foreground">
               {category
                 ? `No games in the "${category}" category right now.`
                 : "The game catalogue is being prepared. Please check back soon."}

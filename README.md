@@ -115,7 +115,7 @@ See `.env.example` for the full list with setup instructions.
 - **Row-Level Security** — the database enforces access boundaries, not just application code.
 - **shadcn/ui primitives** — all standard UI uses shadcn; domain components compose them. Never hand-roll a `.btn`/`.card`/`.badge`/`.input`.
 - **Zod validation** — every form input validated client-side and in Server Actions.
-- **No file > 200 lines** — large files split into focused modules.
+- **Keep files focused** — prefer small, single-purpose modules; most files stay well under ~300 lines. Large domains are split into focused files (e.g. types live in per-domain modules under `src/types/`, re-exported from `src/types/index.ts`). A handful of registry/data and dashboard files run longer by design.
 
 ## Project Structure
 
