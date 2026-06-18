@@ -1,8 +1,17 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
-export async function createClient() {
+import { isMockMode } from "./mock/flag";
+import { createMockServerClient } from "./mock/client";
+
+export async function createClient(): Promise<SupabaseClient> {
   const cookieStore = await cookies();
+
+  // Standalone mock build — no real backend. See ./mock/client.
+  if (isMockMode()) {
+    return createMockServerClient(cookieStore) as unknown as SupabaseClient;
+  }
 
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -24,5 +33,5 @@ export async function createClient() {
         },
       },
     }
-  );
+  ) as unknown as SupabaseClient;
 }

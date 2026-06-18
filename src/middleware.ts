@@ -1,6 +1,8 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
+import { isMockMode, MOCK_COOKIE } from "./lib/supabase/mock/flag";
+
 const PUBLIC_PREFIXES = [
   "/login",
   "/auth",
@@ -29,6 +31,22 @@ const PUBLIC_PREFIXES = [
  * actions re-check the profile on demand.
  */
 export async function middleware(request: NextRequest) {
+  const pathnameEarly = request.nextUrl.pathname;
+  const isPublicEarly = PUBLIC_PREFIXES.some((p) => pathnameEarly.startsWith(p));
+  const isRootEarly = pathnameEarly === "/";
+
+  // Standalone mock build: auth is a cookie holding the seeded profile id.
+  if (isMockMode()) {
+    const uid = request.cookies.get(MOCK_COOKIE)?.value;
+    if (!uid && !isPublicEarly && !isRootEarly) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/login";
+      url.searchParams.set("redirect", pathnameEarly);
+      return NextResponse.redirect(url);
+    }
+    return NextResponse.next({ request });
+  }
+
   let supabaseResponse = NextResponse.next({ request });
 
   const supabase = createServerClient(

@@ -9,6 +9,9 @@
 
 import { createClient } from "@supabase/supabase-js";
 
+import { isMockMode } from "./mock/flag";
+import { createMockServiceClient } from "./mock/client";
+
 // We don't yet have generated DB types — the cron just needs raw read/write
 // across known shapes. Typed as `any` so writes don't trip over the
 // generic-default-`never` parameter inference. If you later wire up
@@ -19,6 +22,11 @@ type ServiceClient = any;
 let _client: ServiceClient | null = null;
 
 export function getServiceRoleClient(): ServiceClient {
+  // Standalone mock build — no real backend. See ./mock/client.
+  if (isMockMode()) {
+    if (!_client) _client = createMockServiceClient();
+    return _client;
+  }
   if (_client) return _client;
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
