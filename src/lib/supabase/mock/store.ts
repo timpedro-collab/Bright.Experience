@@ -6,20 +6,39 @@
  */
 
 import { MOCK_TABLES } from "./dataset";
+import { EXTRA_TABLES } from "./extra";
 
 export type MockRow = Record<string, unknown>;
 type DB = Record<string, MockRow[]>;
 
 let _db: DB | null = null;
 
+/**
+ * Merge the supplemental rows in `extra.ts` on top of the generated base
+ * dataset. Tables present in both are concatenated (base rows first), so the
+ * extra module can both extend existing tables (e.g. add partner-portal
+ * profiles) and populate ones the base seed left empty.
+ */
+function mergeSeed(): DB {
+  const merged: DB = {};
+  for (const [table, rows] of Object.entries(MOCK_TABLES as DB)) {
+    merged[table] = [...rows];
+  }
+  for (const [table, rows] of Object.entries(EXTRA_TABLES as DB)) {
+    merged[table] = [...(merged[table] ?? []), ...rows];
+  }
+  return merged;
+}
+
 export function db(): DB {
   if (!_db) {
     // Deep clone so the original seed module stays pristine and the working
     // copy is freely mutable.
+    const seed = mergeSeed();
     _db =
       typeof structuredClone === "function"
-        ? (structuredClone(MOCK_TABLES) as DB)
-        : (JSON.parse(JSON.stringify(MOCK_TABLES)) as DB);
+        ? (structuredClone(seed) as DB)
+        : (JSON.parse(JSON.stringify(seed)) as DB);
   }
   return _db;
 }

@@ -62,7 +62,7 @@ const REL: Record<string, RelSpec> = {
   "placements:venues": { localKey: "venue_id", foreignTable: "venues", foreignKey: "id", toMany: false },
   "sponsorship_slots:placements": { localKey: "placement_id", foreignTable: "placements", foreignKey: "id", toMany: false },
   "sponsorship_slots:venues": { localKey: "venue_id", foreignTable: "venues", foreignKey: "id", toMany: false },
-  "event_team_members:profiles": { localKey: "user_id", foreignTable: "profiles", foreignKey: "id", toMany: false },
+  "event_team_members:profiles": { localKey: "profile_id", foreignTable: "profiles", foreignKey: "id", toMany: false },
   "machine_instances:machines": { localKey: "machine_type_id", foreignTable: "machines", foreignKey: "id", toMany: false },
 };
 
