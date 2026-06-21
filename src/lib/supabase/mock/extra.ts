@@ -163,4 +163,16 @@ export const EXTRA_TABLES: Record<string, MockRow[]> = {
     { id: "ac000000-0000-4000-8000-000000000003", event_id: EVT_SAMSUNG_UNPACKED, account_id: ACC_SAMSUNG, invoice_number: "INV-2026-0019", amount: 27500.0, currency: "GBP", payment_method: "invoice", po_number: null, issued_at: "2026-04-15T09:00:00Z", due_at: "2026-05-15T09:00:00Z", paid_at: null, payment_reference: null, status: "overdue", notes: "Unpacked Pop-Up — final invoice, payment chased.", created_by: P_SARAH, created_at: "2026-04-15T09:00:00Z", updated_at: "2026-05-16T09:00:00Z" },
     { id: "ac000000-0000-4000-8000-000000000004", event_id: EVT_COKE_SUMMER, account_id: ACC_COKE, invoice_number: "INV-2026-0024", amount: 95000.0, currency: "GBP", payment_method: "deposit_plus_invoice", po_number: null, issued_at: null, due_at: null, paid_at: null, payment_reference: null, status: "draft", notes: "Summer Festival — draft pending final scope.", created_by: P_SARAH, created_at: "2026-06-10T09:00:00Z", updated_at: "2026-06-10T09:00:00Z" },
   ],
+
+  // Category-average benchmarks keyed to match the report chart's metric keys
+  // (interactions / leads / impressions). Each average sits comfortably below
+  // the seeded event totals, so "Your Event" clearly beats "Category Average".
+  benchmarks: [
+    { event_type: "sampling", location_tier: "tier_1", machine_type: "Bright.Vend Pro", metric_name: "interactions", avg_value: 6500, median_value: 6300, p25_value: 5200, p75_value: 7400, sample_size: 24 },
+    { event_type: "sampling", location_tier: "tier_1", machine_type: "Bright.Vend Pro", metric_name: "leads", avg_value: 1560, median_value: 1510, p25_value: 1240, p75_value: 1820, sample_size: 24 },
+    { event_type: "sampling", location_tier: "tier_1", machine_type: "Bright.Vend Pro", metric_name: "impressions", avg_value: 332000, median_value: 318000, p25_value: 264000, p75_value: 392000, sample_size: 24 },
+    { event_type: "activation", location_tier: "tier_1", machine_type: "Bright.Play", metric_name: "interactions", avg_value: 5600, median_value: 5400, p25_value: 4500, p75_value: 6500, sample_size: 31 },
+    { event_type: "activation", location_tier: "tier_1", machine_type: "Bright.Play", metric_name: "leads", avg_value: 1420, median_value: 1380, p25_value: 1120, p75_value: 1680, sample_size: 31 },
+    { event_type: "activation", location_tier: "tier_1", machine_type: "Bright.Play", metric_name: "impressions", avg_value: 285000, median_value: 272000, p25_value: 228000, p75_value: 338000, sample_size: 31 },
+  ],
 };

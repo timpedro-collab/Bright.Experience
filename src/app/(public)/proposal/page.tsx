@@ -51,7 +51,7 @@ export default function ProposalPage() {
               id="proposal-hero"
               className="text-display text-foreground text-[clamp(2.5rem,5vw,4rem)] leading-[1.1]"
             >
-              Let&apos;s price your moment.
+              Let&apos;s shape your moment.
             </h1>
             <p className="mt-4 max-w-2xl mx-auto text-muted-foreground md:text-lg leading-relaxed">
               A few quick questions about the event you have in mind. We&apos;ll

@@ -3,7 +3,7 @@ import type { TourConfig } from "./types";
 export const adminTour: TourConfig = {
   welcomeTitle: "Welcome to the control room.",
   welcomeSubtitle:
-    "Platform configuration, user management, and system oversight — the full picture, from one place.",
+    "Users, configuration, and platform oversight — the whole picture from one seat.",
   celebrationTitle: "You're in control.",
   celebrationSubtitle: "Build something amazing.",
   celebrationCta: "Go to the pipeline",
@@ -11,52 +11,52 @@ export const adminTour: TourConfig = {
   steps: [
     {
       target: null,
-      visual: "task-checklist",
-      title: "Your task board",
+      visual: "settings-team",
+      title: "Who has access",
       description:
-        "Tasks assigned to you across all events, sorted by urgency. Check them off and keep everything moving.",
+        "Invite users, assign roles, and activate or deactivate accounts. You decide who sees what across the entire platform.",
     },
     {
       target: null,
       visual: "pipeline-kanban",
-      title: "The pipeline",
+      title: "The platform-wide pipeline",
       description:
-        "Every event, every stage, every health status — the bird's-eye view of delivery across the entire platform.",
-    },
-    {
-      target: null,
-      visual: "settings-team",
-      title: "User management",
-      description:
-        "Invite users, manage roles, activate and deactivate accounts. Full control over who has access to what.",
+        "Every event, every stage, every health flag — the bird's-eye view across all delivery, not just one team's slice.",
     },
     {
       target: null,
       visual: "event-glance",
-      title: "Event workspace",
+      title: "Full access to any event",
       description:
-        "Click into any event for the full delivery workspace — every tab, every tool, every data point.",
+        "Open any workspace with complete access — every tab, every tool, every data point, with nothing gated off.",
     },
     {
       target: null,
       visual: "report-card",
-      title: "Reports and benchmarks",
+      title: "Reports & benchmarks",
       description:
-        "Generate proof-of-performance reports and track benchmark trends across event types.",
+        "Generate proof-of-performance reports and track benchmark trends across event types and the wider portfolio.",
     },
     {
       target: null,
       visual: "command-search",
       title: "The power shortcut",
       description:
-        "⌘K to jump to any admin page, any event, any user — faster than clicking through menus.",
+        "⌘K jumps to any admin page, event, or user — faster than any menu, from anywhere in the portal.",
+    },
+    {
+      target: null,
+      visual: "task-checklist",
+      title: "Your task board",
+      description:
+        "Anything assigned to you across the platform, ordered by urgency so nothing waits.",
     },
     {
       target: null,
       visual: "notifications",
       title: "System alerts",
       description:
-        "Escalations, completions, and platform events — your operational feed keeps you on top of everything.",
+        "Escalations, completions, and platform events — your operational feed, in real time.",
     },
   ],
 };

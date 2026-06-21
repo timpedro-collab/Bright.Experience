@@ -3,7 +3,7 @@ import type { TourConfig } from "./types";
 export const qaLeadTour: TourConfig = {
   welcomeTitle: "Welcome to quality control.",
   welcomeSubtitle:
-    "You're the last line of defence before every activation goes live. Nothing ships without your stamp.",
+    "You're the last line of defence before any activation goes live. Nothing ships without your stamp.",
   celebrationTitle: "Quality assured.",
   celebrationSubtitle: "Ship with confidence.",
   celebrationCta: "Go to my work",
@@ -11,38 +11,45 @@ export const qaLeadTour: TourConfig = {
   steps: [
     {
       target: null,
-      visual: "task-checklist",
-      title: "Your QA queue",
-      description:
-        "Every checklist item, every readiness gate, every event that needs your sign-off. Grouped by priority.",
-    },
-    {
-      target: null,
       visual: "qa-checklist",
-      title: "The QA checklist",
+      title: "Run the readiness gate",
       description:
-        "Machine boot, game load, prize trigger, lead form, GDPR — run through every item systematically. Check them off and watch readiness build.",
+        "Machine boot, game load, prize trigger, lead form, GDPR — work through every check systematically and watch readiness climb to 100%.",
     },
     {
       target: null,
       visual: "logistics-timeline",
-      title: "Pre-event context",
+      title: "Know what's arriving",
       description:
-        "Check delivery status and readiness before running your QA pass. Know exactly when the machine arrives and where it's going.",
+        "Check delivery status before your pass — exactly when each machine lands and where it's headed, so you test the right unit at the right time.",
+    },
+    {
+      target: null,
+      visual: "event-glance",
+      title: "The full picture",
+      description:
+        "Open any event for the context behind the gate: configuration, creative, and history — everything you need to test against the brief.",
+    },
+    {
+      target: null,
+      visual: "task-checklist",
+      title: "Your QA queue",
+      description:
+        "Every checklist and readiness gate awaiting your sign-off, grouped by priority so the urgent gates surface first.",
     },
     {
       target: null,
       visual: "notifications",
       title: "QA updates",
       description:
-        "Checklist completions, failed items, and readiness gate changes — all delivered in real time.",
+        "Failed items, completions, and gate changes — the moment they flip, you know.",
     },
     {
       target: null,
       visual: "command-search",
-      title: "Jump to any event",
+      title: "Straight to any gate",
       description:
-        "⌘K to navigate straight to the QA page of any event in one keystroke.",
+        "⌘K takes you to the QA page of any event in a single keystroke.",
     },
   ],
 };

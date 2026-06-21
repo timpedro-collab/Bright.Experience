@@ -54,6 +54,14 @@ export default function LoginPage() {
       setError(result.error);
       setLoading(false);
     } else {
+      // Demo behaviour: replay the role-specific tour on every sign-in. This
+      // one-shot flag is consumed by TourShell on the next page (home or
+      // /welcome) regardless of onboarding state, so it never loops.
+      try {
+        localStorage.setItem("bright_tour_pending", "true");
+      } catch {
+        /* private mode / storage disabled — tour just won't auto-replay */
+      }
       router.push(redirectTo);
       router.refresh();
     }
@@ -103,18 +111,25 @@ export default function LoginPage() {
         </footer>
       </aside>
 
-      {/* ── Right: linen-paper form panel ───────────────────────────── */}
-      <main className="theme-light bg-[hsl(40_30%_91%)] text-[hsl(233_50%_8%)] flex items-center justify-center p-6 lg:p-12">
+      {/* ── Right: deep-ink form panel (congruent with the left) ─────── */}
+      <main className="theme-dark relative isolate overflow-hidden bg-[hsl(233_70%_8%)] text-[hsl(40_28%_92%)] flex items-center justify-center p-6 lg:p-12">
+        {/* Soft cobalt/cyan glow so the panel echoes the ridge artwork */}
+        <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
+          <div className="absolute -top-1/4 -right-1/4 h-[70vh] w-[70vh] rounded-full bg-[hsl(230,93%,53%)]/15 blur-[150px]" />
+          <div className="absolute -bottom-1/4 left-0 h-[45vh] w-[45vh] rounded-full bg-[hsl(189,100%,55%)]/10 blur-[130px]" />
+        </div>
         <div className="w-full max-w-[480px]">
-          <EditorialEyebrow accent>Sign in</EditorialEyebrow>
-          <h2 className="text-display text-foreground text-[clamp(1.75rem,3vw,2.5rem)] mt-2 leading-tight">
+          <EditorialEyebrow accent className="text-[hsl(189_100%_75%)]">
+            Sign in
+          </EditorialEyebrow>
+          <h2 className="text-display text-[hsl(40_28%_94%)] text-[clamp(1.75rem,3vw,2.5rem)] mt-2 leading-tight">
             Open your portal.
           </h2>
-          <p className="mt-3 text-sm text-muted-foreground max-w-[42ch]">
+          <p className="mt-3 text-sm text-[hsl(40_28%_92%)]/70 max-w-[42ch]">
             Sign in with the email your account manager sent you. New here?{" "}
             <a
               href="mailto:hello@brightblue.co.uk"
-              className="text-[var(--color-bb-cobalt)] underline decoration-from-font underline-offset-4"
+              className="text-[hsl(189_100%_75%)] underline decoration-from-font underline-offset-4 hover:opacity-80 transition-opacity"
             >
               Get an invite
             </a>
@@ -146,7 +161,7 @@ export default function LoginPage() {
                 required
                 autoComplete="email"
                 placeholder="you@company.com"
-                className="w-full bg-card text-foreground placeholder:text-muted-foreground/70 px-4 py-2.5 rounded-xl border border-border focus:outline-none focus:ring-2 focus:ring-[var(--color-bb-cobalt)] focus:border-[var(--color-bb-cobalt)] transition"
+                className="w-full bg-white/[0.04] text-[hsl(40_28%_92%)] placeholder:text-white/35 px-4 py-2.5 rounded-xl border border-white/12 focus:outline-none focus:ring-2 focus:ring-[hsl(189,100%,65%)] focus:border-[hsl(189,100%,65%)] transition"
               />
             </div>
 
@@ -165,7 +180,7 @@ export default function LoginPage() {
                 required
                 autoComplete="current-password"
                 placeholder="Enter your password"
-                className="w-full bg-card text-foreground placeholder:text-muted-foreground/70 px-4 py-2.5 rounded-xl border border-border focus:outline-none focus:ring-2 focus:ring-[var(--color-bb-cobalt)] focus:border-[var(--color-bb-cobalt)] transition"
+                className="w-full bg-white/[0.04] text-[hsl(40_28%_92%)] placeholder:text-white/35 px-4 py-2.5 rounded-xl border border-white/12 focus:outline-none focus:ring-2 focus:ring-[hsl(189,100%,65%)] focus:border-[hsl(189,100%,65%)] transition"
               />
             </div>
 
@@ -190,7 +205,7 @@ export default function LoginPage() {
             <div className="mt-4 text-center">
               <a
                 href="/forgot-password"
-                className="text-sm text-[var(--color-bb-cobalt)] underline decoration-from-font underline-offset-4 hover:opacity-80 transition-opacity"
+                className="text-sm text-[hsl(189_100%_75%)] underline decoration-from-font underline-offset-4 hover:opacity-80 transition-opacity"
               >
                 Forgot your password?
               </a>
@@ -214,12 +229,12 @@ export default function LoginPage() {
                           setEmail(demo.email);
                           setPassword("demo-password-123");
                         }}
-                        className="w-full text-left rounded-md border border-border bg-card/60 hover:bg-card hover:border-[var(--color-bb-cobalt)]/50 px-3 py-2 transition group"
+                        className="w-full text-left rounded-md border border-white/10 bg-white/[0.04] hover:bg-white/[0.07] hover:border-[hsl(189,100%,65%)]/40 px-3 py-2 transition group"
                       >
-                        <span className="block text-sm text-foreground font-medium">
+                        <span className="block text-sm text-[hsl(40_28%_92%)] font-medium">
                           {demo.label}
                         </span>
-                        <span className="text-overline text-muted-foreground group-hover:text-[var(--color-bb-cobalt)] transition-colors">
+                        <span className="text-overline text-white/45 group-hover:text-[hsl(189_100%_75%)] transition-colors">
                           {demo.role}
                         </span>
                       </button>

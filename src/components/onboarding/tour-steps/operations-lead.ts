@@ -3,53 +3,60 @@ import type { TourConfig } from "./types";
 export const operationsLeadTour: TourConfig = {
   welcomeTitle: "Welcome to operations HQ.",
   welcomeSubtitle:
-    "Delivery logistics, QA readiness, and on-the-ground coordination — all streamlined for you.",
-  celebrationTitle: "Operations running smooth.",
-  celebrationSubtitle: "Let's deliver.",
+    "Deliveries, build schedules, and readiness gates — you keep every activation on the road and on time.",
+  celebrationTitle: "Wheels up.",
+  celebrationSubtitle: "Everything's moving. Let's deliver.",
   celebrationCta: "Go to my work",
   celebrationHref: "/",
   steps: [
     {
       target: null,
-      visual: "task-checklist",
-      title: "Your ops queue",
+      visual: "logistics-timeline",
+      title: "The delivery runway",
       description:
-        "Logistics confirmations, QA checklists, delivery schedules — everything waiting on you. Check items off as you complete them.",
+        "Packing, transport, on-site build, collection — every leg on one timeline. You'll always know where a machine is and what happens next.",
     },
     {
       target: null,
-      visual: "logistics-timeline",
-      title: "Schedule and confirm",
+      visual: "event-glance",
+      title: "Everything the crew needs",
       description:
-        "Track every delivery from packing to on-site confirmation. The timeline shows you where things are and what's coming next.",
+        "Open any event for venue requirements, access windows, power specs, and the on-site contact — the full brief before anyone rolls out.",
     },
     {
       target: null,
       visual: "qa-checklist",
-      title: "Quality assurance",
+      title: "Readiness before you roll",
       description:
-        "The QA checklist ensures every machine boots, every game loads, and every lead form works. Systematic and thorough — nothing gets missed.",
+        "Confirm the machine boots, games load, and lead forms fire before sign-off. Ops and QA move in lock-step so nothing ships half-ready.",
     },
     {
       target: null,
       visual: "pipeline-kanban",
-      title: "Spot bottlenecks early",
+      title: "Spot the bottleneck first",
       description:
-        "The pipeline shows every event's health at a glance. Amber and red flags mean you're needed — jump in before things slow down.",
+        "The pipeline flags every event amber or red. When delivery is at risk, you see it before anyone else — and jump in before it slips.",
+    },
+    {
+      target: null,
+      visual: "task-checklist",
+      title: "Your ops queue",
+      description:
+        "Logistics confirmations and on-the-ground actions assigned to you, with overdue items floated to the top.",
     },
     {
       target: null,
       visual: "notifications",
-      title: "Logistics alerts",
+      title: "Real-time logistics alerts",
       description:
-        "Delivery confirmations, QA completions, and schedule changes — all delivered in real time.",
+        "Delivery confirmations, schedule changes, and readiness flips — the moment they happen, not the morning after.",
     },
     {
       target: null,
       visual: "command-search",
-      title: "Quick navigation",
+      title: "⌘K to anywhere",
       description:
-        "⌘K to jump to any event, any logistics page, any admin tool instantly.",
+        "Jump straight to any event's logistics page in a single keystroke — no clicking through menus.",
     },
   ],
 };

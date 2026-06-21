@@ -56,12 +56,16 @@ export default async function ReportPrintPage({
   const reportMetrics = normaliseMetrics(report.metricsJson);
   const metrics = {
     ...reportMetrics,
-    totalPlays: liveMetrics.totalPlays || reportMetrics.totalPlays,
-    totalLeads: liveMetrics.totalLeads || reportMetrics.totalLeads,
-    totalInteractions:
-      liveMetrics.totalInteractions || reportMetrics.totalInteractions,
-    mediaImpressions:
-      liveMetrics.mediaImpressions || reportMetrics.mediaImpressions,
+    totalPlays: Math.max(liveMetrics.totalPlays, reportMetrics.totalPlays),
+    totalLeads: Math.max(liveMetrics.totalLeads, reportMetrics.totalLeads),
+    totalInteractions: Math.max(
+      liveMetrics.totalInteractions,
+      reportMetrics.totalInteractions
+    ),
+    mediaImpressions: Math.max(
+      liveMetrics.mediaImpressions,
+      reportMetrics.mediaImpressions
+    ),
   };
   const predictions = normalisePredictions(report.predictionsJson);
   const highlights = normaliseHighlights(report.highlightsJson);

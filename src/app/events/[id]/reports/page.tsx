@@ -133,18 +133,24 @@ export default async function ReportsPage({
     getBenchmarkForComparison(event.eventType ?? "experiential"),
   ]);
 
-  // Prefer live telemetry snapshot over the report blob when both exist —
-  // the snapshot keeps refreshing during/after the event.
+  // Use the higher of the live snapshot vs the report blob for each metric.
+  // The latest daily snapshot is only the final day's reading, whereas the
+  // report blob holds the cumulative event total — taking the max keeps an
+  // in-flight event fresh while never under-reporting a completed one's totals.
   const liveMetrics = normaliseMetrics(latestMetrics ?? {});
   const reportMetrics = normaliseMetrics(report.metricsJson);
   const metrics = {
     ...reportMetrics,
-    totalPlays: liveMetrics.totalPlays || reportMetrics.totalPlays,
-    totalLeads: liveMetrics.totalLeads || reportMetrics.totalLeads,
-    totalInteractions:
-      liveMetrics.totalInteractions || reportMetrics.totalInteractions,
-    mediaImpressions:
-      liveMetrics.mediaImpressions || reportMetrics.mediaImpressions,
+    totalPlays: Math.max(liveMetrics.totalPlays, reportMetrics.totalPlays),
+    totalLeads: Math.max(liveMetrics.totalLeads, reportMetrics.totalLeads),
+    totalInteractions: Math.max(
+      liveMetrics.totalInteractions,
+      reportMetrics.totalInteractions
+    ),
+    mediaImpressions: Math.max(
+      liveMetrics.mediaImpressions,
+      reportMetrics.mediaImpressions
+    ),
   };
   const predictions = normalisePredictions(report.predictionsJson);
   const highlights = normaliseHighlights(report.highlightsJson);

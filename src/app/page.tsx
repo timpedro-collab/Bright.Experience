@@ -34,7 +34,9 @@ import { getCustomerActionItems } from "@/lib/queries/deadlines";
 import { getPendingQuotesForCustomer } from "@/lib/queries/quotes";
 import { getStreak } from "@/app/actions/streak";
 import { getUser } from "@/lib/auth";
-import { isInternalRole } from "@/lib/roles";
+import { isInternalRole, isPartnerRole } from "@/lib/roles";
+import { getPartnerForUser } from "@/lib/queries/partners";
+import { getVenuesByPartner } from "@/lib/queries/venues";
 import { parsePage } from "@/lib/pagination";
 
 import { pickFeaturedEvent } from "@/components/home/home-helpers";
@@ -52,6 +54,20 @@ export default async function HomePage({ searchParams }: HomePageProps) {
     return <PublicLanding />;
   }
   if (!user.hasCompletedOnboarding) redirect("/welcome");
+
+  // Partner & venue users don't have a customer/internal home — send them
+  // straight to their own portal. Venue-type partners land on their venue
+  // runway; resellers/agencies land on the partner dashboard.
+  if (isPartnerRole(user.role)) {
+    const partner = await getPartnerForUser(user.id);
+    if (partner) {
+      if (partner.type === "venue") {
+        const venues = await getVenuesByPartner(partner.id);
+        if (venues[0]?.slug) redirect(`/venues/${venues[0].slug}/dashboard`);
+      }
+      redirect(`/partners/${partner.slug}/dashboard`);
+    }
+  }
 
   const params = await searchParams;
   const isInternal = isInternalRole(user.role);

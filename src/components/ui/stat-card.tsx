@@ -111,11 +111,11 @@ export function StatCard({
   );
 
   const baseClasses = cn(
-    "group relative overflow-hidden rounded-[var(--radius-card)] border border-white/[0.06]",
-    "bg-[hsl(233,56%,11%,0.55)] backdrop-blur-md",
+    "group relative overflow-hidden rounded-[var(--radius-card)] border border-border",
+    "bg-card/70 backdrop-blur-md",
     "p-5 transition-all duration-200",
     href &&
-      "cursor-pointer hover:border-white/16 hover:bg-[hsl(233,56%,11%,0.7)] hover:-translate-y-0.5 hover:shadow-[var(--bb-shadow-premium)]",
+      "cursor-pointer hover:border-foreground/20 hover:bg-card hover:-translate-y-0.5 hover:shadow-[var(--bb-shadow-premium)]",
     className
   );
 
