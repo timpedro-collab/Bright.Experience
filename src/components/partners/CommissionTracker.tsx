@@ -3,20 +3,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { cn } from "@/lib/utils";
 import { DollarSign, Clock, CheckCircle2 } from "lucide-react";
+import { formatUSDFromCents } from "@/lib/currency";
 
 interface CommissionTrackerProps {
+  /** All amounts are integer cents. */
   totalEarned: number;
   pending: number;
   paid: number;
 }
 
-/** Formats a number as ZAR currency */
-function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat("en-ZA", {
-    style: "currency",
-    currency: "ZAR",
-    minimumFractionDigits: 0,
-  }).format(amount);
+function formatCurrency(cents: number): string {
+  return formatUSDFromCents(cents);
 }
 
 export function CommissionTracker({
@@ -28,7 +25,7 @@ export function CommissionTracker({
 
   const cards = [
     {
-      label: "Total Earned",
+      label: "Total earned",
       value: formatCurrency(totalEarned),
       icon: DollarSign,
       accent: "text-emerald-400",
@@ -42,7 +39,7 @@ export function CommissionTracker({
       bgAccent: "bg-amber-500/10",
     },
     {
-      label: "Paid Out",
+      label: "Paid out",
       value: formatCurrency(paid),
       icon: CheckCircle2,
       accent: "text-brand",
@@ -82,7 +79,7 @@ export function CommissionTracker({
         <CardContent className="p-6">
           <div className="flex items-center justify-between mb-3">
             <span className="text-sm font-medium text-muted-foreground">
-              Payout Progress
+              Payout progress
             </span>
             <span className="text-sm font-mono text-muted-foreground">
               {paidRatio}%

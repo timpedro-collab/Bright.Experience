@@ -10,46 +10,51 @@ export const qaLeadTour: TourConfig = {
   celebrationHref: "/",
   steps: [
     {
-      target: null,
-      visual: "qa-checklist",
-      title: "Run the readiness gate",
+      target: "kpis",
+      placement: "bottom",
+      title: "What's heading your way",
       description:
-        "Machine boot, game load, prize trigger, lead form, GDPR — work through every check systematically and watch readiness climb to 100%.",
+        "Events in flight and how many are nearing the line — the gates that will need your stamp before they ship.",
     },
     {
-      target: null,
-      visual: "logistics-timeline",
-      title: "Know what's arriving",
+      target: "needs-attention",
+      placement: "top",
+      title: "Catch risk before it ships",
       description:
-        "Check delivery status before your pass — exactly when each machine lands and where it's headed, so you test the right unit at the right time.",
+        "At-risk events surface here first. If a gate is slipping, you'll see it before it becomes a go-live problem.",
     },
     {
-      target: null,
-      visual: "event-glance",
-      title: "The full picture",
-      description:
-        "Open any event for the context behind the gate: configuration, creative, and history — everything you need to test against the brief.",
-    },
-    {
-      target: null,
-      visual: "task-checklist",
+      target: "work-queue",
+      placement: "bottom",
       title: "Your QA queue",
       description:
-        "Every checklist and readiness gate awaiting your sign-off, grouped by priority so the urgent gates surface first.",
+        "Checklists and readiness gates awaiting your sign-off across the operation, each one a click from where you act.",
     },
     {
-      target: null,
-      visual: "notifications",
-      title: "QA updates",
+      target: "nav:/inbox",
+      placement: "right",
+      title: "Your task inbox",
       description:
-        "Failed items, completions, and gate changes — the moment they flip, you know.",
+        "Every check assigned to you in one stream, with the urgent gates floated to the top.",
     },
     {
-      target: null,
-      visual: "command-search",
+      target: "command-palette",
+      placement: "bottom",
       title: "Straight to any gate",
       description:
         "⌘K takes you to the QA page of any event in a single keystroke.",
+    },
+    {
+      target: "nav:/pipeline",
+      placement: "right",
+      title: "Find what's nearing QA",
+      description:
+        "The pipeline shows every event by stage — spot the ones approaching readiness so you can line up your passes.",
+      action: {
+        type: "click",
+        hint: "Click Pipeline to find events nearing QA and finish.",
+        endsTour: true,
+      },
     },
   ],
 };

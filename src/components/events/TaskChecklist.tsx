@@ -34,32 +34,9 @@ import { celebrateFromElement, celebrateBig } from "@/lib/celebrate";
 import { useProgressToast } from "@/hooks/useProgressToast";
 import { CelebrationCheck } from "@/components/ui/CelebrationCheck";
 import { AllClearState } from "@/components/ui/AllClearState";
-import { ownerForTask, ownerLabelFor, OWNER_DISPLAY_LABEL } from "@/lib/ownership";
+import { OwnerBadge } from "@/components/ui/OwnerBadge";
+import { ownerForTask, ownerBadgeForTask } from "@/lib/ownership";
 import { taskInputGate } from "@/lib/task-input";
-
-/**
- * Short owner badge for a task — the single most important signal for
- * "is this on me?". Customers see "On you" for their own actions and who
- * they're waiting on otherwise; internal staff see "On you" only when the
- * task is theirs, and "On the customer" for customer actions.
- */
-function ownerBadgeLabel(
-  task: Task,
-  isInternal: boolean,
-  viewerRole?: UserRole
-): string {
-  const owner = ownerForTask(task);
-  if (owner === "customer") {
-    return isInternal ? "On the customer" : "On you";
-  }
-  if (!isInternal) {
-    return `With ${OWNER_DISPLAY_LABEL[owner]}`;
-  }
-  if (viewerRole && ownerLabelFor(owner, viewerRole) === "Waiting on you") {
-    return "On you";
-  }
-  return `With ${OWNER_DISPLAY_LABEL[owner]}`;
-}
 
 function priorityAccent(priority: string): string {
   switch (priority) {
@@ -70,6 +47,22 @@ function priorityAccent(priority: string): string {
     default:
       return "border-l-transparent";
   }
+}
+
+/** Text priority chip — only for the two that matter; quietly absent otherwise. */
+function PriorityChip({ priority }: { priority: string }) {
+  if (priority !== "critical" && priority !== "high") return null;
+  return (
+    <span
+      className={`inline-flex items-center rounded-full px-1.5 py-0.5 text-[0.55rem] font-semibold uppercase tracking-wide ${
+        priority === "critical"
+          ? "bg-destructive/15 text-destructive"
+          : "bg-warning/15 text-warning"
+      }`}
+    >
+      {priority}
+    </span>
+  );
 }
 
 export function TaskChecklist({
@@ -245,8 +238,8 @@ function TaskItem({
   // customer's behalf — the server enforces this and audits it.
   const customerTaskAsInternal =
     isInternal && task.taskType === "customer_action";
-  const ownerLabel = ownerBadgeLabel(task, isInternal, viewerRole);
-  const ownedByViewer = ownerLabel === "On you";
+  const ownerInfo = ownerBadgeForTask(task, viewerRole, isInternal);
+  const ownedByViewer = ownerInfo.isYou;
   // Tasks backed by a real input (upload / form / setup) complete when that
   // input is submitted — so we route the owner there instead of offering a
   // free manual tick that would cross the item off with nothing supplied.
@@ -334,7 +327,7 @@ function TaskItem({
         </div>
 
         <div className="flex-1 min-w-0">
-          <div className="flex items-center justify-between gap-3 mb-1">
+          <div className="flex items-start justify-between gap-3 mb-1">
             {task.targetPath ? (
               <Link
                 href={`/events/${task.eventId}/${task.targetPath}`}
@@ -357,7 +350,14 @@ function TaskItem({
                 {task.title}
               </p>
             )}
-            <TaskStatusBadge status={task.status} />
+            {!isCompleted && (
+              <OwnerBadge
+                owner={ownerForTask(task)}
+                viewerRole={viewerRole}
+                isInternal={isInternal}
+                className="mt-0.5 shrink-0"
+              />
+            )}
           </div>
 
           {task.description && (
@@ -366,11 +366,12 @@ function TaskItem({
             </p>
           )}
 
-          <div className="flex items-center gap-4 mt-2">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 mt-2">
+            <PriorityChip priority={task.priority} />
             {task.dueDate && (
               <span
                 className={`flex items-center gap-1 text-xs ${
-                  overdue ? "text-destructive" : "text-muted-foreground"
+                  overdue ? "text-destructive font-medium" : "text-muted-foreground"
                 }`}
               >
                 <Clock size={11} />
@@ -378,28 +379,18 @@ function TaskItem({
                 {formatDateShort(task.dueDate!)}
               </span>
             )}
-            {task.assignedTo && (
-              <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                <User size={11} />
-                {task.assignedTo.name}
-              </span>
-            )}
             {task.isBlocking && (
               <Badge variant="destructive" className="text-[0.55rem]">
                 Blocking
               </Badge>
             )}
-            {!isCompleted && (
-              <span
-                className={`inline-flex items-center rounded-full px-2 py-0.5 text-[0.6rem] font-medium ${
-                  ownedByViewer
-                    ? "bg-[var(--color-bb-cobalt)]/15 text-[var(--color-bb-cobalt)]"
-                    : "bg-muted/60 text-muted-foreground"
-                }`}
-              >
-                {ownerLabel}
+            {isInternal && task.assignedTo && (
+              <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                <User size={11} />
+                {task.assignedTo.name}
               </span>
             )}
+            {isCompleted && <TaskStatusBadge status={task.status} />}
           </div>
 
           {!isCompleted && !pending && gate && (
@@ -452,7 +443,7 @@ function TaskItem({
           )}
 
           {!isCompleted && !pending && !gate && (
-            <div className="flex items-center gap-2 mt-3 opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="flex items-center gap-2 mt-3">
               {customerTaskAsInternal ? (
                 // Internal staff act on the customer's behalf — explicit + audited.
                 <Button

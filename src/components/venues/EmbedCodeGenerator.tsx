@@ -19,7 +19,7 @@ export function EmbedCodeGenerator({ venueSlug }: EmbedCodeGeneratorProps) {
     ? window.location.origin
     : "https://app.bright.blue";
 
-  const embedUrl = `${baseUrl}/embed/venue/${venueSlug}`;
+  const embedUrl = `${baseUrl}/book?venue=${venueSlug}`;
 
   const embedCode = `<iframe
   src="${embedUrl}"
@@ -87,24 +87,31 @@ export function EmbedCodeGenerator({ venueSlug }: EmbedCodeGeneratorProps) {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base font-semibold flex items-center gap-2">
-            <ExternalLink size={16} className="text-brand" />
-            Preview
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base font-semibold flex items-center gap-2">
+              <ExternalLink size={16} className="text-brand" />
+              Live preview
+            </CardTitle>
+            <Button asChild size="sm" variant="outline" className="gap-1.5">
+              <a href={embedUrl} target="_blank" rel="noopener noreferrer">
+                <ExternalLink size={12} />
+                Open
+              </a>
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
+          <p className="mb-3 text-xs text-muted-foreground">
+            This is exactly what your visitors will see — the real booking
+            widget, rendered live from your venue link.
+          </p>
           <div className="rounded-lg border border-border/60 bg-muted/20 p-1">
-            <div className="rounded-md bg-background overflow-hidden" style={{ height: 300 }}>
-              <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-                <div className="text-center space-y-2">
-                  <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-brand/10">
-                    <Code size={20} className="text-brand" />
-                  </div>
-                  <p>Embed preview will render at</p>
-                  <code className="text-xs text-brand">{embedUrl}</code>
-                </div>
-              </div>
-            </div>
+            <iframe
+              src={embedUrl}
+              title="Bright.Blue Venue Experience preview"
+              className="w-full rounded-md bg-background"
+              style={{ height: 480 }}
+            />
           </div>
         </CardContent>
       </Card>

@@ -15,7 +15,7 @@ import { RidgeArtwork, EditorialEyebrow } from "@/components/brand";
 const STAT_PILLS = [
   { label: "Live in 12 markets" },
   { label: "92% rebook rate" },
-  { label: "Up to 40% more qualified leads" },
+  { label: "Up to 40% more leads captured" },
 ];
 
 export function CatalogHero() {
@@ -52,7 +52,7 @@ export function CatalogHero() {
             id="catalog-hero-title"
             className="text-display text-balance text-foreground text-[clamp(2.75rem,6vw,5rem)] leading-[1.05]"
           >
-            Boost engagement and qualified leads at your next exhibition.
+            Boost engagement and leads at your next exhibition.
           </h1>
           <p className="mt-6 max-w-2xl text-lg text-muted-foreground text-balance md:text-xl leading-relaxed">
             From booking and brand wrap through to live telemetry, we run

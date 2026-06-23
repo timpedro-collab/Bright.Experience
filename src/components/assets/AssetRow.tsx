@@ -22,7 +22,7 @@ import { AssetPreviewDialog } from "@/components/assets/AssetPreviewDialog";
 import { formatDateShort, isOverdue as checkOverdue } from "@/lib/dates";
 import { cn } from "@/lib/utils";
 import { SURFACE_CARD } from "@/lib/surfaces";
-import type { Asset, Comment } from "@/types";
+import type { Asset, AssetAnnotation, Comment } from "@/types";
 
 function formatFileSize(bytes?: number): string {
   if (!bytes) return "";
@@ -45,6 +45,8 @@ interface AssetRowProps {
   asset: Asset;
   comments?: Comment[];
   commentCount?: number;
+  /** Region-anchored reviewer notes, shown read-only to the customer. */
+  annotations?: AssetAnnotation[];
   currentUserId?: string;
   /** Whether the viewer is internal Bright.Blue staff. */
   isInternal?: boolean;
@@ -58,7 +60,8 @@ interface AssetRowProps {
   machineSlug?: MachineSlug;
 }
 
-export function AssetRow({ asset, comments = [], commentCount = 0, currentUserId, isInternal = false, canUpload = false, machineSlug = DEFAULT_MACHINE_SLUG }: AssetRowProps) {
+export function AssetRow({ asset, comments = [], commentCount = 0, annotations = [], currentUserId, isInternal = false, canUpload = false, machineSlug = DEFAULT_MACHINE_SLUG }: AssetRowProps) {
+  const openAnnotations = annotations.filter((a) => !a.resolved);
   const overdue =
     asset.status === "required" &&
     asset.dueDate &&
@@ -222,6 +225,26 @@ export function AssetRow({ asset, comments = [], commentCount = 0, currentUserId
                 </p>
               </div>
             )}
+
+          {openAnnotations.length > 0 && (
+            <div className="mt-3 border-l-2 border-[var(--color-bb-cobalt)]/60 pl-3 py-1">
+              <p className="text-overline text-[var(--color-bb-cobalt)] mb-1.5">
+                Marked-up notes from creative
+              </p>
+              <ul className="space-y-1.5">
+                {openAnnotations.map((a, i) => (
+                  <li key={a.id} className="flex items-start gap-2 text-sm">
+                    <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-[var(--color-bb-cobalt)]/15 text-[10px] font-semibold text-[var(--color-bb-cobalt)]">
+                      {i + 1}
+                    </span>
+                    <span className="min-w-0 flex-1 break-words text-foreground/90 leading-snug">
+                      {a.body}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           {needsAction &&
             (canUpload ? (

@@ -101,12 +101,12 @@ export default async function BenchmarksPage() {
                           </TableCell>
                           <TableCell className="text-right tabular-nums">
                             {b.avgValue != null
-                              ? b.avgValue.toLocaleString()
+                              ? b.avgValue.toLocaleString("en-US")
                               : "—"}
                           </TableCell>
                           <TableCell className="text-right tabular-nums text-muted-foreground">
                             {b.medianValue != null
-                              ? b.medianValue.toLocaleString()
+                              ? b.medianValue.toLocaleString("en-US")
                               : "—"}
                           </TableCell>
                           <TableCell className="text-right tabular-nums text-muted-foreground">

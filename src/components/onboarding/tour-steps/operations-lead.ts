@@ -10,53 +10,51 @@ export const operationsLeadTour: TourConfig = {
   celebrationHref: "/",
   steps: [
     {
-      target: null,
-      visual: "logistics-timeline",
-      title: "The delivery runway",
+      target: "kpis",
+      placement: "bottom",
+      title: "The fleet at a glance",
       description:
-        "Packing, transport, on-site build, collection — every leg on one timeline. You'll always know where a machine is and what happens next.",
+        "How many events are in flight, on track, at risk, and live right now — your delivery picture in one row.",
     },
     {
-      target: null,
-      visual: "event-glance",
-      title: "Everything the crew needs",
-      description:
-        "Open any event for venue requirements, access windows, power specs, and the on-site contact — the full brief before anyone rolls out.",
-    },
-    {
-      target: null,
-      visual: "qa-checklist",
-      title: "Readiness before you roll",
-      description:
-        "Confirm the machine boots, games load, and lead forms fire before sign-off. Ops and QA move in lock-step so nothing ships half-ready.",
-    },
-    {
-      target: null,
-      visual: "pipeline-kanban",
+      target: "needs-attention",
+      placement: "top",
       title: "Spot the bottleneck first",
       description:
-        "The pipeline flags every event amber or red. When delivery is at risk, you see it before anyone else — and jump in before it slips.",
+        "Events flagged amber or red surface here, most urgent first. When delivery is at risk, you see it before anyone else.",
     },
     {
-      target: null,
-      visual: "task-checklist",
+      target: "work-queue",
+      placement: "bottom",
       title: "Your ops queue",
       description:
-        "Logistics confirmations and on-the-ground actions assigned to you, with overdue items floated to the top.",
+        "Logistics confirmations and on-the-ground actions across the operation, each linking straight to where you act.",
     },
     {
-      target: null,
-      visual: "notifications",
-      title: "Real-time logistics alerts",
+      target: "nav:/admin/locations",
+      placement: "right",
+      title: "Venues & delivery sites",
       description:
-        "Delivery confirmations, schedule changes, and readiness flips — the moment they happen, not the morning after.",
+        "Access windows, power specs, and on-site contacts for every location — the brief before anyone rolls out.",
     },
     {
-      target: null,
-      visual: "command-search",
+      target: "command-palette",
+      placement: "bottom",
       title: "⌘K to anywhere",
       description:
         "Jump straight to any event's logistics page in a single keystroke — no clicking through menus.",
+    },
+    {
+      target: "nav:/pipeline",
+      placement: "right",
+      title: "Track every build",
+      description:
+        "The pipeline groups events by delivery stage so you can shepherd builds and readiness gates end to end.",
+      action: {
+        type: "click",
+        hint: "Click Pipeline to track your builds and finish the tour.",
+        endsTour: true,
+      },
     },
   ],
 };

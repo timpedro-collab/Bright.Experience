@@ -132,7 +132,7 @@ export default async function NotificationsPage({
               <div>
                 <EditorialEyebrow>Quieter inbox?</EditorialEyebrow>
                 <p className="mt-3 text-sm text-muted-foreground leading-relaxed">
-                  Each channel is opt-out per archetype. Keep the
+                  Mute the notification types you don&apos;t need. Keep the
                   approval pings, drop the daily summaries.
                 </p>
                 <Link

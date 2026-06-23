@@ -70,8 +70,8 @@ export default async function MachineDetailPage({ params }: PageProps) {
               )}
               <div className="mt-8 flex flex-wrap gap-3">
                 <Button size="lg" variant="brand" asChild>
-                  <Link href={packages[0] ? `/catalog/packages/${String(packages[0].slug)}` : "/proposal"}>
-                    {packages[0]?.is_bookable ? "Book this machine" : "Request a quote"}
+                  <Link href={packages[0] ? `/proposal?package=${String(packages[0].slug)}` : "/proposal"}>
+                    Request a quote
                     <ArrowRight className="h-4 w-4" />
                   </Link>
                 </Button>
@@ -175,7 +175,8 @@ export default async function MachineDetailPage({ params }: PageProps) {
                     name: String(p.name),
                     slug: String(p.slug),
                     tier: String(p.tier),
-                    basePrice: p.base_price as number | null,
+                    durationDays: p.duration_days as number | null,
+                    featuresJson: (p.features_json as string[] | undefined) ?? [],
                     isBookable: p.is_bookable as boolean,
                   }}
                   featured={i === 1}

@@ -1,5 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { PAGE_SIZE, paginateQuery, totalPages } from "@/lib/pagination";
+import { getUser } from "@/lib/auth";
+import { isInternalRole } from "@/lib/roles";
 import type { Event } from "@/types";
 
 function mapEvent(row: Record<string, unknown>): Event {
@@ -61,6 +63,12 @@ export async function getEventsPaginated(
   filters?: EventFilters,
 ): Promise<{ data: Event[]; totalCount: number; totalPages: number }> {
   const supabase = await createClient();
+  // Customer roles only ever see their own account's events. In production this
+  // is enforced by Supabase RLS; the mock client does no scoping, so we apply
+  // the same constraint explicitly here to keep the two environments in sync.
+  const user = await getUser();
+  const scopeAccountId =
+    user && !isInternalRole(user.role) ? user.accountId : null;
   // Inner-join accounts so account-name filters (search + account picker)
   // actually constrain the result set rather than just nulling the embed.
   const needsAccountFilter = Boolean(filters?.q || filters?.account);
@@ -72,6 +80,7 @@ export async function getEventsPaginated(
     )
     .order("event_date_start");
 
+  if (scopeAccountId) query = query.eq("account_id", scopeAccountId);
   if (filters?.stage) query = query.eq("current_stage", filters.stage);
   if (filters?.health) query = query.eq("health_status", filters.health);
   if (filters?.q) query = query.or(`name.ilike.%${filters.q}%,accounts.name.ilike.%${filters.q}%`);

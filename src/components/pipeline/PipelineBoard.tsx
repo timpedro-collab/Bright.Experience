@@ -3,7 +3,7 @@
 
 import { useState, useMemo, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Search } from "lucide-react";
+import { Search, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { PipelineCard } from "./PipelineCard";
@@ -65,6 +65,19 @@ export function PipelineBoard({
   );
   const validTarget = dragging ? nextStageOf(dragging.from) : null;
 
+  /** Advance one event to its immediate next stage (shared by drag + tap). */
+  function advanceEvent(id: string) {
+    startTransition(async () => {
+      const res = await advanceStage(id);
+      if (res.success) {
+        toast.success(`Advanced to ${STAGE_CONFIG[res.data.to].label}.`);
+        router.refresh();
+      } else {
+        toast.error("Gate not met", { description: res.error });
+      }
+    });
+  }
+
   function handleDrop(targetStage: Stage) {
     const drag = dragging;
     setDragging(null);
@@ -73,17 +86,7 @@ export function PipelineBoard({
       toast.error("Events can only move to the next stage.");
       return;
     }
-    startTransition(async () => {
-      const res = await advanceStage(drag.id);
-      if (res.success) {
-        toast.success(
-          `Advanced to ${STAGE_CONFIG[res.data.to].label}.`,
-        );
-        router.refresh();
-      } else {
-        toast.error("Gate not met", { description: res.error });
-      }
-    });
+    advanceEvent(drag.id);
   }
 
   const filtered = useMemo(() => {
@@ -179,23 +182,37 @@ export function PipelineBoard({
                       {isValidTarget ? "Drop to advance" : "No events"}
                     </p>
                   ) : (
-                    items.map((e) => (
-                      <div
-                        key={e.id}
-                        draggable={canManageStage && !pending}
-                        onDragStart={() =>
-                          canManageStage &&
-                          setDragging({ id: e.id, from: e.currentStage })
-                        }
-                        onDragEnd={() => setDragging(null)}
-                        className={cn(
-                          canManageStage && "cursor-grab active:cursor-grabbing",
-                          dragging?.id === e.id && "opacity-40",
-                        )}
-                      >
-                        <PipelineCard event={e} />
-                      </div>
-                    ))
+                    items.map((e) => {
+                      const next = nextStageOf(e.currentStage);
+                      return (
+                        <div
+                          key={e.id}
+                          draggable={canManageStage && !pending}
+                          onDragStart={() =>
+                            canManageStage &&
+                            setDragging({ id: e.id, from: e.currentStage })
+                          }
+                          onDragEnd={() => setDragging(null)}
+                          className={cn(
+                            canManageStage && "cursor-grab active:cursor-grabbing",
+                            dragging?.id === e.id && "opacity-40",
+                          )}
+                        >
+                          <PipelineCard event={e} />
+                          {canManageStage && next && (
+                            <button
+                              type="button"
+                              onClick={() => advanceEvent(e.id)}
+                              disabled={pending}
+                              className="lg:hidden mt-1.5 flex min-h-11 w-full items-center justify-center gap-1.5 rounded-[var(--radius-control)] border border-border bg-card px-3 text-xs font-medium text-foreground transition-colors hover:bg-accent disabled:opacity-50"
+                            >
+                              Advance to {STAGE_CONFIG[next].shortLabel}
+                              <ArrowRight size={13} />
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })
                   )}
                 </div>
               </div>

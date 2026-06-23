@@ -55,6 +55,8 @@ const REL: Record<string, RelSpec> = {
   "campaigns:campaign_events": { localKey: "id", foreignTable: "campaign_events", foreignKey: "campaign_id", toMany: true },
   "campaign_events:events": { localKey: "event_id", foreignTable: "events", foreignKey: "id", toMany: false },
   "campaign_events:campaigns": { localKey: "campaign_id", foreignTable: "campaigns", foreignKey: "id", toMany: false },
+  "partner_attributions:quotes": { localKey: "quote_id", foreignTable: "quotes", foreignKey: "id", toMany: false },
+  "partner_attributions:events": { localKey: "event_id", foreignTable: "events", foreignKey: "id", toMany: false },
   "partners:partner_users": { localKey: "id", foreignTable: "partner_users", foreignKey: "partner_id", toMany: true },
   "partner_users:partners": { localKey: "partner_id", foreignTable: "partners", foreignKey: "id", toMany: false },
   "partner_users:profiles": { localKey: "profile_id", foreignTable: "profiles", foreignKey: "id", toMany: false },

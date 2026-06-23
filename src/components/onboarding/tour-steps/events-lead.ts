@@ -10,60 +10,51 @@ export const eventsLeadTour: TourConfig = {
   celebrationHref: "/pipeline",
   steps: [
     {
-      target: null,
-      visual: "pipeline-kanban",
-      title: "The whole pipeline, one board",
+      target: "kpis",
+      placement: "bottom",
+      title: "Your portfolio at a glance",
       description:
-        "Every event on a kanban by delivery stage. Filter, scan, and see what's stalling at a glance — this is your mission control.",
+        "Total events, how many are on track, what's at risk, and the tasks waiting on you — the health of your whole book in one row.",
     },
     {
-      target: null,
-      visual: "event-glance",
-      title: "Dive into any event",
+      target: "needs-attention",
+      placement: "top",
+      title: "What needs a human now",
       description:
-        "Click through to the full workspace: timeline, tasks, creative, logistics, reporting — every lever for delivery in one place.",
+        "Blocked and at-risk events float to the top here, most urgent first. Start your day from this list.",
     },
     {
-      target: null,
-      visual: "briefing-form",
-      title: "Launch with the client",
+      target: "work-queue",
+      placement: "bottom",
+      title: "Your operational queue",
       description:
-        "The briefing captures brand goals and event detail. Kick off each activation here and the whole delivery team springs into action.",
+        "New quote requests, sign-offs, stuck customers — every pending item across the operation, each linking straight to where you act.",
     },
     {
-      target: null,
-      visual: "approval-flow",
-      title: "Push sign-offs forward",
+      target: "nav:/admin/quotes",
+      placement: "right",
+      title: "Grow the book",
       description:
-        "See exactly what's awaiting approval and what's holding things up. Nothing ships without sign-off — your job is to keep it moving.",
+        "Your commercial surfaces — quotes, campaigns, partners and benchmarks — live in the rail, a click away whenever you need them.",
     },
     {
-      target: null,
-      visual: "report-card",
-      title: "Publish the proof",
+      target: "command-palette",
+      placement: "bottom",
+      title: "Jump anywhere instantly",
       description:
-        "Generate proof-of-performance reports with benchmarks and ROI, then publish and share them with the client.",
+        "Press ⌘K from any screen to search events, people, or pages and jump there in one keystroke.",
     },
     {
-      target: null,
-      visual: "task-checklist",
-      title: "Your personal queue",
+      target: "nav:/pipeline",
+      placement: "right",
+      title: "Open your pipeline",
       description:
-        "On top of the portfolio, the tasks assigned directly to you — overdue floating to the top so nothing slips.",
-    },
-    {
-      target: null,
-      visual: "notifications",
-      title: "Mission control",
-      description:
-        "Escalations, completions, and client responses — your notification centre keeps you ahead of everything.",
-    },
-    {
-      target: null,
-      visual: "command-search",
-      title: "⌘K everywhere",
-      description:
-        "Search events, people, or any page and jump there in one keystroke.",
+        "The whole portfolio on a kanban by delivery stage — drag to advance, spot what's stalling. This is your mission control.",
+      action: {
+        type: "click",
+        hint: "Click Pipeline to open your board and finish the tour.",
+        endsTour: true,
+      },
     },
   ],
 };

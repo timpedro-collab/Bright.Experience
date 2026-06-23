@@ -33,7 +33,7 @@ export default async function PipelinePage() {
       unreadCount={unread}
       section="Pipeline"
       title="The pipeline."
-      subtitle={`${events.length} events in flight · ${healthCounts.green} on track · ${healthCounts.amber} at risk · ${healthCounts.red} blocked.`}
+      subtitle={`${events.length} ${events.length === 1 ? "event" : "events"} in flight · ${healthCounts.green} on track · ${healthCounts.amber} at risk · ${healthCounts.red} blocked.`}
     >
       <AutoRefresh />
       <div className="py-8">

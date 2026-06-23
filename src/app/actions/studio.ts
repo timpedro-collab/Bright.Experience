@@ -204,6 +204,15 @@ export async function requestStudioFixForAsset(
   return { success: true, data: { id: String(data.id) } };
 }
 
+/** Optional details captured alongside a status transition. */
+export interface StudioStatusOptions {
+  note?: string;
+  /** Quoted price in whole dollars from the form — stored as integer cents. */
+  quotedCost?: number;
+  /** Quoted turnaround in working days — captured when sending a quote. */
+  quotedDays?: number;
+}
+
 /** Transition a studio request through its lifecycle. */
 export async function updateStudioRequestStatus(
   requestId: string,
@@ -215,7 +224,7 @@ export async function updateStudioRequestStatus(
     | "in_progress"
     | "delivered"
     | "cancelled",
-  note?: string
+  options?: StudioStatusOptions
 ): Promise<ActionResult> {
   const supabase = await createClient();
   const {
@@ -241,6 +250,20 @@ export async function updateStudioRequestStatus(
   if (status === "delivered") {
     updateData.delivered_at = new Date().toISOString();
   }
+  // Sending a quote must capture the figure the customer sees, otherwise the
+  // request flips to "Quoted" with no price attached.
+  if (status === "quoted") {
+    if (typeof options?.quotedCost === "number" && options.quotedCost > 0) {
+      updateData.quoted_cost = Math.round(options.quotedCost * 100);
+    }
+    if (typeof options?.quotedDays === "number" && options.quotedDays > 0) {
+      updateData.quoted_days = options.quotedDays;
+    }
+  }
+  if (status === "approved") {
+    updateData.approved_by = user.id;
+    updateData.approved_at = new Date().toISOString();
+  }
 
   const { error } = await supabase
     .from("studio_requests")
@@ -255,7 +278,11 @@ export async function updateStudioRequestStatus(
     action: `studio_request_${status}`,
     entity_type: "studio_request",
     entity_id: requestId,
-    metadata: { note },
+    metadata: {
+      note: options?.note,
+      quoted_cost: options?.quotedCost,
+      quoted_days: options?.quotedDays,
+    },
   });
 
   const { data: request } = await supabase

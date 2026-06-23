@@ -22,6 +22,19 @@ export const internalArchetypes = {
     defaults: { inPortal: true, emailMode: "immediate" },
     audience: "internal",
   },
+  "proposal.walkthrough_booked": {
+    kind: "proposal.walkthrough_booked",
+    classOf: "fyi",
+    priority: "high",
+    eyebrow: "FYI",
+    subjectTemplate: "Walkthrough booked — {slotLabel}",
+    bodyTemplate:
+      "The customer booked their 15-minute proposal walkthrough for {slotLabel}. Prep the tailored proposal before the call.",
+    linkTemplate: "/admin/quotes/{quoteId}",
+    ownerResolver: "event_account_executive",
+    defaults: { inPortal: true, emailMode: "immediate" },
+    audience: "internal",
+  },
   "booking.received": {
     kind: "booking.received",
     classOf: "action_required",

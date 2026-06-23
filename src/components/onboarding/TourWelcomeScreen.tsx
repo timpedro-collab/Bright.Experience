@@ -24,7 +24,7 @@ const itemVariants = {
 };
 
 export function TourWelcomeScreen() {
-  const { phase, config, beginSteps, skip, finish } = useTour();
+  const { phase, config, finish } = useTour();
   const router = useRouter();
 
   if (phase !== "welcome" || !config) return null;

@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Users, Target, Eye, TrendingUp, Calendar } from "lucide-react";
+import { Users, Target, Eye, Calendar } from "lucide-react";
 import { MetricCard } from "@/components/reports/MetricCard";
 import { cn } from "@/lib/utils";
 
@@ -86,13 +86,13 @@ export function DashboardTabs({ accountId, children }: DashboardTabsProps) {
         </div>
       ) : aggregate ? (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 py-4">
-          <MetricCard icon={Calendar} label="Events" value={aggregate.totalEvents.toLocaleString()} />
-          <MetricCard icon={Users} label="Total plays" value={aggregate.totalPlays.toLocaleString()} />
-          <MetricCard icon={Target} label="Total leads" value={aggregate.totalLeads.toLocaleString()} />
+          <MetricCard icon={Calendar} label="Events" value={aggregate.totalEvents.toLocaleString("en-US")} />
+          <MetricCard icon={Users} label="Total plays" value={aggregate.totalPlays.toLocaleString("en-US")} />
+          <MetricCard icon={Target} label="Leads" value={aggregate.totalLeads.toLocaleString("en-US")} />
           <MetricCard
             icon={Eye}
             label="Interactions"
-            value={aggregate.totalInteractions.toLocaleString()}
+            value={aggregate.totalInteractions.toLocaleString("en-US")}
           />
         </div>
       ) : (

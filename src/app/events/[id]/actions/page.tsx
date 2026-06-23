@@ -2,7 +2,8 @@
 import { notFound, redirect } from "next/navigation";
 import { CheckCircle2, AlertCircle } from "lucide-react";
 
-import { EventPageShell, EditorialEyebrow, Hairline } from "@/components/brand";
+import { EventPageShell } from "@/components/brand/event-page-shell";
+import { EditorialEyebrow, Hairline } from "@/components/brand";
 import { TaskChecklist } from "@/components/events/TaskChecklist";
 import { TaskViewToggle } from "@/components/events/TaskViewToggle";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -74,12 +75,8 @@ export default async function ActionsPage({
       }
       subtitle={
         isInternal
-          ? blocking > 0
-            ? `${blocking} blocking item${blocking === 1 ? "" : "s"} in view across the delivery team.`
-            : "Open actions for this event. Switch views to see your own or everyone's."
-          : blocking > 0
-            ? `${blocking} blocking action${blocking === 1 ? "" : "s"} need${blocking === 1 ? "s" : ""} your attention to keep delivery on track.`
-            : "Tick off these items to keep your event moving forward."
+          ? "Open actions for this event. Switch views to see your own or everyone's."
+          : "Tick off these items to keep your event moving forward."
       }
       heroRight={
         total > 0 ? (
@@ -100,6 +97,21 @@ export default async function ActionsPage({
             myCount={myCount}
             allCount={allCount}
           />
+        </section>
+      )}
+
+      {blocking > 0 && (
+        <section className="pt-4 pb-2">
+          <div className="flex items-start gap-3 rounded-[var(--radius-card)] border border-destructive/30 bg-destructive/5 px-4 py-3">
+            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
+            <p className="text-sm text-foreground/90 leading-snug">
+              <span className="font-semibold text-destructive">
+                {blocking} blocking action{blocking === 1 ? "" : "s"}
+              </span>{" "}
+              {blocking === 1 ? "is" : "are"} holding up delivery — clear{" "}
+              {blocking === 1 ? "it" : "them"} first.
+            </p>
+          </div>
         </section>
       )}
 
@@ -143,21 +155,6 @@ export default async function ActionsPage({
               isInternal={isInternal}
               viewerRole={user.role}
             />
-          </div>
-        </section>
-      )}
-
-      {blocking > 0 && (
-        <section className="py-6">
-          <div className="border-l-2 border-destructive pl-4 py-2">
-            <p className="text-overline text-destructive inline-flex items-center gap-1.5">
-              <AlertCircle className="h-3.5 w-3.5" /> Blocking delivery
-            </p>
-            <p className="mt-1 text-sm text-foreground/90 leading-snug max-w-[60ch]">
-              {blocking} blocking action{blocking === 1 ? "" : "s"} above
-              {blocking === 1 ? " is" : " are"} preventing this event from
-              advancing. Address them first to unblock delivery.
-            </p>
           </div>
         </section>
       )}

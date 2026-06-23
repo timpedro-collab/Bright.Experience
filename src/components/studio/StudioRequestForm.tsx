@@ -127,7 +127,7 @@ export function StudioRequestForm({
                 {tierPrice.replace(/[\d,.]+/, (m) => {
                   const base = parseFloat(m.replace(",", ""));
                   const total = base * quantity * (express ? 1.5 : 1);
-                  return total.toLocaleString("en-GB", { minimumFractionDigits: 0 });
+                  return total.toLocaleString("en-US", { minimumFractionDigits: 0 });
                 })}
               </span>
               {express && <span className="text-warning ml-1">(inc. express)</span>}

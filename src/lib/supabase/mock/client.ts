@@ -15,7 +15,7 @@ import { getRelation } from "./relationships";
 import { parseSelect, projectRow, type Field } from "./select";
 import { getTable, newId, type MockRow } from "./store";
 
-const INTERNAL_DEFAULT_ID = "11111111-1111-1111-1111-111111111111"; // Sarah (events_lead)
+const INTERNAL_DEFAULT_ID = "11111111-1111-1111-1111-111111111111"; // Tim Pedro (events_lead)
 
 type Result = { data: any; error: any; count: number | null };
 

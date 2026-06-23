@@ -80,6 +80,13 @@ export function PartnerOnboardingWizard() {
         contactEmail: form.contactEmail,
         type: form.partnerType || "reseller",
         companyName: form.companyName || undefined,
+        website: form.website || undefined,
+        industry: form.industry || undefined,
+        companySize: form.companySize || undefined,
+        contactPhone: form.contactPhone || undefined,
+        contactRole: form.contactRole || undefined,
+        referralSource: form.referralSource || undefined,
+        notes: form.notes || undefined,
       });
       if (result.success) {
         setSubmitted(true);
@@ -185,7 +192,7 @@ function StepIndicator({ currentStep }: { currentStep: number }) {
               </div>
               <span
                 className={cn(
-                  "text-xs font-medium",
+                  "hidden sm:block text-xs font-medium",
                   isActive ? "text-brand" : "text-muted-foreground"
                 )}
               >
@@ -195,7 +202,7 @@ function StepIndicator({ currentStep }: { currentStep: number }) {
             {i < STEPS.length - 1 && (
               <div
                 className={cn(
-                  "mx-2 h-px flex-1",
+                  "mx-1.5 sm:mx-2 h-px flex-1",
                   isComplete ? "bg-emerald-500/30" : "bg-border"
                 )}
               />
@@ -225,7 +232,7 @@ function StepCompany({
       <FieldGroup label="Website">
         <Input value={form.website} onChange={(e) => update("website", e.target.value)} placeholder="https://example.com" className="border-border/60 bg-muted/40 text-foreground placeholder:text-muted-foreground" />
       </FieldGroup>
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <FieldGroup label="Industry">
           <Input value={form.industry} onChange={(e) => update("industry", e.target.value)} placeholder="e.g. Marketing, Events" className="border-border/60 bg-muted/40 text-foreground placeholder:text-muted-foreground" />
         </FieldGroup>
@@ -249,7 +256,7 @@ function StepContact({
       <h3 className="text-heading text-lg font-semibold text-foreground">
         Contact Details
       </h3>
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <FieldGroup label="Full Name" required>
           <Input value={form.contactName} onChange={(e) => update("contactName", e.target.value)} placeholder="Jane Smith" className="border-border/60 bg-muted/40 text-foreground placeholder:text-muted-foreground" />
         </FieldGroup>
@@ -261,7 +268,7 @@ function StepContact({
         <Input type="email" value={form.contactEmail} onChange={(e) => update("contactEmail", e.target.value)} placeholder="jane@example.com" className="border-border/60 bg-muted/40 text-foreground placeholder:text-muted-foreground" />
       </FieldGroup>
       <FieldGroup label="Phone">
-        <Input type="tel" value={form.contactPhone} onChange={(e) => update("contactPhone", e.target.value)} placeholder="+27 12 345 6789" className="border-border/60 bg-muted/40 text-foreground placeholder:text-muted-foreground" />
+        <Input type="tel" value={form.contactPhone} onChange={(e) => update("contactPhone", e.target.value)} placeholder="+44 20 7946 0000" className="border-border/60 bg-muted/40 text-foreground placeholder:text-muted-foreground" />
       </FieldGroup>
     </div>
   );

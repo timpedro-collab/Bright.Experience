@@ -4,6 +4,7 @@
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Copy, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { duplicateEvent } from "@/app/actions/events";
@@ -22,7 +23,7 @@ export function DuplicateEventButton({ eventId }: DuplicateEventButtonProps) {
       if (result.success) {
         router.push(`/events/${result.data.id}`);
       } else {
-        alert(result.error);
+        toast.error(result.error);
       }
     });
   }

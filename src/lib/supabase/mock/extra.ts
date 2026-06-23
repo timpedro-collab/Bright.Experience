@@ -28,12 +28,28 @@ const EVT_SAMSUNG_UNPACKED = "e5555555-5555-5555-5555-555555555555";
 const EVT_COKE_SPRING = "e6666666-6666-6666-6666-666666666666";
 
 const PARTNER_NORTH = "e0e0e0e0-e0e0-4e0e-8e0e-e0e0e0e0e0e0";
-const PARTNER_KINGS = "e1e1e1e1-e1e1-4e1e-8e1e-e1e1e1e1e1e1";
+const PARTNER_EXCEL = "e1e1e1e1-e1e1-4e1e-8e1e-e1e1e1e1e1e1";
+const PARTNER_SOUTHERN = "e2e2e2e2-e2e2-4e2e-8e2e-e2e2e2e2e2e2";
+const PARTNER_WESTFIELD = "e3e3e3e3-e3e3-4e3e-8e3e-e3e3e3e3e3e3";
+const PARTNER_NEC = "e4e4e4e4-e4e4-4e4e-8e4e-e4e4e4e4e4e4";
 const VENUE_MANCHESTER = "f0f0f0f0-f0f0-4f0f-8f0f-f0f0f0f0f0f0";
-const VENUE_KINGS = "f1f1f1f1-f1f1-4f1f-8f1f-f1f1f1f1f1f1";
+const VENUE_EXCEL = "f1f1f1f1-f1f1-4f1f-8f1f-f1f1f1f1f1f1";
+const VENUE_WESTFIELD = "f2f2f2f2-f2f2-4f2f-8f2f-f2f2f2f2f2f2";
+const VENUE_NEC = "f3f3f3f3-f3f3-4f3f-8f3f-f3f3f3f3f3f3";
 
 const MI_PRO1 = "1a1a1a1a-1a1a-4a1a-8a1a-1a1a1a1a1a1a";
 const MI_PRO2 = "1b1b1b1b-1b1b-4b1b-8b1b-1b1b1b1b1b1b";
+
+// ExCeL London concourse units + the advertisers/show organisers who book them.
+const MI_EXCEL = (n: number) => `ec000000-0000-4000-8000-0000000000${String(n).padStart(2, "0")}`;
+const PL_EXCEL = (n: number) => `b1000000-0000-4000-8000-0000000000${String(10 + n).padStart(2, "0")}`;
+const ACC_DIAGEO = "cccccccc-cccc-cccc-cccc-cccccccccccc";
+const ACC_TECHSHOW = "ad000000-0000-4000-8000-000000000001";
+const ACC_VITALITY = "ad000000-0000-4000-8000-000000000002";
+const ACC_MONSTER = "ad000000-0000-4000-8000-000000000003";
+const ACC_EE = "ad000000-0000-4000-8000-000000000004";
+const ACC_DAZN = "ad000000-0000-4000-8000-000000000005";
+const ACC_COMICCON = "ad000000-0000-4000-8000-000000000006";
 
 const PKG_VEND_DAY = "c1c1c1c1-c1c1-4c1c-8c1c-c1c1c1c1c1c1";
 const PKG_VEND_WEEKEND = "c2c2c2c2-c2c2-4c2c-8c2c-c2c2c2c2c2c2";
@@ -44,61 +60,282 @@ const ASSET_BANNER = "a1f00000-0000-4000-8000-000000000009"; // Game Page Banner
 
 // Partner-portal personas (added so you can log in as a partner/venue contact).
 const P_MAYA = "66666666-6666-6666-6666-666666666666"; // Northern Events admin
-const P_AARON = "77777777-7777-7777-7777-777777777777"; // Kings Cross Hall admin
+const P_AARON = "77777777-7777-7777-7777-777777777777"; // ExCeL London venue admin
+const P_OLIVIA = "88888888-8888-8888-8888-888888888888"; // Southern Brand Activations admin
+const P_DANIEL = "99999999-9999-9999-9999-999999999999"; // Westfield Stratford admin
+const P_PRIYA = "a8a8a8a8-a8a8-4a8a-8a8a-a8a8a8a8a8a8"; // NEC Birmingham admin
 
 // Stable IDs for cross-referenced rows.
 const PL_MANCHESTER_SUMMER = "b1000000-0000-4000-8000-000000000001";
-const PL_KINGS_AUTUMN = "b1000000-0000-4000-8000-000000000002";
 const PL_MANCHESTER_SPRING = "b1000000-0000-4000-8000-000000000003";
+const PL_WESTFIELD_SUMMER = "b1000000-0000-4000-8000-000000000004";
+const PL_NEC_AUTUMN = "b1000000-0000-4000-8000-000000000005";
 const CMP_COKE = "ca000000-0000-4000-8000-000000000001";
 const CMP_SAMSUNG = "ca000000-0000-4000-8000-000000000002";
 const CMT_BANNER = "cc000000-0000-4000-8000-000000000001";
 
 export const EXTRA_TABLES: Record<string, MockRow[]> = {
+  // Delivery blueprints — mirrors supabase/migrations/...seed_templates.sql so
+  // auto-provisioning from an accepted quote lands a full runway (milestones,
+  // tasks, assets, QA) in the standalone demo, not an empty event.
+  event_templates: [
+    {
+      id: "00000000-0000-4000-8000-000000000101",
+      name: "Standard Activation",
+      description: "Turnkey single-day activation with one machine and standard game.",
+      event_type: "activation",
+      package_type: "standard",
+      is_active: true,
+      milestones_json: [
+        { name: "Event Confirmed", stage: "confirmed", status: "pending", sort_order: 0, customer_visible: true },
+        { name: "Briefing Complete", stage: "kickoff_complete", status: "pending", sort_order: 1, customer_visible: true },
+        { name: "Assets Approved", stage: "creative_assets", status: "pending", sort_order: 2, customer_visible: true },
+        { name: "Logistics Confirmed", stage: "logistics_confirmed", status: "pending", sort_order: 3, customer_visible: true },
+        { name: "Go Live", stage: "event_live", status: "pending", sort_order: 4, customer_visible: true },
+        { name: "Report Published", stage: "reporting", status: "pending", sort_order: 5, customer_visible: true },
+      ],
+      tasks_json: [
+        { title: "Complete event briefing", task_type: "customer_action", category: "admin", status: "pending", priority: "high", is_blocking: true, customer_visible: true, sort_order: 0, assigned_role: "events_lead", target_path: "briefing" },
+        { title: "Upload brand guidelines", task_type: "customer_action", category: "creative", status: "pending", priority: "high", is_blocking: true, customer_visible: true, sort_order: 1, assigned_role: "creative_lead", target_path: "assets" },
+        { title: "Upload hero image", task_type: "customer_action", category: "creative", status: "pending", priority: "medium", is_blocking: false, customer_visible: true, sort_order: 2, assigned_role: "creative_lead", target_path: "assets" },
+        { title: "Approve game mechanics", task_type: "customer_action", category: "creative", status: "pending", priority: "high", is_blocking: true, customer_visible: true, sort_order: 3, assigned_role: "events_lead", target_path: "approvals" },
+        { title: "Confirm delivery logistics", task_type: "internal_action", category: "logistics", status: "pending", priority: "high", is_blocking: true, customer_visible: false, sort_order: 4, assigned_role: "operations_lead", target_path: "logistics" },
+        { title: "Run QA checklist", task_type: "internal_action", category: "qa", status: "pending", priority: "high", is_blocking: true, customer_visible: false, sort_order: 5, assigned_role: "qa_lead", target_path: "qa" },
+        { title: "Generate post-event report", task_type: "internal_action", category: "reporting", status: "pending", priority: "medium", is_blocking: false, customer_visible: false, sort_order: 6, assigned_role: "events_lead", target_path: "reports" },
+      ],
+      assets_json: [
+        { name: "Brand guidelines", asset_type: "document", required_format: "PDF", status: "required", customer_visible: true, version: 1, review_status: "pending_review", revision_count: 0 },
+        { name: "Hero image", asset_type: "image", required_format: "PNG/JPG", required_dimensions: "1920x1080", status: "required", customer_visible: true, version: 1, review_status: "pending_review", revision_count: 0 },
+        { name: "Game screen design", asset_type: "image", required_format: "PNG", required_dimensions: "1080x1920", status: "required", customer_visible: true, version: 1, review_status: "pending_review", revision_count: 0 },
+      ],
+      qa_items_json: [
+        { category: "machine", title: "Machine powers on and boots correctly", status: "pending", sort_order: 0 },
+        { category: "game_logic", title: "Game loads with correct branding", status: "pending", sort_order: 1 },
+        { category: "game_logic", title: "Prize mechanic triggers at configured rate", status: "pending", sort_order: 2 },
+        { category: "ux_ui", title: "Attract screen displays correct creative", status: "pending", sort_order: 3 },
+        { category: "webform", title: "Lead capture form submits successfully", status: "pending", sort_order: 4 },
+        { category: "webform", title: "GDPR consent checkbox present and functional", status: "pending", sort_order: 5 },
+      ],
+      compliance_json: [],
+      game_config_defaults_json: null,
+      product_config_defaults_json: null,
+      venue_requirements_json: [],
+    },
+    {
+      id: "00000000-0000-4000-8000-000000000102",
+      name: "Premium Activation",
+      description: "Multi-day premium activation with custom game build and on-site support.",
+      event_type: "activation",
+      package_type: "premium",
+      is_active: true,
+      milestones_json: [
+        { name: "Event Confirmed", stage: "confirmed", status: "pending", sort_order: 0, customer_visible: true },
+        { name: "Briefing Complete", stage: "kickoff_complete", status: "pending", sort_order: 1, customer_visible: true },
+        { name: "Assets Approved", stage: "creative_assets", status: "pending", sort_order: 2, customer_visible: true },
+        { name: "Build Signed Off", stage: "approvals", status: "pending", sort_order: 3, customer_visible: true },
+        { name: "Logistics Confirmed", stage: "logistics_confirmed", status: "pending", sort_order: 4, customer_visible: true },
+        { name: "Go Live", stage: "event_live", status: "pending", sort_order: 5, customer_visible: true },
+        { name: "Report Published", stage: "reporting", status: "pending", sort_order: 6, customer_visible: true },
+      ],
+      tasks_json: [
+        { title: "Complete event briefing", task_type: "customer_action", category: "admin", status: "pending", priority: "high", is_blocking: true, customer_visible: true, sort_order: 0, assigned_role: "events_lead", target_path: "briefing" },
+        { title: "Upload brand guidelines", task_type: "customer_action", category: "creative", status: "pending", priority: "high", is_blocking: true, customer_visible: true, sort_order: 1, assigned_role: "creative_lead", target_path: "assets" },
+        { title: "Upload hero image", task_type: "customer_action", category: "creative", status: "pending", priority: "high", is_blocking: true, customer_visible: true, sort_order: 2, assigned_role: "creative_lead", target_path: "assets" },
+        { title: "Upload game screen designs", task_type: "customer_action", category: "creative", status: "pending", priority: "high", is_blocking: true, customer_visible: true, sort_order: 3, assigned_role: "creative_lead", target_path: "studio" },
+        { title: "Upload video assets", task_type: "customer_action", category: "creative", status: "pending", priority: "medium", is_blocking: false, customer_visible: true, sort_order: 4, assigned_role: "creative_lead", target_path: "assets" },
+        { title: "Approve game mechanics", task_type: "customer_action", category: "creative", status: "pending", priority: "high", is_blocking: true, customer_visible: true, sort_order: 5, assigned_role: "events_lead", target_path: "approvals" },
+        { title: "Review and approve build proof", task_type: "customer_action", category: "creative", status: "pending", priority: "high", is_blocking: true, customer_visible: true, sort_order: 6, assigned_role: "events_lead", target_path: "approvals" },
+        { title: "Confirm delivery logistics", task_type: "internal_action", category: "logistics", status: "pending", priority: "high", is_blocking: true, customer_visible: false, sort_order: 7, assigned_role: "operations_lead", target_path: "logistics" },
+        { title: "Arrange on-site technician", task_type: "internal_action", category: "operations", status: "pending", priority: "high", is_blocking: true, customer_visible: false, sort_order: 8, assigned_role: "operations_lead", target_path: "logistics" },
+        { title: "Run QA checklist", task_type: "internal_action", category: "qa", status: "pending", priority: "high", is_blocking: true, customer_visible: false, sort_order: 9, assigned_role: "qa_lead", target_path: "qa" },
+        { title: "Generate post-event report", task_type: "internal_action", category: "reporting", status: "pending", priority: "medium", is_blocking: false, customer_visible: false, sort_order: 10, assigned_role: "events_lead", target_path: "reports" },
+      ],
+      assets_json: [
+        { name: "Brand guidelines", asset_type: "document", required_format: "PDF", status: "required", customer_visible: true, version: 1, review_status: "pending_review", revision_count: 0 },
+        { name: "Hero image", asset_type: "image", required_format: "PNG/JPG", required_dimensions: "1920x1080", status: "required", customer_visible: true, version: 1, review_status: "pending_review", revision_count: 0 },
+        { name: "Game screen designs", asset_type: "image", required_format: "PSD/AI", status: "required", customer_visible: true, version: 1, review_status: "pending_review", revision_count: 0 },
+        { name: "Video loop (attract screen)", asset_type: "video", required_format: "MP4", required_dimensions: "1080x1920", status: "required", customer_visible: true, version: 1, review_status: "pending_review", revision_count: 0 },
+        { name: "Prize creative", asset_type: "image", required_format: "PNG", required_dimensions: "800x600", status: "required", customer_visible: true, version: 1, review_status: "pending_review", revision_count: 0 },
+      ],
+      qa_items_json: [
+        { category: "machine", title: "Machine powers on and boots correctly", status: "pending", sort_order: 0 },
+        { category: "machine", title: "Touchscreen calibration verified", status: "pending", sort_order: 1 },
+        { category: "game_logic", title: "Game loads with correct branding", status: "pending", sort_order: 2 },
+        { category: "game_logic", title: "All game levels / stages playable", status: "pending", sort_order: 3 },
+        { category: "game_logic", title: "Prize mechanic triggers at configured rate", status: "pending", sort_order: 4 },
+        { category: "ux_ui", title: "Attract screen displays correct creative", status: "pending", sort_order: 5 },
+        { category: "ux_ui", title: "End screen shows share / CTA correctly", status: "pending", sort_order: 6 },
+        { category: "webform", title: "Lead capture form submits successfully", status: "pending", sort_order: 7 },
+        { category: "webform", title: "GDPR consent checkbox present and functional", status: "pending", sort_order: 8 },
+        { category: "wrap", title: "Machine wrap matches approved artwork", status: "pending", sort_order: 9 },
+      ],
+      compliance_json: [],
+      game_config_defaults_json: null,
+      product_config_defaults_json: null,
+      venue_requirements_json: [],
+    },
+    {
+      id: "00000000-0000-4000-8000-000000000103",
+      name: "Sampling Campaign",
+      description: "Product sampling via vending machine with branded game and lead capture.",
+      event_type: "sampling",
+      package_type: "standard",
+      is_active: true,
+      milestones_json: [
+        { name: "Event Confirmed", stage: "confirmed", status: "pending", sort_order: 0, customer_visible: true },
+        { name: "Briefing Complete", stage: "kickoff_complete", status: "pending", sort_order: 1, customer_visible: true },
+        { name: "Assets Approved", stage: "creative_assets", status: "pending", sort_order: 2, customer_visible: true },
+        { name: "Product Loaded", stage: "build_configuration", status: "pending", sort_order: 3, customer_visible: true },
+        { name: "Logistics Confirmed", stage: "logistics_confirmed", status: "pending", sort_order: 4, customer_visible: true },
+        { name: "Go Live", stage: "event_live", status: "pending", sort_order: 5, customer_visible: true },
+        { name: "Report Published", stage: "reporting", status: "pending", sort_order: 6, customer_visible: true },
+      ],
+      tasks_json: [
+        { title: "Complete event briefing", task_type: "customer_action", category: "admin", status: "pending", priority: "high", is_blocking: true, customer_visible: true, sort_order: 0, assigned_role: "events_lead", target_path: "briefing" },
+        { title: "Upload brand guidelines", task_type: "customer_action", category: "creative", status: "pending", priority: "high", is_blocking: true, customer_visible: true, sort_order: 1, assigned_role: "creative_lead", target_path: "assets" },
+        { title: "Upload hero image", task_type: "customer_action", category: "creative", status: "pending", priority: "medium", is_blocking: false, customer_visible: true, sort_order: 2, assigned_role: "creative_lead", target_path: "assets" },
+        { title: "Provide product samples specifications", task_type: "customer_action", category: "operations", status: "pending", priority: "high", is_blocking: true, customer_visible: true, sort_order: 3, assigned_role: "operations_lead", target_path: "logistics" },
+        { title: "Ship product samples to warehouse", task_type: "customer_action", category: "logistics", status: "pending", priority: "high", is_blocking: true, customer_visible: true, sort_order: 4, assigned_role: "operations_lead", target_path: "logistics" },
+        { title: "Approve game mechanics", task_type: "customer_action", category: "creative", status: "pending", priority: "high", is_blocking: true, customer_visible: true, sort_order: 5, assigned_role: "events_lead", target_path: "approvals" },
+        { title: "Load product into machine", task_type: "internal_action", category: "operations", status: "pending", priority: "high", is_blocking: true, customer_visible: false, sort_order: 6, assigned_role: "operations_lead", target_path: "logistics" },
+        { title: "Confirm delivery logistics", task_type: "internal_action", category: "logistics", status: "pending", priority: "high", is_blocking: true, customer_visible: false, sort_order: 7, assigned_role: "operations_lead", target_path: "logistics" },
+        { title: "Run QA checklist", task_type: "internal_action", category: "qa", status: "pending", priority: "high", is_blocking: true, customer_visible: false, sort_order: 8, assigned_role: "qa_lead", target_path: "qa" },
+        { title: "Generate post-event report", task_type: "internal_action", category: "reporting", status: "pending", priority: "medium", is_blocking: false, customer_visible: false, sort_order: 9, assigned_role: "events_lead", target_path: "reports" },
+      ],
+      assets_json: [
+        { name: "Brand guidelines", asset_type: "document", required_format: "PDF", status: "required", customer_visible: true, version: 1, review_status: "pending_review", revision_count: 0 },
+        { name: "Hero image", asset_type: "image", required_format: "PNG/JPG", required_dimensions: "1920x1080", status: "required", customer_visible: true, version: 1, review_status: "pending_review", revision_count: 0 },
+        { name: "Game screen design", asset_type: "image", required_format: "PNG", required_dimensions: "1080x1920", status: "required", customer_visible: true, version: 1, review_status: "pending_review", revision_count: 0 },
+        { name: "Product sample photo", asset_type: "image", required_format: "PNG/JPG", status: "required", customer_visible: true, version: 1, review_status: "pending_review", revision_count: 0 },
+      ],
+      qa_items_json: [
+        { category: "machine", title: "Machine powers on and boots correctly", status: "pending", sort_order: 0 },
+        { category: "machine", title: "Vend mechanism dispenses correctly", status: "pending", sort_order: 1 },
+        { category: "product", title: "Product fits vend slot dimensions", status: "pending", sort_order: 2 },
+        { category: "product", title: "Product temperature requirements met", status: "pending", sort_order: 3 },
+        { category: "game_logic", title: "Game loads with correct branding", status: "pending", sort_order: 4 },
+        { category: "game_logic", title: "Win triggers vend correctly", status: "pending", sort_order: 5 },
+        { category: "ux_ui", title: "Attract screen displays correct creative", status: "pending", sort_order: 6 },
+        { category: "webform", title: "Lead capture form submits successfully", status: "pending", sort_order: 7 },
+        { category: "webform", title: "GDPR consent checkbox present and functional", status: "pending", sort_order: 8 },
+      ],
+      compliance_json: [],
+      game_config_defaults_json: null,
+      product_config_defaults_json: null,
+      venue_requirements_json: [],
+    },
+  ],
+
   // Appended to the existing profiles so partner-portal logins resolve.
   profiles: [
     { id: P_MAYA, name: "Maya Patel", email: "maya@northern.events", role: "partner_admin", account_id: null },
-    { id: P_AARON, name: "Aaron Howe", email: "aaron@kingsx.london", role: "partner_admin", account_id: null },
+    { id: P_AARON, name: "Aaron Howe", email: "aaron@excel.london", role: "partner_admin", account_id: null },
+    { id: P_OLIVIA, name: "Olivia Reed", email: "olivia@southern-activations.com", role: "partner_admin", account_id: null },
+    { id: P_DANIEL, name: "Daniel Cole", email: "daniel@westfield-stratford.com", role: "partner_admin", account_id: null },
+    { id: P_PRIYA, name: "Priya Shah", email: "priya@necgroup.co.uk", role: "partner_admin", account_id: null },
   ],
 
   partner_users: [
     { id: "d0000000-0000-4000-8000-000000000001", partner_id: PARTNER_NORTH, profile_id: P_MAYA, role: "admin", created_at: "2026-01-10T10:05:00Z" },
-    { id: "d0000000-0000-4000-8000-000000000002", partner_id: PARTNER_KINGS, profile_id: P_AARON, role: "admin", created_at: "2026-02-04T10:05:00Z" },
+    { id: "d0000000-0000-4000-8000-000000000002", partner_id: PARTNER_EXCEL, profile_id: P_AARON, role: "admin", created_at: "2026-02-04T10:05:00Z" },
+    { id: "d0000000-0000-4000-8000-000000000003", partner_id: PARTNER_SOUTHERN, profile_id: P_OLIVIA, role: "admin", created_at: "2026-02-18T10:05:00Z" },
+    { id: "d0000000-0000-4000-8000-000000000004", partner_id: PARTNER_WESTFIELD, profile_id: P_DANIEL, role: "admin", created_at: "2026-03-02T10:05:00Z" },
+    { id: "d0000000-0000-4000-8000-000000000005", partner_id: PARTNER_NEC, profile_id: P_PRIYA, role: "admin", created_at: "2026-03-12T10:05:00Z" },
   ],
 
   studio_pricing: [
-    { id: "e8000000-0000-4000-8000-000000000001", service_type: "design", tier_name: "Essential Enhancements", description: "Meets minimum asset standards", price_gbp: 32.0, price_label: "£32", price_unit: "Per Asset", features: ["Aspect Ratio Correction", "Size Compression", "Background Removal", "Colour Matching"], turnaround_days: 3, revisions_included: 1, is_express: false, is_featured: false, sort_order: 1, created_at: "2026-01-05T09:00:00Z" },
-    { id: "e8000000-0000-4000-8000-000000000002", service_type: "design", tier_name: "Professional Enhancements", description: "Transforms assets with expert detail", price_gbp: 72.0, price_label: "£72", price_unit: "Per Asset", features: ["All in Essential", "Quality Boost", "Layout Adjustments", "Web Asset Sourcing", "Web Asset Adaptation"], turnaround_days: 5, revisions_included: 2, is_express: false, is_featured: true, sort_order: 2, created_at: "2026-01-05T09:00:00Z" },
-    { id: "e8000000-0000-4000-8000-000000000003", service_type: "design", tier_name: "New Asset Creation", description: "Original assets from the ground up", price_gbp: 120.0, price_label: "£120", price_unit: "Per Asset", features: ["All in Professional", "Concept Development", "Custom Graphics", "Brand Alignment", "Original Layouts", "Multi-Format Delivery"], turnaround_days: 8, revisions_included: 3, is_express: false, is_featured: false, sort_order: 3, created_at: "2026-01-05T09:00:00Z" },
-    { id: "e8000000-0000-4000-8000-000000000004", service_type: "animation", tier_name: "Essential Enhancements", description: "Meets minimum motion standards", price_gbp: 160.0, price_label: "£160", price_unit: "Per Asset", features: ["Format Conversion", "Duration Trimming", "Resolution Adjustment", "Basic Colour Correction"], turnaround_days: 4, revisions_included: 1, is_express: false, is_featured: false, sort_order: 1, created_at: "2026-01-05T09:00:00Z" },
-    { id: "e8000000-0000-4000-8000-000000000005", service_type: "animation", tier_name: "Professional Enhancements", description: "Elevates existing motion assets", price_gbp: 480.0, price_label: "£480", price_unit: "Per Asset", features: ["All in Essential", "Transition Effects", "Audio Sync", "Text Overlay", "Branded Elements"], turnaround_days: 7, revisions_included: 2, is_express: false, is_featured: true, sort_order: 2, created_at: "2026-01-05T09:00:00Z" },
-    { id: "e8000000-0000-4000-8000-000000000006", service_type: "animation", tier_name: "New Asset Creation", description: "Original motion from the ground up", price_gbp: 1080.0, price_label: "£1,080", price_unit: "Per Asset", features: ["All in Professional", "Concept Development", "Custom Animation", "Brand Alignment", "Original Sequences", "Multi-Format Delivery"], turnaround_days: 12, revisions_included: 3, is_express: false, is_featured: false, sort_order: 3, created_at: "2026-01-05T09:00:00Z" },
+    { id: "e8000000-0000-4000-8000-000000000001", service_type: "design", tier_name: "Essential Enhancements", description: "Meets minimum asset standards", price_gbp: 32.0, price_label: "$32", price_unit: "Per Asset", features: ["Aspect Ratio Correction", "Size Compression", "Background Removal", "Colour Matching"], turnaround_days: 3, revisions_included: 1, is_express: false, is_featured: false, sort_order: 1, created_at: "2026-01-05T09:00:00Z" },
+    { id: "e8000000-0000-4000-8000-000000000002", service_type: "design", tier_name: "Professional Enhancements", description: "Transforms assets with expert detail", price_gbp: 72.0, price_label: "$72", price_unit: "Per Asset", features: ["All in Essential", "Quality Boost", "Layout Adjustments", "Web Asset Sourcing", "Web Asset Adaptation"], turnaround_days: 5, revisions_included: 2, is_express: false, is_featured: true, sort_order: 2, created_at: "2026-01-05T09:00:00Z" },
+    { id: "e8000000-0000-4000-8000-000000000003", service_type: "design", tier_name: "New Asset Creation", description: "Original assets from the ground up", price_gbp: 120.0, price_label: "$120", price_unit: "Per Asset", features: ["All in Professional", "Concept Development", "Custom Graphics", "Brand Alignment", "Original Layouts", "Multi-Format Delivery"], turnaround_days: 8, revisions_included: 3, is_express: false, is_featured: false, sort_order: 3, created_at: "2026-01-05T09:00:00Z" },
+    { id: "e8000000-0000-4000-8000-000000000004", service_type: "animation", tier_name: "Essential Enhancements", description: "Meets minimum motion standards", price_gbp: 160.0, price_label: "$160", price_unit: "Per Asset", features: ["Format Conversion", "Duration Trimming", "Resolution Adjustment", "Basic Colour Correction"], turnaround_days: 4, revisions_included: 1, is_express: false, is_featured: false, sort_order: 1, created_at: "2026-01-05T09:00:00Z" },
+    { id: "e8000000-0000-4000-8000-000000000005", service_type: "animation", tier_name: "Professional Enhancements", description: "Elevates existing motion assets", price_gbp: 480.0, price_label: "$480", price_unit: "Per Asset", features: ["All in Essential", "Transition Effects", "Audio Sync", "Text Overlay", "Branded Elements"], turnaround_days: 7, revisions_included: 2, is_express: false, is_featured: true, sort_order: 2, created_at: "2026-01-05T09:00:00Z" },
+    { id: "e8000000-0000-4000-8000-000000000006", service_type: "animation", tier_name: "New Asset Creation", description: "Original motion from the ground up", price_gbp: 1080.0, price_label: "$1,080", price_unit: "Per Asset", features: ["All in Professional", "Concept Development", "Custom Animation", "Brand Alignment", "Original Sequences", "Multi-Format Delivery"], turnaround_days: 12, revisions_included: 3, is_express: false, is_featured: false, sort_order: 3, created_at: "2026-01-05T09:00:00Z" },
   ],
 
   placements: [
     { id: PL_MANCHESTER_SUMMER, venue_id: VENUE_MANCHESTER, machine_instance_id: MI_PRO1, start_date: "2026-07-01", end_date: "2026-07-31", status: "active", pricing_model_json: { model: "revenue_share", rate: 0.15, floor_gbp: 4000 }, notes: "Ground-floor atrium, peak summer footfall.", created_at: "2026-05-20T09:00:00Z", updated_at: "2026-06-18T09:00:00Z" },
-    { id: PL_KINGS_AUTUMN, venue_id: VENUE_KINGS, machine_instance_id: null, start_date: "2026-09-05", end_date: "2026-09-20", status: "planned", pricing_model_json: { model: "fixed_fee", fee_gbp: 18000 }, notes: "Main hall, tied to autumn brand season.", created_at: "2026-06-01T11:00:00Z", updated_at: "2026-06-01T11:00:00Z" },
+    // ── ExCeL London Central Boulevard estate — 10 permanently-sited units,
+    // each sold as bookable ad space (sponsorship slots) against show footfall.
+    { id: PL_EXCEL(1), venue_id: VENUE_EXCEL, machine_instance_id: MI_EXCEL(1), start_date: "2026-05-01", end_date: "2026-12-31", status: "active", pricing_model_json: { model: "media_rate", weekly_usd: 30000, format: "XL · 65\" landscape" }, notes: "West Entrance — first unit seen on arrival from the West ticket hall. Highest dwell on the Boulevard.", created_at: "2026-04-20T09:00:00Z", updated_at: "2026-06-18T09:00:00Z" },
+    { id: PL_EXCEL(2), venue_id: VENUE_EXCEL, machine_instance_id: MI_EXCEL(2), start_date: "2026-05-01", end_date: "2026-12-31", status: "active", pricing_model_json: { model: "media_rate", weekly_usd: 14000, format: "55\" portrait" }, notes: "N1–N4 atrium — feeds the north halls' main entrances.", created_at: "2026-04-20T09:00:00Z", updated_at: "2026-06-18T09:00:00Z" },
+    { id: PL_EXCEL(3), venue_id: VENUE_EXCEL, machine_instance_id: MI_EXCEL(3), start_date: "2026-05-01", end_date: "2026-12-31", status: "active", pricing_model_json: { model: "media_rate", weekly_usd: 12000, format: "55\" portrait" }, notes: "Central Café — long dwell beside the Boulevard seating and coffee.", created_at: "2026-04-20T09:00:00Z", updated_at: "2026-06-18T09:00:00Z" },
+    { id: PL_EXCEL(4), venue_id: VENUE_EXCEL, machine_instance_id: MI_EXCEL(4), start_date: "2026-05-01", end_date: "2026-12-31", status: "active", pricing_model_json: { model: "media_rate", weekly_usd: 14000, format: "55\" portrait" }, notes: "N5–N8 atrium — north halls midway, peak between-session traffic.", created_at: "2026-04-20T09:00:00Z", updated_at: "2026-06-18T09:00:00Z" },
+    { id: PL_EXCEL(5), venue_id: VENUE_EXCEL, machine_instance_id: MI_EXCEL(5), start_date: "2026-05-01", end_date: "2026-12-31", status: "active", pricing_model_json: { model: "media_rate", weekly_usd: 13000, format: "55\" portrait" }, notes: "Capital Hall link — junction to the auditorium and keynote space.", created_at: "2026-04-20T09:00:00Z", updated_at: "2026-06-18T09:00:00Z" },
+    { id: PL_EXCEL(6), venue_id: VENUE_EXCEL, machine_instance_id: MI_EXCEL(6), start_date: "2026-05-01", end_date: "2026-12-31", status: "active", pricing_model_json: { model: "media_rate", weekly_usd: 28000, format: "XL · 65\" landscape" }, notes: "East Entrance — first unit seen on arrival from Prince Regent DLR / East hall.", created_at: "2026-04-20T09:00:00Z", updated_at: "2026-06-18T09:00:00Z" },
+    { id: PL_EXCEL(7), venue_id: VENUE_EXCEL, machine_instance_id: MI_EXCEL(7), start_date: "2026-05-01", end_date: "2026-12-31", status: "active", pricing_model_json: { model: "media_rate", weekly_usd: 13000, format: "55\" portrait" }, notes: "S1–S4 atrium — south halls' main entrances.", created_at: "2026-04-20T09:00:00Z", updated_at: "2026-06-18T09:00:00Z" },
+    { id: PL_EXCEL(8), venue_id: VENUE_EXCEL, machine_instance_id: MI_EXCEL(8), start_date: "2026-05-01", end_date: "2026-12-31", status: "active", pricing_model_json: { model: "media_rate", weekly_usd: 12000, format: "55\" portrait" }, notes: "S5–S8 atrium — south halls midway.", created_at: "2026-04-20T09:00:00Z", updated_at: "2026-06-18T09:00:00Z" },
+    { id: PL_EXCEL(9), venue_id: VENUE_EXCEL, machine_instance_id: MI_EXCEL(9), start_date: "2026-05-01", end_date: "2026-12-31", status: "active", pricing_model_json: { model: "media_rate", weekly_usd: 11000, format: "55\" portrait" }, notes: "Aloft Skyline bridge — captures hotel and skyline-bridge crossover traffic.", created_at: "2026-04-20T09:00:00Z", updated_at: "2026-06-18T09:00:00Z" },
+    { id: PL_EXCEL(10), venue_id: VENUE_EXCEL, machine_instance_id: MI_EXCEL(10), start_date: "2026-05-01", end_date: "2026-12-31", status: "active", pricing_model_json: { model: "media_rate", weekly_usd: 10000, format: "55\" portrait" }, notes: "Prince Regent DLR approach — last touchpoint before the station exit.", created_at: "2026-04-20T09:00:00Z", updated_at: "2026-06-18T09:00:00Z" },
     { id: PL_MANCHESTER_SPRING, venue_id: VENUE_MANCHESTER, machine_instance_id: MI_PRO2, start_date: "2026-03-01", end_date: "2026-03-31", status: "completed", pricing_model_json: { model: "revenue_share", rate: 0.12 }, notes: "Spring pilot — converted to a recurring slot.", created_at: "2026-02-10T10:00:00Z", updated_at: "2026-04-02T10:00:00Z" },
+    { id: PL_WESTFIELD_SUMMER, venue_id: VENUE_WESTFIELD, machine_instance_id: null, start_date: "2026-08-01", end_date: "2026-08-31", status: "active", pricing_model_json: { model: "revenue_share", rate: 0.18, floor_usd: 6000 }, notes: "The Street, ground floor — flagship summer footfall.", created_at: "2026-06-05T09:00:00Z", updated_at: "2026-06-18T09:00:00Z" },
+    { id: PL_NEC_AUTUMN, venue_id: VENUE_NEC, machine_instance_id: null, start_date: "2026-10-10", end_date: "2026-10-25", status: "planned", pricing_model_json: { model: "fixed_fee", fee_usd: 22000 }, notes: "Hall 5 concourse, tied to autumn trade-show season.", created_at: "2026-06-12T11:00:00Z", updated_at: "2026-06-12T11:00:00Z" },
   ],
 
   sponsorship_slots: [
-    { id: "b2000000-0000-4000-8000-000000000001", placement_id: PL_MANCHESTER_SUMMER, sponsor_account_id: P_JAMES, start_date: "2026-07-05", end_date: "2026-07-12", price: 26000, status: "reserved", creative_asset_ids: [], game_config_json: { game: "Spin & Reveal", prize_pool: "Summer minis" }, created_at: "2026-05-22T09:00:00Z", updated_at: "2026-06-10T09:00:00Z" },
-    { id: "b2000000-0000-4000-8000-000000000002", placement_id: PL_MANCHESTER_SUMMER, sponsor_account_id: null, start_date: "2026-07-15", end_date: "2026-07-22", price: 22000, status: "available", creative_asset_ids: [], game_config_json: {}, created_at: "2026-05-22T09:00:00Z", updated_at: "2026-05-22T09:00:00Z" },
-    { id: "b2000000-0000-4000-8000-000000000003", placement_id: PL_KINGS_AUTUMN, sponsor_account_id: null, start_date: "2026-09-05", end_date: "2026-09-12", price: 38000, status: "available", creative_asset_ids: [], game_config_json: {}, created_at: "2026-06-01T11:05:00Z", updated_at: "2026-06-01T11:05:00Z" },
+    { id: "b2000000-0000-4000-8000-000000000001", placement_id: PL_MANCHESTER_SUMMER, sponsor_account_id: P_JAMES, start_date: "2026-07-05", end_date: "2026-07-12", price: 2600000, status: "reserved", creative_asset_ids: [], game_config_json: { game: "Spin & Reveal", prize_pool: "Summer minis" }, created_at: "2026-05-22T09:00:00Z", updated_at: "2026-06-10T09:00:00Z" },
+    { id: "b2000000-0000-4000-8000-000000000002", placement_id: PL_MANCHESTER_SUMMER, sponsor_account_id: null, start_date: "2026-07-15", end_date: "2026-07-22", price: 2200000, status: "available", creative_asset_ids: [], game_config_json: {}, created_at: "2026-05-22T09:00:00Z", updated_at: "2026-05-22T09:00:00Z" },
+    // ── ExCeL ad slots: each Boulevard unit sells campaign windows aligned to
+    // the shows running in the halls. "Summer Tech Week" (15–21 Jun) is live
+    // now; "MCM Comic Con" (22–26 Oct) is the next major sell-in. Reserved =
+    // a sponsor/advertiser is booked; available = still on the table.
+    // Summer Tech Week — 15–21 Jun 2026 (live)
+    { id: "b2000000-0000-4000-8000-000000000101", placement_id: PL_EXCEL(1), sponsor_account_id: ACC_TECHSHOW, start_date: "2026-06-15", end_date: "2026-06-21", price: 3000000, status: "reserved", creative_asset_ids: [], game_config_json: { campaign: "Tech Show London — register & win", prize_pool: "VIP keynote passes" }, created_at: "2026-04-22T09:00:00Z", updated_at: "2026-06-02T09:00:00Z" },
+    { id: "b2000000-0000-4000-8000-000000000102", placement_id: PL_EXCEL(2), sponsor_account_id: ACC_VITALITY, start_date: "2026-06-15", end_date: "2026-06-21", price: 1400000, status: "reserved", creative_asset_ids: [], game_config_json: { campaign: "Vitality — spin for rewards", prize_pool: "Wearables" }, created_at: "2026-04-22T09:00:00Z", updated_at: "2026-06-02T09:00:00Z" },
+    { id: "b2000000-0000-4000-8000-000000000103", placement_id: PL_EXCEL(3), sponsor_account_id: ACC_MONSTER, start_date: "2026-06-15", end_date: "2026-06-21", price: 1200000, status: "reserved", creative_asset_ids: [], game_config_json: { campaign: "Monster Energy — sample drop", prize_pool: "Cans + merch" }, created_at: "2026-04-22T09:00:00Z", updated_at: "2026-06-02T09:00:00Z" },
+    { id: "b2000000-0000-4000-8000-000000000104", placement_id: PL_EXCEL(4), sponsor_account_id: ACC_EE, start_date: "2026-06-15", end_date: "2026-06-21", price: 1400000, status: "reserved", creative_asset_ids: [], game_config_json: { campaign: "EE — 5G quiz", prize_pool: "Devices" }, created_at: "2026-04-22T09:00:00Z", updated_at: "2026-06-02T09:00:00Z" },
+    { id: "b2000000-0000-4000-8000-000000000105", placement_id: PL_EXCEL(5), sponsor_account_id: null, start_date: "2026-06-15", end_date: "2026-06-21", price: 1300000, status: "available", creative_asset_ids: [], game_config_json: {}, created_at: "2026-04-22T09:00:00Z", updated_at: "2026-04-22T09:00:00Z" },
+    { id: "b2000000-0000-4000-8000-000000000106", placement_id: PL_EXCEL(6), sponsor_account_id: ACC_COKE, start_date: "2026-06-15", end_date: "2026-06-21", price: 2800000, status: "reserved", creative_asset_ids: [], game_config_json: { campaign: "Coca-Cola — chill & win", prize_pool: "Ice-cold minis" }, created_at: "2026-04-22T09:00:00Z", updated_at: "2026-06-02T09:00:00Z" },
+    { id: "b2000000-0000-4000-8000-000000000107", placement_id: PL_EXCEL(7), sponsor_account_id: ACC_DAZN, start_date: "2026-06-15", end_date: "2026-06-21", price: 1300000, status: "reserved", creative_asset_ids: [], game_config_json: { campaign: "DAZN — predict & win", prize_pool: "Subscriptions" }, created_at: "2026-04-22T09:00:00Z", updated_at: "2026-06-02T09:00:00Z" },
+    { id: "b2000000-0000-4000-8000-000000000108", placement_id: PL_EXCEL(8), sponsor_account_id: null, start_date: "2026-06-15", end_date: "2026-06-21", price: 1200000, status: "available", creative_asset_ids: [], game_config_json: {}, created_at: "2026-04-22T09:00:00Z", updated_at: "2026-04-22T09:00:00Z" },
+    { id: "b2000000-0000-4000-8000-000000000109", placement_id: PL_EXCEL(9), sponsor_account_id: ACC_DIAGEO, start_date: "2026-06-15", end_date: "2026-06-21", price: 1100000, status: "reserved", creative_asset_ids: [], game_config_json: { campaign: "Diageo — over-18 tasting pass", prize_pool: "Tasting vouchers" }, created_at: "2026-04-22T09:00:00Z", updated_at: "2026-06-02T09:00:00Z" },
+    { id: "b2000000-0000-4000-8000-000000000110", placement_id: PL_EXCEL(10), sponsor_account_id: null, start_date: "2026-06-15", end_date: "2026-06-21", price: 1000000, status: "available", creative_asset_ids: [], game_config_json: {}, created_at: "2026-04-22T09:00:00Z", updated_at: "2026-04-22T09:00:00Z" },
+    // MCM Comic Con — 22–26 Oct 2026 (sell-in)
+    { id: "b2000000-0000-4000-8000-000000000111", placement_id: PL_EXCEL(1), sponsor_account_id: ACC_SAMSUNG, start_date: "2026-10-22", end_date: "2026-10-26", price: 3000000, status: "reserved", creative_asset_ids: [], game_config_json: { campaign: "Samsung — Galaxy photo booth", prize_pool: "Galaxy accessories" }, created_at: "2026-06-10T09:00:00Z", updated_at: "2026-06-14T09:00:00Z" },
+    { id: "b2000000-0000-4000-8000-000000000112", placement_id: PL_EXCEL(2), sponsor_account_id: null, start_date: "2026-10-22", end_date: "2026-10-26", price: 1400000, status: "available", creative_asset_ids: [], game_config_json: {}, created_at: "2026-06-10T09:00:00Z", updated_at: "2026-06-10T09:00:00Z" },
+    { id: "b2000000-0000-4000-8000-000000000113", placement_id: PL_EXCEL(3), sponsor_account_id: ACC_MONSTER, start_date: "2026-10-22", end_date: "2026-10-26", price: 1200000, status: "reserved", creative_asset_ids: [], game_config_json: { campaign: "Monster Energy — cosplay sample drop", prize_pool: "Cans + merch" }, created_at: "2026-06-10T09:00:00Z", updated_at: "2026-06-14T09:00:00Z" },
+    { id: "b2000000-0000-4000-8000-000000000114", placement_id: PL_EXCEL(4), sponsor_account_id: null, start_date: "2026-10-22", end_date: "2026-10-26", price: 1400000, status: "available", creative_asset_ids: [], game_config_json: {}, created_at: "2026-06-10T09:00:00Z", updated_at: "2026-06-10T09:00:00Z" },
+    { id: "b2000000-0000-4000-8000-000000000115", placement_id: PL_EXCEL(5), sponsor_account_id: ACC_VITALITY, start_date: "2026-10-22", end_date: "2026-10-26", price: 1300000, status: "reserved", creative_asset_ids: [], game_config_json: { campaign: "Vitality — step challenge", prize_pool: "Wearables" }, created_at: "2026-06-10T09:00:00Z", updated_at: "2026-06-14T09:00:00Z" },
+    { id: "b2000000-0000-4000-8000-000000000116", placement_id: PL_EXCEL(6), sponsor_account_id: ACC_COMICCON, start_date: "2026-10-22", end_date: "2026-10-26", price: 2800000, status: "reserved", creative_asset_ids: [], game_config_json: { campaign: "MCM Comic Con — main-stage giveaway", prize_pool: "Show merch + passes" }, created_at: "2026-06-10T09:00:00Z", updated_at: "2026-06-14T09:00:00Z" },
+    { id: "b2000000-0000-4000-8000-000000000117", placement_id: PL_EXCEL(7), sponsor_account_id: null, start_date: "2026-10-22", end_date: "2026-10-26", price: 1300000, status: "available", creative_asset_ids: [], game_config_json: {}, created_at: "2026-06-10T09:00:00Z", updated_at: "2026-06-10T09:00:00Z" },
+    { id: "b2000000-0000-4000-8000-000000000118", placement_id: PL_EXCEL(8), sponsor_account_id: ACC_DAZN, start_date: "2026-10-22", end_date: "2026-10-26", price: 1200000, status: "reserved", creative_asset_ids: [], game_config_json: { campaign: "DAZN — fight-night predictor", prize_pool: "Subscriptions" }, created_at: "2026-06-10T09:00:00Z", updated_at: "2026-06-14T09:00:00Z" },
+    { id: "b2000000-0000-4000-8000-000000000119", placement_id: PL_EXCEL(9), sponsor_account_id: null, start_date: "2026-10-22", end_date: "2026-10-26", price: 1100000, status: "available", creative_asset_ids: [], game_config_json: {}, created_at: "2026-06-10T09:00:00Z", updated_at: "2026-06-10T09:00:00Z" },
+    { id: "b2000000-0000-4000-8000-000000000120", placement_id: PL_EXCEL(10), sponsor_account_id: ACC_EE, start_date: "2026-10-22", end_date: "2026-10-26", price: 1400000, status: "reserved", creative_asset_ids: [], game_config_json: { campaign: "EE — network speed run", prize_pool: "Devices" }, created_at: "2026-06-10T09:00:00Z", updated_at: "2026-06-14T09:00:00Z" },
+    { id: "b2000000-0000-4000-8000-000000000004", placement_id: PL_WESTFIELD_SUMMER, sponsor_account_id: ACC_SAMSUNG, start_date: "2026-08-03", end_date: "2026-08-10", price: 4200000, status: "reserved", creative_asset_ids: [], game_config_json: { game: "Photo Booth Pro", prize_pool: "Galaxy accessories" }, created_at: "2026-06-08T09:00:00Z", updated_at: "2026-06-15T09:00:00Z" },
+    { id: "b2000000-0000-4000-8000-000000000005", placement_id: PL_WESTFIELD_SUMMER, sponsor_account_id: null, start_date: "2026-08-12", end_date: "2026-08-19", price: 3600000, status: "available", creative_asset_ids: [], game_config_json: {}, created_at: "2026-06-08T09:00:00Z", updated_at: "2026-06-08T09:00:00Z" },
+    { id: "b2000000-0000-4000-8000-000000000006", placement_id: PL_NEC_AUTUMN, sponsor_account_id: null, start_date: "2026-10-12", end_date: "2026-10-18", price: 5000000, status: "available", creative_asset_ids: [], game_config_json: {}, created_at: "2026-06-12T11:05:00Z", updated_at: "2026-06-12T11:05:00Z" },
   ],
 
   venue_packages: [
-    { id: "b3000000-0000-4000-8000-000000000001", venue_id: VENUE_MANCHESTER, name: "Pop-Up Day Rate", description: "Single-day kiosk slot with footfall reporting.", price: 1200, includes_bright_blue: true, bright_blue_package_id: PKG_VEND_DAY, sort_order: 0, created_at: "2026-02-01T09:00:00Z" },
-    { id: "b3000000-0000-4000-8000-000000000002", venue_id: VENUE_MANCHESTER, name: "Weekend Takeover", description: "Fri–Sun atrium placement with branded wrap and two ambassadors.", price: 3400, includes_bright_blue: true, bright_blue_package_id: PKG_VEND_WEEKEND, sort_order: 1, created_at: "2026-02-01T09:00:00Z" },
-    { id: "b3000000-0000-4000-8000-000000000003", venue_id: VENUE_KINGS, name: "Main Hall Activation", description: "Five-day premium activation in the main hall, full creative production.", price: 9500, includes_bright_blue: true, bright_blue_package_id: PKG_PLAY_5DAY, sort_order: 0, created_at: "2026-02-06T09:00:00Z" },
-    { id: "b3000000-0000-4000-8000-000000000004", venue_id: VENUE_KINGS, name: "Hall Hire Only", description: "Space-only hire for partner-supplied hardware.", price: 4000, includes_bright_blue: false, bright_blue_package_id: null, sort_order: 1, created_at: "2026-02-06T09:00:00Z" },
+    { id: "b3000000-0000-4000-8000-000000000001", venue_id: VENUE_MANCHESTER, name: "Pop-Up Day Rate", description: "Single-day kiosk slot with footfall reporting.", price: 120000, includes_bright_blue: true, bright_blue_package_id: PKG_VEND_DAY, sort_order: 0, created_at: "2026-02-01T09:00:00Z" },
+    { id: "b3000000-0000-4000-8000-000000000002", venue_id: VENUE_MANCHESTER, name: "Weekend Takeover", description: "Fri–Sun atrium placement with branded wrap and two ambassadors.", price: 340000, includes_bright_blue: true, bright_blue_package_id: PKG_VEND_WEEKEND, sort_order: 1, created_at: "2026-02-01T09:00:00Z" },
+    { id: "b3000000-0000-4000-8000-000000000003", venue_id: VENUE_EXCEL, name: "Boulevard Show Takeover", description: "All 10 Central Boulevard units for your show week — branded games, prize delivery, and a live footfall dashboard across the venue.", price: 9500000, includes_bright_blue: true, bright_blue_package_id: PKG_PLAY_5DAY, sort_order: 0, created_at: "2026-04-20T09:00:00Z" },
+    { id: "b3000000-0000-4000-8000-000000000004", venue_id: VENUE_EXCEL, name: "Entrance Hero Pair", description: "Both XL entrance units (West + East) for one week — the first and last screens every visitor sees.", price: 2800000, includes_bright_blue: true, bright_blue_package_id: PKG_PLAY_5DAY, sort_order: 1, created_at: "2026-04-20T09:00:00Z" },
+    { id: "b3000000-0000-4000-8000-000000000009", venue_id: VENUE_EXCEL, name: "Single-Unit Ad Slot", description: "One Boulevard unit for one show week — your creative on the attract screen plus a branded game.", price: 1200000, includes_bright_blue: true, bright_blue_package_id: PKG_VEND_WEEKEND, sort_order: 2, created_at: "2026-04-20T09:00:00Z" },
+    { id: "b3000000-0000-4000-8000-000000000005", venue_id: VENUE_WESTFIELD, name: "The Street Flagship Week", description: "Seven-day ground-floor activation on The Street with full creative production.", price: 1450000, includes_bright_blue: true, bright_blue_package_id: PKG_PLAY_5DAY, sort_order: 0, created_at: "2026-06-05T09:00:00Z" },
+    { id: "b3000000-0000-4000-8000-000000000006", venue_id: VENUE_WESTFIELD, name: "Weekend Pop-Up", description: "Fri–Sun kiosk slot with footfall reporting.", price: 480000, includes_bright_blue: true, bright_blue_package_id: PKG_VEND_WEEKEND, sort_order: 1, created_at: "2026-06-05T09:00:00Z" },
+    { id: "b3000000-0000-4000-8000-000000000007", venue_id: VENUE_NEC, name: "Hall Concourse Activation", description: "Trade-show concourse placement with two ambassadors and live dashboard.", price: 2200000, includes_bright_blue: true, bright_blue_package_id: PKG_PLAY_5DAY, sort_order: 0, created_at: "2026-06-12T11:00:00Z" },
+    { id: "b3000000-0000-4000-8000-000000000008", venue_id: VENUE_NEC, name: "Stand Hire Only", description: "Space-only hire for exhibitor-supplied hardware.", price: 650000, includes_bright_blue: false, bright_blue_package_id: null, sort_order: 1, created_at: "2026-06-12T11:00:00Z" },
   ],
 
   venue_requirements: [
     { id: "b4000000-0000-4000-8000-000000000001", event_id: EVT_SAMSUNG_LAUNCH, requirement_type: "power_spec", description: "32A single-phase supply within 10m of the activation footprint.", document_url: null, is_met: true, notes: "Confirmed with Westfield facilities.", created_at: "2026-05-30T09:00:00Z", updated_at: "2026-06-12T09:00:00Z" },
-    { id: "b4000000-0000-4000-8000-000000000002", event_id: EVT_SAMSUNG_LAUNCH, requirement_type: "insurance_minimum", description: "£5m public liability cover, certificate filed 14 days pre-event.", document_url: null, is_met: false, notes: "Awaiting updated certificate from broker.", created_at: "2026-05-30T09:00:00Z", updated_at: "2026-05-30T09:00:00Z" },
+    { id: "b4000000-0000-4000-8000-000000000002", event_id: EVT_SAMSUNG_LAUNCH, requirement_type: "insurance_minimum", description: "$5M public liability cover, certificate filed 14 days pre-event.", document_url: null, is_met: false, notes: "Awaiting updated certificate from broker.", created_at: "2026-05-30T09:00:00Z", updated_at: "2026-05-30T09:00:00Z" },
     { id: "b4000000-0000-4000-8000-000000000003", event_id: EVT_SAMSUNG_LAUNCH, requirement_type: "loading_access", description: "Loading bay booking + 90-minute build slot before centre opens.", document_url: null, is_met: true, notes: "Slot booked for 06:30.", created_at: "2026-05-30T09:00:00Z", updated_at: "2026-06-05T09:00:00Z" },
     { id: "b4000000-0000-4000-8000-000000000004", event_id: EVT_SAMSUNG_UNPACKED, requirement_type: "exhibitor_manual", description: "Battersea exhibitor manual reviewed and signed off.", document_url: null, is_met: true, notes: null, created_at: "2026-03-15T09:00:00Z", updated_at: "2026-03-18T09:00:00Z" },
+  ],
+
+  // Stage-to-stage handover notes, surfaced on the internal timeline so the
+  // baton context the system records is actually visible.
+  handoff_notes: [
+    { id: "af100000-0000-4000-8000-000000000001", event_id: EVT_COKE_SUMMER, from_stage: "kickoff_complete", to_stage: "creative_assets", author_id: P_SARAH, whats_done: "Briefing call complete, brand kit and goals captured.", whats_pending: "Creative to produce wrap + game screens against the brief.", client_notes: "Client keen on bold 2026 red — avoid the older orange-red.", created_at: "2026-06-13T09:30:00Z" },
+    { id: "af100000-0000-4000-8000-000000000002", event_id: EVT_COKE_SUMMER, from_stage: "creative_assets", to_stage: "approvals", author_id: P_EMMA, whats_done: "First proofs of wrap and game banner uploaded for review.", whats_pending: "Awaiting customer sign-off; logo safe-area tweak still open.", client_notes: "James is responsive — usually turns approvals around same day.", created_at: "2026-06-16T12:45:00Z" },
+  ],
+
+  // Unresolved reviewer pins so the customer's asset view shows the marked-up
+  // notes the creative team dropped (the base dataset's only pin is resolved).
+  asset_annotations: [
+    { id: "ac222222-2222-2222-2222-222222222222", asset_id: ASSET_BANNER, asset_version_id: null, event_id: EVT_COKE_SUMMER, author_id: P_EMMA, x: 50, y: 18, w: 0, h: 0, body: "Lift the logo ~40px so it clears the safe area on the portrait screen.", resolved: false, created_at: "2026-06-16T10:16:00Z" },
+    { id: "ac333333-3333-3333-3333-333333333333", asset_id: ASSET_BANNER, asset_version_id: null, event_id: EVT_COKE_SUMMER, author_id: P_EMMA, x: 24, y: 72, w: 0, h: 0, body: "This red reads slightly orange on the cabinet — please match to 2026 brand red (#F40000).", resolved: false, created_at: "2026-06-16T10:17:00Z" },
   ],
 
   comments: [
@@ -115,13 +352,13 @@ export const EXTRA_TABLES: Record<string, MockRow[]> = {
     { id: "ab000000-0000-4000-8000-000000000003", event_id: EVT_COKE_SUMMER, sender_id: P_EMMA, body: "James — left a couple of notes on the game banner. Quick tweak and we're good to approve.", attachments: [], is_internal: false, topic: "creative", created_at: "2026-06-16T10:20:00Z" },
     { id: "ab000000-0000-4000-8000-000000000004", event_id: EVT_COKE_SUMMER, sender_id: P_TOM, body: "Vans booked for the 14th, two ambassadors confirmed. Will share the run sheet once the wrap is signed off.", attachments: [], is_internal: true, topic: "logistics", created_at: "2026-06-17T11:00:00Z" },
     { id: "ab000000-0000-4000-8000-000000000005", event_id: EVT_SAMSUNG_LAUNCH, sender_id: P_SARAH, body: "Proofs uploaded to the approvals tab. We're blocked on the insurance certificate before we can confirm the build slot.", attachments: [], is_internal: false, topic: "compliance", created_at: "2026-06-14T16:25:00Z" },
-    { id: "ab000000-0000-4000-8000-000000000006", event_id: EVT_SAMSUNG_LAUNCH, sender_id: P_TOM, body: "Internal: chasing the broker on the £5m cert. Holding the loading bay slot in the meantime.", attachments: [], is_internal: true, topic: "logistics", created_at: "2026-06-15T09:05:00Z" },
+    { id: "ab000000-0000-4000-8000-000000000006", event_id: EVT_SAMSUNG_LAUNCH, sender_id: P_TOM, body: "Internal: chasing the broker on the $5M cert. Holding the loading bay slot in the meantime.", attachments: [], is_internal: true, topic: "logistics", created_at: "2026-06-15T09:05:00Z" },
   ],
 
   notifications: [
     { id: "ad000000-0000-4000-8000-000000000001", user_id: P_EMMA, event_id: EVT_COKE_SUMMER, type: "asset_review", title: "Asset awaiting your review", body: "Game Page Banner (Coca-Cola Summer Festival) is ready for creative sign-off.", is_read: false, link: "/admin/asset-reviews", created_at: "2026-06-17T08:45:00Z", kind: "asset_review_requested", priority: "high", entity_type: "asset", entity_id: ASSET_BANNER, action_required: true },
     { id: "ad000000-0000-4000-8000-000000000002", user_id: P_EMMA, event_id: EVT_COKE_SUMMER, type: "asset_review", title: "Revision uploaded", body: "James Chen re-uploaded the Machine Wrap Artwork after your feedback.", is_read: false, link: "/admin/asset-reviews", created_at: "2026-06-16T12:30:00Z", kind: "asset_revision_uploaded", priority: "normal", entity_type: "asset", entity_id: ASSET_WRAP, action_required: true },
-    { id: "ad000000-0000-4000-8000-000000000003", user_id: P_EMMA, event_id: EVT_SAMSUNG_LAUNCH, type: "comment", title: "New comment on Samsung Galaxy Launch", body: "Sarah Mitchell mentioned the outstanding insurance certificate.", is_read: true, link: "/events/" + EVT_SAMSUNG_LAUNCH, created_at: "2026-06-14T16:30:00Z", kind: "comment_added", priority: "normal", entity_type: "event", entity_id: EVT_SAMSUNG_LAUNCH, action_required: false },
+    { id: "ad000000-0000-4000-8000-000000000003", user_id: P_EMMA, event_id: EVT_SAMSUNG_LAUNCH, type: "comment", title: "New comment on Samsung Galaxy Launch", body: "Tim Pedro mentioned the outstanding insurance certificate.", is_read: true, link: "/events/" + EVT_SAMSUNG_LAUNCH, created_at: "2026-06-14T16:30:00Z", kind: "comment_added", priority: "normal", entity_type: "event", entity_id: EVT_SAMSUNG_LAUNCH, action_required: false },
     { id: "ad000000-0000-4000-8000-000000000004", user_id: P_SARAH, event_id: EVT_SAMSUNG_LAUNCH, type: "compliance", title: "Compliance item overdue", body: "Insurance certificate for Samsung Galaxy Launch is still outstanding.", is_read: false, link: "/events/" + EVT_SAMSUNG_LAUNCH, created_at: "2026-06-15T08:00:00Z", kind: "compliance_overdue", priority: "high", entity_type: "event", entity_id: EVT_SAMSUNG_LAUNCH, action_required: true },
     { id: "ad000000-0000-4000-8000-000000000005", user_id: P_SARAH, event_id: EVT_COKE_SUMMER, type: "message", title: "New message from James Chen", body: "Question about the final artwork deadline.", is_read: true, link: "/events/" + EVT_COKE_SUMMER, created_at: "2026-06-12T09:11:00Z", kind: "message_received", priority: "normal", entity_type: "event", entity_id: EVT_COKE_SUMMER, action_required: false },
     { id: "ad000000-0000-4000-8000-000000000006", user_id: P_JAMES, event_id: EVT_COKE_SUMMER, type: "task", title: "Action needed: confirm prize details", body: "Confirm prize details and quantities to keep your Summer Festival on track.", is_read: false, link: "/events/" + EVT_COKE_SUMMER, created_at: "2026-06-16T07:00:00Z", kind: "task_assigned", priority: "high", entity_type: "event", entity_id: EVT_COKE_SUMMER, action_required: true },
@@ -145,8 +382,8 @@ export const EXTRA_TABLES: Record<string, MockRow[]> = {
   ],
 
   campaigns: [
-    { id: CMP_COKE, account_id: ACC_COKE, name: "Coca-Cola 2026 Experiential Tour", description: "Year-long sampling and activation programme across UK festivals and markets.", status: "active", start_date: "2026-03-01", end_date: "2026-12-31", shared_creative_json: { theme: "Real Magic Summer", palette: ["#F40009", "#FFFFFF"] }, aggregate_metrics_json: { totalPlays: 13390, totalLeads: 4214, totalPrizes: 2891, events: 3 }, created_at: "2026-02-20T10:00:00Z", updated_at: "2026-06-18T09:00:00Z" },
-    { id: CMP_SAMSUNG, account_id: ACC_SAMSUNG, name: "Galaxy Launch Series", description: "Product-launch activations tied to the 2026 Galaxy release cadence.", status: "active", start_date: "2026-04-01", end_date: "2026-08-31", shared_creative_json: { theme: "Unfold the Moment" }, aggregate_metrics_json: { totalPlays: 18000, totalLeads: 6200, events: 2 }, created_at: "2026-03-10T10:00:00Z", updated_at: "2026-06-18T09:00:00Z" },
+    { id: CMP_COKE, account_id: ACC_COKE, name: "Coca-Cola 2026 Experiential Tour", description: "Year-long sampling and activation programme across UK festivals and markets.", status: "active", start_date: "2026-03-01", end_date: "2026-12-31", shared_creative_json: { theme: "Real Magic Summer", palette: ["#F40009", "#FFFFFF"] }, aggregate_metrics_json: { totalPlays: 2511, totalLeads: 2385, totalPrizes: 2461, totalInteractions: 3264, mediaImpressions: 125550, events: 3 }, created_at: "2026-02-20T10:00:00Z", updated_at: "2026-06-18T09:00:00Z" },
+    { id: CMP_SAMSUNG, account_id: ACC_SAMSUNG, name: "Galaxy Launch Series", description: "Product-launch activations tied to the 2026 Galaxy release cadence.", status: "active", start_date: "2026-04-01", end_date: "2026-08-31", shared_creative_json: { theme: "Unfold the Moment" }, aggregate_metrics_json: { totalPlays: 2509, totalLeads: 2384, totalPrizes: 2459, totalInteractions: 3262, mediaImpressions: 125450, events: 2 }, created_at: "2026-03-10T10:00:00Z", updated_at: "2026-06-18T09:00:00Z" },
   ],
 
   campaign_events: [
@@ -158,21 +395,21 @@ export const EXTRA_TABLES: Record<string, MockRow[]> = {
   ],
 
   invoices: [
-    { id: "ac000000-0000-4000-8000-000000000001", event_id: EVT_COKE_SPRING, account_id: ACC_COKE, invoice_number: "INV-2026-0012", amount: 28500.0, currency: "GBP", payment_method: "invoice", po_number: null, issued_at: "2026-03-25T09:00:00Z", due_at: "2026-04-24T09:00:00Z", paid_at: "2026-04-10T14:30:00Z", payment_reference: "BACS-CC-88213", status: "paid", notes: "Spring Sampling Tour — final invoice.", created_by: P_SARAH, created_at: "2026-03-25T09:00:00Z", updated_at: "2026-04-10T14:30:00Z" },
-    { id: "ac000000-0000-4000-8000-000000000002", event_id: EVT_SAMSUNG_LAUNCH, account_id: ACC_SAMSUNG, invoice_number: "INV-2026-0021", amount: 41250.0, currency: "GBP", payment_method: "po", po_number: "PO-SMSNG-8841", issued_at: "2026-06-05T09:00:00Z", due_at: "2026-07-05T09:00:00Z", paid_at: null, payment_reference: null, status: "issued", notes: "Galaxy Launch — deposit invoice against PO.", created_by: P_SARAH, created_at: "2026-06-05T09:00:00Z", updated_at: "2026-06-05T09:00:00Z" },
-    { id: "ac000000-0000-4000-8000-000000000003", event_id: EVT_SAMSUNG_UNPACKED, account_id: ACC_SAMSUNG, invoice_number: "INV-2026-0019", amount: 27500.0, currency: "GBP", payment_method: "invoice", po_number: null, issued_at: "2026-04-15T09:00:00Z", due_at: "2026-05-15T09:00:00Z", paid_at: null, payment_reference: null, status: "overdue", notes: "Unpacked Pop-Up — final invoice, payment chased.", created_by: P_SARAH, created_at: "2026-04-15T09:00:00Z", updated_at: "2026-05-16T09:00:00Z" },
-    { id: "ac000000-0000-4000-8000-000000000004", event_id: EVT_COKE_SUMMER, account_id: ACC_COKE, invoice_number: "INV-2026-0024", amount: 95000.0, currency: "GBP", payment_method: "deposit_plus_invoice", po_number: null, issued_at: null, due_at: null, paid_at: null, payment_reference: null, status: "draft", notes: "Summer Festival — draft pending final scope.", created_by: P_SARAH, created_at: "2026-06-10T09:00:00Z", updated_at: "2026-06-10T09:00:00Z" },
+    { id: "ac000000-0000-4000-8000-000000000001", event_id: EVT_COKE_SPRING, account_id: ACC_COKE, invoice_number: "INV-2026-0012", amount: 2850000, currency: "USD", payment_method: "invoice", po_number: null, issued_at: "2026-03-25T09:00:00Z", due_at: "2026-04-24T09:00:00Z", paid_at: "2026-04-10T14:30:00Z", payment_reference: "ACH-CC-88213", status: "paid", notes: "Spring Sampling Tour — final invoice.", created_by: P_SARAH, created_at: "2026-03-25T09:00:00Z", updated_at: "2026-04-10T14:30:00Z" },
+    { id: "ac000000-0000-4000-8000-000000000002", event_id: EVT_SAMSUNG_LAUNCH, account_id: ACC_SAMSUNG, invoice_number: "INV-2026-0021", amount: 4125000, currency: "USD", payment_method: "po", po_number: "PO-SMSNG-8841", issued_at: "2026-06-05T09:00:00Z", due_at: "2026-07-05T09:00:00Z", paid_at: null, payment_reference: null, status: "issued", notes: "Galaxy Launch — deposit invoice against PO.", created_by: P_SARAH, created_at: "2026-06-05T09:00:00Z", updated_at: "2026-06-05T09:00:00Z" },
+    { id: "ac000000-0000-4000-8000-000000000003", event_id: EVT_SAMSUNG_UNPACKED, account_id: ACC_SAMSUNG, invoice_number: "INV-2026-0019", amount: 2750000, currency: "USD", payment_method: "invoice", po_number: null, issued_at: "2026-04-15T09:00:00Z", due_at: "2026-05-15T09:00:00Z", paid_at: null, payment_reference: null, status: "overdue", notes: "Unpacked Pop-Up — final invoice, payment chased.", created_by: P_SARAH, created_at: "2026-04-15T09:00:00Z", updated_at: "2026-05-16T09:00:00Z" },
+    { id: "ac000000-0000-4000-8000-000000000004", event_id: EVT_COKE_SUMMER, account_id: ACC_COKE, invoice_number: "INV-2026-0024", amount: 9500000, currency: "USD", payment_method: "deposit_plus_invoice", po_number: null, issued_at: null, due_at: null, paid_at: null, payment_reference: null, status: "draft", notes: "Summer Festival — draft pending final scope.", created_by: P_SARAH, created_at: "2026-06-10T09:00:00Z", updated_at: "2026-06-10T09:00:00Z" },
   ],
 
   // Category-average benchmarks keyed to match the report chart's metric keys
   // (interactions / leads / impressions). Each average sits comfortably below
   // the seeded event totals, so "Your Event" clearly beats "Category Average".
   benchmarks: [
-    { event_type: "sampling", location_tier: "tier_1", machine_type: "Bright.Vend Pro", metric_name: "interactions", avg_value: 6500, median_value: 6300, p25_value: 5200, p75_value: 7400, sample_size: 24 },
-    { event_type: "sampling", location_tier: "tier_1", machine_type: "Bright.Vend Pro", metric_name: "leads", avg_value: 1560, median_value: 1510, p25_value: 1240, p75_value: 1820, sample_size: 24 },
-    { event_type: "sampling", location_tier: "tier_1", machine_type: "Bright.Vend Pro", metric_name: "impressions", avg_value: 332000, median_value: 318000, p25_value: 264000, p75_value: 392000, sample_size: 24 },
-    { event_type: "activation", location_tier: "tier_1", machine_type: "Bright.Play", metric_name: "interactions", avg_value: 5600, median_value: 5400, p25_value: 4500, p75_value: 6500, sample_size: 31 },
-    { event_type: "activation", location_tier: "tier_1", machine_type: "Bright.Play", metric_name: "leads", avg_value: 1420, median_value: 1380, p25_value: 1120, p75_value: 1680, sample_size: 31 },
-    { event_type: "activation", location_tier: "tier_1", machine_type: "Bright.Play", metric_name: "impressions", avg_value: 285000, median_value: 272000, p25_value: 228000, p75_value: 338000, sample_size: 31 },
+    { event_type: "sampling", location_tier: "tier_1", machine_type: "Bright.Vend Pro", metric_name: "interactions", avg_value: 980, median_value: 960, p25_value: 820, p75_value: 1120, sample_size: 24 },
+    { event_type: "sampling", location_tier: "tier_1", machine_type: "Bright.Vend Pro", metric_name: "leads", avg_value: 720, median_value: 705, p25_value: 600, p75_value: 820, sample_size: 24 },
+    { event_type: "sampling", location_tier: "tier_1", machine_type: "Bright.Vend Pro", metric_name: "impressions", avg_value: 38000, median_value: 37000, p25_value: 31000, p75_value: 44000, sample_size: 24 },
+    { event_type: "activation", location_tier: "tier_1", machine_type: "Bright.Play", metric_name: "interactions", avg_value: 1050, median_value: 1020, p25_value: 880, p75_value: 1200, sample_size: 31 },
+    { event_type: "activation", location_tier: "tier_1", machine_type: "Bright.Play", metric_name: "leads", avg_value: 770, median_value: 750, p25_value: 640, p75_value: 880, sample_size: 31 },
+    { event_type: "activation", location_tier: "tier_1", machine_type: "Bright.Play", metric_name: "impressions", avg_value: 40000, median_value: 39000, p25_value: 33000, p75_value: 46000, sample_size: 31 },
   ],
 };

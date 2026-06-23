@@ -17,15 +17,24 @@ async function requireCommercialUser() {
   return ctx;
 }
 
-/** Create a new campaign in draft status. */
+const CAMPAIGN_STATUSES = ["draft", "active", "completed", "archived"] as const;
+
+/** Create a new campaign. Defaults to draft unless a valid status is supplied. */
 export async function createCampaign(data: {
   name: string;
   description?: string;
   accountId?: string;
   startDate?: string;
   endDate?: string;
+  status?: string;
 }) {
   const { supabase } = await requireCommercialUser();
+
+  const status = CAMPAIGN_STATUSES.includes(
+    data.status as (typeof CAMPAIGN_STATUSES)[number]
+  )
+    ? data.status
+    : "draft";
 
   const { data: campaign, error } = await supabase
     .from("campaigns")
@@ -35,7 +44,7 @@ export async function createCampaign(data: {
       account_id: data.accountId || null,
       start_date: data.startDate || null,
       end_date: data.endDate || null,
-      status: "draft",
+      status,
     })
     .select("id")
     .single();

@@ -4,6 +4,9 @@ import { Toaster } from "@/components/ui/toaster";
 import { brandFontVariables } from "@/lib/fonts";
 import { checkRequiredEnv } from "@/lib/env";
 import { ThemeProvider, themeInitScript } from "@/components/theme/ThemeProvider";
+import { getUser } from "@/lib/auth";
+import { isInternalRole } from "@/lib/roles";
+import { InternalShell } from "@/components/layout/InternalShell";
 
 checkRequiredEnv();
 
@@ -54,19 +57,26 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const user = await getUser();
+  const showRail = Boolean(user && isInternalRole(user.role));
+
   return (
     <html lang="en" suppressHydrationWarning className={brandFontVariables}>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
-      <body className="antialiased min-h-screen">
+      <body className="antialiased min-h-screen" suppressHydrationWarning>
         <ThemeProvider>
-          {children}
+          {showRail ? (
+            <InternalShell role={user!.role}>{children}</InternalShell>
+          ) : (
+            children
+          )}
           <Toaster />
         </ThemeProvider>
       </body>

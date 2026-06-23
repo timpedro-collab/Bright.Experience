@@ -12,6 +12,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { FileText, CalendarCheck } from "lucide-react";
+import { formatUSDFromCents } from "@/lib/currency";
 
 interface Attribution {
   id: string;
@@ -33,13 +34,9 @@ const STATUS_MAP: Record<string, { label: string; className: string }> = {
   rejected: { label: "Rejected", className: "bg-red-500/10 text-red-400 border-red-500/20" },
 };
 
-/** Formats a number as ZAR currency */
-function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat("en-ZA", {
-    style: "currency",
-    currency: "ZAR",
-    minimumFractionDigits: 0,
-  }).format(amount);
+/** Commission amounts are integer cents. */
+function formatCurrency(cents: number): string {
+  return formatUSDFromCents(cents);
 }
 
 export function PartnerPipelineTable({ attributions }: PartnerPipelineTableProps) {
@@ -74,7 +71,7 @@ export function PartnerPipelineTable({ attributions }: PartnerPipelineTableProps
             return (
               <TableRow key={attr.id} className="border-border/60">
                 <TableCell className="text-muted-foreground">
-                  {new Date(attr.createdAt).toLocaleDateString("en-ZA", {
+                  {new Date(attr.createdAt).toLocaleDateString("en-US", {
                     day: "numeric",
                     month: "short",
                     year: "numeric",

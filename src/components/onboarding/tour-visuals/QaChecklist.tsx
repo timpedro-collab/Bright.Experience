@@ -4,13 +4,16 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle2, Circle, AlertTriangle } from "lucide-react";
 
+// Mirrors the real QA checklist seeded by the package templates
+// (supabase/migrations/20260527200001_seed_templates.sql) so the tour shows
+// the exact checks a QA lead actually signs off — no invented hardware.
 const ITEMS = [
-  { id: 1, label: "Machine power on", category: "Hardware" },
-  { id: 2, label: "Game loads correctly", category: "Software" },
-  { id: 3, label: "Prize trigger fires", category: "Software" },
-  { id: 4, label: "Lead form submits", category: "Data" },
-  { id: 5, label: "GDPR consent displays", category: "Compliance" },
-  { id: 6, label: "Printer dispenses voucher", category: "Hardware" },
+  { id: 1, label: "Machine powers on and boots", category: "Machine" },
+  { id: 2, label: "Game loads with correct branding", category: "Game logic" },
+  { id: 3, label: "Prize mechanic triggers correctly", category: "Game logic" },
+  { id: 4, label: "Attract screen creative correct", category: "UX / UI" },
+  { id: 5, label: "Lead capture form submits", category: "Webform" },
+  { id: 6, label: "GDPR consent present", category: "Webform" },
 ];
 
 export function QaChecklist() {

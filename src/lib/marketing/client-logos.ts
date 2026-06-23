@@ -33,11 +33,13 @@ export const CLIENT_LOGOS: ClientLogo[] = [
   { name: "Storyblok", src: "/logos/storyblok.svg" },
   { name: "Adyen", src: "/logos/adyen.svg" },
   { name: "Red Bull", src: "/logos/red-bull.svg" },
-  { name: "Pepsi", src: "/logos/pepsi.png" },
+  // Pepsi / Lucozade / Pelion / Intact assets not yet supplied — render the
+  // monogram fallback until the real PNGs are dropped into /public/logos.
+  { name: "Pepsi" },
   { name: "Porsche", src: "/logos/porsche.svg" },
   { name: "Suntory", src: "/logos/suntory.svg" },
-  { name: "Lucozade", src: "/logos/lucozade.png" },
+  { name: "Lucozade" },
   { name: "Celsius", src: "/logos/celsius.svg" },
-  { name: "Pelion", src: "/logos/pelion.png", imgClassName: "max-h-11" },
-  { name: "Intact", src: "/logos/intact.png" },
+  { name: "Pelion", imgClassName: "max-h-11" },
+  { name: "Intact" },
 ];

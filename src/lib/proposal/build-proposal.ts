@@ -12,6 +12,7 @@
 
 import { getCapabilities, ALWAYS_ON } from "@/lib/capabilities";
 import { formatDateMedium, formatDateShort } from "@/lib/dates";
+import { formatNumberUS } from "@/lib/currency";
 
 /* -------------------------------------------------------------------------
  * Input + output shapes
@@ -33,6 +34,16 @@ export interface ProposalQuoteInput {
   addons?: unknown;
   total_amount?: number | null;
   quote_line_items?: { label: string; amount: number; sort_order: number }[] | null;
+  // Projected reach (carried from the quiz through intake).
+  reach_track?: string | null;
+  attendees?: number | null;
+  activation_location?: string | null;
+  activation_days?: number | null;
+  estimated_impressions?: number | null;
+  estimated_interactions?: number | null;
+  estimated_leads?: number | null;
+  /** DOOH media value in integer USD cents. */
+  dooh_media_value?: number | null;
 }
 
 export interface ProposalFact {
@@ -81,6 +92,17 @@ export interface RecommendedAddon {
   reason: string;
 }
 
+export interface ProposalReach {
+  track: string;
+  /** e.g. "London Waterloo · 3 days" or "2,500 attendees". */
+  context: string;
+  impressions: number;
+  interactions: number;
+  leads: number;
+  /** Equivalent OOH media value in integer USD cents (experiential only). */
+  doohMediaValueCents?: number;
+}
+
 export interface ProposalDocument {
   cover: {
     title: string;
@@ -88,6 +110,8 @@ export interface ProposalDocument {
     facts: ProposalFact[];
     confidentialTag: string;
   };
+  /** Projected reach band — present only when the intake captured reach data. */
+  reach?: ProposalReach;
   brief: { headline: string; intro: string; challenge: string; success: string };
   solution: { headline: string; intro: string; cascade: CascadeStep[] };
   creative: {
@@ -165,18 +189,18 @@ const OBJECTIVE_NARRATIVE: Record<
   { headline: (co: string) => string; challenge: string; success: string }
 > = {
   "lead-generation": {
-    headline: () => "Turn footfall into a qualified pipeline",
+    headline: () => "Turn footfall into real pipeline",
     challenge:
       "A passive stand collects business cards. The goal is a stand people walk toward — one that captures not just contact details, but context about who is genuinely interested.",
     success:
-      "A busy stand with a steady stream of engaged visitors, and a follow-up list that is warm rather than cold — names paired with the qualifying answers your sales team needs.",
+      "A busy stand with a steady stream of engaged visitors, and a follow-up list that is warm rather than cold — names paired with the context your sales team needs.",
   },
   leads: {
-    headline: () => "Turn footfall into a qualified pipeline",
+    headline: () => "Turn footfall into real pipeline",
     challenge:
       "A passive stand collects business cards. The goal is a stand people walk toward — one that captures not just contact details, but context about who is genuinely interested.",
     success:
-      "A busy stand with a steady stream of engaged visitors, and a follow-up list that is warm rather than cold — names paired with the qualifying answers your sales team needs.",
+      "A busy stand with a steady stream of engaged visitors, and a follow-up list that is warm rather than cold — names paired with the context your sales team needs.",
   },
   "brand-awareness": {
     headline: (co) => `Make ${co} the most talked-about presence in the room`,
@@ -219,7 +243,7 @@ const DEFAULT_NARRATIVE = {
 /* Rationale shown when an add-on is "called out" as tailored to the brief. */
 const ADDON_REASON: Record<string, string> = {
   "live-telemetry":
-    "you want a qualified pipeline — your team sees every lead the moment it lands",
+    "you want real pipeline — your team sees every lead the moment it lands",
   "sampling-unlock":
     "trial is central to your goal — a sample dispenses on every win",
   "linkedin-follow":
@@ -253,6 +277,33 @@ export function buildProposalDocument(quote: ProposalQuoteInput): ProposalDocume
         : "Dates to confirm";
 
   const narrative = OBJECTIVE_NARRATIVE[objective] ?? DEFAULT_NARRATIVE;
+
+  // ---- Projected reach band ---------------------------------------------
+  const posInt = (v: number | null | undefined): number | null =>
+    typeof v === "number" && Number.isFinite(v) && v > 0 ? Math.round(v) : null;
+  const impressions = posInt(quote.estimated_impressions);
+  const interactions = posInt(quote.estimated_interactions);
+  const leads = posInt(quote.estimated_leads);
+  const dooh = posInt(quote.dooh_media_value);
+  let reach: ProposalReach | undefined;
+  if (impressions || interactions || leads) {
+    const isExperiential = quote.reach_track === "experiential";
+    const context = isExperiential
+      ? `${quote.activation_location ?? quote.venue_name ?? "Your site"}${
+          quote.activation_days ? ` · ${quote.activation_days} day${quote.activation_days === 1 ? "" : "s"}` : ""
+        }`
+      : quote.attendees
+        ? `${formatNumberUS(quote.attendees)} attendees`
+        : "Your event";
+    reach = {
+      track: isExperiential ? "experiential" : "tradeshow",
+      context,
+      impressions: impressions ?? 0,
+      interactions: interactions ?? 0,
+      leads: leads ?? 0,
+      doohMediaValueCents: dooh ?? undefined,
+    };
+  }
 
   const recommendedSlugs = Array.isArray(quote.addons)
     ? (quote.addons.filter((x): x is string => typeof x === "string"))
@@ -352,6 +403,7 @@ export function buildProposalDocument(quote: ProposalQuoteInput): ProposalDocume
       ],
       confidentialTag: "Confidential",
     },
+    reach,
     brief: {
       headline: narrative.headline(company),
       intro: quote.special_requirements?.trim()
@@ -384,10 +436,10 @@ export function buildProposalDocument(quote: ProposalQuoteInput): ProposalDocume
         "After agreement, Bright.Blue schedules a creative call with your brand and design team. We outline the assets needed, your team supplies them, and we build the wrap, game, and screen content. We can also handle creative end-to-end as an additional service.",
     },
     dataCapture: {
-      headline: "Qualified data without the friction",
-      intro: `The machine adds a layer of qualified, contextual data on top of whatever attendee list you already receive — captured from people who actively engaged with ${company}.`,
+      headline: "Rich data without the friction",
+      intro: `The machine adds a layer of rich, contextual data on top of whatever attendee list you already receive — captured from people who actively engaged with ${company}.`,
       rows: [
-        { source: "Machine web form", what: "Name plus qualifying questions (e.g. priorities, product interest, current setup)", how: "QR code after gameplay opens a branded form on the attendee's phone" },
+        { source: "Machine web form", what: "Name plus in-play questions (e.g. priorities, product interest, current setup)", how: "QR code after gameplay opens a branded form on the attendee's phone" },
         { source: "Engagement metrics", what: "Plays, dwell, peak times, and leaderboard activity across the event", how: "Captured automatically and delivered in your post-event report" },
         { source: "Combined", what: "Engaged-visitor shortlist cross-referenced with your own delegate data", how: "Post-event data merge by your team" },
       ],

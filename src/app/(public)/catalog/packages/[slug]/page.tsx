@@ -8,6 +8,7 @@ import { Container, Section } from "@/components/ui/section";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { getPackageBySlug } from "@/lib/queries/packages";
+import { formatFeatureLabel, formatDurationLabel } from "@/lib/catalog-format";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -23,11 +24,6 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
-function formatPrice(pence?: number | null): string {
-  if (!pence) return "On request";
-  return `£${(pence / 100).toLocaleString("en-GB")}`;
-}
-
 export default async function PackageDetailPage({ params }: PageProps) {
   const { slug } = await params;
   const pkg = await getPackageBySlug(slug);
@@ -38,7 +34,6 @@ export default async function PackageDetailPage({ params }: PageProps) {
     (pkg.package_addons as {
       id: string;
       name: string;
-      price?: number;
       description?: string;
     }[]) ?? [];
   const parentMachine = pkg.machines as { name?: string; slug?: string } | null;
@@ -71,9 +66,9 @@ export default async function PackageDetailPage({ params }: PageProps) {
                   </Link>
                 </p>
               )}
-              {pkg.duration_days && (
+              {formatDurationLabel(pkg.duration_days) && (
                 <p className="mt-1 text-sm text-muted-foreground">
-                  {pkg.duration_days}-day activation
+                  {formatDurationLabel(pkg.duration_days)}
                 </p>
               )}
               {pkg.description && (
@@ -81,26 +76,12 @@ export default async function PackageDetailPage({ params }: PageProps) {
                   {pkg.description}
                 </p>
               )}
-              <p className="mt-5 text-2xl text-foreground">
-                <span className="text-heading font-bold">{formatPrice(pkg.base_price)}</span>
-                {pkg.base_price ? (
-                  <span className="text-base text-muted-foreground"> from / event</span>
-                ) : null}
-              </p>
               <div className="mt-8 flex flex-wrap gap-2">
-                {pkg.is_bookable ? (
-                  <Button asChild variant="brand" size="lg">
-                    <Link href={`/book/configure?package=${pkg.slug}`}>
-                      Book this package <ArrowRight className="h-4 w-4" />
-                    </Link>
-                  </Button>
-                ) : (
-                  <Button asChild variant="brand" size="lg">
-                    <Link href="/proposal">
-                      Request proposal <ArrowRight className="h-4 w-4" />
-                    </Link>
-                  </Button>
-                )}
+                <Button asChild variant="brand" size="lg">
+                  <Link href={`/proposal?package=${pkg.slug}`}>
+                    Request a quote <ArrowRight className="h-4 w-4" />
+                  </Link>
+                </Button>
                 <Button asChild variant="glass" size="lg">
                   <Link href="/catalog/packages">Compare packages</Link>
                 </Button>
@@ -115,7 +96,7 @@ export default async function PackageDetailPage({ params }: PageProps) {
                   {features.map((feature, i) => (
                     <li key={i} className="flex items-start gap-2.5 text-sm text-foreground">
                       <Check size={16} className="mt-0.5 shrink-0 text-success" />
-                      <span>{feature}</span>
+                      <span>{formatFeatureLabel(feature)}</span>
                     </li>
                   ))}
                 </ul>
@@ -140,11 +121,6 @@ export default async function PackageDetailPage({ params }: PageProps) {
                 >
                   <div className="flex items-center justify-between gap-2">
                     <h3 className="text-heading text-base font-semibold">{addon.name}</h3>
-                    {addon.price != null && (
-                      <span className="text-sm font-semibold text-primary">
-                        {formatPrice(addon.price)}
-                      </span>
-                    )}
                   </div>
                   {addon.description && (
                     <p className="mt-2 text-sm text-muted-foreground line-clamp-3">

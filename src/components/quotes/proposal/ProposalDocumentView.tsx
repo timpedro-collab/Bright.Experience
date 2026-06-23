@@ -6,11 +6,12 @@
  * is complete we show a "book your 15-minute walkthrough" card instead of the
  * price, so pricing is always discussed on a call first.
  */
-import { CalendarClock, Check, Sparkles } from "lucide-react";
+import { CalendarClock, Check, Sparkles, Eye, Users, MapPin } from "lucide-react";
 
 import { Card } from "@/components/ui/card";
 import { Hairline } from "@/components/brand";
 import { formatGBP } from "@/lib/roi";
+import { formatNumberUS, formatUSDFromCents } from "@/lib/currency";
 import {
   ALWAYS_ON_OUTCOMES,
   type ProposalDocument,
@@ -25,6 +26,26 @@ interface ProposalDocumentViewProps {
   /** Whether the customer can still accept/decline (status === proposal_sent). */
   canRespond: boolean;
   walkthroughUrl: string;
+}
+
+function ReachStat({
+  icon: Icon,
+  value,
+  label,
+}: {
+  icon: React.ElementType;
+  value: string;
+  label: string;
+}) {
+  return (
+    <div>
+      <Icon className="size-5 text-[var(--color-bb-cobalt)]" aria-hidden />
+      <p className="mt-2 text-display text-2xl font-bold tabular-nums text-foreground md:text-3xl">
+        {value}
+      </p>
+      <p className="mt-0.5 text-overline text-muted-foreground">{label}</p>
+    </div>
+  );
 }
 
 function SectionHead({
@@ -100,6 +121,38 @@ export function ProposalDocumentView({
           ))}
         </div>
       </section>
+
+      {/* ---- Projected reach band ---- */}
+      {doc.reach && (
+        <section>
+          <Card tone="elevated" className="relative overflow-hidden p-8">
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,hsl(230,93%,53%,0.08),hsl(189,100%,75%,0.05))]"
+            />
+            <div className="relative">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="text-overline tracking-[0.2em] text-[var(--color-bb-cobalt)]">
+                  Projected reach
+                </p>
+                <span className="text-sm text-muted-foreground">{doc.reach.context}</span>
+              </div>
+              <div className="mt-5 grid grid-cols-2 gap-6 sm:grid-cols-3">
+                <ReachStat icon={Eye} value={formatNumberUS(doc.reach.impressions)} label="Impressions" />
+                <ReachStat icon={Users} value={formatNumberUS(doc.reach.leads)} label="Leads" />
+                {doc.reach.doohMediaValueCents != null && (
+                  <ReachStat icon={MapPin} value={formatUSDFromCents(doc.reach.doohMediaValueCents)} label="DOOH media value" />
+                )}
+              </div>
+              <p className="mt-5 max-w-[64ch] text-xs leading-relaxed text-muted-foreground">
+                {doc.reach.track === "experiential"
+                  ? "Modelled from the site's real daily footfall across the unit's three branded screens (main touchscreen + two rolling-advert side screens). Final figures confirmed on your walkthrough."
+                  : "Across the unit's three branded screens, scaled from your expected attendance. Final figures confirmed on your walkthrough."}
+              </p>
+            </div>
+          </Card>
+        </section>
+      )}
 
       <Hairline className="opacity-50" />
 

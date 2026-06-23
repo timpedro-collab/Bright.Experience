@@ -35,10 +35,10 @@ on conflict (id) do nothing;
 -- PROFILES (inserted after auth users via seed-users.ts)
 -- ============================================================
 insert into profiles (id, name, email, role, account_id) values
-  ('11111111-1111-1111-1111-111111111111', 'Sarah Mitchell', 'sarah@brightblue.co.uk', 'events_lead', null),
+  ('11111111-1111-1111-1111-111111111111', 'Tim Pedro', 'tim@brightblue.co.uk', 'events_lead', null),
   ('22222222-2222-2222-2222-222222222222', 'James Chen', 'james.chen@cocacola.com', 'customer_admin', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'),
-  ('33333333-3333-3333-3333-333333333333', 'Emma Wright', 'emma@brightblue.co.uk', 'creative_lead', null),
-  ('44444444-4444-4444-4444-444444444444', 'Tom Parker', 'tom@brightblue.co.uk', 'operations_lead', null),
+  ('33333333-3333-3333-3333-333333333333', 'Theo Roturu', 'theo@brightblue.co.uk', 'creative_lead', null),
+  ('44444444-4444-4444-4444-444444444444', 'Dan Barnes', 'dan@brightblue.co.uk', 'operations_lead', null),
   ('55555555-5555-5555-5555-555555555555', 'Alex Rivera', 'alex@brightblue.co.uk', 'qa_lead', null)
 on conflict (id) do nothing;
 
@@ -121,22 +121,22 @@ on conflict do nothing;
 insert into packages (id, name, slug, description, machine_id, tier, base_price, duration_days, features_json, is_bookable, sort_order) values
   ('c1c1c1c1-c1c1-4c1c-8c1c-c1c1c1c1c1c1', 'Bright.Vend — Single Day', 'bright-vend-single-day',
     'A one-day sampling activation with the compact Bright.Vend kiosk. Includes setup, takedown, and a same-day metrics handover.',
-    'a1a1a1a1-a1a1-4a1a-8a1a-a1a1a1a1a1a1', 'standard', 350000, 1,
+    'a1a1a1a1-a1a1-4a1a-8a1a-a1a1a1a1a1a1', 'standard', 450000, 1,
     '["setup_and_takedown","onsite_brand_ambassador","real_time_dashboard","next_day_report"]'::jsonb,
     true, 1),
   ('c2c2c2c2-c2c2-4c2c-8c2c-c2c2c2c2c2c2', 'Bright.Vend Pro — Weekend', 'bright-vend-pro-weekend',
     'Friday-through-Sunday with the full Bright.Vend Pro machine, branded wrap, two ambassadors and post-event report.',
-    'a2a2a2a2-a2a2-4a2a-8a2a-a2a2a2a2a2a2', 'standard', 950000, 3,
+    'a2a2a2a2-a2a2-4a2a-8a2a-a2a2a2a2a2a2', 'standard', 1200000, 3,
     '["setup_and_takedown","two_ambassadors","branded_wrap","real_time_dashboard","post_event_report"]'::jsonb,
     true, 2),
   ('c3c3c3c3-c3c3-4c3c-8c3c-c3c3c3c3c3c3', 'Bright.Play — Five-Day Activation', 'bright-play-five-day',
     'Five days of interactive gameplay. Full creative production, two on-site ops, live event dashboard.',
-    'a3a3a3a3-a3a3-4a3a-8a3a-a3a3a3a3a3a3', 'premium', 2500000, 5,
+    'a3a3a3a3-a3a3-4a3a-8a3a-a3a3a3a3a3a3', 'premium', 3500000, 5,
     '["full_creative_production","two_ops","live_event_dashboard","custom_game_logic","post_event_report"]'::jsonb,
     true, 3),
   ('c4c4c4c4-c4c4-4c4c-8c4c-c4c4c4c4c4c4', 'Bright.Play — Tour Edition (10 cities)', 'bright-play-tour',
     'Ten-city tour over six weeks. Travel, logistics, dedicated AE, and a tour-wide intelligence report.',
-    'a3a3a3a3-a3a3-4a3a-8a3a-a3a3a3a3a3a3', 'premium', 9500000, 42,
+    'a3a3a3a3-a3a3-4a3a-8a3a-a3a3a3a3a3a3', 'premium', 12000000, 42,
     '["tour_logistics","dedicated_ae","cross_market_intelligence","interim_reports","executive_summary"]'::jsonb,
     true, 4),
   ('c5c5c5c5-c5c5-4c5c-8c5c-c5c5c5c5c5c5', 'Bespoke', 'bespoke',
@@ -164,39 +164,39 @@ insert into package_addons (package_id, name, description, price, category, capa
 -- CATALOG: case_studies
 -- ============================================================
 insert into case_studies (id, title, slug, client_name, event_type, location, description, hero_image_url, stats_json, testimonial_quote, testimonial_author, is_published, published_at) values
-  ('d1d1d1d1-d1d1-4d1d-8d1d-d1d1d1d1d1d1', 'How Coca-Cola scaled summer sampling across 12 cities', 'coca-cola-summer-tour',
-    'Coca-Cola UK', 'sampling', 'UK',
-    'A 12-city sampling tour using Bright.Vend Pro. 124,000 samples, 38% opt-in to lead capture, 4.7 / 5 NPS.',
-    '/case-studies/coca-cola-hero.jpg',
-    '{"samples":124000,"leadOptInPct":38,"npsScore":4.7,"cities":12}'::jsonb,
-    'The fastest sampling activation we''ve ever run.', 'James Chen, Coca-Cola UK',
-    true, '2026-01-15T10:00:00Z'),
-  ('d2d2d2d2-d2d2-4d2d-8d2d-d2d2d2d2d2d2', 'Samsung Galaxy launch: an interactive activation', 'samsung-galaxy-launch',
-    'Samsung Electronics', 'activation', 'London',
-    'Five-day flagship launch at Westfield London. Bright.Play with custom creative, 18,000 plays, 6,200 leads.',
-    '/case-studies/samsung-hero.jpg',
-    '{"plays":18000,"leads":6200,"avgDwellSec":52}'::jsonb,
-    'The most engagement we''ve had from any launch activation.', 'Aisha Khan, Samsung',
-    true, '2026-02-08T10:00:00Z'),
-  ('d3d3d3d3-d3d3-4d3d-8d3d-d3d3d3d3d3d3', 'Guinness Six Nations fan zone', 'guinness-six-nations-fan-zone',
-    'Diageo', 'sampling', 'Twickenham',
-    'Three match days at Twickenham. 22,000 samples, 12,000 prize redemptions, 41 unique sponsor activations.',
-    '/case-studies/guinness-hero.jpg',
-    '{"samples":22000,"prizeRedemptions":12000,"sponsorActivations":41}'::jsonb,
-    'Brings the energy of the matchday into the bar.', 'Mike O''Donnell, Diageo',
-    true, '2026-02-22T10:00:00Z'),
+  ('d1d1d1d1-d1d1-4d1d-8d1d-d1d1d1d1d1d1', 'Costa Coffee turned a product launch into a sampling moment', 'costa-matcha-launch',
+    'Costa Coffee', 'sampling', 'London',
+    'An Experience Portal anchored Costa''s new matcha range launch with a playful, branded sampling moment — every serve paired with a quick interaction and opt-in data capture.',
+    null,
+    '{"samples":4200,"leads":3100,"avgDwellSec":22}'::jsonb,
+    'The machine pulled people in and made the launch feel like an event — and we walked away with the data to prove it.', 'Brand Experience Team, Costa Coffee',
+    true, '2026-03-25T10:00:00Z'),
+  ('d2d2d2d2-d2d2-4d2d-8d2d-d2d2d2d2d2d2', 'BIBA Conference: a stand that stood out on a busy floor', 'biba-conference',
+    'BIBA', 'exhibition', 'Manchester',
+    'A branded Experience Portal on the exhibition floor at the BIBA Conference — a memorable, on-brand draw amongst hundreds of stands that turned footfall into conversations and clean opt-in data.',
+    null,
+    '{"plays":910,"leads":845,"avgDwellSec":25}'::jsonb,
+    'It gave delegates a reason to stop, and gave our team a natural way to start a conversation.', 'Events Team, BIBA',
+    true, '2026-03-20T10:00:00Z'),
+  ('d3d3d3d3-d3d3-4d3d-8d3d-d3d3d3d3d3d3', 'Pelion drew the crowd at a connectivity expo', 'pelion-expo',
+    'Pelion', 'exhibition', 'London',
+    'A custom Experience Portal on Pelion''s expo stand — an interactive moment that cut through a noisy hall and captured quality leads without the hard sell.',
+    null,
+    '{"plays":540,"leads":480,"avgDwellSec":27}'::jsonb,
+    'A simple, brilliant way to make our stand the one people remembered.', 'Marketing Team, Pelion',
+    true, '2026-03-12T10:00:00Z'),
   ('d5d5d5d5-d5d5-4d5d-8d5d-d5d5d5d5d5d5', 'How Storyblok made their DMEXCO booth a magnet', 'storyblok-dmexco',
     'Storyblok', 'exhibition', 'Cologne',
     'An interactive Experience Portal on the Storyblok stand at DMEXCO — a fun, branded moment that doubled as automatic, high-quality data capture.',
-    '/case-studies/storyblok-hero.jpg',
-    '{"plays":4200,"leads":1100,"avgDwellSec":48}'::jsonb,
+    null,
+    '{"plays":720,"leads":685,"avgDwellSec":31}'::jsonb,
     'Bright.Blue brought our DMEXCO booth to life. The interactive machine became a magnet for attendees, giving us both a fun experience and high-quality data — automatically.', 'Ioana Grapa, Head of Global Events, Storyblok',
     true, '2026-03-05T10:00:00Z'),
   ('d6d6d6d6-d6d6-4d6d-8d6d-d6d6d6d6d6d6', 'Adyen''s event gifting that ran itself', 'adyen-event-gifting',
     'Adyen', 'corporate', 'London',
     'A fully customised, unattended Experience Portal vending branded gifts across an Adyen business event — delivery, setup, and restocking all handled by Bright.Blue.',
-    '/case-studies/adyen-hero.jpg',
-    '{"giftsVended":1800,"interactions":3400,"satisfactionPct":97}'::jsonb,
+    null,
+    '{"giftsVended":600,"interactions":810,"satisfactionPct":97}'::jsonb,
     'We vended gifts from their unattended machine and saw fantastic attendee engagement. The team handled everything from delivery and setup to restocking — it let me focus on the event itself.', 'Brigitte Brown, Senior Event Marketing Manager, Adyen',
     true, '2026-03-18T10:00:00Z'),
   ('d4d4d4d4-d4d4-4d4d-8d4d-d4d4d4d4d4d4', 'Internal draft (do not publish)', 'draft-do-not-publish',
@@ -227,7 +227,7 @@ insert into events (id, account_id, name, event_type, package_type, machine_type
   ('e1111111-1111-1111-1111-111111111111', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'Coca-Cola Summer Festival 2026', 'vending', 'premium', 'Bright.Vend Pro', 'Hyde Park', 'London W2 2UH', '2026-07-15', '2026-07-17', '2026-07-14', '2026-07-18', 'creative_assets', 'green', '11111111-1111-1111-1111-111111111111', '2026-03-01T10:00:00Z'),
   ('e2222222-2222-2222-2222-222222222222', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'Samsung Galaxy Launch Experience', 'activation', 'custom', 'Bright.Play', 'Westfield London', 'Ariel Way, London W12 7GF', '2026-05-20', '2026-05-22', null, null, 'approvals', 'amber', '11111111-1111-1111-1111-111111111111', '2026-02-15T09:00:00Z'),
   ('e3333333-3333-3333-3333-333333333333', 'cccccccc-cccc-cccc-cccc-cccccccccccc', 'Guinness Six Nations Fan Zone', 'sampling', 'standard', 'Bright.Vend', 'Twickenham Stadium', 'Whitton Rd, Twickenham TW2 7BA', '2026-06-10', null, null, null, 'kickoff_complete', 'green', '11111111-1111-1111-1111-111111111111', '2026-03-20T11:00:00Z'),
-  ('e4444444-4444-4444-4444-444444444444', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'Coca-Cola Christmas Market', 'vending', 'premium', 'Bright.Vend Pro', 'Birmingham Frankfurt Market', 'Victoria Square, Birmingham', '2026-11-20', '2026-12-23', null, null, 'confirmed', 'green', '11111111-1111-1111-1111-111111111111', '2026-04-01T10:00:00Z'),
+  ('e4444444-4444-4444-4444-444444444444', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'Coca-Cola Christmas Market', 'vending', 'premium', 'Bright.Vend Pro', 'Birmingham Frankfurt Market', 'Victoria Square, Birmingham', '2026-11-20', '2026-12-23', null, null, 'confirmed', 'amber', '11111111-1111-1111-1111-111111111111', '2026-04-01T10:00:00Z'),
   ('e5555555-5555-5555-5555-555555555555', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'Samsung Unpacked Pop-Up', 'activation', 'premium', 'Bright.Play', 'Battersea Power Station', 'Circus Rd W, London SW11 8DD', '2026-04-10', '2026-04-12', null, null, 'qa_readiness', 'red', '11111111-1111-1111-1111-111111111111', '2026-01-10T08:00:00Z')
 on conflict (id) do nothing;
 
@@ -323,7 +323,10 @@ insert into approvals (id, event_id, title, description, approval_type, status, 
 -- ============================================================
 insert into partners (id, name, slug, type, contact_name, contact_email, brand_color, partner_code, status, onboarded_at) values
   ('e0e0e0e0-e0e0-4e0e-8e0e-e0e0e0e0e0e0', 'Northern Events', 'northern-events', 'reseller', 'Maya Patel', 'maya@northern.events',   '#1E47F0', 'BB-NORTH001', 'active', '2026-01-10T10:00:00Z'),
-  ('e1e1e1e1-e1e1-4e1e-8e1e-e1e1e1e1e1e1', 'Kings Cross Hall',  'kings-cross-hall', 'venue',  'Aaron Howe',  'aaron@kingsx.london',     '#80E8FF', 'BB-KINGS001', 'active', '2026-02-04T10:00:00Z')
+  ('e1e1e1e1-e1e1-4e1e-8e1e-e1e1e1e1e1e1', 'Kings Cross Hall',  'kings-cross-hall', 'venue',  'Aaron Howe',  'aaron@kingsx.london',     '#80E8FF', 'BB-KINGS001', 'active', '2026-02-04T10:00:00Z'),
+  ('e2e2e2e2-e2e2-4e2e-8e2e-e2e2e2e2e2e2', 'Southern Brand Activations', 'southern-activations', 'reseller', 'Olivia Reed', 'olivia@southern-activations.com', '#1E47F0', 'BB-SOUTH001', 'active', '2026-02-18T10:00:00Z'),
+  ('e3e3e3e3-e3e3-4e3e-8e3e-e3e3e3e3e3e3', 'Westfield Stratford', 'westfield-stratford', 'venue', 'Daniel Cole', 'daniel@westfield-stratford.com', '#80E8FF', 'BB-WESTF001', 'active', '2026-03-02T10:00:00Z'),
+  ('e4e4e4e4-e4e4-4e4e-8e4e-e4e4e4e4e4e4', 'NEC Birmingham', 'nec-birmingham', 'venue', 'Priya Shah', 'priya@necgroup.co.uk', '#80E8FF', 'BB-NEC0001', 'active', '2026-03-12T10:00:00Z')
 on conflict (id) do nothing;
 
 -- ============================================================
@@ -331,7 +334,9 @@ on conflict (id) do nothing;
 -- ============================================================
 insert into venues (id, partner_id, name, slug, address, postcode, location_tier, capacity, venue_type, is_active) values
   ('f0f0f0f0-f0f0-4f0f-8f0f-f0f0f0f0f0f0', 'e0e0e0e0-e0e0-4e0e-8e0e-e0e0e0e0e0e0', 'Manchester Pop-Up', 'manchester-pop-up', 'Spinningfields, M3 3JE', 'M3 3JE', 'tier_2', 1500, 'shopping_centre', true),
-  ('f1f1f1f1-f1f1-4f1f-8f1f-f1f1f1f1f1f1', 'e1e1e1e1-e1e1-4e1e-8e1e-e1e1e1e1e1e1', 'Kings Cross Hall',  'kings-cross-hall',   'York Way, N1C 4AT',     'N1C 4AT', 'tier_1', 4000, 'other',        true)
+  ('f1f1f1f1-f1f1-4f1f-8f1f-f1f1f1f1f1f1', 'e1e1e1e1-e1e1-4e1e-8e1e-e1e1e1e1e1e1', 'Kings Cross Hall',  'kings-cross-hall',   'York Way, N1C 4AT',     'N1C 4AT', 'tier_1', 4000, 'other',        true),
+  ('f2f2f2f2-f2f2-4f2f-8f2f-f2f2f2f2f2f2', 'e3e3e3e3-e3e3-4e3e-8e3e-e3e3e3e3e3e3', 'Westfield Stratford', 'westfield-stratford', 'Montfichet Rd, E20 1EJ', 'E20 1EJ', 'tier_1', 5000, 'shopping_centre',   true),
+  ('f3f3f3f3-f3f3-4f3f-8f3f-f3f3f3f3f3f3', 'e4e4e4e4-e4e4-4e4e-8e4e-e4e4e4e4e4e4', 'NEC Birmingham',      'nec-birmingham',      'North Ave, B40 1NT',     'B40 1NT', 'tier_1', 6000, 'exhibition_centre', true)
 on conflict (id) do nothing;
 
 -- ============================================================
@@ -347,10 +352,10 @@ on conflict (id) do nothing;
 -- BENCHMARKS (industry baselines for the recommendations + reports)
 -- ============================================================
 insert into benchmarks (event_type, location_tier, machine_type, metric_name, avg_value, median_value, p25_value, p75_value, sample_size) values
-  ('activation',  'tier_1', 'Bright.Play',     'plays_per_day',     1850, 1700, 1400, 2150, 28),
-  ('activation',  'tier_2', 'Bright.Play',     'plays_per_day',     1200, 1100, 850,  1400, 19),
-  ('sampling',    'tier_1', 'Bright.Vend Pro', 'samples_per_day',   1450, 1400, 1100, 1750, 22),
-  ('sampling',    'tier_2', 'Bright.Vend Pro', 'samples_per_day',    950,  900,  720, 1150, 17);
+  ('activation',  'tier_1', 'Bright.Play',     'plays_per_day',      275,  270,  250,  300, 28),
+  ('activation',  'tier_2', 'Bright.Play',     'plays_per_day',      205,  200,  175,  235, 19),
+  ('sampling',    'tier_1', 'Bright.Vend Pro', 'samples_per_day',    270,  265,  245,  295, 22),
+  ('sampling',    'tier_2', 'Bright.Vend Pro', 'samples_per_day',    200,  195,  170,  230, 17);
 
 -- ============================================================
 -- TELEMETRY (live dashboard demo data for evt-2)
@@ -391,18 +396,20 @@ insert into quote_line_items (quote_id, label, description, amount, category, so
 -- PARTNER ATTRIBUTIONS (Northern Events attributed to the Samsung
 -- proposal)
 -- ============================================================
+-- Commission is stored in integer cents (10% of the $27,500 deal = $2,750).
 insert into partner_attributions (partner_id, quote_id, event_id, commission_amount, commission_status) values
-  ('e0e0e0e0-e0e0-4e0e-8e0e-e0e0e0e0e0e0', '22222222-2222-4222-8222-222222222220', 'e5555555-5555-5555-5555-555555555555', 275000, 'pending');
+  ('e0e0e0e0-e0e0-4e0e-8e0e-e0e0e0e0e0e0', '22222222-2222-4222-8222-222222222220', 'e5555555-5555-5555-5555-555555555555', 275000, 'pending'),
+  ('e2e2e2e2-e2e2-4e2e-8e2e-e2e2e2e2e2e2', '21212121-2121-4121-8121-212121212121', 'e6666666-6666-6666-6666-666666666666', 120000, 'paid');
 
 -- ============================================================
 -- EVENT REPORTS
 -- ============================================================
 insert into event_reports (id, event_id, report_type, title, metrics_json, predictions_json, comparison_json, highlights_json, share_token, is_published, published_at, generated_at) values
   ('30303030-3030-4030-8030-303030303030', 'e2222222-2222-2222-2222-222222222222', 'post_event', 'Samsung Galaxy Launch — Post-Event',
-    '{"plays":18000,"leads":6200,"avgDwellSec":52,"npsScore":4.8}'::jsonb,
-    '{"estimatedPlays":15000,"estimatedLeads":5000}'::jsonb,
-    '{"plays":{"predicted":15000,"actual":18000,"delta":3000},"leads":{"predicted":5000,"actual":6200,"delta":1200}}'::jsonb,
-    '["+20% above predicted plays","Conversion to lead 34% — top decile","Highest dwell of any Bright.Play in Q2"]'::jsonb,
+    '{"totalPlays":1672,"totalInteractions":2174,"totalLeads":1588,"totalPrizes":1639,"mediaImpressions":83600,"avgDwellTime":29,"totalCost":1190000,"snapshotCount":3,"npsScore":4.8,"totalSamples":1311,"survey":[{"question":"Brand favourability after playing","score":4.8,"responses":746},{"question":"Likelihood to consider Galaxy","score":4.7,"responses":683},{"question":"Enjoyed the experience","score":4.9,"responses":858}],"socialShares":873,"qrScans":1318,"demographics":{"18-24":29,"25-34":40,"35-44":20,"45-54":8,"55+":3},"peakHours":[18,19,17]}'::jsonb,
+    '{"estimatedInteractions":1941,"estimatedLeads":1418,"estimatedImpressions":74643}'::jsonb,
+    '{"interactions":{"predicted":1941,"actual":2174,"delta":233},"leads":{"predicted":1418,"actual":1588,"delta":170},"impressions":{"predicted":74643,"actual":83600,"delta":8957}}'::jsonb,
+    '["Interactions beat the forecast by 12%","95% of players opted in as qualified leads","NPS of 4.8 across the launch weekend"]'::jsonb,
     'share-samsung-launch', true, '2026-05-26T11:00:00Z', '2026-05-25T17:00:00Z');
 
 -- ============================================================
@@ -420,13 +427,13 @@ insert into qa_items (event_id, category, title, description, status, sort_order
   ('e1111111-1111-1111-1111-111111111111', 'machine',     'On-site 4G fallback',             'Confirm cellular failover when wifi drops.',     'pending', 3);
 
 insert into logistics_entries (event_id, entry_type, title, description, scheduled_date, scheduled_time, status, contact_name, contact_phone, sort_order) values
-  ('e1111111-1111-1111-1111-111111111111', 'delivery', 'Hardware delivery',  'Two Bright.Vend Pro machines + wrap.',  '2026-07-14', '08:00', 'pending', 'Tom Parker', '+44 7700 900123', 0),
-  ('e1111111-1111-1111-1111-111111111111', 'setup',    'On-site setup',      'Configure machines + connectivity.',     '2026-07-14', '10:00', 'pending', 'Tom Parker', '+44 7700 900123', 1),
-  ('e1111111-1111-1111-1111-111111111111', 'collection', 'Hardware collection', 'Strip and return.',                  '2026-07-18', '17:00', 'pending', 'Tom Parker', '+44 7700 900123', 2);
+  ('e1111111-1111-1111-1111-111111111111', 'delivery', 'Hardware delivery',  'Two Bright.Vend Pro machines + wrap.',  '2026-07-14', '08:00', 'pending', 'Dan Barnes', '+44 7700 900123', 0),
+  ('e1111111-1111-1111-1111-111111111111', 'setup',    'On-site setup',      'Configure machines + connectivity.',     '2026-07-14', '10:00', 'pending', 'Dan Barnes', '+44 7700 900123', 1),
+  ('e1111111-1111-1111-1111-111111111111', 'collection', 'Hardware collection', 'Strip and return.',                  '2026-07-18', '17:00', 'pending', 'Dan Barnes', '+44 7700 900123', 2);
 
 -- ============================================================
 -- STUDIO request for evt-2 (drives the Bright.Studio surface)
 -- ============================================================
 insert into studio_requests (id, event_id, service_type, title, description, status, estimated_days, estimated_cost, created_by, created_at) values
   ('40404040-4040-4040-8040-404040404040', 'e2222222-2222-2222-2222-222222222222', 'video', 'Hype reel for Galaxy Launch',
-    'Pre-event hype reel for the social rollout. 30s, 9:16.', 'submitted', 5, 750000, '22222222-2222-2222-2222-222222222222', '2026-03-25T11:00:00Z');
+    'Pre-event hype reel for the social rollout. 30s, 9:16.', 'submitted', 5, 145000, '22222222-2222-2222-2222-222222222222', '2026-03-25T11:00:00Z');

@@ -3,11 +3,14 @@ import { Clock, AlertTriangle, CheckCircle2, FileImage, ListChecks, Flag } from 
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { formatDateShort } from "@/lib/dates";
+import { OwnerBadge } from "@/components/ui/OwnerBadge";
 import type { DeadlineItem, DeadlineUrgency } from "@/lib/queries/deadlines";
+import type { UserRole } from "@/types";
 
 interface DeadlineTimelineProps {
   deadlines: DeadlineItem[];
   isInternal?: boolean;
+  viewerRole?: UserRole;
 }
 
 const URGENCY_STYLES: Record<DeadlineUrgency, { dot: string; text: string; badge: string }> = {
@@ -45,7 +48,7 @@ function EntityIcon({ type }: { type: DeadlineItem["entityType"] }) {
   }
 }
 
-export function DeadlineTimeline({ deadlines, isInternal = false }: DeadlineTimelineProps) {
+export function DeadlineTimeline({ deadlines, isInternal = false, viewerRole }: DeadlineTimelineProps) {
   if (deadlines.length === 0) {
     return (
       <div className="flex items-center gap-2 py-6 text-sm text-muted-foreground">
@@ -107,6 +110,11 @@ export function DeadlineTimeline({ deadlines, isInternal = false }: DeadlineTime
                   <span className="text-sm font-medium text-foreground truncate">
                     {d.title}
                   </span>
+                  <OwnerBadge
+                    owner={d.owner}
+                    viewerRole={viewerRole}
+                    isInternal={isInternal}
+                  />
                   <Badge className={cn("text-[10px]", styles.badge)}>
                     {URGENCY_LABELS[d.urgency]}
                   </Badge>
@@ -120,11 +128,6 @@ export function DeadlineTimeline({ deadlines, isInternal = false }: DeadlineTime
                 </div>
                 <p className={cn("text-xs mt-0.5", styles.text)}>
                   {formatDateShort(d.dueDate)}
-                  {isInternal && (
-                    <span className="text-muted-foreground ml-2">
-                      · {d.owner === "customer" ? "Customer" : "Internal"}
-                    </span>
-                  )}
                 </p>
               </div>
             </div>

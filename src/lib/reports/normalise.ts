@@ -11,6 +11,12 @@
  * and we want the renderer to be tolerant of partial writes.
  */
 
+export interface SurveyResult {
+  question: string;
+  score: number;
+  responses: number;
+}
+
 export interface NormalisedMetrics {
   totalPlays: number;
   totalLeads: number;
@@ -19,6 +25,14 @@ export interface NormalisedMetrics {
   mediaImpressions: number;
   totalCostPence: number;
   avgDwellSeconds: number | null;
+  /** Engagement extras (post-show report). */
+  totalSamples: number | null;
+  npsScore: number | null;
+  socialShares: number | null;
+  qrScans: number | null;
+  survey: SurveyResult[];
+  demographics: Record<string, number>;
+  peakHours: number[];
 }
 
 export interface NormalisedPredictions {
@@ -49,6 +63,38 @@ function numOrNull(...candidates: Array<unknown>): number | null {
   return null;
 }
 
+function normaliseSurvey(input: unknown): SurveyResult[] {
+  if (!Array.isArray(input)) return [];
+  return input
+    .map((s): SurveyResult | null => {
+      if (!s || typeof s !== "object") return null;
+      const o = s as Bag;
+      const question = typeof o.question === "string" ? o.question : null;
+      if (!question) return null;
+      return {
+        question,
+        score: num(o.score),
+        responses: num(o.responses),
+      };
+    })
+    .filter((s): s is SurveyResult => s !== null);
+}
+
+function normaliseDemographics(input: unknown): Record<string, number> {
+  if (!input || typeof input !== "object") return {};
+  const out: Record<string, number> = {};
+  for (const [k, v] of Object.entries(input as Bag)) {
+    const n = num(v);
+    if (n > 0) out[k] = n;
+  }
+  return out;
+}
+
+function normalisePeakHours(input: unknown): number[] {
+  if (!Array.isArray(input)) return [];
+  return input.map((v) => num(v)).filter((n) => n >= 0 && n <= 23);
+}
+
 /** Read metrics_json into a stable shape regardless of casing/keys. */
 export function normaliseMetrics(input: unknown): NormalisedMetrics {
   const m: Bag = (input && typeof input === "object") ? (input as Bag) : {};
@@ -68,6 +114,13 @@ export function normaliseMetrics(input: unknown): NormalisedMetrics {
     ),
     totalCostPence: num(m.totalCost, m.total_cost, m.totalCostPence),
     avgDwellSeconds: numOrNull(m.avgDwellTime, m.avg_dwell_time, m.dwell),
+    totalSamples: numOrNull(m.totalSamples, m.total_samples, m.samples),
+    npsScore: numOrNull(m.npsScore, m.nps_score, m.nps),
+    socialShares: numOrNull(m.socialShares, m.social_shares),
+    qrScans: numOrNull(m.qrScans, m.qr_scans),
+    survey: normaliseSurvey(m.survey),
+    demographics: normaliseDemographics(m.demographics),
+    peakHours: normalisePeakHours(m.peakHours ?? m.peak_hours),
   };
 }
 

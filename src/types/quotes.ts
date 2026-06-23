@@ -18,6 +18,7 @@ export interface Quote {
   track: QuoteTrack;
   status: QuoteStatus;
   contactName: string;
+  contactRole?: string;
   contactEmail: string;
   contactPhone?: string;
   companyName?: string;
@@ -41,6 +42,24 @@ export interface Quote {
   estimatedInteractions?: number;
   estimatedLeads?: number;
   estimatedImpressions?: number;
+  /** Reach track: "tradeshow" | "experiential". */
+  reachTrack?: string;
+  /** Expected attendees (tradeshow track). */
+  attendees?: number;
+  /** Experiential activation site (display name + curated key). */
+  activationLocation?: string;
+  activationLocationKey?: string;
+  /** Days on site (experiential track). */
+  activationDays?: number;
+  /** Rough event timeline answer from the quiz. */
+  eventTimeline?: string;
+  /** Equivalent out-of-home media value, in integer USD cents (experiential). */
+  doohMediaValue?: number;
+  /** In-app walkthrough booking. */
+  walkthroughScheduledAt?: string;
+  walkthroughSlotLabel?: string;
+  walkthroughUrl?: string;
+  walkthroughCompletedAt?: string;
   expiresAt?: string;
   acceptedAt?: string;
   declinedAt?: string;

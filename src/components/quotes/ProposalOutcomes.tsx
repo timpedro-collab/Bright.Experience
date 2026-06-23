@@ -74,7 +74,7 @@ function OutcomeTile({
     <div className="print-break-inside-avoid rounded-[var(--radius-control)] border border-border/60 bg-muted/40 p-6">
       <Icon className="h-5 w-5 text-primary" />
       <p className="mt-4 text-display text-3xl font-bold text-foreground tabular-nums leading-none md:text-4xl">
-        {value.toLocaleString("en-GB")}+
+        {value.toLocaleString("en-US")}+
       </p>
       <p className="mt-2 text-overline text-muted-foreground">{label}</p>
     </div>

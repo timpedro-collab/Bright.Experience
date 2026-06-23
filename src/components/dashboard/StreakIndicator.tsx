@@ -30,9 +30,7 @@ export function StreakIndicator({ streak, className }: StreakIndicatorProps) {
           scale: [1, 1.15, 1],
         }}
         transition={{
-          duration: 1.5,
-          repeat: Infinity,
-          repeatDelay: 4,
+          duration: 1.2,
           ease: "easeInOut",
         }}
       >

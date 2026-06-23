@@ -6,8 +6,8 @@ import { useRouter } from "next/navigation";
 import {
   LayoutDashboard, CalendarCheck, Sparkles, BarChart3, Bell, Settings,
   Users, Handshake, Building2, Lightbulb, Key, Layers, FileText, MapPin,
-  ArrowUpRight, Search, CheckSquare, Loader2, Inbox, GitBranch, Clock,
-  Receipt, Gauge,
+  ArrowUpRight, CheckSquare, Loader2, Inbox, GitBranch, Clock,
+  Receipt, Search,
 } from "lucide-react";
 import {
   CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem,
@@ -20,6 +20,7 @@ import {
   canViewCreativeProduct,
   canViewLocations,
 } from "@/lib/roles";
+import { onOpenCommandPalette } from "./command-palette-bus";
 import type { UserRole } from "@/types";
 
 interface SearchResults {
@@ -53,7 +54,11 @@ export function CommandPalette({ isInternal, role, partnerSlug, venueSlug, event
       }
     }
     document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
+    const unsubscribe = onOpenCommandPalette(() => setOpen(true));
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      unsubscribe();
+    };
   }, []);
 
   const fetchResults = useCallback((q: string) => {
@@ -88,8 +93,8 @@ export function CommandPalette({ isInternal, role, partnerSlug, venueSlug, event
         <span className="flex items-center gap-1"><Kbd>⌘</Kbd><Kbd>K</Kbd></span>
       </button>
       <button type="button" onClick={() => setOpen(true)} aria-label="Open command palette"
-        className="lg:hidden flex h-9 w-9 items-center justify-center rounded-[var(--radius-control)] border border-border bg-muted/40 text-muted-foreground transition-colors hover:bg-accent">
-        <ArrowUpRight className="h-4 w-4" />
+        className="lg:hidden fixed bottom-5 right-5 z-40 flex h-12 w-12 items-center justify-center rounded-full border border-border bg-primary text-primary-foreground shadow-lg transition-colors hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+        <Search className="h-5 w-5" />
       </button>
 
       <CommandDialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) { setQuery(""); setResults(null); } }}>
@@ -156,7 +161,7 @@ function StaticGroups({ go, isInternal, role, eventId, partnerSlug, venueSlug }:
   return (
     <>
       <CommandGroup heading="Workspace">
-        <CommandItem onSelect={() => go("/")}><LayoutDashboard /><span>{isInternal ? "All Events" : "My Events"}</span><CommandShortcut>G E</CommandShortcut></CommandItem>
+        <CommandItem onSelect={() => go("/")}><LayoutDashboard /><span>{isInternal ? "Command center" : "My Events"}</span><CommandShortcut>G E</CommandShortcut></CommandItem>
         <CommandItem onSelect={() => go("/notifications")}><Bell /><span>Notifications</span><CommandShortcut>G N</CommandShortcut></CommandItem>
         <CommandItem onSelect={() => go("/settings")}><Settings /><span>Settings</span></CommandItem>
       </CommandGroup>
@@ -186,7 +191,6 @@ function StaticGroups({ go, isInternal, role, eventId, partnerSlug, venueSlug }:
       </CommandGroup></>)}
 
       {isInternal && (<><CommandSeparator /><CommandGroup heading="Admin">
-        <CommandItem onSelect={() => go("/ops")}><Gauge /><span>Command center</span></CommandItem>
         <CommandItem onSelect={() => go("/inbox")}><Inbox /><span>Inbox</span></CommandItem>
         <CommandItem onSelect={() => go("/pipeline")}><GitBranch /><span>Pipeline</span></CommandItem>
         {canCreativeQueue && <CommandItem onSelect={() => go("/admin/asset-reviews")}><CheckSquare /><span>Asset reviews</span></CommandItem>}

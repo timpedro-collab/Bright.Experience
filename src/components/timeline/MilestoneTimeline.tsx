@@ -1,19 +1,22 @@
 import { Check, Circle, Clock, ArrowRight, AlertTriangle } from "lucide-react";
 import type { Milestone, Task, UserRole } from "@/types";
 import { formatDateShort, isOverdue } from "@/lib/dates";
-import { ownerForMilestone, ownerLabelFor } from "@/lib/ownership";
+import { ownerForMilestone } from "@/lib/ownership";
+import { OwnerBadge } from "@/components/ui/OwnerBadge";
 
 export function MilestoneTimeline({
   milestones,
   compact = false,
   tasks,
   viewerRole,
+  isInternal = false,
 }: {
   milestones: Milestone[];
   compact?: boolean;
-  /** Optional — when supplied, "Waiting on …" pills appear on active milestones. */
+  /** Optional — when supplied, an "Awaiting …" badge appears on active milestones. */
   tasks?: Task[];
   viewerRole?: UserRole;
+  isInternal?: boolean;
 }) {
   return (
     <div className="relative">
@@ -29,8 +32,6 @@ export function MilestoneTimeline({
 
         const owner =
           tasks && !isComplete ? ownerForMilestone(milestone.id, tasks) : null;
-        const waitingLabel =
-          owner && viewerRole ? ownerLabelFor(owner, viewerRole) : null;
 
         return (
           <div
@@ -121,16 +122,12 @@ export function MilestoneTimeline({
                     <AlertTriangle size={10} /> Missed
                   </span>
                 )}
-                {waitingLabel && (
-                  <span
-                    className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium leading-none ${
-                      waitingLabel === "Waiting on you"
-                        ? "border border-warning/30 bg-warning/10 text-warning"
-                        : "border border-border bg-muted/40 text-muted-foreground"
-                    }`}
-                  >
-                    {waitingLabel}
-                  </span>
+                {owner && (
+                  <OwnerBadge
+                    owner={owner}
+                    viewerRole={viewerRole}
+                    isInternal={isInternal}
+                  />
                 )}
               </div>
             </div>

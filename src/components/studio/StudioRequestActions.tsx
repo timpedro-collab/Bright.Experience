@@ -71,14 +71,96 @@ export function StudioRequestActions({
   currentStatus: string;
 }) {
   const [loading, setLoading] = useState<string | null>(null);
+  const [quoting, setQuoting] = useState(false);
+  const [price, setPrice] = useState("");
+  const [days, setDays] = useState("");
 
   const actions = TRANSITIONS[currentStatus];
   if (!actions || actions.length === 0) return null;
 
   async function handleAction(status: AllowedStatus) {
+    // Sending a quote needs a figure — open the inline quote form instead.
+    if (status === "quoted") {
+      setQuoting(true);
+      return;
+    }
     setLoading(status);
     await updateStudioRequestStatus(requestId, eventId, status);
     setLoading(null);
+  }
+
+  async function submitQuote() {
+    const quotedCost = parseFloat(price);
+    if (!Number.isFinite(quotedCost) || quotedCost <= 0) return;
+    const quotedDays = parseInt(days, 10);
+    setLoading("quoted");
+    await updateStudioRequestStatus(requestId, eventId, "quoted", {
+      quotedCost,
+      quotedDays: Number.isFinite(quotedDays) && quotedDays > 0 ? quotedDays : undefined,
+    });
+    setLoading(null);
+    setQuoting(false);
+    setPrice("");
+    setDays("");
+  }
+
+  if (quoting) {
+    return (
+      <div className="mt-3 pt-3 border-t border-border/60 flex flex-col gap-2">
+        <p className="text-overline text-muted-foreground">Send a quote</p>
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1">
+            <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
+              $
+            </span>
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              autoFocus
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+              placeholder="Price"
+              className="w-full rounded-md border border-border bg-background py-1.5 pl-6 pr-2 text-xs text-foreground focus:border-[var(--color-bb-cobalt)] focus:outline-none"
+            />
+          </div>
+          <input
+            type="number"
+            min="0"
+            step="1"
+            value={days}
+            onChange={(e) => setDays(e.target.value)}
+            placeholder="Days"
+            className="w-20 rounded-md border border-border bg-background py-1.5 px-2 text-xs text-foreground focus:border-[var(--color-bb-cobalt)] focus:outline-none"
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            onClick={submitQuote}
+            disabled={loading !== null || !price}
+            variant="brand"
+            size="sm"
+            className="flex-1 text-xs"
+          >
+            {loading === "quoted" ? (
+              <Loader2 size={13} className="animate-spin" />
+            ) : (
+              <FileText size={13} />
+            )}
+            Send Quote
+          </Button>
+          <Button
+            onClick={() => setQuoting(false)}
+            disabled={loading !== null}
+            variant="ghost"
+            size="sm"
+            className="text-xs"
+          >
+            Cancel
+          </Button>
+        </div>
+      </div>
+    );
   }
 
   return (

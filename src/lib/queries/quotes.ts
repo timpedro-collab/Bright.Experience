@@ -5,6 +5,9 @@ import { PAGE_SIZE, paginateQuery, totalPages } from "@/lib/pagination";
 const QUOTE_LIST_COLUMNS = `id, track, status, contact_name, contact_email, company_name,
        package_id, event_type, venue_name, postcode, location_postcode,
        event_date_start, event_date_end, total_amount,
+       reach_track, attendees, activation_location, activation_days,
+       estimated_impressions, dooh_media_value,
+       walkthrough_scheduled_at, walkthrough_slot_label, walkthrough_completed_at,
        created_at, updated_at`;
 
 /** Fetch all quotes, ordered by most recent first. */
@@ -76,6 +79,48 @@ export async function getPendingQuotesForCustomer(email?: string) {
     if ((q as { event_id?: string | null }).event_id) return false;
     return true;
   });
+}
+
+export interface UpcomingWalkthrough {
+  id: string;
+  contactName: string;
+  companyName: string | null;
+  slotLabel: string | null;
+  scheduledAt: string;
+}
+
+/**
+ * Booked-but-not-yet-held proposal walkthroughs, soonest first. Drives the
+ * "Walkthrough booked" focus item on the event lead's home.
+ */
+export async function getUpcomingWalkthroughs(): Promise<UpcomingWalkthrough[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("quotes")
+    .select(
+      `id, contact_name, company_name, walkthrough_scheduled_at, walkthrough_slot_label, walkthrough_completed_at`,
+    );
+  if (error || !data) return [];
+
+  const cutoff = Date.now() - 60 * 60 * 1000; // keep meetings until an hour past
+  return data
+    .filter((q) => {
+      const at = (q as Record<string, unknown>).walkthrough_scheduled_at as string | null;
+      const done = (q as Record<string, unknown>).walkthrough_completed_at as string | null;
+      if (!at || done) return false;
+      return new Date(at).getTime() > cutoff;
+    })
+    .map((q) => {
+      const r = q as Record<string, unknown>;
+      return {
+        id: r.id as string,
+        contactName: (r.contact_name as string) ?? "Customer",
+        companyName: (r.company_name as string) ?? null,
+        slotLabel: (r.walkthrough_slot_label as string) ?? null,
+        scheduledAt: r.walkthrough_scheduled_at as string,
+      };
+    })
+    .sort((a, b) => a.scheduledAt.localeCompare(b.scheduledAt));
 }
 
 /** Fetch a single quote by ID with its line items. */

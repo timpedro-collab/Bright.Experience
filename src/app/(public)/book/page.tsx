@@ -82,11 +82,13 @@ export default async function BookPage() {
                 name: pkg.name,
                 slug: pkg.slug,
                 tier: pkg.tier,
-                basePrice: pkg.base_price,
+                durationDays: pkg.duration_days,
                 featuresJson: pkg.features_json as string[] | undefined,
                 isBookable: pkg.is_bookable,
               }}
               featured={pkg.tier === "premium"}
+              ctaHref={`/book/configure?package=${pkg.slug}`}
+              ctaLabel="Configure & book"
             />
           ))}
         </div>

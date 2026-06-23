@@ -129,7 +129,7 @@ export async function createInvoice(
       account_id: accountId,
       invoice_number: invoiceNumber,
       amount: data.amount,
-      currency: data.currency ?? "GBP",
+      currency: data.currency ?? "USD",
       payment_method: data.paymentMethod ?? "invoice",
       po_number: data.poNumber ?? null,
       due_at: data.dueAt ?? null,

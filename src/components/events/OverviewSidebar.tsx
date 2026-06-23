@@ -75,7 +75,7 @@ export function OverviewSidebar({
       <Hairline />
 
       <div>
-        <EditorialEyebrow>Your team</EditorialEyebrow>
+        <EditorialEyebrow>Where things sit</EditorialEyebrow>
         <div className="mt-4">
           <EventOwnershipPanel
             tasks={tasks}
@@ -84,10 +84,13 @@ export function OverviewSidebar({
           />
         </div>
         {!isInternalRole(viewerRole) ? (
-          <div className="mt-4">
-            <YourTeamWidget eventId={eventId} members={teamMembers} />
-            <div className="mt-3">
-              <TeamRequestButton eventId={eventId} />
+          <div className="mt-6">
+            <EditorialEyebrow>Your team</EditorialEyebrow>
+            <div className="mt-4">
+              <YourTeamWidget eventId={eventId} members={teamMembers} />
+              <div className="mt-3">
+                <TeamRequestButton eventId={eventId} />
+              </div>
             </div>
           </div>
         ) : teamMembers.length > 0 ? (

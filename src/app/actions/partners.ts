@@ -2,6 +2,7 @@
 "use server";
 
 import { requireInternalUser } from "@/lib/auth";
+import { requirePartnerForSlug } from "@/lib/auth/portal";
 import { isAdminRole } from "@/lib/roles";
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
@@ -26,6 +27,13 @@ export async function applyAsPartner(data: {
   contactEmail: string;
   type: string;
   companyName?: string;
+  website?: string;
+  industry?: string;
+  companySize?: string;
+  contactPhone?: string;
+  contactRole?: string;
+  referralSource?: string;
+  notes?: string;
 }) {
   const supabase = await createClient();
 
@@ -35,6 +43,21 @@ export async function applyAsPartner(data: {
     .replace(/(^-|-$)/g, "");
 
   const partnerCode = generatePartnerCode(data.name);
+
+  // The application detail captured by the wizard has no dedicated columns, so
+  // keep it on the flexible jsonb (a new pending partner has no commission
+  // model yet) under an `application` namespace for the reviewing admin.
+  const application = Object.fromEntries(
+    Object.entries({
+      website: data.website,
+      industry: data.industry,
+      companySize: data.companySize,
+      contactPhone: data.contactPhone,
+      contactRole: data.contactRole,
+      referralSource: data.referralSource,
+      notes: data.notes,
+    }).filter(([, v]) => v != null && v !== "")
+  );
 
   const { data: partner, error } = await supabase
     .from("partners")
@@ -46,6 +69,8 @@ export async function applyAsPartner(data: {
       contact_email: data.contactEmail,
       partner_code: partnerCode,
       status: "pending",
+      commission_model_json:
+        Object.keys(application).length > 0 ? { application } : {},
     })
     .select("id, partner_code")
     .single();
@@ -178,8 +203,73 @@ export async function recordAttribution(input: {
   return { success: true as const, data: { id: attribution.id } };
 }
 
-/** Approve a commission with a specific amount. */
-export async function approveCommission(attributionId: string, amount: number) {
+/**
+ * Reseller "send a quote" write-path.
+ *
+ * Lets a reseller raise a quote for a prospect directly from their portal.
+ * The quote is created on the `proposal` track and immediately attributed
+ * back to the partner so it appears in their pipeline and accrues
+ * commission once closed — closing the reseller revenue loop without the
+ * prospect having to come through the public referral link first.
+ */
+export async function createPartnerQuote(
+  slug: string,
+  data: {
+    contactName: string;
+    contactEmail: string;
+    companyName?: string;
+    eventType?: string;
+    eventDateStart?: string;
+    /** Whole dollars from the form; stored as integer cents on the quote. */
+    estimatedValue?: number;
+  },
+) {
+  if (!data.contactName.trim() || !data.contactEmail.trim()) {
+    return { success: false as const, error: "Contact name and email are required" };
+  }
+
+  const { supabase, partnerId } = await requirePartnerForSlug(slug);
+
+  const { data: quote, error } = await supabase
+    .from("quotes")
+    .insert({
+      track: "proposal",
+      status: "submitted",
+      contact_name: data.contactName.trim(),
+      contact_email: data.contactEmail.trim(),
+      company_name: data.companyName?.trim() || null,
+      event_type: data.eventType || null,
+      event_date_start: data.eventDateStart || null,
+      total_amount:
+        data.estimatedValue != null ? Math.round(data.estimatedValue * 100) : null,
+    })
+    .select("id")
+    .single();
+
+  if (error || !quote) {
+    return { success: false as const, error: "Failed to create quote" };
+  }
+
+  const { error: attrError } = await supabase
+    .from("partner_attributions")
+    .insert({
+      partner_id: partnerId,
+      quote_id: quote.id,
+      commission_status: "pending",
+    });
+
+  if (attrError) {
+    return { success: false as const, error: "Quote created but attribution failed" };
+  }
+
+  revalidatePath(`/partners/${slug}/quotes`);
+  revalidatePath(`/partners/${slug}/clients`);
+  revalidatePath(`/partners/${slug}/dashboard`);
+  return { success: true as const, data: { id: quote.id } };
+}
+
+/** Approve a commission. `amountDollars` is the whole-dollar figure the admin types; stored as integer cents. */
+export async function approveCommission(attributionId: string, amountDollars: number) {
   const { supabase, profile } = await requireInternalUser();
   if (!isAdminRole(profile.role)) {
     return { success: false as const, error: "Forbidden: admin access only" };
@@ -188,7 +278,7 @@ export async function approveCommission(attributionId: string, amount: number) {
   const { error } = await supabase
     .from("partner_attributions")
     .update({
-      commission_amount: amount,
+      commission_amount: Math.round(amountDollars * 100),
       commission_status: "approved",
     })
     .eq("id", attributionId);

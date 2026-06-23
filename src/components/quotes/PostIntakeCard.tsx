@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { RefineDrawer } from "@/components/catalog/RefineDrawer";
+import { WalkthroughBooker } from "@/components/quotes/WalkthroughBooker";
 import { DEFAULT_ACCOUNT_MANAGER } from "@/lib/team";
 import { getCapabilities } from "@/lib/capabilities";
 import { updateQuoteCapabilities } from "@/app/actions/quotes";
@@ -76,12 +77,12 @@ export function PostIntakeCard({
         />
         <CardContent className="relative space-y-7 p-7 md:p-10">
           <div className="space-y-3 text-center">
-            <p className="text-overline text-primary">Make your moment count</p>
+            <p className="text-overline text-primary">One quick conversation</p>
             <h2 className="text-display text-3xl font-bold text-foreground md:text-4xl">
-              {first}, your proposal is being crafted.
+              {first}, let&apos;s build your quote — together.
             </h2>
             <p className="text-muted-foreground">
-              Here&apos;s the experience we&apos;ll price for you:
+              Here&apos;s the experience {ae.firstName} will scope on your call:
             </p>
           </div>
 
@@ -122,23 +123,28 @@ export function PostIntakeCard({
               <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[linear-gradient(135deg,hsl(230,93%,53%),hsl(189,100%,75%))] text-base font-semibold text-white">
                 {ae.firstName.charAt(0)}
               </div>
-              <div className="min-w-0 space-y-0.5">
+              <div className="min-w-0 space-y-1">
                 <p className="text-sm font-semibold text-foreground">
                   {ae.fullName} · {ae.title}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  {ae.firstName} will be in your inbox within 24 hours with your
-                  tailored proposal.
+                  Pick a time below and {ae.firstName} will walk you through your
+                  tailored proposal live — creative, projected outcomes, and
+                  pricing — then email you the final version the moment you hang
+                  up.
                 </p>
-                <a
-                  href={`mailto:${ae.email}`}
-                  className="mt-1 inline-flex items-center gap-1.5 text-xs text-primary underline-offset-4 hover:underline"
-                >
-                  <Mail className="h-3 w-3" aria-hidden />
-                  {ae.email}
-                </a>
               </div>
             </div>
+            <div className="mt-4">
+              <WalkthroughBooker quoteId={quoteId} aeFirstName={ae.firstName} />
+            </div>
+            <a
+              href={`mailto:${ae.email}`}
+              className="mt-3 inline-flex w-full items-center justify-center gap-1.5 text-xs text-primary underline-offset-4 hover:underline"
+            >
+              <Mail className="h-3 w-3" aria-hidden />
+              Prefer email? Reach {ae.firstName} at {ae.email}
+            </a>
           </div>
 
           <div className="flex flex-col items-center gap-2">

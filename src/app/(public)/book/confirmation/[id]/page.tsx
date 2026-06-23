@@ -12,6 +12,7 @@ import { CheckCircle2, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EditorialEyebrow, RidgeArtwork } from "@/components/brand";
 import { getBookingReceipt } from "@/app/actions/quotes";
+import { formatUSDFromCents } from "@/lib/currency";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -87,9 +88,7 @@ export default async function ConfirmationPage({
           {typeof receipt.total_amount === "number" && (
             <Row
               label="Estimated total"
-              value={`£${(receipt.total_amount / 100).toLocaleString("en-GB", {
-                minimumFractionDigits: 2,
-              })}`}
+              value={formatUSDFromCents(receipt.total_amount, { decimals: true })}
             />
           )}
           {Array.isArray(receipt.addons) && receipt.addons.length > 0 && (
@@ -111,7 +110,7 @@ export default async function ConfirmationPage({
 
         <div className="mt-10 flex flex-col gap-3">
           <Button asChild variant="brand" size="lg">
-            <Link href={`/login?redirect=/events`}>
+            <Link href="/login?redirect=/">
               Sign in to track your booking
               <ArrowRight className="ml-1 h-4 w-4" />
             </Link>

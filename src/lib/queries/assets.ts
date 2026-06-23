@@ -234,6 +234,50 @@ export async function getAssetAnnotations(
   });
 }
 
+/**
+ * Batch-load annotations for many assets at once, keyed by asset id.
+ *
+ * Used by the customer/event asset list so the spatial pins a reviewer drops
+ * surface alongside the textual feedback — without an N+1 query per row.
+ */
+export async function getAnnotationsByAssets(
+  assetIds: string[],
+): Promise<Record<string, AssetAnnotation[]>> {
+  if (assetIds.length === 0) return {};
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("asset_annotations")
+    .select("*, author:profiles!asset_annotations_author_id_fkey(name)")
+    .in("asset_id", assetIds)
+    .order("created_at", { ascending: true });
+
+  if (error || !data) return {};
+
+  const byAsset: Record<string, AssetAnnotation[]> = {};
+  for (const row of data) {
+    const r = row as Record<string, unknown>;
+    const author = r.author as { name?: string } | null;
+    const assetId = String(r.asset_id);
+    const annotation: AssetAnnotation = {
+      id: String(r.id),
+      assetId,
+      assetVersionId: (r.asset_version_id as string | null) ?? undefined,
+      eventId: String(r.event_id),
+      authorId: String(r.author_id),
+      authorName: author?.name ?? undefined,
+      x: Number(r.x ?? 0),
+      y: Number(r.y ?? 0),
+      w: Number(r.w ?? 0),
+      h: Number(r.h ?? 0),
+      body: String(r.body ?? ""),
+      resolved: Boolean(r.resolved),
+      createdAt: String(r.created_at ?? ""),
+    };
+    (byAsset[assetId] ??= []).push(annotation);
+  }
+  return byAsset;
+}
+
 export async function getAssetById(assetId: string): Promise<Asset | null> {
   const supabase = await createClient();
   const { data, error } = await supabase

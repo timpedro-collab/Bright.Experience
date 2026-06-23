@@ -49,10 +49,10 @@ async function seed() {
 
   // Profiles
   const { error: profErr } = await supabase.from("profiles").upsert([
-    { id: "11111111-1111-1111-1111-111111111111", name: "Sarah Mitchell", email: "sarah@brightblue.co.uk", role: "events_lead", account_id: null },
+    { id: "11111111-1111-1111-1111-111111111111", name: "Tim Pedro", email: "tim@brightblue.co.uk", role: "events_lead", account_id: null },
     { id: "22222222-2222-2222-2222-222222222222", name: "James Chen", email: "james.chen@cocacola.com", role: "customer_admin", account_id: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa" },
-    { id: "33333333-3333-3333-3333-333333333333", name: "Emma Wright", email: "emma@brightblue.co.uk", role: "creative_lead", account_id: null },
-    { id: "44444444-4444-4444-4444-444444444444", name: "Tom Parker", email: "tom@brightblue.co.uk", role: "operations_lead", account_id: null },
+    { id: "33333333-3333-3333-3333-333333333333", name: "Theo Roturu", email: "theo@brightblue.co.uk", role: "creative_lead", account_id: null },
+    { id: "44444444-4444-4444-4444-444444444444", name: "Dan Barnes", email: "dan@brightblue.co.uk", role: "operations_lead", account_id: null },
     { id: "55555555-5555-5555-5555-555555555555", name: "Alex Rivera", email: "alex@brightblue.co.uk", role: "qa_lead", account_id: null },
   ]);
   if (profErr) { console.error("Profiles:", profErr.message); return; }

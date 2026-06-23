@@ -28,7 +28,7 @@ export function LegalShell({
   children,
   approved = false,
 }: Props) {
-  const lastUpdated = new Date(lastUpdatedIso).toLocaleDateString("en-GB", {
+  const lastUpdated = new Date(lastUpdatedIso).toLocaleDateString("en-US", {
     year: "numeric",
     month: "long",
     day: "numeric",

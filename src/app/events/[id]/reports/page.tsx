@@ -5,14 +5,20 @@ import {
   Users,
   Target,
   Eye,
-  DollarSign,
+  Star,
 } from "lucide-react";
 
-import { EventPageShell, EditorialEyebrow, Hairline } from "@/components/brand";
+import { EventPageShell } from "@/components/brand/event-page-shell";
+import { EditorialEyebrow, Hairline } from "@/components/brand";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { MetricCard } from "@/components/reports/MetricCard";
 import { PredictedVsActual } from "@/components/reports/PredictedVsActual";
 import { BenchmarkComparison } from "@/components/reports/BenchmarkComparison";
+import {
+  SurveySentimentCard,
+  AudienceDemographicsCard,
+  DigitalFollowThroughCard,
+} from "@/components/reports/EngagementReport";
 import { ReportHighlights } from "@/components/reports/ReportHighlights";
 import { ShareableReportBanner } from "@/components/reports/ShareableReportBanner";
 import { RebookCTA } from "@/components/reports/RebookCTA";
@@ -32,7 +38,6 @@ import { getUser } from "@/lib/auth";
 import { isInternalRole } from "@/lib/roles";
 import { canViewSection } from "@/lib/event-access";
 import {
-  costPerLeadPence,
   normaliseHighlights,
   normaliseMetrics,
   normalisePredictions,
@@ -154,7 +159,6 @@ export default async function ReportsPage({
   };
   const predictions = normalisePredictions(report.predictionsJson);
   const highlights = normaliseHighlights(report.highlightsJson);
-  const cpl = costPerLeadPence(metrics);
 
   // Shape the metric records consumed by PredictedVsActual + BenchmarkComparison.
   const metricsRecord: Record<string, number> = {
@@ -202,28 +206,32 @@ export default async function ReportsPage({
               <MetricCard
                 icon={Users}
                 label="Total plays"
-                value={metrics.totalPlays.toLocaleString()}
+                value={metrics.totalPlays.toLocaleString("en-US")}
               />
               <MetricCard
                 icon={Target}
-                label="Total leads"
-                value={metrics.totalLeads.toLocaleString()}
+                label="Leads"
+                value={metrics.totalLeads.toLocaleString("en-US")}
                 delta={
                   metrics.totalPlays > 0
-                    ? `${((metrics.totalLeads / metrics.totalPlays) * 100).toFixed(0)}% conversion`
+                    ? `${((metrics.totalLeads / metrics.totalPlays) * 100).toFixed(0)}% opt-in`
                     : undefined
                 }
                 positive={true}
               />
               <MetricCard
                 icon={Eye}
-                label="Interactions"
-                value={metrics.totalInteractions.toLocaleString()}
+                label="Footfall impressions"
+                value={metrics.mediaImpressions.toLocaleString("en-US")}
               />
               <MetricCard
-                icon={DollarSign}
-                label="Cost per lead"
-                value={cpl !== null ? `£${(cpl / 100).toFixed(2)}` : "—"}
+                icon={Star}
+                label="Satisfaction"
+                value={
+                  metrics.npsScore != null
+                    ? `${metrics.npsScore.toFixed(1)} / 5`
+                    : "—"
+                }
               />
             </div>
           </div>
@@ -240,6 +248,7 @@ export default async function ReportsPage({
               <PredictedVsActual
                 predictions={predictionsRecord}
                 actuals={metricsRecord}
+                hideTitle
               />
             </div>
           </div>
@@ -256,6 +265,29 @@ export default async function ReportsPage({
           </div>
         )}
       </section>
+
+      {(metrics.survey.length > 0 || metrics.npsScore != null) && (
+        <>
+          <Hairline className="opacity-60" />
+          <section className="py-8">
+            <EditorialEyebrow accent>Audience &amp; sentiment</EditorialEyebrow>
+            <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <SurveySentimentCard
+                survey={metrics.survey}
+                npsScore={metrics.npsScore}
+              />
+              <AudienceDemographicsCard demographics={metrics.demographics} />
+            </div>
+            <div className="mt-6">
+              <DigitalFollowThroughCard
+                socialShares={metrics.socialShares}
+                qrScans={metrics.qrScans}
+                totalSamples={metrics.totalSamples}
+              />
+            </div>
+          </section>
+        </>
+      )}
 
       {highlights.length > 0 && (
         <>

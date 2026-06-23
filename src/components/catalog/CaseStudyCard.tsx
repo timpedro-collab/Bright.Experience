@@ -17,6 +17,32 @@ interface CaseStudyCardProps {
   index?: number;
 }
 
+const STAT_LABELS: Record<string, string> = {
+  samples: "samples",
+  plays: "plays",
+  leads: "leads",
+  leadOptInPct: "opt-in",
+  npsScore: "NPS",
+  cities: "cities",
+  prizeRedemptions: "prizes",
+  sponsorActivations: "sponsors",
+  avgDwellSec: "avg dwell",
+  interactions: "interactions",
+  giftsVended: "gifts vended",
+  satisfactionPct: "satisfaction",
+};
+
+/** Render a stat value with thousands grouping and a unit suffix where helpful. */
+function formatStatValue(key: string, value: unknown): string {
+  if (typeof value === "number") {
+    if (key.endsWith("Pct")) return `${value}%`;
+    if (key === "npsScore") return `${value} / 5`;
+    if (key === "avgDwellSec") return `${value}s`;
+    return value.toLocaleString("en-US");
+  }
+  return String(value);
+}
+
 export function CaseStudyCard({ caseStudy, index = 0 }: CaseStudyCardProps) {
   const stat = caseStudy.statsJson
     ? Object.entries(caseStudy.statsJson)[0]
@@ -73,9 +99,11 @@ export function CaseStudyCard({ caseStudy, index = 0 }: CaseStudyCardProps) {
         {stat && (
           <div className="mt-4 flex items-baseline gap-2 border-t border-white/[0.06] pt-3">
             <span className="text-heading text-2xl font-bold text-primary tabular-nums">
-              {String(stat[1])}
+              {formatStatValue(stat[0], stat[1])}
             </span>
-            <span className="text-xs text-muted-foreground">{stat[0]}</span>
+            <span className="text-xs text-muted-foreground">
+              {STAT_LABELS[stat[0]] ?? stat[0]}
+            </span>
           </div>
         )}
       </div>

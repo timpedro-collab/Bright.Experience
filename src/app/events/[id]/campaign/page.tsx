@@ -3,7 +3,8 @@ import Link from "next/link";
 import { redirect, notFound } from "next/navigation";
 import { Layers, Plus, MessageSquare } from "lucide-react";
 
-import { EventPageShell, EditorialEyebrow, Hairline } from "@/components/brand";
+import { EventPageShell } from "@/components/brand/event-page-shell";
+import { EditorialEyebrow, Hairline } from "@/components/brand";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DuplicateEventButton } from "@/components/campaigns/DuplicateEventButton";

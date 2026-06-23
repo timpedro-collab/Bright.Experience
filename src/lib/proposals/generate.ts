@@ -97,12 +97,12 @@ function objectiveNarrative(objective?: string | null): {
   const o = (objective ?? "").toLowerCase();
   if (o.includes("lead")) {
     return {
-      heading: "Turn stand traffic into qualified conversations",
-      goal: "generate qualified leads and give the sales team warm conversations to follow up",
+      heading: "Turn stand traffic into real conversations",
+      goal: "generate leads and give the sales team warm conversations to follow up",
       challenge:
         "A passive stand blends into the room. The goal is to draw people in, get them engaged long enough to capture intent, and hand the team a shortlist of genuinely interested visitors \u2014 not a flat scan list.",
       success:
-        "A busy stand with a steady queue, and a set of qualified leads with real context about what each visitor cares about.",
+        "A busy stand with a steady queue, and a set of leads with real context about what each visitor cares about.",
     };
   }
   if (o.includes("sampl") || o.includes("trial")) {
@@ -198,11 +198,11 @@ function buildTimeline(start: Date | null, end: Date | null): {
   };
 }
 
-/** Format pence as a clean GBP headline (e.g. "£10,000"). */
-function formatPriceLabel(pence?: number | null): string {
-  if (pence == null || pence <= 0) return "";
-  const pounds = pence / 100;
-  return `\u00a3${pounds.toLocaleString("en-GB", { maximumFractionDigits: 0 })}`;
+/** Format cents as a clean USD headline (e.g. "$10,000"). */
+function formatPriceLabel(cents?: number | null): string {
+  if (cents == null || cents <= 0) return "";
+  const dollars = cents / 100;
+  return `$${dollars.toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
 }
 
 export function generateProposalContent(input: ProposalGenerateInput): ProposalContent {
@@ -299,9 +299,9 @@ export function generateProposalContent(input: ProposalGenerateInput): ProposalC
         "After agreement, Bright.Blue schedules a creative call with your brand and design team. We outline what assets are needed, your team supplies them, and our team builds the wrap, game, and screen content. If you'd prefer Bright.Blue to handle creative end to end, that can be arranged as an additional service.",
     },
     data: {
-      heading: "Qualified data without the friction",
+      heading: "Rich data without the friction",
       intro:
-        "The machine captures qualified, contextual data from attendees who actively engaged with your stand.",
+        "The machine captures rich, contextual data from attendees who actively engaged with your stand.",
       rows: [
         {
           source: "Machine web form",

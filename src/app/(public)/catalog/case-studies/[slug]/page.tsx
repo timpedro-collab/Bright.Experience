@@ -33,7 +33,7 @@ export default async function CaseStudyDetailPage({ params }: Props) {
   if (!cs) notFound();
 
   const publishedDate = cs.published_at
-    ? new Date(cs.published_at).toLocaleDateString("en-GB", {
+    ? new Date(cs.published_at).toLocaleDateString("en-US", {
         year: "numeric",
         month: "long",
       })
@@ -158,8 +158,24 @@ export default async function CaseStudyDetailPage({ params }: Props) {
 
 function humanizeStatKey(key: string): string {
   return key
+    .replace(/Pct$/, "")
+    .replace(/Sec$/, "")
+    .replace(/([a-z])([A-Z])/g, "$1 $2")
     .replace(/_/g, " ")
-    .replace(/\b\w/g, (c) => c.toUpperCase());
+    .replace(/\bnps\b/i, "NPS")
+    .replace(/\b\w/g, (c) => c.toUpperCase())
+    .trim();
+}
+
+/** Render a stat value with thousands grouping and a unit suffix where helpful. */
+function formatStatValue(key: string, value: unknown): string {
+  if (typeof value === "number") {
+    if (key.endsWith("Pct")) return `${value}%`;
+    if (/nps/i.test(key)) return `${value} / 5`;
+    if (key.endsWith("Sec")) return `${value}s`;
+    return value.toLocaleString("en-US");
+  }
+  return String(value);
 }
 
 function StatsRow({ stats }: { stats: Record<string, unknown> | null }) {
@@ -176,7 +192,7 @@ function StatsRow({ stats }: { stats: Record<string, unknown> | null }) {
           className="rounded-[var(--radius-card)] border border-border/30 bg-card/40 p-5"
         >
           <p className="text-heading text-2xl font-bold text-primary tabular-nums">
-            {String(value)}
+            {formatStatValue(key, value)}
           </p>
           <p className="mt-1 text-xs uppercase tracking-widest text-muted-foreground">
             {humanizeStatKey(key)}

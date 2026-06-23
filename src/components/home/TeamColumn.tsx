@@ -43,8 +43,8 @@ export function TeamColumn({
         </>
       ) : (
         <ul className="flex flex-col gap-3">
-          {team.map((m) => (
-            <TeamMemberRow key={m.name} member={m} />
+          {team.map((m, i) => (
+            <TeamMemberRow key={`${m.name}-${m.title}-${i}`} member={m} />
           ))}
         </ul>
       )}

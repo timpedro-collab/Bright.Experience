@@ -7,21 +7,137 @@
 //
 // Relative dates (daysFromNow / now()) are resolved against a base date of
 // 2026-06-18 so cross-table relationships and demo deadlines stay coherent.
+import {
+  buildSnapshots,
+  buildReportMetrics,
+  buildForecast,
+  metricsFromPlays,
+} from "@/lib/metrics/drivers";
+
 export type MockRow = Record<string, unknown>;
+
+/* ----------------------------------------------------------------------------
+ * Driver-generated performance data (single source of truth: metrics/drivers).
+ * Cumulative daily snapshots and the post-event reports both derive from the
+ * same plays-per-day model, so every number across the demo stays consistent.
+ * ------------------------------------------------------------------------- */
+
+const EVT_COKE_SPRING_ID = "e6666666-6666-6666-6666-666666666666";
+const EVT_SAMSUNG_UNPACKED_ID = "e5555555-5555-5555-5555-555555555555";
+const EVT_SAMSUNG_GALAXY_ID = "e2222222-2222-2222-2222-222222222222";
+
+const COKE_SPRING_SNAPSHOTS = buildSnapshots({
+  eventId: EVT_COKE_SPRING_ID,
+  startDate: "2026-03-20",
+  days: 3,
+  machines: 1,
+  peakHours: [14, 15, 13],
+  dwellByDay: [27, 28, 29],
+});
+const SAMSUNG_UNPACKED_SNAPSHOTS = buildSnapshots({
+  eventId: EVT_SAMSUNG_UNPACKED_ID,
+  startDate: "2026-04-10",
+  days: 3,
+  machines: 1,
+  peakHours: [16, 15, 14],
+  dwellByDay: [26, 28, 29],
+});
+const SAMSUNG_GALAXY_SNAPSHOTS = buildSnapshots({
+  eventId: EVT_SAMSUNG_GALAXY_ID,
+  startDate: "2026-05-22",
+  days: 3,
+  machines: 2,
+  peakHours: [18, 19, 17],
+  dwellByDay: [29, 30, 28],
+});
+
+const cokeFinal = metricsFromPlays(COKE_SPRING_SNAPSHOTS.at(-1)!.total_plays);
+const unpackedFinal = metricsFromPlays(SAMSUNG_UNPACKED_SNAPSHOTS.at(-1)!.total_plays);
+const galaxyFinal = metricsFromPlays(SAMSUNG_GALAXY_SNAPSHOTS.at(-1)!.total_plays);
+
+const COKE_SPRING_REPORT_METRICS = buildReportMetrics({
+  totalPlays: cokeFinal.plays,
+  totalCostCents: 850000,
+  dwellSeconds: 28,
+  snapshotCount: COKE_SPRING_SNAPSHOTS.length,
+  extras: {
+    npsScore: 4.9,
+    totalSamples: cokeFinal.prizes,
+    socialShares: Math.round(cokeFinal.leads * 0.42),
+    qrScans: Math.round(cokeFinal.leads * 0.71),
+    survey: [
+      { question: "Brand favourability after playing", score: 4.9, responses: Math.round(cokeFinal.leads * 0.46) },
+      { question: "Likelihood to purchase", score: 4.6, responses: Math.round(cokeFinal.leads * 0.41) },
+      { question: "Enjoyed the experience", score: 4.9, responses: Math.round(cokeFinal.leads * 0.52) },
+    ],
+    demographics: { "18-24": 31, "25-34": 38, "35-44": 19, "45-54": 8, "55+": 4 },
+    peakHours: [14, 15, 13],
+  },
+});
+const COKE_SPRING_FORECAST = buildForecast(COKE_SPRING_REPORT_METRICS, 0.14);
+
+const SAMSUNG_UNPACKED_REPORT_METRICS = buildReportMetrics({
+  totalPlays: unpackedFinal.plays,
+  totalCostCents: 1175000,
+  dwellSeconds: 28,
+  snapshotCount: SAMSUNG_UNPACKED_SNAPSHOTS.length,
+  extras: {
+    npsScore: 4.8,
+    totalSamples: Math.round(unpackedFinal.prizes * 0.75),
+    socialShares: Math.round(unpackedFinal.leads * 0.5),
+    qrScans: Math.round(unpackedFinal.leads * 0.8),
+    survey: [
+      { question: "Brand favourability after playing", score: 4.8, responses: Math.round(unpackedFinal.leads * 0.48) },
+      { question: "Likelihood to consider Galaxy", score: 4.7, responses: Math.round(unpackedFinal.leads * 0.44) },
+      { question: "Enjoyed the experience", score: 4.9, responses: Math.round(unpackedFinal.leads * 0.55) },
+    ],
+    demographics: { "18-24": 27, "25-34": 41, "35-44": 21, "45-54": 8, "55+": 3 },
+    peakHours: [16, 15, 14],
+  },
+});
+const SAMSUNG_UNPACKED_FORECAST = buildForecast(SAMSUNG_UNPACKED_REPORT_METRICS, 0.16);
+
+const SAMSUNG_GALAXY_REPORT_METRICS = buildReportMetrics({
+  totalPlays: galaxyFinal.plays,
+  totalCostCents: 1190000,
+  dwellSeconds: 29,
+  snapshotCount: SAMSUNG_GALAXY_SNAPSHOTS.length,
+  extras: {
+    npsScore: 4.8,
+    totalSamples: Math.round(galaxyFinal.prizes * 0.8),
+    socialShares: Math.round(galaxyFinal.leads * 0.55),
+    qrScans: Math.round(galaxyFinal.leads * 0.83),
+    survey: [
+      { question: "Brand favourability after playing", score: 4.8, responses: Math.round(galaxyFinal.leads * 0.47) },
+      { question: "Likelihood to consider Galaxy", score: 4.7, responses: Math.round(galaxyFinal.leads * 0.43) },
+      { question: "Enjoyed the experience", score: 4.9, responses: Math.round(galaxyFinal.leads * 0.54) },
+    ],
+    demographics: { "18-24": 29, "25-34": 40, "35-44": 20, "45-54": 8, "55+": 3 },
+    peakHours: [18, 19, 17],
+  },
+});
+const SAMSUNG_GALAXY_FORECAST = buildForecast(SAMSUNG_GALAXY_REPORT_METRICS, 0.12);
 
 export const MOCK_TABLES: Record<string, MockRow[]> = {
   accounts: [
     { id: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", name: "Coca-Cola UK", slug: "coca-cola-uk" },
     { id: "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb", name: "Samsung Electronics", slug: "samsung" },
     { id: "cccccccc-cccc-cccc-cccc-cccccccccccc", name: "Diageo", slug: "diageo" },
+    // Advertisers & show organisers that buy concourse ad slots at ExCeL.
+    { id: "ad000000-0000-4000-8000-000000000001", name: "Tech Show London", slug: "tech-show-london" },
+    { id: "ad000000-0000-4000-8000-000000000002", name: "Vitality", slug: "vitality" },
+    { id: "ad000000-0000-4000-8000-000000000003", name: "Monster Energy", slug: "monster-energy" },
+    { id: "ad000000-0000-4000-8000-000000000004", name: "EE", slug: "ee" },
+    { id: "ad000000-0000-4000-8000-000000000005", name: "DAZN", slug: "dazn" },
+    { id: "ad000000-0000-4000-8000-000000000006", name: "MCM Comic Con", slug: "mcm-comic-con" },
   ],
 
   profiles: [
-    { id: "11111111-1111-1111-1111-111111111111", name: "Sarah Mitchell", email: "sarah@brightblue.co.uk", role: "events_lead", account_id: null },
-    { id: "22222222-2222-2222-2222-222222222222", name: "James Chen", email: "james.chen@cocacola.com", role: "customer_admin", account_id: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa" },
-    { id: "33333333-3333-3333-3333-333333333333", name: "Emma Wright", email: "emma@brightblue.co.uk", role: "creative_lead", account_id: null },
-    { id: "44444444-4444-4444-4444-444444444444", name: "Tom Parker", email: "tom@brightblue.co.uk", role: "operations_lead", account_id: null },
-    { id: "55555555-5555-5555-5555-555555555555", name: "Alex Rivera", email: "alex@brightblue.co.uk", role: "qa_lead", account_id: null },
+    { id: "11111111-1111-1111-1111-111111111111", name: "Tim Pedro", email: "tim@brightblue.co.uk", role: "events_lead", account_id: null, has_completed_onboarding: true },
+    { id: "22222222-2222-2222-2222-222222222222", name: "James Chen", email: "james.chen@cocacola.com", role: "customer_admin", account_id: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", has_completed_onboarding: true },
+    { id: "33333333-3333-3333-3333-333333333333", name: "Theo Roturu", email: "theo@brightblue.co.uk", role: "creative_lead", account_id: null, has_completed_onboarding: true },
+    { id: "44444444-4444-4444-4444-444444444444", name: "Dan Barnes", email: "dan@brightblue.co.uk", role: "operations_lead", account_id: null, has_completed_onboarding: true },
+    { id: "55555555-5555-5555-5555-555555555555", name: "Alex Rivera", email: "alex@brightblue.co.uk", role: "qa_lead", account_id: null, has_completed_onboarding: true },
   ],
 
   machines: [
@@ -32,7 +148,7 @@ export const MOCK_TABLES: Record<string, MockRow[]> = {
       tagline: "The compact gifting kiosk",
       description:
         "A smaller-footprint Experience Portal with single-pull dispense, designed for high-frequency sampling moments at retail, transport hubs, and festivals. Same game engine, same lead capture — just smaller.",
-      hero_image_url: "/catalog/experience-portal-compact-hero.jpg",
+      hero_image_url: null,
       video_url: null,
       is_active: true,
       sort_order: 1,
@@ -44,7 +160,7 @@ export const MOCK_TABLES: Record<string, MockRow[]> = {
       tagline: "The standard activation unit",
       description:
         "The Europa — a 55\" portrait touchscreen wrapped in a fully branded shell, with built-in lead capture, prize dispensing, and Bright.Blue's entire game engine. The machine behind the majority of Bright.Blue activations. Compact enough for retail, powerful enough for stadiums.",
-      hero_image_url: "/catalog/experience-portal-hero.jpg",
+      hero_image_url: null,
       video_url: null,
       is_active: true,
       sort_order: 2,
@@ -56,7 +172,7 @@ export const MOCK_TABLES: Record<string, MockRow[]> = {
       tagline: "The large-format interactive experience",
       description:
         "Full-body interactive experience cabinet with a 65\" landscape display, capacitive touch, RFID, and Bright.Blue's game engine. Built for activations where presence and scale matter.",
-      hero_image_url: "/catalog/experience-portal-xl-hero.jpg",
+      hero_image_url: null,
       video_url: null,
       is_active: true,
       sort_order: 3,
@@ -68,7 +184,7 @@ export const MOCK_TABLES: Record<string, MockRow[]> = {
       tagline: "Bespoke creative + content",
       description:
         "The Bright.Blue studio team — design, animation, video, and photography — packaged as bookable creative capacity alongside any hardware activation.",
-      hero_image_url: "/catalog/experience-portal-studio-hero.jpg",
+      hero_image_url: null,
       video_url: null,
       is_active: true,
       sort_order: 4,
@@ -175,7 +291,7 @@ export const MOCK_TABLES: Record<string, MockRow[]> = {
         "A one-day sampling activation with the compact Bright.Vend kiosk. Includes setup, takedown, and a same-day metrics handover.",
       machine_id: "a1a1a1a1-a1a1-4a1a-8a1a-a1a1a1a1a1a1",
       tier: "standard",
-      base_price: 350000,
+      base_price: 450000,
       duration_days: 1,
       features_json: ["setup_and_takedown", "onsite_brand_ambassador", "real_time_dashboard", "next_day_report"],
       is_bookable: true,
@@ -189,7 +305,7 @@ export const MOCK_TABLES: Record<string, MockRow[]> = {
         "Friday-through-Sunday with the full Bright.Vend Pro machine, branded wrap, two ambassadors and post-event report.",
       machine_id: "a2a2a2a2-a2a2-4a2a-8a2a-a2a2a2a2a2a2",
       tier: "standard",
-      base_price: 950000,
+      base_price: 1200000,
       duration_days: 3,
       features_json: ["setup_and_takedown", "two_ambassadors", "branded_wrap", "real_time_dashboard", "post_event_report"],
       is_bookable: true,
@@ -203,7 +319,7 @@ export const MOCK_TABLES: Record<string, MockRow[]> = {
         "Five days of interactive gameplay. Full creative production, two on-site ops, live event dashboard.",
       machine_id: "a3a3a3a3-a3a3-4a3a-8a3a-a3a3a3a3a3a3",
       tier: "premium",
-      base_price: 2500000,
+      base_price: 3500000,
       duration_days: 5,
       features_json: ["full_creative_production", "two_ops", "live_event_dashboard", "custom_game_logic", "post_event_report"],
       is_bookable: true,
@@ -217,7 +333,7 @@ export const MOCK_TABLES: Record<string, MockRow[]> = {
         "Ten-city tour over six weeks. Travel, logistics, dedicated AE, and a tour-wide intelligence report.",
       machine_id: "a3a3a3a3-a3a3-4a3a-8a3a-a3a3a3a3a3a3",
       tier: "premium",
-      base_price: 9500000,
+      base_price: 12000000,
       duration_days: 42,
       features_json: ["tour_logistics", "dedicated_ae", "cross_market_intelligence", "interim_reports", "executive_summary"],
       is_bookable: true,
@@ -254,51 +370,54 @@ export const MOCK_TABLES: Record<string, MockRow[]> = {
   case_studies: [
     {
       id: "d1d1d1d1-d1d1-4d1d-8d1d-d1d1d1d1d1d1",
-      title: "How Coca-Cola scaled summer sampling across 12 cities",
-      slug: "coca-cola-summer-tour",
-      client_name: "Coca-Cola UK",
+      title: "Costa Coffee turned a product launch into a sampling moment",
+      slug: "costa-matcha-launch",
+      client_name: "Costa Coffee",
       event_type: "sampling",
-      location: "UK",
+      location: "London",
       description:
-        "A 12-city sampling tour using Bright.Vend Pro. 124,000 samples, 38% opt-in to lead capture, 4.7 / 5 NPS.",
-      hero_image_url: "/case-studies/coca-cola-hero.jpg",
-      stats_json: { samples: 124000, leadOptInPct: 38, npsScore: 4.7, cities: 12 },
-      testimonial_quote: "The fastest sampling activation we've ever run.",
-      testimonial_author: "James Chen, Coca-Cola UK",
+        "An Experience Portal anchored Costa's new matcha range launch with a playful, branded sampling moment — every serve paired with a quick interaction and opt-in data capture.",
+      hero_image_url: null,
+      stats_json: { samples: 4200, leads: 3100, avgDwellSec: 22 },
+      testimonial_quote:
+        "The machine pulled people in and made the launch feel like an event — and we walked away with the data to prove it.",
+      testimonial_author: "Brand Experience Team, Costa Coffee",
       is_published: true,
-      published_at: "2026-01-15T10:00:00Z",
+      published_at: "2026-03-25T10:00:00Z",
     },
     {
       id: "d2d2d2d2-d2d2-4d2d-8d2d-d2d2d2d2d2d2",
-      title: "Samsung Galaxy launch: an interactive activation",
-      slug: "samsung-galaxy-launch",
-      client_name: "Samsung Electronics",
-      event_type: "activation",
-      location: "London",
+      title: "BIBA Conference: a stand that stood out on a busy floor",
+      slug: "biba-conference",
+      client_name: "BIBA",
+      event_type: "exhibition",
+      location: "Manchester",
       description:
-        "Five-day flagship launch at Westfield London. Bright.Play with custom creative, 18,000 plays, 6,200 leads.",
-      hero_image_url: "/case-studies/samsung-hero.jpg",
-      stats_json: { plays: 18000, leads: 6200, avgDwellSec: 52 },
-      testimonial_quote: "The most engagement we've had from any launch activation.",
-      testimonial_author: "Aisha Khan, Samsung",
+        "A branded Experience Portal on the exhibition floor at the BIBA Conference — a memorable, on-brand draw amongst hundreds of stands that turned footfall into conversations and clean opt-in data.",
+      hero_image_url: null,
+      stats_json: { plays: 910, leads: 845, avgDwellSec: 25 },
+      testimonial_quote:
+        "It gave delegates a reason to stop, and gave our team a natural way to start a conversation.",
+      testimonial_author: "Events Team, BIBA",
       is_published: true,
-      published_at: "2026-02-08T10:00:00Z",
+      published_at: "2026-03-20T10:00:00Z",
     },
     {
       id: "d3d3d3d3-d3d3-4d3d-8d3d-d3d3d3d3d3d3",
-      title: "Guinness Six Nations fan zone",
-      slug: "guinness-six-nations-fan-zone",
-      client_name: "Diageo",
-      event_type: "sampling",
-      location: "Twickenham",
+      title: "Pelion drew the crowd at a connectivity expo",
+      slug: "pelion-expo",
+      client_name: "Pelion",
+      event_type: "exhibition",
+      location: "London",
       description:
-        "Three match days at Twickenham. 22,000 samples, 12,000 prize redemptions, 41 unique sponsor activations.",
-      hero_image_url: "/case-studies/guinness-hero.jpg",
-      stats_json: { samples: 22000, prizeRedemptions: 12000, sponsorActivations: 41 },
-      testimonial_quote: "Brings the energy of the matchday into the bar.",
-      testimonial_author: "Mike O'Donnell, Diageo",
+        "A custom Experience Portal on Pelion's expo stand — an interactive moment that cut through a noisy hall and captured quality leads without the hard sell.",
+      hero_image_url: null,
+      stats_json: { plays: 540, leads: 480, avgDwellSec: 27 },
+      testimonial_quote:
+        "A simple, brilliant way to make our stand the one people remembered.",
+      testimonial_author: "Marketing Team, Pelion",
       is_published: true,
-      published_at: "2026-02-22T10:00:00Z",
+      published_at: "2026-03-12T10:00:00Z",
     },
     {
       id: "d5d5d5d5-d5d5-4d5d-8d5d-d5d5d5d5d5d5",
@@ -309,8 +428,8 @@ export const MOCK_TABLES: Record<string, MockRow[]> = {
       location: "Cologne",
       description:
         "An interactive Experience Portal on the Storyblok stand at DMEXCO — a fun, branded moment that doubled as automatic, high-quality data capture.",
-      hero_image_url: "/case-studies/storyblok-hero.jpg",
-      stats_json: { plays: 4200, leads: 1100, avgDwellSec: 48 },
+      hero_image_url: null,
+      stats_json: { plays: 720, leads: 685, avgDwellSec: 31 },
       testimonial_quote:
         "Bright.Blue brought our DMEXCO booth to life. The interactive machine became a magnet for attendees, giving us both a fun experience and high-quality data — automatically.",
       testimonial_author: "Ioana Grapa, Head of Global Events, Storyblok",
@@ -326,8 +445,8 @@ export const MOCK_TABLES: Record<string, MockRow[]> = {
       location: "London",
       description:
         "A fully customised, unattended Experience Portal vending branded gifts across an Adyen business event — delivery, setup, and restocking all handled by Bright.Blue.",
-      hero_image_url: "/case-studies/adyen-hero.jpg",
-      stats_json: { giftsVended: 1800, interactions: 3400, satisfactionPct: 97 },
+      hero_image_url: null,
+      stats_json: { giftsVended: 600, interactions: 810, satisfactionPct: 97 },
       testimonial_quote:
         "We vended gifts from their unattended machine and saw fantastic attendee engagement. The team handled everything from delivery and setup to restocking — it let me focus on the event itself.",
       testimonial_author: "Brigitte Brown, Senior Event Marketing Manager, Adyen",
@@ -408,10 +527,10 @@ export const MOCK_TABLES: Record<string, MockRow[]> = {
       machine_type: "Bright.Vend",
       venue_name: "Twickenham Stadium",
       venue_address: "Whitton Rd, Twickenham TW2 7BA",
-      event_date_start: "2026-06-10",
-      event_date_end: null,
-      setup_date: null,
-      collection_date: null,
+      event_date_start: "2026-07-20",
+      event_date_end: "2026-07-21",
+      setup_date: "2026-07-18",
+      collection_date: "2026-07-22",
       current_stage: "kickoff_complete",
       health_status: "green",
       created_by: "11111111-1111-1111-1111-111111111111",
@@ -490,9 +609,9 @@ export const MOCK_TABLES: Record<string, MockRow[]> = {
     // evt-1 hero tasks (run-seed.ts version with refreshed dates; target_path/assigned_role merged from seed.sql)
     { id: "d1111111-1111-1111-1111-111111111111", event_id: "e1111111-1111-1111-1111-111111111111", title: "Upload primary brand logo", description: "SVG or PNG format, minimum 300dpi, on transparent background", task_type: "customer_action", category: "creative", status: "complete", priority: "high", assigned_to: "22222222-2222-2222-2222-222222222222", due_date: "2026-04-10", completed_at: "2026-04-02T10:00:00Z", is_blocking: true, customer_visible: true, sort_order: 0, assigned_role: "creative_lead", target_path: "assets" },
     { id: "d2222222-2222-2222-2222-222222222222", event_id: "e1111111-1111-1111-1111-111111111111", title: "Add your brand kit (colours, fonts, usage)", description: "Add your brand colours and fonts in a few fields — or attach a full guidelines PDF if you have one", task_type: "customer_action", category: "creative", status: "in_progress", priority: "high", assigned_to: "22222222-2222-2222-2222-222222222222", due_date: "2026-06-23", completed_at: null, is_blocking: true, customer_visible: true, sort_order: 1, assigned_role: "creative_lead", target_path: "assets" },
-    { id: "d3333333-3333-3333-3333-333333333333", event_id: "e1111111-1111-1111-1111-111111111111", title: "Provide webform questions", description: "List of data capture questions for the consumer-facing form", task_type: "customer_action", category: "creative", status: "pending", priority: "medium", assigned_to: "22222222-2222-2222-2222-222222222222", due_date: "2026-06-26", completed_at: null, is_blocking: false, customer_visible: true, sort_order: 2, assigned_role: "events_lead", target_path: "briefing" },
+    { id: "d3333333-3333-3333-3333-333333333333", event_id: "e1111111-1111-1111-1111-111111111111", title: "Provide webform questions", description: "List of data capture questions for the consumer-facing form", task_type: "customer_action", category: "creative", status: "complete", priority: "medium", assigned_to: "22222222-2222-2222-2222-222222222222", due_date: "2026-06-26", completed_at: "2026-06-15T14:00:00Z", is_blocking: false, customer_visible: true, sort_order: 2, assigned_role: "events_lead", target_path: "briefing" },
     { id: "d4444444-4444-4444-4444-444444444444", event_id: "e1111111-1111-1111-1111-111111111111", title: "Confirm prize details and quantities", description: "Product name, size, quantity, and any vending-specific requirements", task_type: "customer_action", category: "operations", status: "pending", priority: "high", assigned_to: "22222222-2222-2222-2222-222222222222", due_date: "2026-06-29", completed_at: null, is_blocking: true, customer_visible: true, sort_order: 3, assigned_role: "operations_lead", target_path: "configuration" },
-    { id: "d5555555-5555-5555-5555-555555555555", event_id: "e1111111-1111-1111-1111-111111111111", title: "Provide onsite contact details", description: "Name, phone, and email for the person on site during the event", task_type: "customer_action", category: "logistics", status: "pending", priority: "medium", assigned_to: null, due_date: "2026-07-08", completed_at: null, is_blocking: false, customer_visible: true, sort_order: 4, assigned_role: "operations_lead", target_path: "logistics" },
+    { id: "d5555555-5555-5555-5555-555555555555", event_id: "e1111111-1111-1111-1111-111111111111", title: "Provide onsite contact details", description: "Name, phone, and email for the person on site during the event", task_type: "customer_action", category: "logistics", status: "complete", priority: "medium", assigned_to: null, due_date: "2026-07-08", completed_at: "2026-06-16T09:30:00Z", is_blocking: false, customer_visible: true, sort_order: 4, assigned_role: "operations_lead", target_path: "logistics" },
     { id: "d6666666-6666-6666-6666-666666666666", event_id: "e1111111-1111-1111-1111-111111111111", title: "Design wrap concept", description: null, task_type: "internal_action", category: "creative", status: "pending", priority: "high", assigned_to: "33333333-3333-3333-3333-333333333333", due_date: "2026-06-25", completed_at: null, is_blocking: true, customer_visible: false, sort_order: 5, assigned_role: "creative_lead", target_path: "studio" },
     { id: "d7777777-7777-7777-7777-777777777777", event_id: "e1111111-1111-1111-1111-111111111111", title: "Configure game logic", description: null, task_type: "internal_action", category: "development", status: "pending", priority: "medium", assigned_to: "55555555-5555-5555-5555-555555555555", due_date: "2026-07-13", completed_at: null, is_blocking: false, customer_visible: false, sort_order: 6, assigned_role: "developer", target_path: "configuration" },
     { id: "d8888888-8888-8888-8888-888888888888", event_id: "e1111111-1111-1111-1111-111111111111", title: "Arrange logistics and transport", description: null, task_type: "internal_action", category: "logistics", status: "pending", priority: "medium", assigned_to: "44444444-4444-4444-4444-444444444444", due_date: "2026-07-28", completed_at: null, is_blocking: false, customer_visible: false, sort_order: 7, assigned_role: "operations_lead", target_path: "logistics" },
@@ -1050,25 +1169,44 @@ export const MOCK_TABLES: Record<string, MockRow[]> = {
 
   partners: [
     { id: "e0e0e0e0-e0e0-4e0e-8e0e-e0e0e0e0e0e0", name: "Northern Events", slug: "northern-events", type: "reseller", contact_name: "Maya Patel", contact_email: "maya@northern.events", brand_color: "#1E47F0", partner_code: "BB-NORTH001", status: "active", onboarded_at: "2026-01-10T10:00:00Z" },
-    { id: "e1e1e1e1-e1e1-4e1e-8e1e-e1e1e1e1e1e1", name: "Kings Cross Hall", slug: "kings-cross-hall", type: "venue", contact_name: "Aaron Howe", contact_email: "aaron@kingsx.london", brand_color: "#80E8FF", partner_code: "BB-KINGS001", status: "active", onboarded_at: "2026-02-04T10:00:00Z" },
+    { id: "e1e1e1e1-e1e1-4e1e-8e1e-e1e1e1e1e1e1", name: "ExCeL London", slug: "excel-london", type: "venue", contact_name: "Aaron Howe", contact_email: "aaron@excel.london", brand_color: "#80E8FF", partner_code: "BB-EXCEL001", status: "active", onboarded_at: "2026-02-04T10:00:00Z" },
+    { id: "e2e2e2e2-e2e2-4e2e-8e2e-e2e2e2e2e2e2", name: "Southern Brand Activations", slug: "southern-activations", type: "reseller", contact_name: "Olivia Reed", contact_email: "olivia@southern-activations.com", brand_color: "#1E47F0", partner_code: "BB-SOUTH001", status: "active", onboarded_at: "2026-02-18T10:00:00Z" },
+    { id: "e3e3e3e3-e3e3-4e3e-8e3e-e3e3e3e3e3e3", name: "Westfield Stratford", slug: "westfield-stratford", type: "venue", contact_name: "Daniel Cole", contact_email: "daniel@westfield-stratford.com", brand_color: "#80E8FF", partner_code: "BB-WESTF001", status: "active", onboarded_at: "2026-03-02T10:00:00Z" },
+    { id: "e4e4e4e4-e4e4-4e4e-8e4e-e4e4e4e4e4e4", name: "NEC Birmingham", slug: "nec-birmingham", type: "venue", contact_name: "Priya Shah", contact_email: "priya@necgroup.co.uk", brand_color: "#80E8FF", partner_code: "BB-NEC0001", status: "active", onboarded_at: "2026-03-12T10:00:00Z" },
   ],
 
   venues: [
     { id: "f0f0f0f0-f0f0-4f0f-8f0f-f0f0f0f0f0f0", partner_id: "e0e0e0e0-e0e0-4e0e-8e0e-e0e0e0e0e0e0", name: "Manchester Pop-Up", slug: "manchester-pop-up", address: "Spinningfields, M3 3JE", postcode: "M3 3JE", location_tier: "tier_2", capacity: 1500, venue_type: "shopping_centre", is_active: true },
-    { id: "f1f1f1f1-f1f1-4f1f-8f1f-f1f1f1f1f1f1", partner_id: "e1e1e1e1-e1e1-4e1e-8e1e-e1e1e1e1e1e1", name: "Kings Cross Hall", slug: "kings-cross-hall", address: "York Way, N1C 4AT", postcode: "N1C 4AT", location_tier: "tier_1", capacity: 4000, venue_type: "other", is_active: true },
+    { id: "f1f1f1f1-f1f1-4f1f-8f1f-f1f1f1f1f1f1", partner_id: "e1e1e1e1-e1e1-4e1e-8e1e-e1e1e1e1e1e1", name: "ExCeL London", slug: "excel-london", address: "One Western Gateway, Royal Victoria Dock, London E16 1XL", postcode: "E16 1XL", location_tier: "tier_1", capacity: 90000, venue_type: "convention_centre", is_active: true },
+    { id: "f2f2f2f2-f2f2-4f2f-8f2f-f2f2f2f2f2f2", partner_id: "e3e3e3e3-e3e3-4e3e-8e3e-e3e3e3e3e3e3", name: "Westfield Stratford", slug: "westfield-stratford", address: "Montfichet Rd, E20 1EJ", postcode: "E20 1EJ", location_tier: "tier_1", capacity: 5000, venue_type: "shopping_centre", is_active: true },
+    { id: "f3f3f3f3-f3f3-4f3f-8f3f-f3f3f3f3f3f3", partner_id: "e4e4e4e4-e4e4-4e4e-8e4e-e4e4e4e4e4e4", name: "NEC Birmingham", slug: "nec-birmingham", address: "North Ave, B40 1NT", postcode: "B40 1NT", location_tier: "tier_1", capacity: 6000, venue_type: "exhibition_centre", is_active: true },
   ],
 
   machine_instances: [
     { id: "1a1a1a1a-1a1a-4a1a-8a1a-1a1a1a1a1a1a", machine_type_id: "a2a2a2a2-a2a2-4a2a-8a2a-a2a2a2a2a2a2", serial_number: "BVP-1024", nickname: "Pro #1", current_event_id: "e1111111-1111-1111-1111-111111111111", status: "deployed", last_heartbeat: "2026-06-18T14:00:00Z", firmware_version: "2.3.1" },
     { id: "1b1b1b1b-1b1b-4b1b-8b1b-1b1b1b1b1b1b", machine_type_id: "a2a2a2a2-a2a2-4a2a-8a2a-a2a2a2a2a2a2", serial_number: "BVP-1025", nickname: "Pro #2", current_event_id: "e1111111-1111-1111-1111-111111111111", status: "deployed", last_heartbeat: "2026-06-18T14:00:00Z", firmware_version: "2.3.1" },
     { id: "1c1c1c1c-1c1c-4c1c-8c1c-1c1c1c1c1c1c", machine_type_id: "a3a3a3a3-a3a3-4a3a-8a3a-a3a3a3a3a3a3", serial_number: "BP-2110", nickname: "Play #1", current_event_id: "e2222222-2222-2222-2222-222222222222", status: "deployed", last_heartbeat: "2026-06-18T14:00:00Z", firmware_version: "3.1.0" },
+    // ── ExCeL London main-concourse estate: 10 permanently-sited units along
+    // the Central Boulevard, sold as bookable ad space to show organisers and
+    // brands advertising to the venue's footfall. Units 01/06 (Boulevard
+    // entrances) are large-format XL; the rest are standard Experience Portals.
+    { id: "ec000000-0000-4000-8000-000000000001", machine_type_id: "a3a3a3a3-a3a3-4a3a-8a3a-a3a3a3a3a3a3", serial_number: "EXL-CB01", nickname: "Boulevard 01 · West Entrance", current_event_id: null, status: "deployed", last_heartbeat: "2026-06-18T14:02:00Z", firmware_version: "3.1.0" },
+    { id: "ec000000-0000-4000-8000-000000000002", machine_type_id: "a2a2a2a2-a2a2-4a2a-8a2a-a2a2a2a2a2a2", serial_number: "EXL-CB02", nickname: "Boulevard 02 · N1–N4 Atrium", current_event_id: null, status: "deployed", last_heartbeat: "2026-06-18T14:02:00Z", firmware_version: "2.3.1" },
+    { id: "ec000000-0000-4000-8000-000000000003", machine_type_id: "a2a2a2a2-a2a2-4a2a-8a2a-a2a2a2a2a2a2", serial_number: "EXL-CB03", nickname: "Boulevard 03 · Central Café", current_event_id: null, status: "deployed", last_heartbeat: "2026-06-18T14:02:00Z", firmware_version: "2.3.1" },
+    { id: "ec000000-0000-4000-8000-000000000004", machine_type_id: "a2a2a2a2-a2a2-4a2a-8a2a-a2a2a2a2a2a2", serial_number: "EXL-CB04", nickname: "Boulevard 04 · N5–N8 Atrium", current_event_id: null, status: "deployed", last_heartbeat: "2026-06-18T14:02:00Z", firmware_version: "2.3.1" },
+    { id: "ec000000-0000-4000-8000-000000000005", machine_type_id: "a2a2a2a2-a2a2-4a2a-8a2a-a2a2a2a2a2a2", serial_number: "EXL-CB05", nickname: "Boulevard 05 · Capital Hall Link", current_event_id: null, status: "deployed", last_heartbeat: "2026-06-18T14:02:00Z", firmware_version: "2.3.1" },
+    { id: "ec000000-0000-4000-8000-000000000006", machine_type_id: "a3a3a3a3-a3a3-4a3a-8a3a-a3a3a3a3a3a3", serial_number: "EXL-CB06", nickname: "Boulevard 06 · East Entrance", current_event_id: null, status: "deployed", last_heartbeat: "2026-06-18T14:02:00Z", firmware_version: "3.1.0" },
+    { id: "ec000000-0000-4000-8000-000000000007", machine_type_id: "a2a2a2a2-a2a2-4a2a-8a2a-a2a2a2a2a2a2", serial_number: "EXL-CB07", nickname: "Boulevard 07 · S1–S4 Atrium", current_event_id: null, status: "deployed", last_heartbeat: "2026-06-18T14:02:00Z", firmware_version: "2.3.1" },
+    { id: "ec000000-0000-4000-8000-000000000008", machine_type_id: "a2a2a2a2-a2a2-4a2a-8a2a-a2a2a2a2a2a2", serial_number: "EXL-CB08", nickname: "Boulevard 08 · S5–S8 Atrium", current_event_id: null, status: "deployed", last_heartbeat: "2026-06-18T14:02:00Z", firmware_version: "2.3.1" },
+    { id: "ec000000-0000-4000-8000-000000000009", machine_type_id: "a2a2a2a2-a2a2-4a2a-8a2a-a2a2a2a2a2a2", serial_number: "EXL-CB09", nickname: "Boulevard 09 · Aloft Skyline Bridge", current_event_id: null, status: "deployed", last_heartbeat: "2026-06-18T14:02:00Z", firmware_version: "2.3.1" },
+    { id: "ec000000-0000-4000-8000-000000000010", machine_type_id: "a2a2a2a2-a2a2-4a2a-8a2a-a2a2a2a2a2a2", serial_number: "EXL-CB10", nickname: "Boulevard 10 · Prince Regent DLR", current_event_id: null, status: "deployed", last_heartbeat: "2026-06-18T14:02:00Z", firmware_version: "2.3.1" },
   ],
 
   benchmarks: [
-    { event_type: "activation", location_tier: "tier_1", machine_type: "Bright.Play", metric_name: "plays_per_day", avg_value: 1850, median_value: 1700, p25_value: 1400, p75_value: 2150, sample_size: 28 },
-    { event_type: "activation", location_tier: "tier_2", machine_type: "Bright.Play", metric_name: "plays_per_day", avg_value: 1200, median_value: 1100, p25_value: 850, p75_value: 1400, sample_size: 19 },
-    { event_type: "sampling", location_tier: "tier_1", machine_type: "Bright.Vend Pro", metric_name: "samples_per_day", avg_value: 1450, median_value: 1400, p25_value: 1100, p75_value: 1750, sample_size: 22 },
-    { event_type: "sampling", location_tier: "tier_2", machine_type: "Bright.Vend Pro", metric_name: "samples_per_day", avg_value: 950, median_value: 900, p25_value: 720, p75_value: 1150, sample_size: 17 },
+    { event_type: "activation", location_tier: "tier_1", machine_type: "Bright.Play", metric_name: "plays_per_day", avg_value: 275, median_value: 270, p25_value: 250, p75_value: 300, sample_size: 28 },
+    { event_type: "activation", location_tier: "tier_2", machine_type: "Bright.Play", metric_name: "plays_per_day", avg_value: 205, median_value: 200, p25_value: 175, p75_value: 235, sample_size: 19 },
+    { event_type: "sampling", location_tier: "tier_1", machine_type: "Bright.Vend Pro", metric_name: "samples_per_day", avg_value: 270, median_value: 265, p25_value: 245, p75_value: 295, sample_size: 22 },
+    { event_type: "sampling", location_tier: "tier_2", machine_type: "Bright.Vend Pro", metric_name: "samples_per_day", avg_value: 200, median_value: 195, p25_value: 170, p75_value: 230, sample_size: 17 },
   ],
 
   telemetry_events: [
@@ -1129,7 +1267,94 @@ export const MOCK_TABLES: Record<string, MockRow[]> = {
       footfall_estimate_text: "15000-20000",
       addons: ["live-telemetry", "linkedin-follow", "survey-layer"],
       total_amount: 2750000,
+      walkthrough_completed_at: "2026-04-02T15:00:00Z",
       created_at: "2026-03-30T14:00:00Z",
+    },
+    {
+      id: "23232323-2323-4323-8323-232323232323",
+      account_id: null,
+      track: "proposal",
+      status: "submitted",
+      contact_name: "Hannah Walsh",
+      contact_email: "hannah.walsh@nike.example",
+      company_name: "Nike UK",
+      event_type: "activation",
+      postcode: "EC2",
+      location_postcode: "EC2",
+      event_date_start: "2026-09-05",
+      event_date_end: "2026-09-07",
+      machine_preference: "Bright.Play",
+      game_preference: "Penalty Shootout",
+      footfall_estimate_text: "10000-15000",
+      addons: ["live-telemetry", "leaderboard"],
+      total_amount: 1850000,
+      created_at: "2026-05-19T10:00:00Z",
+    },
+    {
+      id: "24242424-2424-4424-8424-242424242424",
+      account_id: null,
+      track: "book_now",
+      status: "submitted",
+      contact_name: "Marcus Bell",
+      contact_email: "marcus.bell@spotify.example",
+      company_name: "Spotify",
+      event_type: "sampling",
+      postcode: "N1",
+      location_postcode: "N1",
+      event_date_start: "2026-08-22",
+      event_date_end: "2026-08-23",
+      machine_preference: "Bright.Vend Pro",
+      game_preference: "Spin & Reveal",
+      footfall_estimate_text: "5000-10000",
+      addons: ["sampling-unlock"],
+      total_amount: 920000,
+      created_at: "2026-05-21T10:00:00Z",
+    },
+    // Hero experiential lead: Magnum at London Waterloo — full comprehensive
+    // profile, persisted projected reach + DOOH value, and a booked walkthrough.
+    // Drives the experiential proposal, the event-lead portal, the queue
+    // (reach + meeting columns), and the "Walkthrough booked" home focus item.
+    {
+      id: "25252525-2525-4525-8525-252525252525",
+      account_id: null,
+      track: "proposal",
+      status: "submitted",
+      contact_name: "Priya Nair",
+      contact_role: "Senior Brand Manager",
+      contact_email: "priya.nair@magnum.example",
+      contact_phone: "+44 7700 900484",
+      company_name: "Magnum (Unilever)",
+      event_type: "experiential-activation",
+      reach_track: "experiential",
+      objective: "sampling",
+      venue_name: "London Waterloo Station",
+      activation_location: "London Waterloo Station",
+      activation_location_key: "london-waterloo",
+      activation_days: 3,
+      postcode: "SE1",
+      location_postcode: "SE1",
+      event_date_start: "2026-07-21",
+      event_date_end: "2026-07-23",
+      event_timeline: "within-month",
+      machine_preference: "Experience Portal",
+      game_preference: "Spin & Reveal",
+      creative_needs:
+        "Magnum gold-on-black premium wrap; rolling 'Take Pleasure Seriously' film across all three screens.",
+      engagement_scope: "campaign",
+      // Projected reach (Waterloo 195k/day · 40% pass · 3 screens · 3 days).
+      // Impressions scale with footfall; plays/leads are capped at one unit's
+      // realistic ~220 plays/day throughput (660 over 3 days → ~594 leads).
+      attendees: null,
+      estimated_impressions: 702000,
+      estimated_interactions: 660,
+      estimated_leads: 594,
+      dooh_media_value: 912600,
+      addons: ["sampling-unlock", "dynamic-sponsors", "live-telemetry"],
+      total_amount: null,
+      // Booked in-app 15-minute walkthrough.
+      walkthrough_scheduled_at: "2026-07-02T13:00:00Z",
+      walkthrough_slot_label: "Thu 2 Jul · 2:00 PM",
+      created_at: "2026-06-18T09:20:00Z",
     },
   ],
 
@@ -1143,7 +1368,15 @@ export const MOCK_TABLES: Record<string, MockRow[]> = {
   ],
 
   partner_attributions: [
-    { partner_id: "e0e0e0e0-e0e0-4e0e-8e0e-e0e0e0e0e0e0", quote_id: "22222222-2222-4222-8222-222222222220", event_id: "e5555555-5555-5555-5555-555555555555", commission_amount: 275000, commission_status: "pending" },
+    // Northern Events (reseller) — a live book of business across statuses.
+    { id: "c0000000-0000-4000-8000-000000000001", partner_id: "e0e0e0e0-e0e0-4e0e-8e0e-e0e0e0e0e0e0", quote_id: "22222222-2222-4222-8222-222222222220", event_id: "e2222222-2222-2222-2222-222222222222", commission_amount: 275000, commission_status: "pending", paid_at: null, created_at: "2026-05-02T10:00:00Z" },
+    { id: "c0000000-0000-4000-8000-000000000002", partner_id: "e0e0e0e0-e0e0-4e0e-8e0e-e0e0e0e0e0e0", quote_id: null, event_id: "e1111111-1111-1111-1111-111111111111", commission_amount: 180000, commission_status: "approved", paid_at: null, created_at: "2026-04-18T10:00:00Z" },
+    { id: "c0000000-0000-4000-8000-000000000003", partner_id: "e0e0e0e0-e0e0-4e0e-8e0e-e0e0e0e0e0e0", quote_id: null, event_id: "e5555555-5555-5555-5555-555555555555", commission_amount: 195000, commission_status: "paid", paid_at: "2026-04-22T10:00:00Z", created_at: "2026-02-01T10:00:00Z" },
+    { id: "c0000000-0000-4000-8000-000000000004", partner_id: "e0e0e0e0-e0e0-4e0e-8e0e-e0e0e0e0e0e0", quote_id: "23232323-2323-4323-8323-232323232323", event_id: null, commission_amount: null, commission_status: "pending", paid_at: null, created_at: "2026-05-20T10:00:00Z" },
+    // Southern Brand Activations (reseller).
+    { id: "c0000000-0000-4000-8000-000000000010", partner_id: "e2e2e2e2-e2e2-4e2e-8e2e-e2e2e2e2e2e2", quote_id: "21212121-2121-4121-8121-212121212121", event_id: "e6666666-6666-6666-6666-666666666666", commission_amount: 120000, commission_status: "paid", paid_at: "2026-04-05T10:00:00Z", created_at: "2026-03-01T10:00:00Z" },
+    { id: "c0000000-0000-4000-8000-000000000011", partner_id: "e2e2e2e2-e2e2-4e2e-8e2e-e2e2e2e2e2e2", quote_id: null, event_id: "e3333333-3333-3333-3333-333333333333", commission_amount: 96000, commission_status: "approved", paid_at: null, created_at: "2026-04-25T10:00:00Z" },
+    { id: "c0000000-0000-4000-8000-000000000012", partner_id: "e2e2e2e2-e2e2-4e2e-8e2e-e2e2e2e2e2e2", quote_id: "24242424-2424-4424-8424-242424242424", event_id: null, commission_amount: null, commission_status: "pending", paid_at: null, created_at: "2026-05-22T10:00:00Z" },
   ],
 
   event_reports: [
@@ -1152,13 +1385,10 @@ export const MOCK_TABLES: Record<string, MockRow[]> = {
       event_id: "e2222222-2222-2222-2222-222222222222",
       report_type: "post_event",
       title: "Samsung Galaxy Launch — Post-Event",
-      metrics_json: { plays: 18000, leads: 6200, avgDwellSec: 52, npsScore: 4.8 },
-      predictions_json: { estimatedPlays: 15000, estimatedLeads: 5000 },
-      comparison_json: {
-        plays: { predicted: 15000, actual: 18000, delta: 3000 },
-        leads: { predicted: 5000, actual: 6200, delta: 1200 },
-      },
-      highlights_json: ["+20% above predicted plays", "Conversion to lead 34% — top decile", "Highest dwell of any Bright.Play in Q2"],
+      metrics_json: SAMSUNG_GALAXY_REPORT_METRICS,
+      predictions_json: SAMSUNG_GALAXY_FORECAST.predictions_json,
+      comparison_json: SAMSUNG_GALAXY_FORECAST.comparison_json,
+      highlights_json: ["Interactions beat the forecast by 12%", "95% of players opted in as leads", "NPS of 4.8 across the launch weekend"],
       share_token: "share-samsung-launch",
       is_published: true,
       published_at: "2026-05-26T11:00:00Z",
@@ -1169,14 +1399,10 @@ export const MOCK_TABLES: Record<string, MockRow[]> = {
       event_id: "e6666666-6666-6666-6666-666666666666",
       report_type: "post_event",
       title: "Post-Event Report — Coca-Cola Spring Sampling Tour",
-      metrics_json: { totalPlays: 6120, totalInteractions: 8240, totalLeads: 2040, totalPrizes: 1480, mediaImpressions: 425000, totalCost: 2448000, avgDwellTime: 51.5, snapshotCount: 3 },
-      predictions_json: { estimatedInteractions: 7000, estimatedLeads: 1700, estimatedImpressions: 350000 },
-      comparison_json: {
-        interactions: { predicted: 7000, actual: 8240, delta: 1240 },
-        leads: { predicted: 1700, actual: 2040, delta: 340 },
-        impressions: { predicted: 350000, actual: 425000, delta: 75000 },
-      },
-      highlights_json: ["Interactions beat the forecast by 17.7%", "Lead capture came in 20% above prediction", "425k+ on-site impressions across the tour"],
+      metrics_json: COKE_SPRING_REPORT_METRICS,
+      predictions_json: COKE_SPRING_FORECAST.predictions_json,
+      comparison_json: COKE_SPRING_FORECAST.comparison_json,
+      highlights_json: ["Interactions beat the forecast by 14%", "95% of players opted in as leads", "Samples distributed across the three-day tour"],
       is_published: true,
     },
     {
@@ -1184,26 +1410,24 @@ export const MOCK_TABLES: Record<string, MockRow[]> = {
       event_id: "e5555555-5555-5555-5555-555555555555",
       report_type: "post_event",
       title: "Post-Event Report — Samsung Unpacked Pop-Up",
-      metrics_json: { totalPlays: 5480, totalInteractions: 7180, totalLeads: 1880, totalPrizes: 1290, mediaImpressions: 372000, totalCost: 2632000, avgDwellTime: 49.5, snapshotCount: 3 },
-      predictions_json: { estimatedInteractions: 6000, estimatedLeads: 1500, estimatedImpressions: 300000 },
-      comparison_json: {
-        interactions: { predicted: 6000, actual: 7180, delta: 1180 },
-        leads: { predicted: 1500, actual: 1880, delta: 380 },
-        impressions: { predicted: 300000, actual: 372000, delta: 72000 },
-      },
-      highlights_json: ["Interactions beat the forecast by 19.7%", "Lead capture came in 25.3% above prediction", "372k on-site impressions over launch weekend"],
+      metrics_json: SAMSUNG_UNPACKED_REPORT_METRICS,
+      predictions_json: SAMSUNG_UNPACKED_FORECAST.predictions_json,
+      comparison_json: SAMSUNG_UNPACKED_FORECAST.comparison_json,
+      highlights_json: ["Interactions beat the forecast by 16%", "95% of players opted in as leads", "Strong launch-weekend footfall capture"],
       is_published: true,
     },
   ],
 
+  // Daily snapshots are CUMULATIVE running totals (each day ≥ the prior day),
+  // so the final row is the event total. All values derive from the canonical
+  // drivers (~275 plays/machine/day; completing the game = a play AND a prize,
+  // so prizes ≈ plays; ~95% opt in as a lead; ~1.3 interactions per play). The
+  // aggregate query reads only each event's latest snapshot.
   event_metrics_snapshot: [
-    { event_id: "e6666666-6666-6666-6666-666666666666", snapshot_date: "2026-03-20", total_plays: 1950, total_interactions: 2620, total_leads: 640, total_prizes: 470, avg_dwell_time: 49.0, peak_hour: 14, is_final: false },
-    { event_id: "e6666666-6666-6666-6666-666666666666", snapshot_date: "2026-03-21", total_plays: 4180, total_interactions: 5580, total_leads: 1360, total_prizes: 1000, avg_dwell_time: 51.0, peak_hour: 15, is_final: false },
-    { event_id: "e6666666-6666-6666-6666-666666666666", snapshot_date: "2026-03-22", total_plays: 6120, total_interactions: 8240, total_leads: 2040, total_prizes: 1480, avg_dwell_time: 51.5, peak_hour: 13, is_final: true },
-    { event_id: "e5555555-5555-5555-5555-555555555555", snapshot_date: "2026-04-10", total_plays: 1760, total_interactions: 2300, total_leads: 600, total_prizes: 410, avg_dwell_time: 47.0, peak_hour: 16, is_final: false },
-    { event_id: "e5555555-5555-5555-5555-555555555555", snapshot_date: "2026-04-11", total_plays: 3980, total_interactions: 5210, total_leads: 1360, total_prizes: 930, avg_dwell_time: 49.0, peak_hour: 15, is_final: false },
-    { event_id: "e5555555-5555-5555-5555-555555555555", snapshot_date: "2026-04-12", total_plays: 5480, total_interactions: 7180, total_leads: 1880, total_prizes: 1290, avg_dwell_time: 49.5, peak_hour: 14, is_final: true },
-  ],
+    ...COKE_SPRING_SNAPSHOTS,
+    ...SAMSUNG_UNPACKED_SNAPSHOTS,
+    ...SAMSUNG_GALAXY_SNAPSHOTS,
+  ] as unknown as MockRow[],
 
   asset_versions: [
     {
@@ -1259,7 +1483,29 @@ export const MOCK_TABLES: Record<string, MockRow[]> = {
     {
       event_id: "e1111111-1111-1111-1111-111111111111",
       form_type: "creative",
-      responses: { primaryAudience: "Festival-goers 18-35", brandPillars: ["Refresh", "Optimism", "Togetherness"] },
+      responses: {
+        brand_tone:
+          "Optimistic, energetic, and unmistakably Coca-Cola. Warm and inclusive — the feeling of sharing an ice-cold Coke with friends on a hot day. Confident, never corporate.",
+        target_audience:
+          "Festival-goers aged 18–35. Socially-driven, mobile-first, and experience-hungry. They share moments that feel authentic and scroll straight past anything that looks like an ad.",
+        key_messages:
+          "1. Real Magic — share an ice-cold Coca-Cola moment.\n2. Taste the feeling this summer.\n3. Recycle me — every bottle has a second life.",
+        color_preferences: "#E61A27, #111111, #FFFFFF",
+        competitor_references:
+          "The energy of the original 'Share a Coke' campaign and Spotify Wrapped activations. We love how Aperol owns a single colour at summer takeovers. Please steer clear of anything that reads Pepsi-blue.",
+        must_include:
+          "Coca-Cola Spencerian logo (supplied), the 'Real Magic' lockup, the on-pack recycling QR, the @CocaColaGB social handle, and the contour-bottle silhouette.",
+        avoid:
+          "No Pepsi blue. No Diet/Zero messaging on the hero wrap — this is red Classic only. Avoid tired stock-photo crowds and anything that feels cold or clinical.",
+        additional_notes:
+          "Hero moment is the contour-bottle vend reveal. Subtle condensation / ice texture on the wrap would be ideal. Sustainability is a board-level priority this year — make the recycling message feel premium, not preachy.",
+        brand_font_heading: "TCCC Unity Headline",
+        brand_font_body: "TCCC Unity Text",
+        brand_usage_do:
+          "Keep Coca-Cola red dominant and let the logo breathe. Pair white type on red for maximum contrast. Use the contour bottle as the hero device.",
+        brand_usage_dont:
+          "Don't tint or gradient the logo. Don't place the wordmark on busy photography without the red keyline. Don't stretch, rotate, or recolour the wordmark.",
+      },
       is_submitted: true,
       submitted_by: "22222222-2222-2222-2222-222222222222",
       submitted_at: "2026-03-20T15:00:00Z",
@@ -1267,24 +1513,225 @@ export const MOCK_TABLES: Record<string, MockRow[]> = {
     {
       event_id: "e1111111-1111-1111-1111-111111111111",
       form_type: "ops",
-      responses: { venueContact: "James Chen", onSiteHours: "08:00-22:00", accessNotes: "Vehicle entry via Park Lane gate" },
-      is_submitted: false,
-      submitted_by: null,
-      submitted_at: null,
+      responses: {
+        venue_address: "Hyde Park, Serpentine Road, London W2 2UH",
+        venue_contact: "James Chen — 07700 900123 — james.chen@cocacola.com",
+        access_times: "Build: 06:00–09:00 on 14 July. Show: 10:00–20:00. De-rig from 20:00, cleared by 22:00.",
+        power_details: "2x 13A sockets within 15m of the activation footprint. Generator backup available on request.",
+        wifi_connectivity: "No reliable venue WiFi — please bring your own 4G/5G backup for lead capture.",
+        loading_bay: "Vehicle entry via Park Lane gate. Max vehicle 3.5t. Nearest drop-off 40m from stand.",
+        health_safety: "RAMS required 14 days prior. $5M public liability cover. Hi-vis on site during build/de-rig.",
+        staffing_needs: "2 Bright.Blue brand ambassadors requested, branded polo shirts.",
+        special_requirements: "Floor protection required on the paved area. Noise curfew after 20:00.",
+      },
+      is_submitted: true,
+      submitted_by: "22222222-2222-2222-2222-222222222222",
+      submitted_at: "2026-03-21T11:00:00Z",
+    },
+
+    // e6 — Coca-Cola Spring Sampling Tour (completed). Both briefs submitted so
+    // the "creative briefing complete" task is backed by real customer answers.
+    {
+      event_id: "e6666666-6666-6666-6666-666666666666",
+      form_type: "creative",
+      responses: {
+        brand_tone:
+          "Bright, friendly, and refreshing — a spring pick-me-up. Approachable and a little playful, built around the simple joy of a free ice-cold sample.",
+        target_audience:
+          "Commuters and shoppers passing through Manchester Piccadilly Gardens, aged 18–45. Time-poor but happy to stop for a quick, delightful brand moment.",
+        key_messages:
+          "1. Taste the feeling — on us.\n2. A refreshing start to spring.\n3. Scan, sip, share.",
+        color_preferences: "#E61A27, #FFFFFF, #111111",
+        competitor_references:
+          "The simplicity of Coca-Cola's classic sampling trucks. We liked how Oatly keeps sampling copy short and cheeky.",
+        must_include:
+          "Coca-Cola logo, the 'Taste the Feeling' lockup, the sampling T&Cs footer, and the prize-draw data-capture QR.",
+        avoid:
+          "No clutter — this is a fast sampling moment. Avoid long-form copy and anything that slows the queue.",
+        additional_notes:
+          "Weather-contingent — the wrap needs to read well in overcast Manchester light, and the call-to-action must stay legible from three metres.",
+        brand_font_heading: "TCCC Unity Headline",
+        brand_font_body: "TCCC Unity Text",
+        brand_usage_do:
+          "Keep red dominant, logo clear, message to a single line. Use the contour bottle as the recognisable hero.",
+        brand_usage_dont:
+          "Don't crowd the panel, don't recolour the logo, don't bury the sampling call-to-action.",
+      },
+      is_submitted: true,
+      submitted_by: "22222222-2222-2222-2222-222222222222",
+      submitted_at: "2026-02-12T10:30:00Z",
+    },
+    {
+      event_id: "e6666666-6666-6666-6666-666666666666",
+      form_type: "ops",
+      responses: {
+        venue_address: "Piccadilly Gardens, Manchester M1 1RG",
+        venue_contact: "James Chen — 07700 900123 — james.chen@cocacola.com",
+        access_times:
+          "Build from 05:30. Sampling 08:00–18:00 across 20–22 March. De-rig from 18:00, cleared by 20:00.",
+        power_details:
+          "1x 13A feed from the event cabinet within 10m. Generator backup on standby.",
+        wifi_connectivity:
+          "Public WiFi unreliable in the gardens — 4G/5G router supplied for lead capture.",
+        loading_bay:
+          "Loading via Parker Street with a pre-arranged permit. Max vehicle 3.5t, 30m push to stand.",
+        health_safety:
+          "RAMS filed with Manchester City Council. $5M public liability cover. Hi-vis worn during build and de-rig.",
+        staffing_needs:
+          "3 Bright.Blue brand ambassadors per day in Coca-Cola branded tees.",
+        special_requirements:
+          "Chilled stock storage required on site. Food-hygiene compliant sampling handling throughout.",
+      },
+      is_submitted: true,
+      submitted_by: "22222222-2222-2222-2222-222222222222",
+      submitted_at: "2026-02-13T09:15:00Z",
+    },
+
+    // e5 — Samsung Unpacked Pop-Up (completed). Seeded so the internal creative
+    // read-only view matches the "complete" briefing task for this account too.
+    {
+      event_id: "e5555555-5555-5555-5555-555555555555",
+      form_type: "creative",
+      responses: {
+        brand_tone:
+          "Premium, sleek, and innovative. Confident minimalism — the feeling of unboxing the latest Galaxy. Future-facing but human.",
+        target_audience:
+          "Early-adopter tech enthusiasts and lifestyle creators aged 22–40 visiting Battersea Power Station. Design-led, photography-driven, and highly social.",
+        key_messages:
+          "1. Unfold your world.\n2. Epic, every day — the new Galaxy.\n3. Capture the moment in pro detail.",
+        color_preferences: "#111111, #1428A0, #FFFFFF",
+        competitor_references:
+          "Apple's clean product staging and the immersive feel of a Galaxy Unpacked livestream. Avoid anything that reads playful or toy-like.",
+        must_include:
+          "Samsung wordmark, the Galaxy device hero render, the 'Unfold your world' lockup, and the AR photo-capture call-to-action.",
+        avoid:
+          "No Apple-style rounded friendliness and no warm, Coca-Cola-style palettes. Keep it cool, dark, and premium. No competitor device silhouettes.",
+        additional_notes:
+          "Hero is the foldable reveal animation on screen. Lighting should feel gallery-grade, and photo output must be share-ready in 9:16.",
+        brand_font_heading: "SamsungSharp Sans Bold",
+        brand_font_body: "SamsungOne",
+        brand_usage_do:
+          "Lead with deep black and Samsung blue, generous negative space, and crisp device renders. Keep type tight and confident.",
+        brand_usage_dont:
+          "Don't add gradients to the wordmark, don't clutter the layout, and don't warm up the palette.",
+      },
+      is_submitted: true,
+      submitted_by: "11111111-1111-1111-1111-111111111111",
+      submitted_at: "2026-03-15T14:20:00Z",
+    },
+    {
+      event_id: "e5555555-5555-5555-5555-555555555555",
+      form_type: "ops",
+      responses: {
+        venue_address: "Battersea Power Station, Circus Rd W, London SW11 8DD",
+        venue_contact: "Samsung Experience team — events@samsung.example",
+        access_times:
+          "Build during overnight windows 22:00–06:00, 7–9 April. Show 10:00–20:00. De-rig 12 April.",
+        power_details:
+          "3-phase power available in Turbine Hall A; distribution supplied by the venue.",
+        wifi_connectivity:
+          "Venue WiFi available with a dedicated SSID provisioned for the activation.",
+        loading_bay:
+          "Goods lift access via the east service road. Deliveries booked 48 hours ahead.",
+        health_safety:
+          "RAMS approved by BPS events. $5M public liability cover. Method statement on file.",
+        staffing_needs:
+          "4 Samsung product specialists per day in branded uniform.",
+        special_requirements:
+          "Secure overnight storage for demo devices. Glass-screen cleaning kit kept on site throughout.",
+      },
+      is_submitted: true,
+      submitted_by: "11111111-1111-1111-1111-111111111111",
+      submitted_at: "2026-03-16T08:40:00Z",
     },
   ],
 
   qa_items: [
-    { event_id: "e1111111-1111-1111-1111-111111111111", category: "machine", title: "Touchscreen calibration", description: "Confirm touch accuracy after wrap install.", status: "pending", sort_order: 0 },
-    { event_id: "e1111111-1111-1111-1111-111111111111", category: "game_logic", title: "Lead capture form submission", description: "End-to-end test of submitting a lead.", status: "pending", sort_order: 1 },
-    { event_id: "e1111111-1111-1111-1111-111111111111", category: "wrap", title: "Wrap colour calibration", description: "Pantone match against approved sample.", status: "pending", sort_order: 2 },
-    { event_id: "e1111111-1111-1111-1111-111111111111", category: "machine", title: "On-site 4G fallback", description: "Confirm cellular failover when wifi drops.", status: "pending", sort_order: 3 },
+    { id: "9a000001-0000-4000-8000-000000000001", event_id: "e1111111-1111-1111-1111-111111111111", category: "machine", title: "Machine configuration per product", description: "Confirm the machine is configured correctly for each product.", status: "pending", sort_order: 0 },
+    { id: "9a000001-0000-4000-8000-000000000002", event_id: "e1111111-1111-1111-1111-111111111111", category: "machine", title: "Bottle bridge required (Y/N)", description: "Confirm whether a bottle bridge is needed and fitted.", status: "pending", sort_order: 1 },
+    { id: "9a000001-0000-4000-8000-000000000003", event_id: "e1111111-1111-1111-1111-111111111111", category: "product", title: "Vend testing per product", description: "Test a vend for every product loaded.", status: "pending", sort_order: 2 },
+    { id: "9a000001-0000-4000-8000-000000000004", event_id: "e1111111-1111-1111-1111-111111111111", category: "product", title: "Every slot trial vended and working", description: "Trial vend each slot and confirm reliable dispense.", status: "pending", sort_order: 3 },
+    { id: "9a000001-0000-4000-8000-000000000005", event_id: "e1111111-1111-1111-1111-111111111111", category: "game_logic", title: "Game flow testing", description: "Run the full game flow end to end.", status: "pending", sort_order: 4 },
+    { id: "9a000001-0000-4000-8000-000000000006", event_id: "e1111111-1111-1111-1111-111111111111", category: "webform", title: "Data capture testing", description: "Confirm lead / data capture records correctly.", status: "pending", sort_order: 5 },
+    { id: "9a000001-0000-4000-8000-000000000007", event_id: "e1111111-1111-1111-1111-111111111111", category: "wrap", title: "Wrap installed and checked", description: "Wrap applied cleanly and inspected for defects.", status: "pending", sort_order: 6 },
+    { id: "9a000001-0000-4000-8000-000000000008", event_id: "e1111111-1111-1111-1111-111111111111", category: "logistics", title: "Interior / exterior wiped down", description: "Clean the machine inside and out before pack-down.", status: "pending", sort_order: 7 },
+    { id: "9a000001-0000-4000-8000-000000000009", event_id: "e1111111-1111-1111-1111-111111111111", category: "logistics", title: "Correct kickplates packed", description: "Confirm the correct kickplates are packed with the machine.", status: "pending", sort_order: 8 },
+    { id: "9a000001-0000-4000-8000-000000000010", event_id: "e1111111-1111-1111-1111-111111111111", category: "logistics", title: "Bright.Blue Box (Y/N)", description: "Confirm whether the Bright.Blue Box is included and packed.", status: "pending", sort_order: 9 },
+    { id: "9a000001-0000-4000-8000-000000000011", event_id: "e1111111-1111-1111-1111-111111111111", category: "logistics", title: "Machine packed and wrapped properly", description: "Machine secured, padded, and wrapped for transit.", status: "pending", sort_order: 10 },
+    { id: "9a000001-0000-4000-8000-000000000012", event_id: "e1111111-1111-1111-1111-111111111111", category: "other", title: "Final machine sign-off", description: "Final inspection and sign-off before dispatch.", status: "pending", sort_order: 11 },
   ],
 
   logistics_entries: [
-    { event_id: "e1111111-1111-1111-1111-111111111111", entry_type: "delivery", title: "Hardware delivery", description: "Two Bright.Vend Pro machines + wrap.", scheduled_date: "2026-07-14", scheduled_time: "08:00", status: "pending", contact_name: "Tom Parker", contact_phone: "+44 7700 900123", sort_order: 0 },
-    { event_id: "e1111111-1111-1111-1111-111111111111", entry_type: "setup", title: "On-site setup", description: "Configure machines + connectivity.", scheduled_date: "2026-07-14", scheduled_time: "10:00", status: "pending", contact_name: "Tom Parker", contact_phone: "+44 7700 900123", sort_order: 1 },
-    { event_id: "e1111111-1111-1111-1111-111111111111", entry_type: "collection", title: "Hardware collection", description: "Strip and return.", scheduled_date: "2026-07-18", scheduled_time: "17:00", status: "pending", contact_name: "Tom Parker", contact_phone: "+44 7700 900123", sort_order: 2 },
+    { event_id: "e1111111-1111-1111-1111-111111111111", entry_type: "delivery", title: "Hardware delivery", description: "Two Bright.Vend Pro machines + wrap.", scheduled_date: "2026-07-14", scheduled_time: "08:00", status: "pending", contact_name: "Dan Barnes", contact_phone: "+44 7700 900123", sort_order: 0 },
+    { event_id: "e1111111-1111-1111-1111-111111111111", entry_type: "setup", title: "On-site setup", description: "Configure machines + connectivity.", scheduled_date: "2026-07-14", scheduled_time: "10:00", status: "pending", contact_name: "Dan Barnes", contact_phone: "+44 7700 900123", sort_order: 1 },
+    { event_id: "e1111111-1111-1111-1111-111111111111", entry_type: "collection", title: "Hardware collection", description: "Strip and return.", scheduled_date: "2026-07-18", scheduled_time: "17:00", status: "pending", contact_name: "Dan Barnes", contact_phone: "+44 7700 900123", sort_order: 2 },
+    // Customer-provided onsite contact (rendered in the OnsiteContactCard).
+    { event_id: "e1111111-1111-1111-1111-111111111111", entry_type: "onsite_contact", title: "Onsite contact", contact_name: "James Chen", contact_phone: "+44 7700 900123", description: "james.chen@cocacola.com", notes: "On site from 07:00 on build day. Primary decision-maker for the activation.", status: "confirmed", sort_order: -1 },
+    // Customer's preferred delivery / pickup windows (DeliveryWindowsCard).
+    { event_id: "e1111111-1111-1111-1111-111111111111", entry_type: "desired_delivery", title: "Preferred delivery window", scheduled_date: "2026-07-14", scheduled_time: "06:00–09:00", notes: "Must be installed before the 10:00 gates open.", status: "requested", sort_order: -1 },
+    { event_id: "e1111111-1111-1111-1111-111111111111", entry_type: "desired_pickup", title: "Preferred pickup window", scheduled_date: "2026-07-18", scheduled_time: "After 20:00", notes: "De-rig once the park clears; cleared by 22:00.", status: "requested", sort_order: -1 },
+    // Customer-provided venue access details (VenueAccessCard, JSON in description).
+    { event_id: "e1111111-1111-1111-1111-111111111111", entry_type: "venue_access", title: "Venue access", description: JSON.stringify({ hall: "Serpentine Lawn", stand: "Activation Zone B3", loadingZone: "Park Lane service gate", notes: "Max vehicle 3.5t. ~40m push from drop-off to stand — bring trolleys." }), status: "requested", sort_order: -1 },
+    // Ops-set logistics provider (LogisticsProviderCard, JSON in description).
+    { event_id: "e1111111-1111-1111-1111-111111111111", entry_type: "carrier", title: "Logistics provider", description: JSON.stringify({ company: "Bright.Blue Fleet", contactName: "Dave Holloway", phone: "+44 7700 900456", reference: "BB-CC-0715", notes: "Two-van run from the Milton Keynes depot." }), contact_name: "Dave Holloway", contact_phone: "+44 7700 900456", status: "confirmed", sort_order: -1 },
+  ],
+
+  game_configurations: [
+    {
+      id: "9c000001-0000-4000-8000-000000000001",
+      event_id: "e1111111-1111-1111-1111-111111111111",
+      game_id: null,
+      prize_mode: "guaranteed",
+      prizes_json: [
+        { name: "Coca-Cola Original 330ml", quantity: 5000 },
+        { name: "Coca-Cola Zero Sugar 330ml", quantity: 4000 },
+        { name: "Diet Coke 330ml", quantity: 3000 },
+        { name: "Sprite Zero 330ml", quantity: 2000 },
+      ],
+      form_fields_json: [
+        { label: "First name", type: "text", required: true },
+        { label: "Email", type: "email", required: true },
+        { label: "Postcode", type: "text", required: false },
+        { label: "Opt in to Coca-Cola marketing", type: "checkbox", required: false },
+      ],
+      include_score_in_export: false,
+      leaderboard_enabled: false,
+      game_parameters_json: { roundSeconds: 30, difficulty: "easy" },
+      idle_screen_config_json: { headline: "Play to win an ice-cold Coke", subhead: "Tap the screen to start" },
+      status: "submitted",
+      submitted_by: "22222222-2222-2222-2222-222222222222",
+      submitted_at: "2026-06-12T14:30:00Z",
+      created_at: "2026-06-10T09:00:00Z",
+      updated_at: "2026-06-12T14:30:00Z",
+    },
+  ],
+
+  product_configurations: [
+    {
+      id: "9d000001-0000-4000-8000-000000000001",
+      event_id: "e1111111-1111-1111-1111-111111111111",
+      products_json: [
+        { name: "Coca-Cola Original 330ml", sku: "CC-ORIG-330", slot: 1, stockRatio: 36 },
+        { name: "Coca-Cola Zero Sugar 330ml", sku: "CC-ZERO-330", slot: 2, stockRatio: 29 },
+        { name: "Diet Coke 330ml", sku: "CC-DIET-330", slot: 3, stockRatio: 21 },
+        { name: "Sprite Zero 330ml", sku: "SP-ZERO-330", slot: 4, stockRatio: 14 },
+      ],
+      total_units: 14000,
+      samples_received_at: null,
+      samples_tested: false,
+      machine_config_json: [],
+      notes: "Chilled stock delivered to site on the morning of build. Replenish from the on-site cold store between sessions.",
+      created_at: "2026-06-10T09:00:00Z",
+      updated_at: "2026-06-12T14:30:00Z",
+    },
+  ],
+
+  venue_requirements: [
+    { id: "9e000001-0000-4000-8000-000000000001", event_id: "e1111111-1111-1111-1111-111111111111", requirement_type: "exhibitor_manual", description: "Royal Parks event manual + activation permit", document_url: null, is_met: true, notes: "Received from the venue 21 May.", created_at: "2026-05-21T10:00:00Z", updated_at: "2026-05-21T10:00:00Z" },
+    { id: "9e000001-0000-4000-8000-000000000002", event_id: "e1111111-1111-1111-1111-111111111111", requirement_type: "insurance_minimum", description: "£5M public liability certificate", document_url: null, is_met: true, notes: "On file with the venue.", created_at: "2026-05-22T10:00:00Z", updated_at: "2026-05-22T10:00:00Z" },
+    { id: "9e000001-0000-4000-8000-000000000003", event_id: "e1111111-1111-1111-1111-111111111111", requirement_type: "power_spec", description: "2× 13A sockets within 15m of the footprint", document_url: null, is_met: true, notes: "Confirmed by venue ops.", created_at: "2026-05-24T10:00:00Z", updated_at: "2026-05-24T10:00:00Z" },
+    { id: "9e000001-0000-4000-8000-000000000004", event_id: "e1111111-1111-1111-1111-111111111111", requirement_type: "h_and_s", description: "RAMS submitted 14 days prior to build", document_url: null, is_met: false, notes: "Draft with ops — due 1 July.", created_at: "2026-05-25T10:00:00Z", updated_at: "2026-05-25T10:00:00Z" },
+    { id: "9e000001-0000-4000-8000-000000000005", event_id: "e1111111-1111-1111-1111-111111111111", requirement_type: "floor_plan", description: "Stamped floor plan showing the activation footprint", document_url: null, is_met: false, notes: "Awaiting venue sign-off.", created_at: "2026-05-26T10:00:00Z", updated_at: "2026-05-26T10:00:00Z" },
   ],
 
   studio_requests: [
@@ -1296,7 +1743,7 @@ export const MOCK_TABLES: Record<string, MockRow[]> = {
       description: "Pre-event hype reel for the social rollout. 30s, 9:16.",
       status: "submitted",
       estimated_days: 5,
-      estimated_cost: 750000,
+      estimated_cost: 145000,
       created_by: "22222222-2222-2222-2222-222222222222",
       created_at: "2026-03-25T11:00:00Z",
     },

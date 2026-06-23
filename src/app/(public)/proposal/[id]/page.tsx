@@ -7,6 +7,7 @@ import { Container, Section } from "@/components/ui/section";
 import { getQuoteById } from "@/lib/queries/quotes";
 import { buildProposalDocument } from "@/lib/proposal/build-proposal";
 import { ProposalDocumentView } from "@/components/quotes/proposal/ProposalDocumentView";
+import { PrintProposalButton } from "@/components/quotes/proposal/PrintProposalButton";
 import { PostAcceptBanner } from "@/components/quotes/PostAcceptBanner";
 
 export const metadata: Metadata = {
@@ -42,12 +43,7 @@ export default async function ProposalDetailPage({ params }: PageProps) {
     <Section className="relative" spacing="md">
       <Container size="md" className="proposal-brochure">
         <div className="mb-4 flex justify-end">
-          <button
-            onClick={() => window.print()}
-            className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-1.5 text-sm font-medium text-muted-foreground transition hover:bg-muted/60 hover:text-foreground"
-          >
-            Download PDF
-          </button>
+          <PrintProposalButton />
         </div>
 
         {quote.status === "accepted" && (

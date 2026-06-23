@@ -113,6 +113,8 @@ export async function createEventInternal(
       venue_address: parsed.data.venueAddress || null,
       event_date_start: parsed.data.eventDateStart,
       event_date_end: parsed.data.eventDateEnd || null,
+      current_stage: "confirmed",
+      health_status: "green",
     })
     .select("id")
     .single();

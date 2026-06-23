@@ -146,7 +146,7 @@ export function ScheduledExportManager({
             {exp.lastSentAt && (
               <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
                 <Clock size={10} />
-                Last sent {new Date(exp.lastSentAt).toLocaleDateString("en-GB")}
+                Last sent {new Date(exp.lastSentAt).toLocaleDateString("en-US")}
               </p>
             )}
           </div>

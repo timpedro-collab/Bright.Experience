@@ -4,6 +4,7 @@ import { Calendar, Layers } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { formatDateMedium } from "@/lib/dates";
 
 interface CampaignCardProps {
   campaign: {
@@ -53,7 +54,7 @@ export function CampaignCard({ campaign }: CampaignCardProps) {
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Calendar size={14} className="text-muted-foreground shrink-0" />
               <span>
-                {campaign.startDate ?? "TBD"} — {campaign.endDate ?? "TBD"}
+                {campaign.startDate ? formatDateMedium(campaign.startDate) : "TBD"} — {campaign.endDate ? formatDateMedium(campaign.endDate) : "TBD"}
               </span>
             </div>
           )}

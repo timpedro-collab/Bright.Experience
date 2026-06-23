@@ -12,13 +12,18 @@ interface MachineStatusCardProps {
     lastHeartbeat?: string;
     firmwareVersion?: string;
   };
+  /** Customers see friendly labels and no hardware serial/firmware detail. */
+  isCustomer?: boolean;
 }
 
-const STATUS_STYLES: Record<string, { bg: string; text: string; label: string }> = {
-  available: { bg: "bg-success/10", text: "text-success", label: "Available" },
-  deployed: { bg: "bg-brand/10", text: "text-brand", label: "Deployed" },
-  maintenance: { bg: "bg-warning/10", text: "text-warning", label: "Maintenance" },
-  retired: { bg: "bg-muted", text: "text-muted-foreground", label: "Retired" },
+const STATUS_STYLES: Record<
+  string,
+  { bg: string; text: string; label: string; customerLabel: string }
+> = {
+  available: { bg: "bg-success/10", text: "text-success", label: "Available", customerLabel: "Ready" },
+  deployed: { bg: "bg-brand/10", text: "text-brand", label: "Deployed", customerLabel: "On site" },
+  maintenance: { bg: "bg-warning/10", text: "text-warning", label: "Maintenance", customerLabel: "Being serviced" },
+  retired: { bg: "bg-muted", text: "text-muted-foreground", label: "Retired", customerLabel: "Offline" },
 };
 
 function getRelativeTime(timestamp: string): string {
@@ -32,8 +37,10 @@ function getRelativeTime(timestamp: string): string {
   return `${Math.floor(hours / 24)}d ago`;
 }
 
-export function MachineStatusCard({ machine }: MachineStatusCardProps) {
+export function MachineStatusCard({ machine, isCustomer = false }: MachineStatusCardProps) {
   const style = STATUS_STYLES[machine.status] ?? STATUS_STYLES.retired;
+  const statusLabel = isCustomer ? style.customerLabel : style.label;
+  const title = machine.nickname ?? (isCustomer ? "Activation unit" : machine.serialNumber);
   const isOnline =
     machine.lastHeartbeat &&
     // eslint-disable-next-line react-hooks/purity -- heartbeat freshness is a transient UI signal that re-renders on parent revalidation; not a derived hook dependency
@@ -45,16 +52,16 @@ export function MachineStatusCard({ machine }: MachineStatusCardProps) {
         <div className="flex items-start justify-between mb-3">
           <div className="min-w-0">
             <p className="text-heading text-sm font-semibold text-foreground truncate">
-              {machine.nickname ?? machine.serialNumber}
+              {title}
             </p>
-            {machine.nickname && (
+            {machine.nickname && !isCustomer && (
               <p className="text-xs text-muted-foreground mt-0.5">
                 {machine.serialNumber}
               </p>
             )}
           </div>
           <Badge className={cn("text-xs", style.bg, style.text, "border-0")}>
-            {style.label}
+            {statusLabel}
           </Badge>
         </div>
 
@@ -71,7 +78,7 @@ export function MachineStatusCard({ machine }: MachineStatusCardProps) {
                 : "No signal"}
             </span>
           </div>
-          {machine.firmwareVersion && (
+          {machine.firmwareVersion && !isCustomer && (
             <span className="text-muted-foreground">
               v{machine.firmwareVersion}
             </span>

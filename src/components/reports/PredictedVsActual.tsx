@@ -13,6 +13,8 @@ import { TrendingUp, TrendingDown } from "lucide-react";
 interface PredictedVsActualProps {
   predictions: Record<string, number>;
   actuals: Record<string, number>;
+  /** Hide the card title when an external eyebrow already labels the section. */
+  hideTitle?: boolean;
 }
 
 /** Formats metric keys from snake_case to Title Case */
@@ -32,17 +34,20 @@ function calcDelta(predicted: number, actual: number): number {
 export function PredictedVsActual({
   predictions,
   actuals,
+  hideTitle = false,
 }: PredictedVsActualProps) {
   const metrics = Object.keys(predictions);
 
   return (
     <Card className="border-border bg-card/72 backdrop-blur-xl">
-      <CardHeader className="pb-3">
-        <CardTitle className="text-heading text-base font-semibold text-foreground">
-          Predicted vs Actual
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="pt-0">
+      {!hideTitle && (
+        <CardHeader className="pb-3">
+          <CardTitle className="text-heading text-base font-semibold text-foreground">
+            Predicted vs actual
+          </CardTitle>
+        </CardHeader>
+      )}
+      <CardContent className={hideTitle ? "pt-6" : "pt-0"}>
         <div className="space-y-0">
           {/* Header row */}
           <div className="grid grid-cols-4 gap-4 pb-2 border-b border-border/60">
@@ -73,10 +78,10 @@ export function PredictedVsActual({
                   {formatLabel(key)}
                 </span>
                 <span className="text-sm text-muted-foreground text-right tabular-nums">
-                  {predicted.toLocaleString()}
+                  {predicted.toLocaleString("en-US")}
                 </span>
                 <span className="text-sm text-foreground font-medium text-right tabular-nums">
-                  {actual.toLocaleString()}
+                  {actual.toLocaleString("en-US")}
                 </span>
                 <div
                   className={cn(

@@ -45,7 +45,7 @@ export function ValueContextCard({ footfallEstimate }: ValueContextCardProps) {
               <div key={metric.label} className="text-center space-y-1">
                 <Icon size={20} className="mx-auto text-brand" />
                 <p className="text-xl font-bold text-foreground">
-                  {value.toLocaleString("en-GB")}
+                  {value.toLocaleString("en-US")}
                   {metric.suffix}
                 </p>
                 <p className="text-xs text-muted-foreground">{metric.label}</p>

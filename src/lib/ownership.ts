@@ -48,6 +48,22 @@ const OWNER_LABEL: Record<OwnerRole, string> = {
   ae: "your account manager",
 };
 
+/**
+ * Team-facing label for the owner, used on internal surfaces (e.g. the
+ * deadline timeline) where "you" / "your account manager" customer phrasing
+ * would read oddly. Names the responsible team in the third person.
+ */
+const OWNER_TEAM_LABEL: Record<OwnerRole, string> = {
+  customer: "Customer",
+  creative: "Bright.Blue creative",
+  operations: "Operations",
+  qa: "QA",
+  development: "Development",
+  logistics: "Logistics",
+  reporting: "Reporting",
+  ae: "Account manager",
+};
+
 /** Customer roles see "Waiting on you" when the role is `customer`. */
 const CUSTOMER_ROLES: UserRole[] = ["customer_user", "customer_admin"];
 
@@ -56,8 +72,17 @@ const OWNER_TO_INTERNAL_ROLE: Partial<Record<OwnerRole, UserRole[]>> = {
   operations: ["operations_lead"],
   qa: ["qa_lead"],
   development: ["developer"],
+  logistics: ["operations_lead"],
+  reporting: ["events_lead"],
   ae: ["events_lead"],
 };
+
+/** True when the viewer's own role is the party responsible for this work. */
+export function isOwnedByViewer(owner: OwnerRole, viewerRole: UserRole): boolean {
+  if (owner === "customer") return CUSTOMER_ROLES.includes(viewerRole);
+  const internalRoles = OWNER_TO_INTERNAL_ROLE[owner];
+  return !!internalRoles && internalRoles.includes(viewerRole);
+}
 
 /**
  * Phrase the owner for a viewer. When the viewer's role matches the
@@ -67,14 +92,54 @@ export function ownerLabelFor(
   owner: OwnerRole,
   viewerRole: UserRole
 ): string {
-  if (owner === "customer" && CUSTOMER_ROLES.includes(viewerRole)) {
-    return "Waiting on you";
-  }
-  const internalRoles = OWNER_TO_INTERNAL_ROLE[owner];
-  if (internalRoles && internalRoles.includes(viewerRole)) {
+  if (isOwnedByViewer(owner, viewerRole)) {
     return "Waiting on you";
   }
   return `Waiting on ${OWNER_LABEL[owner]}`;
+}
+
+/**
+ * THE single, canonical "whose move is it?" resolver for every surface
+ * (timeline, checklist, ownership panel, deadlines, dashboards). One
+ * vocabulary everywhere: "Awaiting you" when it's the viewer's, otherwise
+ * "Awaiting {party}". `isYou` drives the loud accent treatment.
+ */
+export interface OwnerBadgeInfo {
+  /** Full phrase, e.g. "Awaiting you" / "Awaiting Operations". */
+  label: string;
+  /** Short party name without the "Awaiting" prefix, e.g. "You" / "Operations". */
+  party: string;
+  /** Whether the work sits with the viewer right now. */
+  isYou: boolean;
+  owner: OwnerRole;
+}
+
+export function resolveOwnerBadge(
+  owner: OwnerRole,
+  viewerRole: UserRole | undefined,
+  isInternal: boolean
+): OwnerBadgeInfo {
+  const isYou = viewerRole ? isOwnedByViewer(owner, viewerRole) : false;
+  if (isYou) {
+    return { label: "Awaiting you", party: "You", isYou: true, owner };
+  }
+  if (owner === "customer") {
+    const party = isInternal ? "the customer" : "your team";
+    return { label: `Awaiting ${party}`, party: isInternal ? "Customer" : "Your team", isYou: false, owner };
+  }
+  // Internal team owners — third-person team name for staff, friendlier
+  // customer-facing phrasing for customers.
+  const party = isInternal ? OWNER_TEAM_LABEL[owner] : OWNER_LABEL[owner];
+  return { label: `Awaiting ${party}`, party, isYou: false, owner };
+}
+
+/** Convenience: resolve a badge straight from a task. */
+export function ownerBadgeForTask(
+  task: Task,
+  viewerRole: UserRole | undefined,
+  isInternal: boolean
+): OwnerBadgeInfo {
+  return resolveOwnerBadge(ownerForTask(task), viewerRole, isInternal);
 }
 
 /**
@@ -89,6 +154,19 @@ export function ownerLabelFor(
 export function ownerForTask(task: Task): OwnerRole {
   if (task.taskType === "customer_action") return "customer";
   return CATEGORY_TO_OWNER[task.category] ?? "ae";
+}
+
+/**
+ * Same resolution as {@link ownerForTask} but for a raw DB row, where the
+ * task type and category arrive as loose strings (e.g. from a deadline query
+ * that doesn't hydrate a full `Task`).
+ */
+export function ownerForTaskRow(
+  taskType: string | null | undefined,
+  category: string | null | undefined
+): OwnerRole {
+  if (taskType === "customer_action") return "customer";
+  return CATEGORY_TO_OWNER[category as TaskCategory] ?? "ae";
 }
 
 /**
@@ -149,3 +227,4 @@ export function groupOpenTasksByOwner(tasks: Task[]): OwnershipBucket[] {
 }
 
 export const OWNER_DISPLAY_LABEL = OWNER_LABEL;
+export const OWNER_TEAM_DISPLAY_LABEL = OWNER_TEAM_LABEL;

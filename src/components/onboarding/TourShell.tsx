@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { AnimatePresence } from "framer-motion";
 import { TourProvider, useTour } from "./TourProvider";
 import { TourWelcomeScreen } from "./TourWelcomeScreen";
-import { TourSlideshow } from "./TourSlideshow";
+import { TourSpotlight } from "./TourSpotlight";
 import { TourCompleteScreen } from "./TourCompleteScreen";
 import { getTourForRole } from "./tour-steps";
 import type { UserRole } from "@/types";
@@ -23,9 +24,7 @@ export function TourShell({ role, autoStart, children }: TourShellProps) {
       <AnimatePresence>
         <TourWelcomeScreen />
       </AnimatePresence>
-      <AnimatePresence>
-        <TourSlideshow />
-      </AnimatePresence>
+      <TourSpotlight />
       <AnimatePresence>
         <TourCompleteScreen />
       </AnimatePresence>
@@ -41,6 +40,11 @@ function TourAutoStarter({
   autoStart: boolean;
 }) {
   const { start, beginSteps, phase } = useTour();
+  const pathname = usePathname();
+  // Spotlight steps only make sense where the real dashboard renders ("/").
+  // On other hosts (e.g. /welcome) we only show the welcome intro, and the
+  // "Let's go" CTA routes to "/" where the steps then run.
+  const onDashboard = pathname === "/";
 
   useEffect(() => {
     if (phase !== "idle") return;
@@ -49,7 +53,8 @@ function TourAutoStarter({
     if (pending) {
       localStorage.removeItem("bright_tour_pending");
       start(getTourForRole(role), role);
-      setTimeout(() => beginSteps(), 100);
+      // Let the dashboard paint (and its data-tour anchors mount) first.
+      if (onDashboard) setTimeout(() => beginSteps(), 450);
       return;
     }
 
@@ -62,7 +67,7 @@ function TourAutoStarter({
       start(getTourForRole(role), role);
     }, 600);
     return () => clearTimeout(timer);
-  }, [autoStart, role, start, beginSteps, phase]);
+  }, [autoStart, role, start, beginSteps, phase, onDashboard]);
 
   return null;
 }

@@ -4,6 +4,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import {
+  venueStatusVariant,
+  venueStatusLabel,
+  venueStatusBarClass,
+} from "@/components/venues/venue-helpers";
 
 interface PlacementEntry {
   id: string;
@@ -17,15 +22,8 @@ interface PlacementCalendarProps {
   placements: PlacementEntry[];
 }
 
-const STATUS_STYLES: Record<string, { bg: string; text: string; label: string }> = {
-  planned: { bg: "bg-blue-500/20", text: "text-blue-400", label: "Planned" },
-  active: { bg: "bg-emerald-500/20", text: "text-emerald-400", label: "Active" },
-  completed: { bg: "bg-zinc-500/20", text: "text-zinc-400", label: "Completed" },
-  cancelled: { bg: "bg-red-500/20", text: "text-red-400", label: "Cancelled" },
-};
-
 function formatDate(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString("en-GB", {
+  return new Date(dateStr).toLocaleDateString("en-US", {
     day: "numeric",
     month: "short",
     year: "numeric",
@@ -72,7 +70,6 @@ export function PlacementCalendar({ placements }: PlacementCalendarProps) {
       </CardHeader>
       <CardContent className="space-y-3">
         {sorted.map((placement) => {
-          const style = STATUS_STYLES[placement.status] ?? STATUS_STYLES.planned;
           const startOffset = daysBetween(
             new Date(earliest).toISOString(),
             placement.startDate
@@ -87,19 +84,19 @@ export function PlacementCalendar({ placements }: PlacementCalendarProps) {
             <div key={placement.id} className="space-y-1.5">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-foreground">
-                  {placement.machineName ?? "Unassigned Machine"}
+                  {placement.machineName ?? "Awaiting machine"}
                 </span>
-                <Badge
-                  variant="outline"
-                  className={cn("text-xs", style.text)}
-                >
-                  {style.label}
+                <Badge variant={venueStatusVariant(placement.status)}>
+                  {venueStatusLabel(placement.status)}
                 </Badge>
               </div>
 
               <div className="relative h-6 w-full rounded-md bg-muted/30 overflow-hidden">
                 <div
-                  className={cn("absolute top-0 h-full rounded-md", style.bg)}
+                  className={cn(
+                    "absolute top-0 h-full rounded-md",
+                    venueStatusBarClass(placement.status),
+                  )}
                   style={{ left: `${leftPct}%`, width: `${widthPct}%` }}
                 />
               </div>

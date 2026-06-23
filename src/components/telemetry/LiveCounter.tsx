@@ -11,6 +11,8 @@ interface LiveCounterProps {
   icon: React.ReactNode;
   trend?: number;
   className?: string;
+  /** Unit appended to the value, e.g. "s" for seconds. */
+  suffix?: string;
 }
 
 export function LiveCounter({
@@ -19,6 +21,7 @@ export function LiveCounter({
   icon,
   trend,
   className,
+  suffix,
 }: LiveCounterProps) {
   const [displayValue, setDisplayValue] = useState(0);
   const animationRef = useRef<number | null>(null);
@@ -59,7 +62,8 @@ export function LiveCounter({
           {icon}
         </div>
         <p className="text-heading text-3xl font-bold tabular-nums text-foreground">
-          {displayValue.toLocaleString()}
+          {displayValue.toLocaleString("en-US")}
+          {suffix ? <span className="text-xl font-semibold">{suffix}</span> : null}
         </p>
         <p className="mt-1 text-sm text-muted-foreground">{label}</p>
         {trend !== undefined && (

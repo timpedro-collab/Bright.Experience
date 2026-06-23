@@ -1,7 +1,7 @@
 /** Per-event communications page with threaded messaging. */
 import { notFound, redirect } from "next/navigation";
 
-import { EventPageShell } from "@/components/brand";
+import { EventPageShell } from "@/components/brand/event-page-shell";
 import { MessageThread } from "@/components/messages/MessageThread";
 import { AutoRefresh } from "@/components/system/AutoRefresh";
 

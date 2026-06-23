@@ -1,65 +1,80 @@
-/** Package pricing tier card with CTA */
+/** Package tier card — details-forward, with a "Request a quote" CTA */
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Check } from "lucide-react";
+import { ArrowRight, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { formatFeatureLabel, formatDurationLabel } from "@/lib/catalog-format";
 
 interface PackageTierCardProps {
   pkg: {
     name: string;
     slug: string;
     tier: string;
-    basePrice?: number | null;
+    durationDays?: number | null;
     featuresJson?: string[];
     isBookable: boolean;
   };
   featured?: boolean;
+  /** Override the CTA. Defaults to the "Request a quote" intake flow. */
+  ctaHref?: string;
+  ctaLabel?: string;
 }
 
-function formatPrice(pence?: number | null): string {
-  if (!pence) return "Get Proposal";
-  return `£${(pence / 100).toLocaleString("en-GB")}`;
-}
-
-export function PackageTierCard({ pkg, featured = false }: PackageTierCardProps) {
+export function PackageTierCard({
+  pkg,
+  featured = false,
+  ctaHref,
+  ctaLabel,
+}: PackageTierCardProps) {
   const features = pkg.featuresJson ?? [];
+  const duration = formatDurationLabel(pkg.durationDays);
+  const href = ctaHref ?? `/proposal?package=${pkg.slug}`;
+  const label = ctaLabel ?? "Request a quote";
 
   return (
     <Card className={cn(
-      "relative overflow-hidden",
+      "relative flex flex-col overflow-hidden",
       featured && "border-brand/40 shadow-[0_0_30px_-10px_hsl(230,93%,53%,0.3)]"
     )}>
       {featured && (
         <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand to-brand-soft" />
       )}
       <CardHeader className="pb-2">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-2">
           <Badge variant="secondary" className="text-[10px] uppercase">
             {pkg.tier}
           </Badge>
+          {featured && (
+            <Badge variant="default" className="text-[10px] uppercase">
+              Most popular
+            </Badge>
+          )}
         </div>
         <CardTitle className="text-lg">{pkg.name}</CardTitle>
-        <p className="text-2xl font-bold text-heading text-foreground mt-1">
-          {formatPrice(pkg.basePrice)}
-          {pkg.basePrice && <span className="text-sm font-normal text-muted-foreground">/event</span>}
-        </p>
+        {duration && (
+          <p className="mt-1 text-sm text-muted-foreground">{duration}</p>
+        )}
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="flex flex-1 flex-col space-y-4">
         {features.length > 0 && (
           <ul className="space-y-2">
             {features.map((feature, i) => (
               <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
                 <Check size={14} className="text-success mt-0.5 shrink-0" />
-                {feature}
+                {formatFeatureLabel(feature)}
               </li>
             ))}
           </ul>
         )}
-        <Button className="w-full" variant={featured ? "default" : "outline"} asChild>
-          <Link href={pkg.isBookable ? `/book/configure?package=${pkg.slug}` : "/proposal"}>
-            {pkg.isBookable ? "Book Now" : "Get Proposal"}
+        <Button
+          className="mt-auto w-full"
+          variant={featured ? "default" : "outline"}
+          asChild
+        >
+          <Link href={href}>
+            {label} <ArrowRight className="h-4 w-4" />
           </Link>
         </Button>
       </CardContent>

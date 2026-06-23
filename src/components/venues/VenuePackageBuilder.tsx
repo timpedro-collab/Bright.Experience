@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, Package, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createVenuePackage } from "@/app/actions/venues";
+import { formatUSDFromCents } from "@/lib/currency";
 
 interface VenuePackageBuilderProps {
   venueId: string;
@@ -89,7 +90,7 @@ export function VenuePackageBuilder({
                 ) : null}
                 {pkg.price != null ? (
                   <span className="text-sm font-semibold text-foreground">
-                    £{Number(pkg.price).toLocaleString()}
+                    {formatUSDFromCents(Number(pkg.price))}
                   </span>
                 ) : null}
               </div>
@@ -127,7 +128,7 @@ export function VenuePackageBuilder({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="pkg-price">Price (£)</Label>
+                <Label htmlFor="pkg-price">Price ($)</Label>
                 <Input
                   id="pkg-price"
                   type="number"

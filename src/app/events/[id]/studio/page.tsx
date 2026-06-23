@@ -2,9 +2,11 @@
 import { notFound, redirect } from "next/navigation";
 import { Sparkles, ImageIcon, Film, AlertTriangle, Palette } from "lucide-react";
 
-import { EventPageShell, EditorialEyebrow, Hairline } from "@/components/brand";
+import { EventPageShell } from "@/components/brand/event-page-shell";
+import { EditorialEyebrow, Hairline } from "@/components/brand";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { formatUSDFromCents } from "@/lib/currency";
 import { StudioTierCard } from "@/components/studio/StudioServiceCard";
 import { StudioRequestActions } from "@/components/studio/StudioRequestActions";
 
@@ -13,7 +15,7 @@ import { getStudioRequestsByEvent } from "@/lib/queries/studio";
 import { getAllStudioPricing } from "@/lib/queries/studio-pricing";
 import { getUnreadCount } from "@/lib/queries/notifications";
 import { getUser } from "@/lib/auth";
-import { isInternalRole } from "@/lib/roles";
+import { isInternalRole, canReviewCreativeAssets } from "@/lib/roles";
 import { canViewSection } from "@/lib/event-access";
 import type { StudioRequest } from "@/types";
 import { timeSince } from "@/lib/dates";
@@ -26,6 +28,7 @@ const STATUS_VARIANTS: Record<
   submitted: { label: "Submitted", variant: "info" },
   quoted: { label: "Quoted", variant: "warning" },
   approved: { label: "Approved", variant: "success" },
+  confirmed: { label: "Confirmed", variant: "success" },
   in_progress: { label: "In progress", variant: "info" },
   delivered: { label: "Delivered", variant: "success" },
   cancelled: { label: "Cancelled", variant: "muted" },
@@ -49,6 +52,10 @@ export default async function StudioEventPage({
   if (!event) return notFound();
 
   const isInternal = isInternalRole(user.role);
+  // Only the Creative team can action a studio order's lifecycle. Other
+  // internal roles (events lead, ops) get read-only visibility — otherwise the
+  // page offers buttons the server action will reject.
+  const canManageStudio = canReviewCreativeAssets(user.role);
 
   return (
     <EventPageShell
@@ -58,7 +65,11 @@ export default async function StudioEventPage({
       section="Bright.Studio"
       slug="studio"
       title="Bright.Studio."
-      subtitle="Professional creative services to elevate your event — pick a tier and we'll get started."
+      subtitle={
+        isInternal
+          ? "Creative service orders for this event — review the tiers, manage requests, and move work through the studio."
+          : "Professional creative services to elevate your event — pick a tier and we'll get started."
+      }
       isInternal={isInternal}
       viewerRole={user.role}
       heroRight={
@@ -77,7 +88,7 @@ export default async function StudioEventPage({
                   key={req.id}
                   request={req}
                   eventId={id}
-                  isInternal={isInternal}
+                  canManage={canManageStudio}
                 />
               ))}
             </ul>
@@ -89,7 +100,11 @@ export default async function StudioEventPage({
           <EmptyState
             icon={Palette}
             title="No studio requests yet"
-            description="Pick a tier below and submit your first request — our creative team will take it from there."
+            description={
+              isInternal
+                ? "No studio requests for this event yet. Customer-submitted requests will appear here for the creative team to action."
+                : "Pick a tier below and submit your first request — our creative team will take it from there."
+            }
             tone="flat"
             size="sm"
           />
@@ -150,11 +165,11 @@ export default async function StudioEventPage({
 function RequestRow({
   request,
   eventId,
-  isInternal,
+  canManage,
 }: {
   request: StudioRequest;
   eventId: string;
-  isInternal: boolean;
+  canManage: boolean;
 }) {
   const status = STATUS_VARIANTS[request.status] ?? STATUS_VARIANTS.draft;
   return (
@@ -175,7 +190,7 @@ function RequestRow({
           <p className="mt-1.5 text-overline text-muted-foreground">
             Quote{" "}
             <span className="text-foreground font-semibold">
-              £{request.quotedCost.toFixed(2)}
+              {formatUSDFromCents(request.quotedCost, { decimals: true })}
             </span>
             {request.quotedDays && (
               <>
@@ -185,7 +200,7 @@ function RequestRow({
             )}
           </p>
         )}
-        {isInternal && (
+        {canManage && (
           <StudioRequestActions
             requestId={request.id}
             eventId={eventId}

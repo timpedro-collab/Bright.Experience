@@ -1,9 +1,11 @@
 /** Unified deadline queries — surfaces every upcoming due date across tasks, assets, and milestones. */
 
 import { createClient } from "@/lib/supabase/server";
+import { ownerForTaskRow, type OwnerRole } from "@/lib/ownership";
 
 export type DeadlineUrgency = "on_track" | "due_soon" | "overdue";
-export type DeadlineOwner = "customer" | "internal";
+/** The team (or customer) a deadline currently sits with. */
+export type DeadlineOwner = OwnerRole;
 
 export interface DeadlineItem {
   id: string;
@@ -33,7 +35,7 @@ export async function getDeadlinesByEvent(eventId: string): Promise<DeadlineItem
   const [{ data: tasks }, { data: assets }, { data: milestones }] = await Promise.all([
     supabase
       .from("tasks")
-      .select("id, title, due_date, status, task_type")
+      .select("id, title, due_date, status, task_type, category")
       .eq("event_id", eventId)
       .not("due_date", "is", null)
       .not("status", "in", '("complete","skipped")'),
@@ -59,7 +61,7 @@ export async function getDeadlinesByEvent(eventId: string): Promise<DeadlineItem
       title: t.title,
       dueDate: t.due_date,
       urgency: urgencyFor(t.due_date),
-      owner: t.task_type === "customer_action" ? "customer" : "internal",
+      owner: ownerForTaskRow(t.task_type, t.category),
       status: t.status,
     });
   }
@@ -85,7 +87,8 @@ export async function getDeadlinesByEvent(eventId: string): Promise<DeadlineItem
       title: m.name,
       dueDate: m.target_date,
       urgency: urgencyFor(m.target_date),
-      owner: "internal",
+      // Milestones are advanced by the account/events lead, not a delivery team.
+      owner: "ae",
       status: m.status,
     });
   }

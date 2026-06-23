@@ -18,6 +18,39 @@ function slugify(text: string): string {
 }
 
 /**
+ * Choose the active template that best fits the booked package.
+ *
+ * Preference order: exact `event_type` + `package_type` match → same
+ * `event_type` (any tier) → any active template. Returns `undefined` only when
+ * no active templates exist, in which case `createEventInternal` falls back to
+ * its built-in game-flow asset seeding.
+ */
+async function selectTemplateId(
+  supabase: ReturnType<typeof getServiceRoleClient>,
+  eventType: string,
+  packageTier: string
+): Promise<string | undefined> {
+  const { data } = await supabase
+    .from("event_templates")
+    .select("id, event_type, package_type")
+    .eq("is_active", true);
+
+  type TemplateRow = { id: string; event_type: string; package_type: string };
+  const templates = (data ?? []) as TemplateRow[];
+  if (templates.length === 0) return undefined;
+
+  const exact = templates.find(
+    (t) => t.event_type === eventType && t.package_type === packageTier
+  );
+  if (exact) return exact.id;
+
+  const byType = templates.find((t) => t.event_type === eventType);
+  if (byType) return byType.id;
+
+  return templates[0].id;
+}
+
+/**
  * Auto-provision an event from an accepted or book-now quote.
  *
  * 1. Reads the full quote row (contact info, package, dates, venue).
@@ -79,6 +112,12 @@ export async function provisionEventFromQuote(
   const eventType = (quote.event_type as string) || "activation";
   const packageTier = (pkg?.tier as string) || "standard";
 
+  // Pick the blueprint that best fits the booked package so the new event is
+  // born with its full delivery runway (milestones, tasks, assets, QA) instead
+  // of an empty shell. Without this the headline "auto-provision" promise lands
+  // a customer in a workspace with nothing to do.
+  const templateId = await selectTemplateId(supabase, eventType, packageTier);
+
   const eventResult = await createEventInternal({
     accountId,
     name: eventName,
@@ -87,6 +126,7 @@ export async function provisionEventFromQuote(
     venueName: (quote.venue_name as string) || undefined,
     eventDateStart: (quote.event_date_start as string) || new Date().toISOString().split("T")[0],
     eventDateEnd: (quote.event_date_end as string) || undefined,
+    templateId,
   });
 
   if (!eventResult.success) {

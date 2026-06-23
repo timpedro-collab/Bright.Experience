@@ -10,7 +10,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { KpiCard, KpiGrid } from "@/components/cloud";
 import { CampaignEventActions } from "@/components/campaigns/CampaignEventActions";
+import { CampaignStatusControl } from "@/components/campaigns/CampaignStatusControl";
 import { cn } from "@/lib/utils";
+import { formatDateMedium } from "@/lib/dates";
+import { STAGE_CONFIG } from "@/types/core";
+import type { Stage } from "@/types/core";
 
 interface CampaignDashboardProps {
   campaign: Record<string, unknown>;
@@ -54,17 +58,22 @@ export function CampaignDashboard({ campaign, events }: CampaignDashboardProps) 
         <KpiCard icon={Calendar} label="Status" value={statusConfig.label} />
       </KpiGrid>
 
+      {/* Lifecycle status control */}
+      {campaignId ? (
+        <CampaignStatusControl campaignId={campaignId} status={status} />
+      ) : null}
+
       {/* Campaign timeline */}
       {(campaign.start_date || campaign.end_date) ? (
         <Card>
           <CardHeader>
             <CardTitle className="text-base font-semibold text-foreground">
-              Campaign Period
+              Campaign period
             </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground">
-              {String(campaign.start_date ?? "TBD")} — {String(campaign.end_date ?? "TBD")}
+              {campaign.start_date ? formatDateMedium(String(campaign.start_date)) : "TBD"} — {campaign.end_date ? formatDateMedium(String(campaign.end_date)) : "TBD"}
             </p>
           </CardContent>
         </Card>
@@ -74,7 +83,7 @@ export function CampaignDashboard({ campaign, events }: CampaignDashboardProps) 
       <Card>
         <CardHeader>
           <CardTitle className="text-base font-semibold text-foreground">
-            Campaign Events ({events.length})
+            Campaign events ({events.length})
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -106,7 +115,7 @@ export function CampaignDashboard({ campaign, events }: CampaignDashboardProps) 
                         {evt.event_date_start ? (
                           <span className="flex items-center gap-1 text-xs text-muted-foreground">
                             <Calendar size={12} />
-                            {String(evt.event_date_start)}
+                            {formatDateMedium(String(evt.event_date_start))}
                           </span>
                         ) : null}
                       </div>
@@ -121,7 +130,7 @@ export function CampaignDashboard({ campaign, events }: CampaignDashboardProps) 
                           health === "red" && "bg-destructive/10"
                         )}
                       >
-                        {String(evt.current_stage ?? "confirmed")}
+                        {STAGE_CONFIG[String(evt.current_stage ?? "confirmed") as Stage]?.shortLabel ?? "Confirmed"}
                       </Badge>
                       {campaignId && evt.id ? (
                         <CampaignEventActions
@@ -146,5 +155,5 @@ function formatNumber(val: unknown): string {
   if (val === undefined || val === null) return "0";
   const num = Number(val);
   if (isNaN(num)) return "0";
-  return num.toLocaleString();
+  return num.toLocaleString("en-US");
 }

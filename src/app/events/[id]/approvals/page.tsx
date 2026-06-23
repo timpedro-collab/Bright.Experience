@@ -12,7 +12,8 @@ import {
   RefreshCw,
 } from "lucide-react";
 
-import { EventPageShell, EditorialEyebrow, Hairline } from "@/components/brand";
+import { EventPageShell } from "@/components/brand/event-page-shell";
+import { EditorialEyebrow, Hairline } from "@/components/brand";
 import { ApprovalStatusBadge } from "@/components/ui/StatusBadge";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ApprovalActions } from "@/components/approvals/ApprovalActions";

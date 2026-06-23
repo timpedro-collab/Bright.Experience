@@ -43,7 +43,7 @@ import {
 
 import { STAGE_CONFIG } from "@/types";
 import type { Event, EventTeamMember, Stage, User } from "@/types";
-import { stageLabelFor } from "@/lib/customer-copy";
+import { stageLabelFor, healthLabelFor } from "@/lib/customer-copy";
 import type { getCustomerActionItems } from "@/lib/queries/deadlines";
 import type { getPendingQuotesForCustomer } from "@/lib/queries/quotes";
 
@@ -125,7 +125,7 @@ export function CustomerDashboard({
                       }
                       aria-hidden
                     />
-                    {healthLabel(featured).label}
+                    {healthLabelFor(featured.healthStatus, true)}
                   </span>
                 </>
               }
@@ -159,14 +159,23 @@ export function CustomerDashboard({
                 />
               </KpiGrid>
 
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <GlassCard data-tour="waiting-on-you">
-                  <GlassCardHeader title="What's needed from you" />
-                  <div className="p-6">
-                    <CustomerActionSummary eventId={featured.id} items={customerActions} teaserLimit={4} />
-                  </div>
-                </GlassCard>
+              {/* The star: what the customer owes, full-width and first. */}
+              <GlassCard data-tour="waiting-on-you">
+                <GlassCardHeader
+                  title="What's needed from you"
+                  description={
+                    customerActions.length === 0
+                      ? "Nothing right now — we'll let you know the moment something needs you."
+                      : "Complete these to keep your activation on track"
+                  }
+                />
+                <div className="p-6">
+                  <CustomerActionSummary eventId={featured.id} items={customerActions} teaserLimit={6} />
+                </div>
+              </GlassCard>
 
+              {/* Secondary context, demoted to a calm two-up row. */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <GlassCard>
                   <GlassCardHeader title="Progress" />
                   <ProgressColumn event={featured} />
@@ -198,6 +207,7 @@ export function CustomerDashboard({
             featured ? (
               <Link
                 href={`/events/${featured.id}`}
+                data-tour="open-event"
                 className="hover:opacity-80 transition-opacity"
               >
                 Open this event →

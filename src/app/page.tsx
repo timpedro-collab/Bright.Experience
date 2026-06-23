@@ -31,7 +31,7 @@ import {
 } from "@/lib/queries/tasks";
 import { getTeamForEvent } from "@/lib/queries/team";
 import { getCustomerActionItems } from "@/lib/queries/deadlines";
-import { getPendingQuotesForCustomer } from "@/lib/queries/quotes";
+import { getPendingQuotesForCustomer, getUpcomingWalkthroughs } from "@/lib/queries/quotes";
 import { getStreak } from "@/app/actions/streak";
 import { getUser } from "@/lib/auth";
 import { isInternalRole, isPartnerRole } from "@/lib/roles";
@@ -39,8 +39,9 @@ import { getPartnerForUser } from "@/lib/queries/partners";
 import { getVenuesByPartner } from "@/lib/queries/venues";
 import { parsePage } from "@/lib/pagination";
 
+import { buildFocusItems } from "@/lib/queries/home-focus";
 import { pickFeaturedEvent } from "@/components/home/home-helpers";
-import { InternalDashboard } from "@/components/home/InternalDashboard";
+import { FocusedHome } from "@/components/home/FocusedHome";
 import { CustomerDashboard } from "@/components/home/CustomerDashboard";
 
 interface HomePageProps {
@@ -104,30 +105,48 @@ export default async function HomePage({ searchParams }: HomePageProps) {
   const totalPages =
     typeof eventsResult?.totalPages === "number" ? eventsResult.totalPages : 0;
 
-  // Internal mode → Library with role-aware work dashboard.
+  // Internal mode → focused, action-first home. The full event library and
+  // by-stage charts now live on /pipeline; this surface stays glanceable.
   if (isInternal) {
-    // Single source of portfolio truth — headline KPIs and the by-stage
-    // chart both reflect the WHOLE portfolio (not the paginated page), and
-    // stay in lockstep with the /ops command center.
-    const portfolio = await getEventPortfolioStats();
-    const libraryView: "grid" | "table" =
-      params.view === "table" ? "table" : "grid";
+    // Single source of portfolio truth (whole portfolio, not the page).
+    const [portfolio, walkthroughs] = await Promise.all([
+      getEventPortfolioStats(),
+      getUpcomingWalkthroughs(),
+    ]);
+    const focusItems = buildFocusItems({
+      role: user.role,
+      portfolio,
+      queueCounts,
+      taskGroups: roleTaskGroups,
+      walkthroughs,
+    });
+
+    const activeEvents = portfolio.events.filter(
+      (e) => e.currentStage !== "complete",
+    );
+    let stripEvents = activeEvents;
+    let stripTitle = "Your portfolio";
+    let stripSubtitle: string | undefined = `${activeEvents.length} event${activeEvents.length === 1 ? "" : "s"} in flight`;
+    if (user.role === "creative_lead") {
+      const creativeEventIds = new Set(roleTaskGroups.map((g) => g.eventId));
+      const creatingFor = activeEvents.filter((e) => creativeEventIds.has(e.id));
+      stripEvents = creatingFor.length > 0 ? creatingFor : activeEvents;
+      stripTitle = "Events you're creating for";
+      stripSubtitle = undefined;
+    }
 
     return (
-      <InternalDashboard
+      <FocusedHome
         user={user}
         unread={unread}
         streak={streak}
-        queueCounts={queueCounts}
-        roleTaskGroups={roleTaskGroups}
-        events={events}
-        totalPages={totalPages}
-        page={page}
-        filters={filters}
+        focusItems={focusItems}
+        stripEvents={stripEvents.slice(0, 8)}
         taskCounts={taskCounts}
         taskProgress={taskProgress}
-        portfolio={portfolio}
-        libraryView={libraryView}
+        stripTitle={stripTitle}
+        stripSubtitle={stripSubtitle}
+        showStrip={stripEvents.length > 0}
       />
     );
   }

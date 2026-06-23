@@ -11,28 +11,10 @@ import { ChevronRight } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { groupOpenTasksByOwner, OWNER_DISPLAY_LABEL } from "@/lib/ownership";
-import type { OwnerRole } from "@/lib/ownership";
+import { groupOpenTasksByOwner, resolveOwnerBadge } from "@/lib/ownership";
 import type { Task, UserRole } from "@/types";
 
 const CUSTOMER_ROLES: UserRole[] = ["customer_user", "customer_admin"];
-
-const OWNER_TO_VIEWER_ROLES: Partial<Record<OwnerRole, UserRole[]>> = {
-  customer: CUSTOMER_ROLES,
-  creative: ["creative_lead"],
-  operations: ["operations_lead"],
-  qa: ["qa_lead"],
-  development: ["developer"],
-  ae: ["events_lead"],
-};
-
-function ownerHeading(owner: OwnerRole, viewerRole: UserRole) {
-  if ((OWNER_TO_VIEWER_ROLES[owner] ?? []).includes(viewerRole)) {
-    return "On your plate";
-  }
-  if (owner === "customer") return "On the customer";
-  return `On ${OWNER_DISPLAY_LABEL[owner]}`;
-}
 
 interface EventOwnershipPanelProps {
   tasks: Task[];
@@ -47,6 +29,7 @@ export function EventOwnershipPanel({
   ctaHref,
 }: EventOwnershipPanelProps) {
   const buckets = groupOpenTasksByOwner(tasks);
+  const isInternal = !CUSTOMER_ROLES.includes(viewerRole);
 
   if (buckets.length === 0) {
     return (
@@ -71,8 +54,11 @@ export function EventOwnershipPanel({
       <CardContent>
         <div className="space-y-2">
           {buckets.map(({ owner, tasks: ownerTasks }) => {
-            const heading = ownerHeading(owner, viewerRole);
-            const isYou = heading === "On your plate";
+            const { label: heading, isYou } = resolveOwnerBadge(
+              owner,
+              viewerRole,
+              isInternal
+            );
             return (
               <a
                 key={owner}
@@ -81,7 +67,7 @@ export function EventOwnershipPanel({
                   "group flex items-center justify-between gap-3 rounded-[var(--radius-control)] border p-3",
                   "transition-all hover:border-border",
                   isYou
-                    ? "border-warning/30 bg-warning/[0.06] hover:bg-warning/[0.1]"
+                    ? "border-[var(--color-bb-cobalt)]/40 bg-[var(--color-bb-cobalt)]/[0.06] hover:bg-[var(--color-bb-cobalt)]/[0.1]"
                     : "border-border/60 bg-muted/40 hover:bg-accent"
                 )}
               >
@@ -89,7 +75,7 @@ export function EventOwnershipPanel({
                   <p
                     className={cn(
                       "text-xs uppercase tracking-wider font-semibold",
-                      isYou ? "text-warning" : "text-muted-foreground"
+                      isYou ? "text-[var(--color-bb-cobalt)]" : "text-muted-foreground"
                     )}
                   >
                     {heading}

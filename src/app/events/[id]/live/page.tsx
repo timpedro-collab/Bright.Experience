@@ -10,7 +10,7 @@ import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { Info } from "lucide-react";
 
-import { EventPageShell } from "@/components/brand";
+import { EventPageShell } from "@/components/brand/event-page-shell";
 import { Badge } from "@/components/ui/badge";
 import { ExportMenu } from "@/components/ui/ExportMenu";
 import { LiveDashboardClient } from "@/components/telemetry/LiveDashboardClient";
@@ -173,7 +173,7 @@ export default async function LiveDashboardPage({
       unreadCount={unread}
       section="Live"
       title="Live dashboard."
-      subtitle="Watch your activation perform in real time. Numbers refresh every 10 seconds."
+      subtitle={`${isInternalRole(user.role) ? "Watch this activation perform in real time" : "Watch your activation perform in real time"}. Numbers refresh every 10 seconds.`}
       isInternal={isInternalRole(user.role)}
       heroRight={
         <div className="flex items-center gap-3">
@@ -195,6 +195,7 @@ export default async function LiveDashboardPage({
         initialHourly={initialHourly}
         initialFeed={initialFeed}
         initialMachines={initialMachines}
+        isCustomer={!isInternalRole(user.role)}
       />
     </EventPageShell>
   );

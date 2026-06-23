@@ -33,7 +33,7 @@ const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
 const users = [
   {
     id: "11111111-1111-1111-1111-111111111111",
-    email: "sarah@brightblue.co.uk",
+    email: "tim@brightblue.co.uk",
     password: "demo-password-123",
   },
   {
@@ -43,12 +43,12 @@ const users = [
   },
   {
     id: "33333333-3333-3333-3333-333333333333",
-    email: "emma@brightblue.co.uk",
+    email: "theo@brightblue.co.uk",
     password: "demo-password-123",
   },
   {
     id: "44444444-4444-4444-4444-444444444444",
-    email: "tom@brightblue.co.uk",
+    email: "dan@brightblue.co.uk",
     password: "demo-password-123",
   },
   {

@@ -2,7 +2,8 @@
 import { notFound, redirect } from "next/navigation";
 import { Gamepad2, Package } from "lucide-react";
 
-import { EventPageShell, EditorialEyebrow, Hairline } from "@/components/brand";
+import { EventPageShell } from "@/components/brand/event-page-shell";
+import { EditorialEyebrow, Hairline } from "@/components/brand";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { GameConfigForm } from "@/components/configuration/GameConfigForm";
 import { ProductConfigForm } from "@/components/configuration/ProductConfigForm";

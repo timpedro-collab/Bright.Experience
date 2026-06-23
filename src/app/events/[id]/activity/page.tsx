@@ -1,7 +1,8 @@
 /** Full activity log for an event — paginated audit trail. */
 import { notFound, redirect } from "next/navigation";
 
-import { EventPageShell, EditorialEyebrow } from "@/components/brand";
+import { EventPageShell } from "@/components/brand/event-page-shell";
+import { EditorialEyebrow } from "@/components/brand";
 import { ActivityFeed } from "@/components/events/ActivityFeed";
 import { Pagination } from "@/components/ui/Pagination";
 

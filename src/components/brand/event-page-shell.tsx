@@ -29,8 +29,14 @@ import {
   RidgeHero,
 } from "./index";
 import { EventTabNav } from "./EventTabNav";
+import {
+  getEventSectionStatus,
+  type SectionStatusMap,
+} from "@/lib/queries/event-section-status";
 
 import type { Event, User, UserRole } from "@/types";
+
+const CUSTOMER_ROLES: UserRole[] = ["customer_admin", "customer_user"];
 
 interface EventPageShellProps {
   event: Event;
@@ -74,7 +80,7 @@ const SECTION_TO_SLUG: Record<string, string> = {
   Campaign: "campaign",
 };
 
-export function EventPageShell({
+export async function EventPageShell({
   event,
   user,
   unreadCount,
@@ -90,6 +96,14 @@ export function EventPageShell({
 }: EventPageShellProps) {
   const seedSlug = slug ?? section.toLowerCase().replace(/\s+/g, "-");
   const currentSection = SECTION_TO_SLUG[section] ?? seedSlug;
+
+  // Customers get green/amber/red completion dots on their tabs so it's clear
+  // where the ball sits. Internal roles keep the dense, dotless power-user nav.
+  const effectiveRole = viewerRole ?? user.role;
+  let sectionStatus: SectionStatusMap | undefined;
+  if (CUSTOMER_ROLES.includes(effectiveRole)) {
+    sectionStatus = await getEventSectionStatus(event.id);
+  }
   return (
     <EditionShell>
       <EditionChrome
@@ -127,7 +141,8 @@ export function EventPageShell({
       <EventTabNav
         eventId={event.id}
         currentSection={currentSection}
-        viewerRole={viewerRole ?? user.role}
+        viewerRole={effectiveRole}
+        sectionStatus={sectionStatus}
       />
       <EditionBody>{children}</EditionBody>
       <EditionFooter

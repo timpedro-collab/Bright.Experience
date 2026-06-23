@@ -15,7 +15,11 @@ export {
   type EditionBreadcrumb,
 } from "./edition-shell";
 export { EditionPlate, type PlateStatusTone } from "./edition-plate";
-export { EventPageShell } from "./event-page-shell";
+// NOTE: EventPageShell is intentionally NOT re-exported here. It is an async
+// server component that fetches per-section status (server-only), so exposing
+// it through this barrel — which is also imported by client components (error
+// boundaries, dashboards) — would pull `next/headers` into the client bundle.
+// Import it directly from "@/components/brand/event-page-shell" instead.
 export { EventTabNav } from "./EventTabNav";
 export { AdminPageShell } from "./admin-page-shell";
 export {

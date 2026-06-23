@@ -70,12 +70,12 @@ export default async function LivePrintPage({
     ...v,
   }));
 
-  const dateStr = new Date().toLocaleDateString("en-GB", {
+  const dateStr = new Date().toLocaleDateString("en-US", {
     day: "numeric",
     month: "long",
     year: "numeric",
   });
-  const timeStr = new Date().toLocaleTimeString("en-GB", {
+  const timeStr = new Date().toLocaleTimeString("en-US", {
     hour: "2-digit",
     minute: "2-digit",
   });
@@ -126,7 +126,7 @@ export default async function LivePrintPage({
             </div>
             <p className="text-2xl font-bold text-gray-900 tabular-nums">
               {typeof kpi.value === "number"
-                ? kpi.value.toLocaleString()
+                ? kpi.value.toLocaleString("en-US")
                 : kpi.value}
             </p>
           </div>

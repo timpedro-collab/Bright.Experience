@@ -1,47 +1,19 @@
-/** Partner quote pipeline — all partner-attributed quotes with status */
+/** Partner quote pipeline — open proposals to chase and the ones you've won. */
 import { redirect } from "next/navigation";
+import { FileText } from "lucide-react";
+
 import { getUser } from "@/lib/auth";
 import { getPartnerForUser } from "@/lib/queries/partners";
-import { getAttributionsByPartner } from "@/lib/queries/partner-attributions";
+import { getPartnerPipeline } from "@/lib/queries/partner-attributions";
 import { getUnreadCount } from "@/lib/queries/notifications";
 import { PortalPageShell, partnerTabs } from "@/components/brand";
-import {
-  Table,
-  TableHeader,
-  TableBody,
-  TableRow,
-  TableHead,
-  TableCell,
-} from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { FileText } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { PartnerQuoteForm } from "@/components/partners/PartnerQuoteForm";
+import { PartnerDealList } from "@/components/partners/PartnerPipeline";
 
 interface QuotesPageProps {
   params: Promise<{ slug: string }>;
-}
-
-const STATUS_VARIANT: Record<string, "default" | "success" | "warning" | "destructive"> = {
-  pending: "warning",
-  approved: "success",
-  paid: "default",
-  rejected: "destructive",
-};
-
-const STATUS_LABEL: Record<string, string> = {
-  pending: "Pending",
-  approved: "Approved",
-  paid: "Paid",
-  rejected: "Rejected",
-};
-
-/** Formats a number as ZAR currency */
-function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat("en-ZA", {
-    style: "currency",
-    currency: "ZAR",
-    minimumFractionDigits: 0,
-  }).format(amount);
 }
 
 export default async function PartnerQuotesPage({ params }: QuotesPageProps) {
@@ -52,15 +24,15 @@ export default async function PartnerQuotesPage({ params }: QuotesPageProps) {
   const partner = await getPartnerForUser(user.id);
   if (!partner || partner.slug !== slug) redirect("/");
 
-  const [attributions, unread] = await Promise.all([
-    getAttributionsByPartner(partner.id),
+  const [deals, unread] = await Promise.all([
+    getPartnerPipeline(partner.id),
     getUnreadCount(user.id),
   ]);
   const partnerName = String(partner.name ?? "Partner");
 
-  const quoteAttributions = attributions.filter(
-    (a: Record<string, unknown>) => a.quote_id
-  );
+  // Open = still a quote awaiting a decision; won = converted to a live event.
+  const open = deals.filter((d) => d.kind === "quote" && d.status === "pending");
+  const won = deals.filter((d) => d.kind === "event");
 
   return (
     <PortalPageShell
@@ -71,56 +43,56 @@ export default async function PartnerQuotesPage({ params }: QuotesPageProps) {
       slug={slug}
       tabs={partnerTabs(slug)}
       title="Quote pipeline"
-      subtitle="All quotes attributed to your referrals"
+      subtitle="Send a new quote, chase the open ones, and watch them convert."
     >
-      {quoteAttributions.length === 0 ? (
+      <div className="mb-6">
+        <PartnerQuoteForm slug={slug} />
+      </div>
+
+      {deals.length === 0 ? (
         <EmptyState
           icon={FileText}
           title="No quotes in your pipeline"
-          description="Quotes generated through your partner link will appear here."
+          description="Quotes you send or that come through your partner link will appear here."
           size="sm"
         />
       ) : (
-        <div className="rounded-[var(--radius-card)] border border-border/60 bg-muted/40 backdrop-blur-sm overflow-hidden">
-          <Table>
-            <TableHeader>
-              <TableRow className="border-border/60 hover:bg-transparent">
-                <TableHead className="text-muted-foreground">Date</TableHead>
-                <TableHead className="text-muted-foreground">Quote ID</TableHead>
-                <TableHead className="text-muted-foreground">Commission</TableHead>
-                <TableHead className="text-muted-foreground">Status</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {quoteAttributions.map((attr: Record<string, unknown>) => {
-                const status = String(attr.commission_status ?? "pending");
-                return (
-                  <TableRow key={String(attr.id)} className="border-border/60">
-                    <TableCell className="text-muted-foreground">
-                      {new Date(String(attr.created_at)).toLocaleDateString("en-ZA", {
-                        day: "numeric",
-                        month: "short",
-                        year: "numeric",
-                      })}
-                    </TableCell>
-                    <TableCell className="font-mono text-xs text-foreground">
-                      {String(attr.quote_id ?? "—").slice(0, 8)}
-                    </TableCell>
-                    <TableCell className="font-mono text-foreground">
-                      {attr.commission_amount != null
-                        ? formatCurrency(Number(attr.commission_amount))
-                        : "—"}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={STATUS_VARIANT[status] ?? "warning"}>
-                        {STATUS_LABEL[status] ?? status}
-                      </Badge>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
+        <div className="space-y-5">
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base">
+                Open — awaiting a decision
+                <span className="rounded-full bg-warning/15 px-2 py-0.5 text-xs font-medium text-warning">
+                  {open.length}
+                </span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {open.length === 0 ? (
+                <p className="py-2 text-sm text-muted-foreground">
+                  Nothing waiting on a client right now — nice work.
+                </p>
+              ) : (
+                <PartnerDealList deals={open} />
+              )}
+            </CardContent>
+          </Card>
+
+          {won.length > 0 && (
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  Converted to live events
+                  <span className="rounded-full bg-success/15 px-2 py-0.5 text-xs font-medium text-success">
+                    {won.length}
+                  </span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <PartnerDealList deals={won} />
+              </CardContent>
+            </Card>
+          )}
         </div>
       )}
     </PortalPageShell>

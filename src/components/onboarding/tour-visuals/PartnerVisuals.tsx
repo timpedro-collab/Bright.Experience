@@ -135,7 +135,7 @@ export function PartnerEarnings() {
           transition={{ delay: 2 }}
         >
           <span className="text-[10px] text-white/35">Total earned (YTD)</span>
-          <span className="text-sm font-bold text-emerald-400 tabular-nums">£10,500</span>
+          <span className="text-sm font-bold text-emerald-400 tabular-nums">$10,500</span>
         </motion.div>
       </motion.div>
     </div>

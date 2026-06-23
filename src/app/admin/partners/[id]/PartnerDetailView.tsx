@@ -33,6 +33,7 @@ import {
   markCommissionPaid,
   addPartnerUser,
 } from "@/app/actions/partners";
+import { formatUSDFromCents } from "@/lib/currency";
 import { useState } from "react";
 
 interface PartnerDetailViewProps {
@@ -52,12 +53,9 @@ const COMMISSION_STATUS_MAP: Record<string, { label: string; className: string }
   paid: { label: "Paid", className: "bg-brand/10 text-brand border-brand/20" },
 };
 
-function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat("en-GB", {
-    style: "currency",
-    currency: "GBP",
-    minimumFractionDigits: 0,
-  }).format(amount);
+/** Commission amounts are integer cents. */
+function formatCurrency(cents: number): string {
+  return formatUSDFromCents(cents);
 }
 
 export function PartnerDetailView({ partner, attributions }: PartnerDetailViewProps) {
@@ -165,7 +163,7 @@ export function PartnerDetailView({ partner, attributions }: PartnerDetailViewPr
                   return (
                     <TableRow key={attrId}>
                       <TableCell className="text-muted-foreground">
-                        {new Date(String(attr.created_at)).toLocaleDateString("en-GB")}
+                        {new Date(String(attr.created_at)).toLocaleDateString("en-US")}
                       </TableCell>
                       <TableCell>{attr.quote_id ? "Quote" : "Event"}</TableCell>
                       <TableCell className="font-mono">
@@ -182,7 +180,7 @@ export function PartnerDetailView({ partner, attributions }: PartnerDetailViewPr
                                 type="number"
                                 min={0}
                                 step="0.01"
-                                placeholder="£ amount"
+                                placeholder="$ amount"
                                 className="w-28 h-8 text-sm"
                                 value={commissionAmounts[attrId] ?? ""}
                                 onChange={(e) =>

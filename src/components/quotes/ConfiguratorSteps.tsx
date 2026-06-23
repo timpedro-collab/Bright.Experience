@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
+import { formatUSDFromCents } from "@/lib/currency";
 import type {
   AddonForConfig,
   GameForConfig,
@@ -122,10 +123,7 @@ export function AddonStep({
                 )}
               </div>
               <span className="text-sm font-semibold text-foreground tabular-nums">
-                +£
-                {(addon.price / 100).toLocaleString("en-GB", {
-                  minimumFractionDigits: 2,
-                })}
+                +{formatUSDFromCents(addon.price, { decimals: true })}
               </span>
             </label>
           );

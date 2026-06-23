@@ -14,9 +14,9 @@ import { IntakeWizard } from "@/components/quotes/IntakeWizard";
 import { RidgeArtwork, EditorialEyebrow } from "@/components/brand";
 
 export const metadata: Metadata = {
-  title: "Your tailored proposal",
+  title: "Request a quote",
   description:
-    "A short conversation about your event. We'll craft pricing, creative options and projected outcomes — and have it back to you within 24 hours.",
+    "A few quick questions about your event, then book a 15-minute call where your event lead walks you through a tailored proposal live.",
 };
 
 export default function ProposalPage() {
@@ -45,7 +45,7 @@ export default function ProposalPage() {
         <Container size="sm" className="relative pt-20 md:pt-28 pb-10">
           <div className="text-center">
             <EditorialEyebrow accent className="mb-3 inline-block">
-              A short conversation
+              Request a quote
             </EditorialEyebrow>
             <h1
               id="proposal-hero"
@@ -54,8 +54,9 @@ export default function ProposalPage() {
               Let&apos;s shape your moment.
             </h1>
             <p className="mt-4 max-w-2xl mx-auto text-muted-foreground md:text-lg leading-relaxed">
-              A few quick questions about the event you have in mind. We&apos;ll
-              have a tailored proposal back to you within 24 hours.
+              A few quick questions about the event you have in mind, then book a
+              15-minute call — your event lead will walk you through a tailored
+              proposal live and send it over right after.
             </p>
           </div>
         </Container>

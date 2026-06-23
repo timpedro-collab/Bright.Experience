@@ -50,9 +50,22 @@ interface IntakeFormData {
   specialRequirements: string;
   engagementScope: string;
   contactName: string;
+  contactRole: string;
   contactEmail: string;
   contactPhone: string;
   companyName: string;
+  // Carried silently from the quiz so the brief + projected reach land on the
+  // quote (and the event lead's portal) without re-asking the customer.
+  reachTrack: string;
+  attendees: string;
+  activationLocationKey: string;
+  activationLocation: string;
+  activationDays: string;
+  eventTimeline: string;
+  estimatedImpressions: string;
+  estimatedInteractions: string;
+  estimatedLeads: string;
+  doohMediaValue: string;
 }
 
 interface IntakeWizardProps {
@@ -71,10 +84,12 @@ function makeInitial(searchParams: URLSearchParams): IntakeFormData {
     event: searchParams.get("event"),
     objective: searchParams.get("objective"),
   });
+  const locationName = searchParams.get("locationName") ?? "";
   return {
     eventType: prefill.eventType,
     objective: prefill.objective,
-    venueName: "",
+    // For experiential, the quiz already named the site — pre-fill the venue.
+    venueName: locationName,
     postcode: "",
     eventDateStart: "",
     eventDateEnd: "",
@@ -85,9 +100,20 @@ function makeInitial(searchParams: URLSearchParams): IntakeFormData {
     specialRequirements: "",
     engagementScope: "",
     contactName: "",
+    contactRole: "",
     contactEmail: "",
     contactPhone: "",
     companyName: "",
+    reachTrack: searchParams.get("track") ?? "",
+    attendees: searchParams.get("attendees") ?? "",
+    activationLocationKey: searchParams.get("location") ?? "",
+    activationLocation: locationName,
+    activationDays: searchParams.get("days") ?? "",
+    eventTimeline: searchParams.get("timeline") ?? "",
+    estimatedImpressions: searchParams.get("impressions") ?? "",
+    estimatedInteractions: searchParams.get("interactions") ?? "",
+    estimatedLeads: searchParams.get("leads") ?? "",
+    doohMediaValue: searchParams.get("dooh") ?? "",
   };
 }
 
@@ -122,6 +148,12 @@ export function IntakeWizard(_props: IntakeWizardProps = {}) {
     setError(null);
     const result = await submitProposalIntake({
       ...data,
+      attendees: data.attendees ? Number(data.attendees) : undefined,
+      activationDays: data.activationDays ? Number(data.activationDays) : undefined,
+      estimatedImpressions: data.estimatedImpressions ? Number(data.estimatedImpressions) : undefined,
+      estimatedInteractions: data.estimatedInteractions ? Number(data.estimatedInteractions) : undefined,
+      estimatedLeads: data.estimatedLeads ? Number(data.estimatedLeads) : undefined,
+      doohMediaValue: data.doohMediaValue ? Number(data.doohMediaValue) : undefined,
       addons,
       packageSlug: initialPackageSlug || undefined,
     });
@@ -135,7 +167,7 @@ export function IntakeWizard(_props: IntakeWizardProps = {}) {
 
   const canProceed =
     (step === 0 && data.eventType) ||
-    (step === 1 && data.postcode) ||
+    (step === 1 && (data.postcode || data.venueName)) ||
     step === 2 ||
     step === 3 ||
     (step === 4 && data.contactName && data.contactEmail);
@@ -209,6 +241,7 @@ export function IntakeWizard(_props: IntakeWizardProps = {}) {
       {step === 4 && (
         <IntakeStepContact
           contactName={data.contactName}
+          contactRole={data.contactRole}
           contactEmail={data.contactEmail}
           contactPhone={data.contactPhone}
           companyName={data.companyName}
@@ -232,7 +265,7 @@ export function IntakeWizard(_props: IntakeWizardProps = {}) {
           </Button>
         ) : (
           <Button onClick={handleSubmit} disabled={!canProceed || loading} variant="brand">
-            {loading ? "Sending…" : "Send me my tailored proposal"}
+            {loading ? "Saving…" : "Continue to booking"}
           </Button>
         )}
       </div>

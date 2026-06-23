@@ -36,17 +36,39 @@ export async function getAggregateMetrics(
 
   const { data: snapshots } = await supabase
     .from("event_metrics_snapshot")
-    .select("total_plays, total_leads, total_interactions")
+    .select("event_id, snapshot_date, total_plays, total_leads, total_interactions")
     .in("event_id", eventIds);
+
+  // Snapshots are CUMULATIVE running totals (each day ≥ the prior), so summing
+  // every row would multiply-count an event's totals. Keep only the latest
+  // snapshot per event (its current event-to-date total), then sum across
+  // events for the account-wide aggregate.
+  const latestByEvent = new Map<
+    string,
+    { date: string; plays: number; leads: number; interactions: number }
+  >();
+  for (const s of snapshots ?? []) {
+    const eventId = s.event_id as string;
+    const date = (s.snapshot_date as string) ?? "";
+    const existing = latestByEvent.get(eventId);
+    if (!existing || date >= existing.date) {
+      latestByEvent.set(eventId, {
+        date,
+        plays: (s.total_plays as number) ?? 0,
+        leads: (s.total_leads as number) ?? 0,
+        interactions: (s.total_interactions as number) ?? 0,
+      });
+    }
+  }
 
   let totalPlays = 0;
   let totalLeads = 0;
   let totalInteractions = 0;
 
-  for (const s of snapshots ?? []) {
-    totalPlays += (s.total_plays as number) ?? 0;
-    totalLeads += (s.total_leads as number) ?? 0;
-    totalInteractions += (s.total_interactions as number) ?? 0;
+  for (const s of latestByEvent.values()) {
+    totalPlays += s.plays;
+    totalLeads += s.leads;
+    totalInteractions += s.interactions;
   }
 
   return {

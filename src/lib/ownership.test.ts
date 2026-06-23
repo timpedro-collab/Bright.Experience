@@ -6,8 +6,31 @@
  */
 
 import { describe, it, expect } from "vitest";
-import { ownerLabelFor, ownerForMilestone, groupOpenTasksByOwner } from "./ownership";
+import {
+  ownerLabelFor,
+  ownerForMilestone,
+  groupOpenTasksByOwner,
+  ownerForTaskRow,
+} from "./ownership";
 import { makeTask } from "@/test/fixtures";
+
+describe("ownerForTaskRow", () => {
+  it("treats any customer_action as customer-owned regardless of category", () => {
+    expect(ownerForTaskRow("customer_action", "creative")).toBe("customer");
+    expect(ownerForTaskRow("customer_action", "logistics")).toBe("customer");
+  });
+
+  it("maps internal work to its category's team", () => {
+    expect(ownerForTaskRow("internal_action", "creative")).toBe("creative");
+    expect(ownerForTaskRow("internal_action", "qa")).toBe("qa");
+    expect(ownerForTaskRow("internal_action", "logistics")).toBe("logistics");
+  });
+
+  it("falls back to the account manager for missing/unknown categories", () => {
+    expect(ownerForTaskRow("internal_action", null)).toBe("ae");
+    expect(ownerForTaskRow(undefined, undefined)).toBe("ae");
+  });
+});
 
 describe("ownerLabelFor", () => {
   it("says 'Waiting on you' when customer is viewing customer-owned work", () => {

@@ -5,11 +5,8 @@
 
 import { notFound, redirect } from "next/navigation";
 
-import {
-  EventPageShell,
-  EditorialEyebrow,
-  Hairline,
-} from "@/components/brand";
+import { EventPageShell } from "@/components/brand/event-page-shell";
+import { EditorialEyebrow, Hairline } from "@/components/brand";
 import { HealthBadge } from "@/components/ui/StatusBadge";
 import { MilestoneTimeline } from "@/components/timeline/MilestoneTimeline";
 import { StageProgressBar } from "@/components/events/StageProgressBar";
@@ -21,6 +18,7 @@ import { getMilestonesByEvent } from "@/lib/queries/milestones";
 import { getTasksByEvent } from "@/lib/queries/tasks";
 import { getUnreadCount } from "@/lib/queries/notifications";
 import { getStageTransitions } from "@/lib/queries/stage-transitions";
+import { getHandoffNotes } from "@/app/actions/handoff-notes";
 import { getUser } from "@/lib/auth";
 import { isInternalRole, canAdvanceEventStage } from "@/lib/roles";
 import { canViewSection } from "@/lib/event-access";
@@ -54,6 +52,7 @@ export default async function TimelinePage({
   const stageGate = isInternal
     ? await canAdvanceStage(id)
     : { canAdvance: false, blockers: [] };
+  const handoffNotes = isInternal ? await getHandoffNotes(id) : [];
 
   const completedMilestones = milestones.filter(
     (m) => m.status === "complete",
@@ -75,26 +74,14 @@ export default async function TimelinePage({
       section="Timeline"
       eyebrow={`${event.account.name} · Delivery plan`}
       title="The timeline."
-      subtitle={`Currently in ${stageLabel}. ${completedMilestones} of ${milestones.length} milestones complete${missedMilestones > 0 ? ` · ${missedMilestones} missed` : ""}.`}
+      subtitle={`Currently in ${stageLabel}.`}
       isInternal={isInternal}
       viewerRole={user.role}
       heroRight={isInternal ? <HealthBadge status={event.healthStatus} /> : undefined}
     >
-      <section className="py-6">
-        <div className="flex items-baseline justify-between gap-3 mb-3">
-          <EditorialEyebrow accent>The journey</EditorialEyebrow>
-          <span className="text-overline text-muted-foreground tabular-nums">
-            Stage {stageConfig.order + 1} of 10 · {stageLabel}
-          </span>
-        </div>
-        <StageProgressBar currentStage={event.currentStage} isCustomer={!isInternal} />
-      </section>
-
-      <Hairline className="opacity-60" />
-
-      <section className="py-10 grid grid-cols-1 md:grid-cols-[1fr_auto] gap-6 items-end">
+      <section className="py-10 grid grid-cols-1 md:grid-cols-[1fr_auto] gap-8 items-start">
         <div>
-          <EditorialEyebrow>Right now</EditorialEyebrow>
+          <EditorialEyebrow accent>Right now</EditorialEyebrow>
           <h2 className="text-heading text-foreground text-[clamp(1.75rem,3.5vw,2.5rem)] leading-tight mt-2">
             {stageLabel}
           </h2>
@@ -114,23 +101,38 @@ export default async function TimelinePage({
             </div>
           )}
         </div>
-        <div className="text-right">
-          <p className="text-display text-foreground text-[clamp(3rem,6vw,4.5rem)] leading-none tabular-nums">
-            {completedMilestones}
-            <span className="text-muted-foreground text-2xl font-normal">
-              {" / "}
-              {milestones.length}
-            </span>
-          </p>
-          <p className="text-overline text-muted-foreground mt-1">
-            Milestones complete
-          </p>
-          {missedMilestones > 0 && (
-            <p className="text-overline text-warning mt-1 tabular-nums">
-              {missedMilestones} missed
+        <div className="flex gap-8 md:gap-6 md:flex-col md:items-end md:text-right">
+          <div>
+            <p className="text-display text-foreground text-[clamp(2.25rem,5vw,3.25rem)] leading-none tabular-nums">
+              {stageConfig.order + 1}
+              <span className="text-muted-foreground text-xl font-normal">
+                {" / "}10
+              </span>
             </p>
-          )}
+            <p className="text-overline text-muted-foreground mt-1">Stage</p>
+          </div>
+          <div>
+            <p className="text-display text-foreground text-[clamp(2.25rem,5vw,3.25rem)] leading-none tabular-nums">
+              {completedMilestones}
+              <span className="text-muted-foreground text-xl font-normal">
+                {" / "}
+                {milestones.length}
+              </span>
+            </p>
+            <p className="text-overline text-muted-foreground mt-1">
+              Milestones
+            </p>
+            {missedMilestones > 0 && (
+              <p className="text-overline text-warning mt-1 tabular-nums">
+                {missedMilestones} missed
+              </p>
+            )}
+          </div>
         </div>
+      </section>
+
+      <section className="pb-4">
+        <StageProgressBar currentStage={event.currentStage} isCustomer={!isInternal} />
       </section>
 
       <Hairline className="opacity-60" />
@@ -146,6 +148,7 @@ export default async function TimelinePage({
             milestones={milestones}
             tasks={tasks}
             viewerRole={user.role}
+            isInternal={isInternal}
           />
         </div>
       </section>
@@ -164,6 +167,56 @@ export default async function TimelinePage({
               <StageTransitions transitions={transitions} />
             </div>
           </section>
+
+          {handoffNotes.length > 0 && (
+            <>
+              <Hairline className="opacity-60" />
+              <section className="py-10">
+                <EditorialEyebrow>Handoff notes</EditorialEyebrow>
+                <p className="mt-2 text-sm text-muted-foreground max-w-[58ch]">
+                  What each team left for the next as the event moved between
+                  stages — context that keeps the baton from being dropped.
+                </p>
+                <ul className="mt-6 flex flex-col gap-3">
+                  {handoffNotes.map((note) => (
+                    <li
+                      key={note.id}
+                      className="rounded-[var(--radius-card)] border border-border bg-card/60 p-4"
+                    >
+                      <div className="flex items-center justify-between gap-3 mb-2 flex-wrap">
+                        <span className="text-overline text-[var(--color-bb-cobalt)]">
+                          {(STAGE_CONFIG[note.fromStage as keyof typeof STAGE_CONFIG]?.label ?? note.fromStage)}
+                          {" → "}
+                          {(STAGE_CONFIG[note.toStage as keyof typeof STAGE_CONFIG]?.label ?? note.toStage)}
+                        </span>
+                        <span className="text-overline text-muted-foreground">
+                          {note.authorName ?? "Team"}
+                        </span>
+                      </div>
+                      {note.whatsDone && (
+                        <p className="text-sm text-foreground/90 leading-snug">
+                          <span className="text-muted-foreground">Done · </span>
+                          {note.whatsDone}
+                        </p>
+                      )}
+                      {note.whatsPending && (
+                        <p className="mt-1 text-sm text-foreground/90 leading-snug">
+                          <span className="text-muted-foreground">Next · </span>
+                          {note.whatsPending}
+                        </p>
+                      )}
+                      {note.clientNotes && (
+                        <p className="mt-1 text-sm text-foreground/90 leading-snug">
+                          <span className="text-muted-foreground">Client · </span>
+                          {note.clientNotes}
+                        </p>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            </>
+          )}
         </>
       )}
     </EventPageShell>

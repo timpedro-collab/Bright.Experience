@@ -10,53 +10,51 @@ export const adminTour: TourConfig = {
   celebrationHref: "/pipeline",
   steps: [
     {
-      target: null,
-      visual: "settings-team",
+      target: "kpis",
+      placement: "bottom",
+      title: "The whole platform at a glance",
+      description:
+        "Every event in flight, on track, at risk, and live — the bird's-eye health of the entire operation.",
+    },
+    {
+      target: "work-queue",
+      placement: "bottom",
+      title: "Everything in motion",
+      description:
+        "Quotes, reviews, customer-success and partner queues — every pending item across all teams, each a click from where it's actioned.",
+    },
+    {
+      target: "nav:/admin/users",
+      placement: "right",
       title: "Who has access",
       description:
-        "Invite users, assign roles, and activate or deactivate accounts. You decide who sees what across the entire platform.",
+        "Invite users, assign roles, and activate or deactivate accounts. You decide who sees what across the platform.",
     },
     {
-      target: null,
-      visual: "pipeline-kanban",
-      title: "The platform-wide pipeline",
+      target: "nav:/admin/api",
+      placement: "right",
+      title: "Keys & integrations",
       description:
-        "Every event, every stage, every health flag — the bird's-eye view across all delivery, not just one team's slice.",
+        "API keys and third-party integrations (like Pipedrive) — the platform's plumbing, all in one place.",
     },
     {
-      target: null,
-      visual: "event-glance",
-      title: "Full access to any event",
-      description:
-        "Open any workspace with complete access — every tab, every tool, every data point, with nothing gated off.",
-    },
-    {
-      target: null,
-      visual: "report-card",
-      title: "Reports & benchmarks",
-      description:
-        "Generate proof-of-performance reports and track benchmark trends across event types and the wider portfolio.",
-    },
-    {
-      target: null,
-      visual: "command-search",
+      target: "command-palette",
+      placement: "bottom",
       title: "The power shortcut",
       description:
         "⌘K jumps to any admin page, event, or user — faster than any menu, from anywhere in the portal.",
     },
     {
-      target: null,
-      visual: "task-checklist",
-      title: "Your task board",
+      target: "nav:/pipeline",
+      placement: "right",
+      title: "The platform-wide pipeline",
       description:
-        "Anything assigned to you across the platform, ordered by urgency so nothing waits.",
-    },
-    {
-      target: null,
-      visual: "notifications",
-      title: "System alerts",
-      description:
-        "Escalations, completions, and platform events — your operational feed, in real time.",
+        "Every event, every stage, every health flag — the full delivery picture, not just one team's slice.",
+      action: {
+        type: "click",
+        hint: "Click Pipeline to see the whole operation and finish.",
+        endsTour: true,
+      },
     },
   ],
 };

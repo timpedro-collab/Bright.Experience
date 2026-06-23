@@ -47,13 +47,13 @@ export function RebookCTA(props: RebookCTAProps) {
           </div>
 
           <p className="text-sm text-muted-foreground mb-4">
-            Loved the results? Book the same activation at another location or
-            date — your configuration is ready to go.
+            Want to run this again? Book the same activation at another location
+            or date — your configuration is ready to go.
           </p>
 
           <Button asChild variant="brand" className="w-full group">
             <Link href={href}>
-              Rebook This Activation
+              Rebook this activation
               <ArrowRight
                 size={14}
                 className="transition-transform group-hover:translate-x-0.5"

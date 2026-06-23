@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 
 interface IntakeStepContactProps {
   contactName: string;
+  contactRole: string;
   contactEmail: string;
   contactPhone: string;
   companyName: string;
@@ -52,14 +53,25 @@ export function IntakeStepContact(props: IntakeStepContactProps) {
             onChange={(e) => props.onChange("contactPhone", e.target.value)}
           />
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="companyName">Company or brand</Label>
-          <Input
-            id="companyName"
-            placeholder="Acme Corp"
-            value={props.companyName}
-            onChange={(e) => props.onChange("companyName", e.target.value)}
-          />
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="companyName">Company or brand</Label>
+            <Input
+              id="companyName"
+              placeholder="Acme Corp"
+              value={props.companyName}
+              onChange={(e) => props.onChange("companyName", e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="contactRole">Your role</Label>
+            <Input
+              id="contactRole"
+              placeholder="Brand Manager"
+              value={props.contactRole}
+              onChange={(e) => props.onChange("contactRole", e.target.value)}
+            />
+          </div>
         </div>
       </CardContent>
     </Card>

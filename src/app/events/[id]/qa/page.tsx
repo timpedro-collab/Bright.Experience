@@ -2,7 +2,7 @@
 import { notFound, redirect } from "next/navigation";
 import { ShieldCheck } from "lucide-react";
 
-import { EventPageShell } from "@/components/brand";
+import { EventPageShell } from "@/components/brand/event-page-shell";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { QAChecklist } from "@/components/qa/QAChecklist";
 

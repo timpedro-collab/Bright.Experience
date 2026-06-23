@@ -10,14 +10,18 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { Users, Target, Eye, DollarSign } from "lucide-react";
+import { Users, Target, Eye, Star } from "lucide-react";
 
 import { getEventReportByShareToken } from "@/lib/queries/event-reports";
 import { MetricCard } from "@/components/reports/MetricCard";
 import { PredictedVsActual } from "@/components/reports/PredictedVsActual";
+import {
+  SurveySentimentCard,
+  AudienceDemographicsCard,
+  DigitalFollowThroughCard,
+} from "@/components/reports/EngagementReport";
 import { ReportHighlights } from "@/components/reports/ReportHighlights";
 import {
-  costPerLeadPence,
   normaliseHighlights,
   normaliseMetrics,
   normalisePredictions,
@@ -49,10 +53,9 @@ export default async function PublicReportPage({ params }: Props) {
   const predictions = normalisePredictions(report.predictionsJson);
   const highlights = normaliseHighlights(report.highlightsJson);
 
-  const cpl = costPerLeadPence(metrics);
   const conversion =
     metrics.totalPlays > 0
-      ? `${((metrics.totalLeads / metrics.totalPlays) * 100).toFixed(0)}% conversion`
+      ? `${((metrics.totalLeads / metrics.totalPlays) * 100).toFixed(0)}% opt-in`
       : undefined;
 
   return (
@@ -82,24 +85,28 @@ export default async function PublicReportPage({ params }: Props) {
           <MetricCard
             icon={Users}
             label="Total plays"
-            value={metrics.totalPlays.toLocaleString()}
+            value={metrics.totalPlays.toLocaleString("en-US")}
           />
           <MetricCard
             icon={Target}
-            label="Total leads"
-            value={metrics.totalLeads.toLocaleString()}
+            label="Leads"
+            value={metrics.totalLeads.toLocaleString("en-US")}
             delta={conversion}
             positive
           />
           <MetricCard
             icon={Eye}
-            label="Media impressions"
-            value={metrics.mediaImpressions.toLocaleString()}
+            label="Footfall impressions"
+            value={metrics.mediaImpressions.toLocaleString("en-US")}
           />
           <MetricCard
-            icon={DollarSign}
-            label="Cost per lead"
-            value={cpl !== null ? `£${(cpl / 100).toFixed(2)}` : "—"}
+            icon={Star}
+            label="Satisfaction"
+            value={
+              metrics.npsScore != null
+                ? `${metrics.npsScore.toFixed(1)} / 5`
+                : "—"
+            }
           />
         </div>
 
@@ -117,6 +124,28 @@ export default async function PublicReportPage({ params }: Props) {
                 leads: metrics.totalLeads,
                 impressions: metrics.mediaImpressions,
               }}
+            />
+          </div>
+        )}
+
+        {(metrics.survey.length > 0 || metrics.npsScore != null) && (
+          <div className="mb-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <SurveySentimentCard
+              survey={metrics.survey}
+              npsScore={metrics.npsScore}
+            />
+            <AudienceDemographicsCard demographics={metrics.demographics} />
+          </div>
+        )}
+
+        {(metrics.socialShares != null ||
+          metrics.qrScans != null ||
+          metrics.totalSamples != null) && (
+          <div className="mb-8">
+            <DigitalFollowThroughCard
+              socialShares={metrics.socialShares}
+              qrScans={metrics.qrScans}
+              totalSamples={metrics.totalSamples}
             />
           </div>
         )}

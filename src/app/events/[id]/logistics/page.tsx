@@ -2,7 +2,8 @@
 import { notFound, redirect } from "next/navigation";
 import { Truck, Package, ArrowDownToLine, CalendarDays } from "lucide-react";
 
-import { EventPageShell, EditorialEyebrow, Hairline } from "@/components/brand";
+import { EventPageShell } from "@/components/brand/event-page-shell";
+import { EditorialEyebrow, Hairline } from "@/components/brand";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { LogisticsTimeline } from "@/components/logistics/LogisticsTimeline";
 import { AddLogisticsEntryForm } from "@/components/logistics/AddLogisticsEntryForm";
@@ -14,8 +15,10 @@ import { LogisticsProviderCard } from "@/components/logistics/LogisticsProviderC
 import { DispatchRunSheet } from "@/components/logistics/DispatchRunSheet";
 
 import { VenueRequirementsSection } from "@/components/logistics/VenueRequirementsSection";
+import { OpsBriefingForm } from "@/components/briefing/OpsBriefingForm";
 
 import { getEventById } from "@/lib/queries/events";
+import { createClient } from "@/lib/supabase/server";
 import { getLogisticsByEvent } from "@/lib/queries/logistics";
 import {
   getOnsiteContact,
@@ -77,6 +80,21 @@ export default async function LogisticsPage({
   const isInternal = isInternalRole(user.role);
   if (!event) return notFound();
 
+  // The customer's ops/venue briefing lives on the (creative-gated) briefing
+  // page, so Operations never sees it. Surface it read-only here — the
+  // logistics lane Operations actually works in.
+  let opsBrief: { responses?: Record<string, unknown>; is_submitted?: boolean } | null = null;
+  if (isInternal) {
+    const supabase = await createClient();
+    const { data } = await supabase
+      .from("briefing_responses")
+      .select("responses, is_submitted")
+      .eq("event_id", id)
+      .eq("form_type", "ops")
+      .maybeSingle();
+    opsBrief = data;
+  }
+
   const grouped = groupByType(entries);
   const typeOrder = ["delivery", "setup", "collection"];
   const visibleGroups = typeOrder.filter((t) => grouped[t]?.length);
@@ -114,6 +132,28 @@ export default async function LogisticsPage({
           canEdit={isInternal}
         />
       </section>
+
+      {isInternal && (
+        <>
+          <Hairline className="opacity-40 my-2" />
+          <section className="py-6">
+            <div className="flex items-baseline gap-2 mb-4">
+              <Package size={14} className="text-muted-foreground" />
+              <EditorialEyebrow accent>Customer logistics brief</EditorialEyebrow>
+            </div>
+            <p className="text-sm text-muted-foreground max-w-[58ch] mb-4">
+              Venue, access, power, and staffing details {event.account.name} shared
+              for the build.
+            </p>
+            <OpsBriefingForm
+              eventId={id}
+              initialResponses={opsBrief?.responses ?? {}}
+              isSubmitted={opsBrief?.is_submitted ?? false}
+              readOnly
+            />
+          </section>
+        </>
+      )}
 
       <Hairline className="opacity-40 my-2" />
 

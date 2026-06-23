@@ -1,31 +1,23 @@
-/** Partner attributed clients list — accounts and events referred by this partner */
+/** Partner clients — every referred company, grouped, with what you've earned. */
 import { redirect } from "next/navigation";
+import { Users } from "lucide-react";
+
 import { getUser } from "@/lib/auth";
 import { getPartnerForUser } from "@/lib/queries/partners";
-import { getAttributionsByPartner } from "@/lib/queries/partner-attributions";
+import {
+  getPartnerPipeline,
+  type PartnerDeal,
+} from "@/lib/queries/partner-attributions";
 import { getUnreadCount } from "@/lib/queries/notifications";
 import { PortalPageShell, partnerTabs } from "@/components/brand";
-import {
-  Table,
-  TableHeader,
-  TableBody,
-  TableRow,
-  TableHead,
-  TableCell,
-} from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { Users } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { PartnerDealList } from "@/components/partners/PartnerPipeline";
+import { formatUSDFromCents } from "@/lib/currency";
 
 interface ClientsPageProps {
   params: Promise<{ slug: string }>;
 }
-
-const STATUS_VARIANT: Record<string, "default" | "success" | "warning"> = {
-  paid: "default",
-  approved: "success",
-  pending: "warning",
-};
 
 export default async function PartnerClientsPage({ params }: ClientsPageProps) {
   const { slug } = await params;
@@ -35,15 +27,24 @@ export default async function PartnerClientsPage({ params }: ClientsPageProps) {
   const partner = await getPartnerForUser(user.id);
   if (!partner || partner.slug !== slug) redirect("/");
 
-  const [attributions, unread] = await Promise.all([
-    getAttributionsByPartner(partner.id),
+  const [deals, unread] = await Promise.all([
+    getPartnerPipeline(partner.id),
     getUnreadCount(user.id),
   ]);
   const partnerName = String(partner.name ?? "Partner");
 
-  const clientAttributions = attributions.filter(
-    (a: Record<string, unknown>) => a.event_id || a.quote_id
-  );
+  // Group every deal under its client so the partner sees relationships, not rows.
+  const byClient = new Map<string, PartnerDeal[]>();
+  for (const deal of deals) {
+    const list = byClient.get(deal.clientName) ?? [];
+    list.push(deal);
+    byClient.set(deal.clientName, list);
+  }
+  const clients = [...byClient.entries()].map(([name, clientDeals]) => ({
+    name,
+    deals: clientDeals,
+    earned: clientDeals.reduce((sum, d) => sum + (d.commissionCents ?? 0), 0),
+  }));
 
   return (
     <PortalPageShell
@@ -53,55 +54,39 @@ export default async function PartnerClientsPage({ params }: ClientsPageProps) {
       section="Clients"
       slug={slug}
       tabs={partnerTabs(slug)}
-      title="Clients"
-      subtitle="Accounts and events attributed to your referrals"
+      title="Your clients"
+      subtitle="Every company you've referred, and what each has earned you."
     >
-      {clientAttributions.length === 0 ? (
+      {clients.length === 0 ? (
         <EmptyState
           icon={Users}
-          title="No attributed clients yet"
-          description="Clients who sign up through your partner link will appear here."
+          title="No clients yet"
+          description="Companies who book through your partner link will appear here, grouped by relationship."
           size="sm"
         />
       ) : (
-        <div className="rounded-[var(--radius-card)] border border-border/60 bg-muted/40 backdrop-blur-sm overflow-hidden">
-          <Table>
-            <TableHeader>
-              <TableRow className="border-border/60 hover:bg-transparent">
-                <TableHead className="text-muted-foreground">Date</TableHead>
-                <TableHead className="text-muted-foreground">Type</TableHead>
-                <TableHead className="text-muted-foreground">Reference</TableHead>
-                <TableHead className="text-muted-foreground">Status</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {clientAttributions.map((attr: Record<string, unknown>) => {
-                const status = String(attr.commission_status ?? "pending");
-                return (
-                  <TableRow key={String(attr.id)} className="border-border/60">
-                    <TableCell className="text-muted-foreground">
-                      {new Date(String(attr.created_at)).toLocaleDateString("en-ZA", {
-                        day: "numeric",
-                        month: "short",
-                        year: "numeric",
-                      })}
-                    </TableCell>
-                    <TableCell className="text-foreground">
-                      {attr.quote_id ? "Quote" : "Event"}
-                    </TableCell>
-                    <TableCell className="font-mono text-xs text-muted-foreground">
-                      {String(attr.quote_id ?? attr.event_id ?? "—").slice(0, 8)}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={STATUS_VARIANT[status] ?? "warning"}>
-                        {status}
-                      </Badge>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
+        <div className="space-y-5">
+          {clients.map((client) => (
+            <Card key={client.name}>
+              <CardHeader className="flex-row items-center justify-between space-y-0 pb-3">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  {client.name}
+                  <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+                    {client.deals.length} deal{client.deals.length === 1 ? "" : "s"}
+                  </span>
+                </CardTitle>
+                <div className="text-right">
+                  <p className="text-sm font-semibold tabular-nums text-foreground">
+                    {formatUSDFromCents(client.earned)}
+                  </p>
+                  <p className="text-[0.65rem] text-muted-foreground">earned</p>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <PartnerDealList deals={client.deals} />
+              </CardContent>
+            </Card>
+          ))}
         </div>
       )}
     </PortalPageShell>

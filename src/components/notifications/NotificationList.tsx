@@ -174,7 +174,7 @@ export function NotificationList({ notifications }: NotificationListProps) {
               FYI · {fyi.length}
             </h2>
             <p className="text-overline text-muted-foreground">
-              Updates from your editions
+              Updates from your events
             </p>
           </div>
 

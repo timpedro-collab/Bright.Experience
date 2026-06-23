@@ -2,7 +2,8 @@
 import { notFound, redirect } from "next/navigation";
 import { Package } from "lucide-react";
 
-import { EventPageShell, EditorialEyebrow, Hairline } from "@/components/brand";
+import { EventPageShell } from "@/components/brand/event-page-shell";
+import { EditorialEyebrow, Hairline } from "@/components/brand";
 import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { MachineBuildForm } from "@/components/configuration/MachineBuildForm";
@@ -55,7 +56,7 @@ export default async function MachinePage({
           <EditorialEyebrow accent>Customer product mix</EditorialEyebrow>
           {productConfig?.totalUnits != null && (
             <span className="text-overline text-muted-foreground tabular-nums">
-              {productConfig.totalUnits.toLocaleString()} units expected
+              {productConfig.totalUnits.toLocaleString("en-US")} units expected
             </span>
           )}
         </div>

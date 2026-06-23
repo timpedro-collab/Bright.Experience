@@ -2,7 +2,8 @@
 import { notFound, redirect } from "next/navigation";
 import { ShieldCheck } from "lucide-react";
 
-import { EventPageShell, EditorialEyebrow } from "@/components/brand";
+import { EventPageShell } from "@/components/brand/event-page-shell";
+import { EditorialEyebrow } from "@/components/brand";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ComplianceChecklist } from "@/components/compliance/ComplianceChecklist";
 

@@ -1,7 +1,7 @@
 import type { TourConfig } from "./types";
 
 export const customerAdminTour: TourConfig = {
-  welcomeTitle: "Welcome, boss.",
+  welcomeTitle: "Welcome — you're running the show.",
   welcomeSubtitle:
     "You're the captain of your account. Manage your team, approve deliverables, and track every event.",
   celebrationTitle: "Your account is ready.",
@@ -10,67 +10,49 @@ export const customerAdminTour: TourConfig = {
   celebrationHref: "/",
   steps: [
     {
-      target: null,
+      target: "featured-event",
       visual: "event-glance",
-      title: "Your event at a glance",
+      placement: "top",
+      title: "Your account at a glance",
       description:
-        "Every activation gets its own dashboard. See the current stage, health status, and countdown — all in one place. You'll always know exactly where things stand.",
+        "Time to event, what needs you, the stage, and your team size — the vitals of your live activation in one row.",
     },
     {
-      target: null,
+      target: "waiting-on-you",
       visual: "task-checklist",
+      placement: "right",
       title: "Clear your queue",
       description:
-        "Tasks that need your attention appear as a live checklist. Upload assets, review proofs, approve deliverables — check them off and watch progress move forward in real time.",
+        "Assets to upload, proofs to review, deliverables to approve — your decisions live here, and progress moves the moment you act.",
     },
     {
-      target: null,
-      visual: "briefing-form",
-      title: "Kick things off",
-      description:
-        "The briefing captures everything we need — your brand, your audience, your vision. Fill it out and our team springs into action. It auto-saves as you type.",
-    },
-    {
-      target: null,
-      visual: "asset-upload",
-      title: "Supply your creative",
-      description:
-        "Your creative team produces the assets — screen designs, brand skins, hero images — to our sizing specs. Upload them here and our team reviews everything before build.",
-    },
-    {
-      target: null,
-      visual: "live-dashboard",
-      title: "Watch the magic happen",
-      description:
-        "On event day, your dashboard lights up with real-time data. Plays, leads, conversion rates — all updating every 10 seconds. It's mesmerising to watch.",
-    },
-    {
-      target: null,
-      visual: "report-card",
-      title: "Proof of performance",
-      description:
-        "After the event, get a beautiful report with benchmarks, ROI metrics, and shareable insights. Download as PDF or share a link directly with stakeholders.",
-    },
-    {
-      target: null,
+      target: "notifications",
       visual: "notifications",
+      placement: "bottom",
       title: "Stay in the loop",
       description:
-        "Approvals, milestones, team requests — everything that matters arrives as a real-time notification. You'll never miss a beat.",
+        "Approvals, milestones, and team requests arrive as real-time notifications — nothing slips past you.",
     },
     {
-      target: null,
-      visual: "settings-team",
-      title: "Manage your people",
-      description:
-        "Add team members, control who has access, and assign roles. As the account admin, you decide who sees what across every event.",
-    },
-    {
-      target: null,
+      target: "command-palette",
       visual: "command-search",
+      placement: "bottom",
       title: "Find anything instantly",
       description:
-        "Press ⌘K anytime to search for events, tasks, people, or jump to any page. It's the fastest way to navigate — and it works from anywhere in the portal.",
+        "Press ⌘K to search events, tasks, or people and jump anywhere in the portal.",
+    },
+    {
+      target: "open-event",
+      visual: "report-card",
+      placement: "top",
+      title: "Step inside your event",
+      description:
+        "The full workspace — briefing, creative sign-off, the live dashboard on the day, and your proof-of-performance report after.",
+      action: {
+        type: "click",
+        hint: "Click 'Open this event' to dive in and finish the tour.",
+        endsTour: true,
+      },
     },
   ],
 };

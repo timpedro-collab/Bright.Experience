@@ -7,7 +7,8 @@ import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
 import { FileText } from "lucide-react";
 
-import { EventPageShell, EditorialEyebrow, Hairline } from "@/components/brand";
+import { EventPageShell } from "@/components/brand/event-page-shell";
+import { EditorialEyebrow, Hairline } from "@/components/brand";
 import { BriefingForm } from "@/components/briefing/BriefingForm";
 import { OpsBriefingForm } from "@/components/briefing/OpsBriefingForm";
 import { BriefingTabs } from "@/components/briefing/BriefingTabs";

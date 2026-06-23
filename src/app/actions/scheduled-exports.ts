@@ -153,31 +153,42 @@ export async function buildExportData(
 
   if (includeFields.includes("leads")) {
     const { data: leads } = await supabase
-      .from("event_leads")
-      .select("*")
+      .from("leads")
+      .select("contact_name, contact_email, contact_phone, source, captured_at")
       .eq("event_id", eventId)
-      .order("created_at");
+      .order("captured_at");
     const rows = (leads ?? []) as Record<string, unknown>[];
     sheets.push({
       name: "Leads",
       columns: [
-        { header: "Name", key: "name", width: 24 },
-        { header: "Email", key: "email", width: 28 },
-        { header: "Phone", key: "phone", width: 16 },
-        { header: "Company", key: "company", width: 22 },
-        { header: "Captured At", key: "created_at", width: 20 },
+        { header: "Name", key: "contact_name", width: 24 },
+        { header: "Email", key: "contact_email", width: 28 },
+        { header: "Phone", key: "contact_phone", width: 16 },
+        { header: "Source", key: "source", width: 16 },
+        { header: "Captured At", key: "captured_at", width: 20 },
       ],
       rows,
     });
   }
 
   if (includeFields.includes("scores")) {
-    const { data: scores } = await supabase
-      .from("event_game_scores")
-      .select("*")
+    // There's no dedicated scores table — game plays land in telemetry. Pull
+    // completed plays and flatten the score/level out of the payload.
+    const { data: plays } = await supabase
+      .from("telemetry_events")
+      .select("payload_json, timestamp")
       .eq("event_id", eventId)
-      .order("score", { ascending: false });
-    const rows = (scores ?? []) as Record<string, unknown>[];
+      .eq("event_type", "play_completed")
+      .order("timestamp", { ascending: false });
+    const rows = ((plays ?? []) as Record<string, unknown>[]).map((p) => {
+      const payload = (p.payload_json as Record<string, unknown>) ?? {};
+      return {
+        player_name: payload.player_name ?? payload.player ?? "—",
+        score: payload.score ?? "",
+        level_reached: payload.level_reached ?? payload.level ?? "",
+        created_at: p.timestamp,
+      };
+    });
     sheets.push({
       name: "Game Scores",
       columns: [
@@ -213,14 +224,14 @@ export async function buildExportData(
 
   if (includeFields.includes("custom_fields")) {
     const { data: leads } = await supabase
-      .from("event_leads")
-      .select("name, email, custom_fields_json")
+      .from("leads")
+      .select("contact_name, contact_email, custom_fields_json")
       .eq("event_id", eventId)
-      .order("created_at");
+      .order("captured_at");
     const raw = (leads ?? []) as Record<string, unknown>[];
     const rows = raw.map((r) => ({
-      name: r.name,
-      email: r.email,
+      name: r.contact_name,
+      email: r.contact_email,
       ...((r.custom_fields_json as Record<string, unknown>) ?? {}),
     }));
     if (rows.length > 0) {

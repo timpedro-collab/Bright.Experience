@@ -3,7 +3,8 @@
 import { notFound, redirect } from "next/navigation";
 import { Upload } from "lucide-react";
 
-import { EventPageShell, EditorialEyebrow, Hairline } from "@/components/brand";
+import { EventPageShell } from "@/components/brand/event-page-shell";
+import { EditorialEyebrow, Hairline } from "@/components/brand";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { AssetRow } from "@/components/assets/AssetRow";
@@ -12,7 +13,7 @@ import { AutoRefresh } from "@/components/system/AutoRefresh";
 
 import { getEventById } from "@/lib/queries/events";
 import { getBrandKit } from "@/app/actions/briefing";
-import { getAssetsByEvent } from "@/lib/queries/assets";
+import { getAssetsByEvent, getAnnotationsByAssets } from "@/lib/queries/assets";
 import { getCommentCountsByAssets } from "@/lib/queries/comments";
 import { getCommentsByEvent } from "@/lib/queries/comments";
 import { getUnreadCount } from "@/lib/queries/notifications";
@@ -45,7 +46,10 @@ export default async function AssetsPage({
     instanceMachineSlugs: instanceSlugs,
   });
   const assetIds = assets.map((a) => a.id);
-  const commentCounts = await getCommentCountsByAssets(assetIds);
+  const [commentCounts, annotationsByAsset] = await Promise.all([
+    getCommentCountsByAssets(assetIds),
+    getAnnotationsByAssets(assetIds),
+  ]);
 
   const isInternal = isInternalRole(user.role);
   // The creative team has full control: they can upload creative on the
@@ -150,6 +154,7 @@ export default async function AssetsPage({
                   asset={asset}
                   comments={commentsByAsset[asset.id] ?? []}
                   commentCount={commentCounts[asset.id] ?? 0}
+                  annotations={annotationsByAsset[asset.id] ?? []}
                   currentUserId={user.id}
                   isInternal={isInternal}
                   canUpload={canUpload}

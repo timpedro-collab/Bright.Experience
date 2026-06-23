@@ -27,10 +27,12 @@ import {
 } from "@/components/brand";
 
 const DEMO_ACCOUNTS: Array<{ email: string; label: string; role: string }> = [
-  { email: "sarah@brightblue.co.uk", label: "Sarah Chen", role: "Events Lead" },
+  { email: "tim@brightblue.co.uk", label: "Tim Pedro", role: "Admin · Event Lead" },
   { email: "james.chen@cocacola.com", label: "James Chen", role: "Customer" },
-  { email: "emma@brightblue.co.uk", label: "Emma Rivera", role: "Creative" },
-  { email: "tom@brightblue.co.uk", label: "Tom Park", role: "Ops" },
+  { email: "theo@brightblue.co.uk", label: "Theo Roturu", role: "Creative" },
+  { email: "dan@brightblue.co.uk", label: "Dan Barnes", role: "Ops" },
+  { email: "maya@northern.events", label: "Maya Patel", role: "Reseller Partner" },
+  { email: "aaron@excel.london", label: "Aaron Howe", role: "Venue · ExCeL London" },
 ];
 
 export default function LoginPage() {

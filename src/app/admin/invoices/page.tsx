@@ -17,6 +17,7 @@ import { getUnreadCount } from "@/lib/queries/notifications";
 import { getOutstandingInvoices, type Invoice } from "@/app/actions/invoices";
 import { InvoiceActions } from "@/components/invoices/InvoiceActions";
 import { formatDateShort } from "@/lib/dates";
+import { formatUSDFromCents } from "@/lib/currency";
 
 export const metadata = {
   title: "Invoices · Bright.Experience",
@@ -88,7 +89,7 @@ export default async function InvoicesPage() {
       align: "right",
       cell: (inv) => (
         <span className="text-sm font-semibold text-foreground tabular-nums">
-          £{inv.amount.toLocaleString("en-GB", { minimumFractionDigits: 2 })}
+          {formatUSDFromCents(inv.amount, { decimals: true })}
         </span>
       ),
     },
@@ -113,7 +114,7 @@ export default async function InvoicesPage() {
         <KpiGrid className="lg:grid-cols-3">
           <KpiCard
             label="Total outstanding"
-            value={`£${totalOutstanding.toLocaleString("en-GB", { minimumFractionDigits: 2 })}`}
+            value={formatUSDFromCents(totalOutstanding, { decimals: true })}
             icon={Receipt}
             hint={`${invoices.length} open invoice${invoices.length === 1 ? "" : "s"}`}
           />

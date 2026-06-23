@@ -10,46 +10,51 @@ export const creativeLeadTour: TourConfig = {
   celebrationHref: "/studio",
   steps: [
     {
-      target: null,
-      visual: "approval-flow",
-      title: "Approve or send back",
+      target: "kpis",
+      placement: "bottom",
+      title: "The portfolio you create for",
       description:
-        "The heart of your day: review each asset against the spec, then approve it through to build — or return it with notes so the client can revise.",
+        "Every live event and where it sits — context for the assets and builds landing in your queue.",
     },
     {
-      target: null,
-      visual: "asset-upload",
-      title: "What clients send you",
+      target: "work-queue",
+      placement: "bottom",
+      title: "Where sign-offs pile up",
       description:
-        "Logos, screen designs, brand skins, hero artwork — all uploaded to your sizing and aspect-ratio specs. Check quality before anything moves on.",
+        "Asset reviews and studio orders waiting on the creative team surface here, each linking straight to the work.",
     },
     {
-      target: null,
-      visual: "studio-builds",
-      title: "The Bright.Studio",
+      target: "nav:/studio",
+      placement: "right",
+      title: "Bright.Studio build orders",
       description:
-        "Bespoke design and animation requests, tracked from brief to delivery. Manage builds for game screens, brand skins, and configurations in one place.",
+        "Bespoke design and animation requests, tracked brief-to-delivery — game screens, brand skins, configurations.",
     },
     {
-      target: null,
-      visual: "task-checklist",
-      title: "Your creative queue",
+      target: "nav:/admin/catalog",
+      placement: "right",
+      title: "Your product catalog",
       description:
-        "Every review, build, and proof across every event in one list — overdue items first, so nothing waits on you unnoticed.",
+        "Machines, games, packages and case studies — the building blocks you brand for every activation.",
     },
     {
-      target: null,
-      visual: "notifications",
-      title: "Your creative feed",
-      description:
-        "New uploads, revision requests, and approval decisions land the instant they happen — you're never the last to know.",
-    },
-    {
-      target: null,
-      visual: "command-search",
+      target: "command-palette",
+      placement: "bottom",
       title: "Navigate at speed",
       description:
-        "⌘K jumps straight to asset reviews, studio orders, or any event page. The fastest way to work.",
+        "⌘K jumps straight to asset reviews, studio orders, or any event page from anywhere.",
+    },
+    {
+      target: "nav:/admin/asset-reviews",
+      placement: "right",
+      title: "Clear your review queue",
+      description:
+        "Review each customer upload against the spec, then approve it through to build — or return it with notes.",
+      action: {
+        type: "click",
+        hint: "Click Asset reviews to approve your first asset and finish.",
+        endsTour: true,
+      },
     },
   ],
 };

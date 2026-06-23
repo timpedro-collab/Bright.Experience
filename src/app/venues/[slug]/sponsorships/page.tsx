@@ -1,32 +1,24 @@
 /** Sponsorship slot management — slots grouped by placement. */
 import { redirect } from "next/navigation";
 import { PortalPageShell, venueTabs } from "@/components/brand";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { getUser } from "@/lib/auth";
 import { getPartnerForUser } from "@/lib/queries/partners";
 import { getVenueBySlug } from "@/lib/queries/venues";
 import { getPlacementsByVenue } from "@/lib/queries/placements";
 import { getSlotsByPlacement } from "@/lib/queries/sponsorship-slots";
 import { getUnreadCount } from "@/lib/queries/notifications";
-import { SponsorshipSlotCard } from "@/components/venues/SponsorshipSlotCard";
+import { createClient } from "@/lib/supabase/server";
+import {
+  VenueSponsorshipBoard,
+  type PlacementWithSlots,
+  type SponsorOption,
+} from "@/components/venues/VenueSponsorshipBoard";
+import { Card, CardContent } from "@/components/ui/card";
+import { summariseSlots } from "@/components/venues/venue-helpers";
+import { formatUSDFromCents } from "@/lib/currency";
 
 interface Props {
   params: Promise<{ slug: string }>;
-}
-
-interface PlacementWithSlots {
-  id: string;
-  startDate: string;
-  endDate?: string;
-  machineName?: string;
-  slots: Array<{
-    id: string;
-    startDate: string;
-    endDate: string;
-    price?: number;
-    status: string;
-  }>;
 }
 
 export default async function SponsorshipsPage({ params }: Props) {
@@ -40,10 +32,17 @@ export default async function SponsorshipsPage({ params }: Props) {
   const partner = await getPartnerForUser(user.id);
   if (!partner || venue.partner_id !== partner.id) redirect("/");
 
-  const [placements, unread] = await Promise.all([
+  const supabase = await createClient();
+  const [placements, unread, { data: accounts }] = await Promise.all([
     getPlacementsByVenue(venue.id),
     getUnreadCount(user.id),
+    supabase.from("accounts").select("id, name").order("name"),
   ]);
+
+  const sponsors: SponsorOption[] = (
+    (accounts as Array<{ id: string; name: string }>) ?? []
+  ).map((a) => ({ id: a.id, name: a.name }));
+  const sponsorNameById = new Map(sponsors.map((s) => [s.id, s.name]));
 
   const placementsWithSlots: PlacementWithSlots[] = await Promise.all(
     placements
@@ -63,10 +62,29 @@ export default async function SponsorshipsPage({ params }: Props) {
             endDate: s.end_date,
             price: s.price != null ? Number(s.price) : undefined,
             status: s.status,
+            sponsorName: s.sponsor_account_id
+              ? sponsorNameById.get(String(s.sponsor_account_id))
+              : undefined,
           })),
         };
       })
   );
+
+  const econ = summariseSlots(
+    placementsWithSlots.flatMap((p) =>
+      p.slots.map((s) => ({ status: s.status, price: s.price })),
+    ),
+  );
+
+  const summaryStats = [
+    { label: "Booked revenue", value: formatUSDFromCents(econ.bookedCents) },
+    { label: "Open slot value", value: formatUSDFromCents(econ.openCents) },
+    { label: "Fill rate", value: `${econ.fillRate}%` },
+    {
+      label: "Slots",
+      value: `${econ.reserved}/${econ.total}`,
+    },
+  ];
 
   return (
     <PortalPageShell
@@ -77,49 +95,27 @@ export default async function SponsorshipsPage({ params }: Props) {
       slug={slug}
       tabs={venueTabs(slug)}
       title="Sponsorships"
-      subtitle={`Sponsorship slots at ${venue.name}`}
+      subtitle="Sell your footfall — booked revenue, open slots, and who's in them."
     >
-      <div className="space-y-6">
-        {placementsWithSlots.length === 0 ? (
-          <Card>
-            <CardContent className="py-12 text-center">
-              <p className="text-sm text-muted-foreground">
-                No active placements with sponsorship slots.
+      <Card className="mb-6">
+        <CardContent className="flex flex-wrap gap-x-10 gap-y-4 p-5">
+          {summaryStats.map((stat) => (
+            <div key={stat.label}>
+              <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                {stat.label}
               </p>
-            </CardContent>
-          </Card>
-        ) : (
-          placementsWithSlots.map((placement) => (
-            <Card key={placement.id}>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-base font-semibold">
-                    {placement.machineName ?? "Machine Placement"}
-                  </CardTitle>
-                  <Badge variant="outline" className="text-xs text-muted-foreground">
-                    {new Date(placement.startDate).toLocaleDateString("en-GB")}
-                    {placement.endDate &&
-                      ` — ${new Date(placement.endDate).toLocaleDateString("en-GB")}`}
-                  </Badge>
-                </div>
-              </CardHeader>
-              <CardContent>
-                {placement.slots.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">
-                    No sponsorship slots configured for this placement.
-                  </p>
-                ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {placement.slots.map((slot) => (
-                      <SponsorshipSlotCard key={slot.id} slot={slot} />
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          ))
-        )}
-      </div>
+              <p className="mt-1 text-xl font-bold tabular-nums text-foreground">
+                {stat.value}
+              </p>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+
+      <VenueSponsorshipBoard
+        placements={placementsWithSlots}
+        sponsors={sponsors}
+      />
     </PortalPageShell>
   );
 }

@@ -5,11 +5,14 @@ import { useState, useMemo } from "react";
 import Link from "next/link";
 import { Search } from "lucide-react";
 
+import { CalendarCheck } from "lucide-react";
+
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { QuoteStatusBadge } from "./QuoteStatusBadge";
 import { cn } from "@/lib/utils";
+import { formatNumberUS } from "@/lib/currency";
 import type { QuoteStatus, QuoteTrack } from "@/types";
 
 interface QuoteRow {
@@ -21,6 +24,10 @@ interface QuoteRow {
   company_name?: string;
   event_type?: string;
   created_at: string;
+  reach_track?: string | null;
+  estimated_impressions?: number | null;
+  walkthrough_scheduled_at?: string | null;
+  walkthrough_slot_label?: string | null;
 }
 
 interface QuoteQueueTableProps {
@@ -135,6 +142,8 @@ export function QuoteQueueTable({ quotes }: QuoteQueueTableProps) {
                 <th className="px-4 py-3 font-medium">Track</th>
                 <th className="px-4 py-3 font-medium">Status</th>
                 <th className="px-4 py-3 font-medium">Type</th>
+                <th className="px-4 py-3 font-medium">Reach</th>
+                <th className="px-4 py-3 font-medium">Meeting</th>
                 <th className="px-4 py-3 font-medium">Submitted</th>
               </tr>
             </thead>
@@ -165,14 +174,35 @@ export function QuoteQueueTable({ quotes }: QuoteQueueTableProps) {
                   <td className="px-4 py-3 text-muted-foreground capitalize">
                     {q.event_type ?? "—"}
                   </td>
+                  <td className="px-4 py-3 tabular-nums">
+                    {q.estimated_impressions ? (
+                      <span className="text-foreground">
+                        {formatNumberUS(q.estimated_impressions)}
+                        <span className="ml-1 text-xs text-muted-foreground">impr.</span>
+                      </span>
+                    ) : (
+                      <span className="text-muted-foreground">—</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3">
+                    {q.walkthrough_scheduled_at ? (
+                      <span className="inline-flex items-center gap-1.5 rounded-full border border-[hsl(142_60%_40%)]/30 bg-[hsl(142_60%_40%)]/10 px-2 py-0.5 text-xs font-medium text-[hsl(142_50%_42%)]">
+                        <CalendarCheck className="h-3 w-3" aria-hidden />
+                        {q.walkthrough_slot_label ??
+                          new Date(q.walkthrough_scheduled_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
+                      </span>
+                    ) : (
+                      <span className="text-muted-foreground">—</span>
+                    )}
+                  </td>
                   <td className="px-4 py-3 text-muted-foreground tabular-nums">
-                    {new Date(q.created_at).toLocaleDateString("en-GB")}
+                    {new Date(q.created_at).toLocaleDateString("en-US")}
                   </td>
                 </tr>
               ))}
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-4 py-12 text-center text-muted-foreground">
+                  <td colSpan={7} className="px-4 py-12 text-center text-muted-foreground">
                     No quotes match your filters.
                   </td>
                 </tr>

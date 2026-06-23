@@ -2,6 +2,11 @@
 "use server";
 
 import { requireInternalUser } from "@/lib/auth";
+import {
+  requireVenueManager,
+  requireVenueManagerForPlacement,
+  requireVenueManagerForSlot,
+} from "@/lib/auth/portal";
 import { revalidatePath } from "next/cache";
 
 /** Create a new venue record. */
@@ -40,7 +45,7 @@ export async function createVenue(data: {
   return { success: true as const, data: { id: venue.id, slug: venue.slug } };
 }
 
-/** Create a new venue event package. */
+/** Create a new venue event package. `price` is whole dollars from the form; stored as integer cents. */
 export async function createVenuePackage(data: {
   venueId: string;
   name: string;
@@ -48,11 +53,11 @@ export async function createVenuePackage(data: {
   price?: number;
   includesBrightBlue?: boolean;
 }) {
-  const { supabase } = await requireInternalUser();
-
   if (!data.name.trim()) {
     return { success: false as const, error: "Package name is required" };
   }
+
+  const { supabase } = await requireVenueManager(data.venueId);
 
   const { data: pkg, error } = await supabase
     .from("venue_packages")
@@ -60,7 +65,7 @@ export async function createVenuePackage(data: {
       venue_id: data.venueId,
       name: data.name.trim(),
       description: data.description?.trim() || null,
-      price: data.price ?? null,
+      price: data.price != null ? Math.round(data.price * 100) : null,
       includes_bright_blue: data.includesBrightBlue ?? false,
     })
     .select("id")
@@ -85,7 +90,7 @@ export async function updateVenue(
     contactInfoJson?: Record<string, unknown>;
   }
 ) {
-  const { supabase } = await requireInternalUser();
+  const { supabase } = await requireVenueManager(id);
 
   const updates: Record<string, unknown> = {};
   if (data.name !== undefined) updates.name = data.name;
@@ -114,7 +119,7 @@ export async function createPlacement(data: {
   startDate: string;
   endDate?: string;
 }) {
-  const { supabase } = await requireInternalUser();
+  const { supabase } = await requireVenueManager(data.venueId);
 
   const { data: placement, error } = await supabase
     .from("placements")
@@ -136,7 +141,7 @@ export async function createPlacement(data: {
 
 /** Update the status of an existing placement. */
 export async function updatePlacementStatus(id: string, status: string) {
-  const { supabase } = await requireInternalUser();
+  const { supabase } = await requireVenueManagerForPlacement(id);
 
   const { error } = await supabase
     .from("placements")
@@ -149,14 +154,14 @@ export async function updatePlacementStatus(id: string, status: string) {
   return { success: true as const, data: { id } };
 }
 
-/** Create a new sponsorship slot on a placement. */
+/** Create a new sponsorship slot on a placement. `price` is whole dollars from the form; stored as integer cents. */
 export async function createSponsorshipSlot(data: {
   placementId: string;
   startDate: string;
   endDate: string;
   price?: number;
 }) {
-  const { supabase } = await requireInternalUser();
+  const { supabase } = await requireVenueManagerForPlacement(data.placementId);
 
   const { data: slot, error } = await supabase
     .from("sponsorship_slots")
@@ -164,7 +169,7 @@ export async function createSponsorshipSlot(data: {
       placement_id: data.placementId,
       start_date: data.startDate,
       end_date: data.endDate,
-      price: data.price ?? null,
+      price: data.price != null ? Math.round(data.price * 100) : null,
       status: "available",
     })
     .select("id")
@@ -178,7 +183,7 @@ export async function createSponsorshipSlot(data: {
 
 /** Reserve a sponsorship slot for a sponsor account. */
 export async function reserveSlot(slotId: string, sponsorAccountId: string) {
-  const { supabase } = await requireInternalUser();
+  const { supabase } = await requireVenueManagerForSlot(slotId);
 
   const { error } = await supabase
     .from("sponsorship_slots")

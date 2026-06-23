@@ -1,12 +1,17 @@
-/** Partner commission tracking — earnings breakdown and attribution history */
+/** Partner commissions — what's coming, what's pending, and the full history. */
 import { redirect } from "next/navigation";
+
 import { getUser } from "@/lib/auth";
 import { getPartnerForUser } from "@/lib/queries/partners";
-import { getAttributionsByPartner, getPartnerCommissionSummary } from "@/lib/queries/partner-attributions";
+import {
+  getPartnerPipeline,
+  getPartnerCommissionSummary,
+} from "@/lib/queries/partner-attributions";
 import { getUnreadCount } from "@/lib/queries/notifications";
 import { PortalPageShell, partnerTabs } from "@/components/brand";
-import { CommissionTracker } from "@/components/partners/CommissionTracker";
-import { PartnerPipelineTable } from "@/components/partners/PartnerPipelineTable";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { NextPayoutCard } from "@/components/partners/NextPayoutCard";
+import { PartnerDealList } from "@/components/partners/PartnerPipeline";
 
 interface CommissionsPageProps {
   params: Promise<{ slug: string }>;
@@ -20,13 +25,14 @@ export default async function PartnerCommissionsPage({ params }: CommissionsPage
   const partner = await getPartnerForUser(user.id);
   if (!partner || partner.slug !== slug) redirect("/");
 
-  const [attributions, summary, unread] = await Promise.all([
-    getAttributionsByPartner(partner.id),
+  const [deals, summary, unread] = await Promise.all([
+    getPartnerPipeline(partner.id),
     getPartnerCommissionSummary(partner.id),
     getUnreadCount(user.id),
   ]);
 
   const partnerName = String(partner.name ?? "Partner");
+  const withCommission = deals.filter((d) => d.commissionCents != null);
 
   return (
     <PortalPageShell
@@ -37,27 +43,32 @@ export default async function PartnerCommissionsPage({ params }: CommissionsPage
       slug={slug}
       tabs={partnerTabs(slug)}
       title="Commissions"
-      subtitle="Track your earnings and payout status"
+      subtitle="What's landing next, what's still in the pipeline, and your full history."
     >
-      <div className="space-y-8">
-        <CommissionTracker
-          totalEarned={summary.totalEarned}
-          pending={summary.totalPending}
-          paid={summary.totalPaid}
-        />
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,320px)_1fr]">
         <div>
-          <h2 className="mb-4 text-lg font-semibold text-foreground">
-            Attribution History
-          </h2>
-          <PartnerPipelineTable attributions={attributions.map((a: Record<string, unknown>) => ({
-            id: String(a.id),
-            quoteId: a.quote_id ? String(a.quote_id) : undefined,
-            eventId: a.event_id ? String(a.event_id) : undefined,
-            commissionAmount: a.commission_amount != null ? Number(a.commission_amount) : undefined,
-            commissionStatus: String(a.commission_status ?? "pending"),
-            createdAt: String(a.created_at),
-          }))} />
+          <NextPayoutCard
+            approvedCents={summary.totalApproved}
+            pendingCents={summary.totalPending}
+            paidCents={summary.totalPaid}
+          />
         </div>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Commission history</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {withCommission.length === 0 ? (
+              <p className="py-2 text-sm text-muted-foreground">
+                No commissions yet — they&apos;ll appear here as your referrals
+                convert and get approved.
+              </p>
+            ) : (
+              <PartnerDealList deals={withCommission} />
+            )}
+          </CardContent>
+        </Card>
       </div>
     </PortalPageShell>
   );

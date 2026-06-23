@@ -11,7 +11,7 @@ const TYPE_LABELS: Record<string, { label: string; Icon: React.ElementType }> = 
 };
 
 function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-GB", {
+  return new Date(iso).toLocaleDateString("en-US", {
     weekday: "short",
     day: "numeric",
     month: "short",

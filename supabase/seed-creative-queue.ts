@@ -8,7 +8,7 @@
  *   - file_url / file_name / file_size  (a real, previewable image)
  *   - uploaded_by   → James Chen (the Coca-Cola customer)
  *
- * Result: /admin/asset-reviews (Emma Wright, creative_lead) shows a healthy
+ * Result: /admin/asset-reviews (Theo Roturu, creative_lead) shows a healthy
  * queue of "approve or request a revision" items, while the customer's Assets
  * page shows the same slots as "Under review".
  *

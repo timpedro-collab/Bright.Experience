@@ -10,9 +10,9 @@ import { RidgeArtwork, EditorialEyebrow } from "@/components/brand";
 import { getPackages } from "@/lib/queries/packages";
 
 export const metadata: Metadata = {
-  title: "Packages & pricing",
+  title: "Packages",
   description:
-    "Compare Bright.Blue activation packages — Standard, Premium, and Custom — with transparent base pricing for trade shows and events.",
+    "Explore Bright.Blue activation packages — Standard, Premium, and Custom — and request a tailored quote for your trade show or event.",
 };
 
 const TIER_FILTERS = [
@@ -56,19 +56,19 @@ export default async function PackagesIndexPage({
         <Container className="relative pt-16 md:pt-20 pb-10">
           <EditorialEyebrow accent>Catalog</EditorialEyebrow>
           <h1 className="text-display mt-2 text-[clamp(2.25rem,4.5vw,3.75rem)] leading-[1.1] text-foreground">
-            Packages &amp; pricing.
+            Packages.
           </h1>
           <p className="mt-3 max-w-2xl text-base text-muted-foreground md:text-lg leading-relaxed">
-            Transparent pricing for trade shows and conferences. Experiential
-            activations are quoted bespoke because location, footfall, and
-            media value materially change the value of your spend.
+            Every activation is scoped to your event — location, footfall, and
+            media value all shape what we recommend. Pick the package that fits
+            and we&apos;ll build a tailored quote around it.
           </p>
           <div className="mt-6 flex flex-wrap gap-2">
             <Button asChild variant="brand">
-              <Link href="/book">Book a standard package</Link>
+              <Link href="/proposal">Request a quote</Link>
             </Button>
             <Button asChild variant="glass">
-              <Link href="/proposal">Request a custom proposal</Link>
+              <Link href="/quiz">Find your match</Link>
             </Button>
           </div>
         </Container>
@@ -86,8 +86,8 @@ export default async function PackagesIndexPage({
           {filtered.length === 0 ? (
             <div className="rounded-[var(--radius-card)] border border-border/60 bg-muted/40 p-12 text-center text-muted-foreground">
               {tier
-                ? `No ${tier} packages are available right now. Try removing the filter, or request a tailored proposal.`
-                : "Package pricing is being finalised. Please request a proposal for tailored pricing."}
+                ? `No ${tier} packages are available right now. Try removing the filter, or request a tailored quote.`
+                : "Packages are being finalised. Request a quote and we'll tailor one to your event."}
             </div>
           ) : (
             <div className="grid gap-6 md:grid-cols-3">
@@ -98,7 +98,7 @@ export default async function PackagesIndexPage({
                     name: p.name,
                     slug: p.slug,
                     tier: p.tier,
-                    basePrice: p.base_price,
+                    durationDays: p.duration_days,
                     featuresJson: (p.features_json as string[]) ?? [],
                     isBookable: p.is_bookable,
                   }}

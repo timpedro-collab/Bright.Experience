@@ -10,7 +10,9 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { prepareProposal } from "@/app/actions/quotes";
 import { RequestedCapabilities } from "@/components/quotes/RequestedCapabilities";
-import { Plus, Trash2 } from "lucide-react";
+import { formatUSDFromCents, formatNumberUS } from "@/lib/currency";
+import { timelineLabel } from "@/components/catalog/quiz-data";
+import { Plus, Trash2, Eye, Users, MapPin } from "lucide-react";
 
 interface LineItem { label: string; amount: string; category: string }
 
@@ -77,7 +79,7 @@ export function ProposalBuilder({ quote }: ProposalBuilderProps) {
                   <Input value={item.label} onChange={(e) => updateItem(i, "label", e.target.value)} placeholder="Machine hire" />
                 </div>
                 <div className="w-28 space-y-1">
-                  <Label className="text-xs">Amount (p)</Label>
+                  <Label className="text-xs">Amount (¢)</Label>
                   <Input type="number" value={item.amount} onChange={(e) => updateItem(i, "amount", e.target.value)} />
                 </div>
                 <div className="w-24 space-y-1">
@@ -92,7 +94,7 @@ export function ProposalBuilder({ quote }: ProposalBuilderProps) {
             <Separator />
             <div className="flex justify-between font-semibold text-foreground">
               <span>Total</span>
-              <span>£{(total / 100).toLocaleString("en-GB", { minimumFractionDigits: 2 })}</span>
+              <span>{formatUSDFromCents(total, { decimals: true })}</span>
             </div>
           </CardContent>
         </Card>
@@ -112,33 +114,76 @@ export function ProposalBuilder({ quote }: ProposalBuilderProps) {
   );
 }
 
+function num(value: unknown): number | null {
+  const n = Number(value);
+  return Number.isFinite(n) && n > 0 ? n : null;
+}
+
 function IntakeDataCard({ quote }: { quote: Record<string, unknown> }) {
+  const reachTrack = (quote.reach_track as string) ?? null;
+  const isExperiential = reachTrack === "experiential";
+  const impressions = num(quote.estimated_impressions);
+  const leads = num(quote.estimated_leads);
+  const dooh = num(quote.dooh_media_value);
+  const attendees = num(quote.attendees);
+  const days = num(quote.activation_days);
+  const hasReach = impressions || leads || dooh;
+
   return (
     <Card>
-      <CardHeader><CardTitle className="text-base">Intake Data</CardTitle></CardHeader>
+      <CardHeader><CardTitle className="text-base">Customer brief</CardTitle></CardHeader>
       <CardContent className="space-y-2 text-sm">
-        <Row label="Track" value={String(quote.track)} />
-        <Row label="Event Type" value={String(quote.event_type ?? "—")} />
-        <Row label="Venue" value={String(quote.venue_name ?? "—")} />
+        <Row label="Track" value={reachTrack ? (isExperiential ? "Experiential" : "Tradeshow") : String(quote.track)} />
+        <Row label="Event type" value={String(quote.event_type ?? "—")} />
+        {isExperiential ? (
+          <>
+            <Row label="Location" value={String(quote.activation_location ?? quote.venue_name ?? "—")} />
+            <Row label="Days on site" value={days ? `${days} day${days === 1 ? "" : "s"}` : "—"} />
+          </>
+        ) : (
+          <>
+            <Row label="Venue" value={String(quote.venue_name ?? "—")} />
+            <Row label="Attendees" value={attendees ? formatNumberUS(attendees) : String(quote.footfall_estimate_text ?? "—")} />
+          </>
+        )}
         <Row label="Postcode" value={String(quote.postcode ?? "—")} />
         <Row label="Dates" value={quote.event_date_start ? `${quote.event_date_start} – ${quote.event_date_end ?? "TBD"}` : "—"} />
-        <Row label="Machine" value={String(quote.machine_preference ?? "—")} />
-        <Row label="Game" value={String(quote.game_preference ?? "—")} />
-        <Row
-          label="Footfall"
-          value={String(
-            quote.footfall_estimate_text ?? quote.footfall_estimate ?? "—"
-          )}
-        />
+        <Row label="Timeline" value={timelineLabel(quote.event_timeline as string) ?? "—"} />
         <Row label="Creative" value={String(quote.creative_needs ?? "—")} />
         <Row label="Scope" value={scopeLabel(quote.engagement_scope)} />
+
+        {hasReach && (
+          <>
+            <Separator />
+            <p className="text-overline text-muted-foreground">Projected reach</p>
+            <div className="grid grid-cols-2 gap-2">
+              {impressions != null && <ReachStat icon={Eye} value={formatNumberUS(impressions)} label="Impressions" />}
+              {leads != null && <ReachStat icon={Users} value={formatNumberUS(leads)} label="Leads" />}
+              {dooh != null && <ReachStat icon={MapPin} value={formatUSDFromCents(dooh)} label="DOOH value" />}
+            </div>
+          </>
+        )}
+
         <Separator />
         <Row label="Contact" value={String(quote.contact_name)} />
+        {quote.contact_role ? <Row label="Role" value={String(quote.contact_role)} /> : null}
         <Row label="Email" value={String(quote.contact_email)} />
         <Row label="Phone" value={String(quote.contact_phone ?? "—")} />
         <Row label="Company" value={String(quote.company_name ?? "—")} />
       </CardContent>
     </Card>
+  );
+}
+
+function ReachStat({ icon: Icon, value, label }: { icon: typeof Eye; value: string; label: string }) {
+  return (
+    <div className="flex items-center gap-2 rounded-md border border-border/60 bg-muted/30 px-2.5 py-2">
+      <Icon size={15} className="shrink-0 text-primary" aria-hidden />
+      <span className="min-w-0">
+        <span className="block text-sm font-semibold tabular-nums leading-tight text-foreground">{value}</span>
+        <span className="block text-[0.6875rem] leading-tight text-muted-foreground">{label}</span>
+      </span>
+    </div>
   );
 }
 

@@ -37,6 +37,7 @@ export function NewCampaignForm() {
         description: description || undefined,
         startDate: startDate || undefined,
         endDate: endDate || undefined,
+        status,
       });
       if (!res.success) {
         setError(res.error);

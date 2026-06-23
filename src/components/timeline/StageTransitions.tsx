@@ -17,7 +17,7 @@ interface Props {
 
 function formatTimestamp(iso: string): string {
   const d = new Date(iso);
-  return d.toLocaleString("en-GB", {
+  return d.toLocaleString("en-US", {
     day: "numeric",
     month: "short",
     hour: "2-digit",

@@ -18,12 +18,11 @@ import { getUser } from "@/lib/auth";
 import { isInternalRole } from "@/lib/roles";
 import { canViewSection } from "@/lib/event-access";
 import {
-  costPerLeadPence,
   normaliseHighlights,
   normaliseMetrics,
   normalisePredictions,
 } from "@/lib/reports/normalise";
-import { Users, Target, Eye, DollarSign } from "lucide-react";
+import { Users, Target, Eye, Star } from "lucide-react";
 
 export default async function ReportPrintPage({
   params,
@@ -69,7 +68,6 @@ export default async function ReportPrintPage({
   };
   const predictions = normalisePredictions(report.predictionsJson);
   const highlights = normaliseHighlights(report.highlightsJson);
-  const cpl = costPerLeadPence(metrics);
 
   const metricsRecord: Record<string, number> = {
     interactions: metrics.totalInteractions,
@@ -87,7 +85,7 @@ export default async function ReportPrintPage({
   const benchmarkMap: Record<string, number> = {};
   for (const b of benchmarkList) benchmarkMap[b.metricName] = b.avgValue ?? 0;
 
-  const dateStr = new Date().toLocaleDateString("en-GB", {
+  const dateStr = new Date().toLocaleDateString("en-US", {
     day: "numeric",
     month: "long",
     year: "numeric",
@@ -129,28 +127,32 @@ export default async function ReportPrintPage({
           <MetricCard
             icon={Users}
             label="Total plays"
-            value={metrics.totalPlays.toLocaleString()}
+            value={metrics.totalPlays.toLocaleString("en-US")}
           />
           <MetricCard
             icon={Target}
-            label="Total leads"
-            value={metrics.totalLeads.toLocaleString()}
+            label="Leads"
+            value={metrics.totalLeads.toLocaleString("en-US")}
             delta={
               metrics.totalPlays > 0
-                ? `${((metrics.totalLeads / metrics.totalPlays) * 100).toFixed(0)}% conversion`
+                ? `${((metrics.totalLeads / metrics.totalPlays) * 100).toFixed(0)}% opt-in`
                 : undefined
             }
             positive
           />
           <MetricCard
             icon={Eye}
-            label="Interactions"
-            value={metrics.totalInteractions.toLocaleString()}
+            label="Footfall impressions"
+            value={metrics.mediaImpressions.toLocaleString("en-US")}
           />
           <MetricCard
-            icon={DollarSign}
-            label="Cost per lead"
-            value={cpl !== null ? `£${(cpl / 100).toFixed(2)}` : "—"}
+            icon={Star}
+            label="Satisfaction"
+            value={
+              metrics.npsScore != null
+                ? `${metrics.npsScore.toFixed(1)} / 5`
+                : "—"
+            }
           />
         </div>
       </section>

@@ -2,7 +2,8 @@
 import { notFound, redirect } from "next/navigation";
 import { Users, TrendingUp, Star, Clock } from "lucide-react";
 
-import { EventPageShell, EditorialEyebrow, Hairline } from "@/components/brand";
+import { EventPageShell } from "@/components/brand/event-page-shell";
+import { EditorialEyebrow, Hairline } from "@/components/brand";
 import { MetricCard } from "@/components/telemetry/MetricCard";
 import { LeadTable } from "@/components/telemetry/LeadTable";
 import { ExportMenu } from "@/components/ui/ExportMenu";

@@ -94,7 +94,7 @@ describe("renderNotificationEmail", () => {
       subject: "x",
       body: "y",
     });
-    expect(html).toContain("Sarah Chen");
+    expect(html).toContain("Tim Pedro");
     expect(html).toContain("Bright.Blue");
   });
 
@@ -105,7 +105,7 @@ describe("renderNotificationEmail", () => {
       body: "y",
       showSignOff: false,
     });
-    expect(html).not.toContain("Sarah Chen");
+    expect(html).not.toContain("Tim Pedro");
   });
 
   it("includes a manage-preferences footer link", () => {

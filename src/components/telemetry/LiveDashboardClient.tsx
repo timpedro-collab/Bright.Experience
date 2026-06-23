@@ -64,6 +64,7 @@ interface LiveDashboardClientProps {
   initialHourly: HourlyPoint[];
   initialFeed: FeedItem[];
   initialMachines: MachineInfo[];
+  isCustomer?: boolean;
 }
 
 export function LiveDashboardClient({
@@ -72,6 +73,7 @@ export function LiveDashboardClient({
   initialHourly,
   initialFeed,
   initialMachines,
+  isCustomer = false,
 }: LiveDashboardClientProps) {
   const [metrics, setMetrics] = useState<Metrics>(initialMetrics);
   const [hourly, setHourly] = useState<HourlyPoint[]>(initialHourly);
@@ -179,6 +181,7 @@ export function LiveDashboardClient({
           <LiveCounter
             label="Avg dwell time"
             value={Math.round(metrics.avg_dwell_time)}
+            suffix="s"
             icon={<Clock size={20} />}
           />
         </div>
@@ -213,6 +216,7 @@ export function LiveDashboardClient({
               machines.map((m) => (
                 <MachineStatusCard
                   key={m.serial_number}
+                  isCustomer={isCustomer}
                   machine={{
                     serialNumber: m.serial_number,
                     nickname: m.nickname,

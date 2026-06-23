@@ -35,7 +35,7 @@ export async function buildWorkbook(
   cover.getCell("B2").font = { bold: true, size: 18, color: { argb: BRAND_DEEP_INK } };
   cover.getCell("B3").value = title;
   cover.getCell("B3").font = { size: 14, color: { argb: "666666" } };
-  cover.getCell("B4").value = `Generated ${new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}`;
+  cover.getCell("B4").value = `Generated ${new Date().toLocaleDateString("en-US", { day: "numeric", month: "long", year: "numeric" })}`;
   cover.getCell("B4").font = { size: 10, color: { argb: "999999" } };
   cover.getColumn("B").width = 50;
 

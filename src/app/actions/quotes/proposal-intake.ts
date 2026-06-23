@@ -34,10 +34,23 @@ export async function submitProposalIntake(data: {
   specialRequirements?: string;
   engagementScope?: string;
   contactName: string;
+  contactRole?: string;
   contactEmail: string;
   contactPhone?: string;
   companyName?: string;
   addons?: string[];
+  // Quiz brief + projected reach (carried silently from the match card).
+  reachTrack?: string;
+  attendees?: number;
+  activationLocation?: string;
+  activationLocationKey?: string;
+  activationDays?: number;
+  eventTimeline?: string;
+  estimatedImpressions?: number;
+  estimatedInteractions?: number;
+  estimatedLeads?: number;
+  /** DOOH media value in integer USD cents. */
+  doohMediaValue?: number;
 }) {
   if (!quoteLimiter(await getClientIp())) {
     return {
@@ -93,10 +106,22 @@ export async function submitProposalIntake(data: {
       special_requirements: data.specialRequirements ?? null,
       engagement_scope: data.engagementScope ?? null,
       contact_name: data.contactName,
+      contact_role: data.contactRole ?? null,
       contact_email: data.contactEmail,
       contact_phone: data.contactPhone ?? null,
       company_name: data.companyName ?? null,
       addons,
+      // Quiz brief + projected reach.
+      reach_track: data.reachTrack || null,
+      attendees: data.attendees ?? null,
+      activation_location: data.activationLocation || null,
+      activation_location_key: data.activationLocationKey || null,
+      activation_days: data.activationDays ?? null,
+      event_timeline: data.eventTimeline || null,
+      estimated_impressions: data.estimatedImpressions ?? null,
+      estimated_interactions: data.estimatedInteractions ?? null,
+      estimated_leads: data.estimatedLeads ?? null,
+      dooh_media_value: data.doohMediaValue ?? null,
     })
     .select("id")
     .single();
@@ -153,6 +178,46 @@ export async function submitProposalIntake(data: {
   revalidatePath("/admin/quotes");
   revalidatePath("/admin/customer-queue");
   return { success: true as const, data: { id: quote.id } };
+}
+
+/**
+ * Book the in-app 15-minute walkthrough slot the customer picked on the
+ * confirmation screen. Records the chosen time on the quote so the event lead
+ * sees the booked meeting in their portal (queue + quote detail + home focus).
+ */
+export async function bookWalkthrough(
+  quoteId: string,
+  scheduledAt: string,
+  slotLabel: string,
+) {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("quotes")
+    .update({
+      walkthrough_scheduled_at: scheduledAt,
+      walkthrough_slot_label: slotLabel,
+    })
+    .eq("id", quoteId);
+
+  if (error) {
+    return { success: false as const, error: "Couldn't book that slot. Please try another." };
+  }
+
+  // Ping the event lead so the booked meeting shows up in-portal.
+  try {
+    await dispatchNotification("proposal.walkthrough_booked", {
+      quoteId,
+      slotLabel,
+      entityType: "quote",
+      entityId: quoteId,
+    });
+  } catch (notifyError) {
+    console.error("[bookWalkthrough] notify failed", notifyError);
+  }
+
+  revalidatePath(`/admin/quotes/${quoteId}`);
+  revalidatePath("/admin/quotes");
+  return { success: true as const, data: { scheduledAt, slotLabel } };
 }
 
 /**

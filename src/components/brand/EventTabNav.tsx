@@ -10,6 +10,7 @@ import {
   customerNavGroups,
   type EventSection,
 } from "@/lib/event-access";
+import type { SectionStatus, SectionStatusMap } from "@/lib/queries/event-section-status";
 import { isInternalRole } from "@/lib/roles";
 
 interface EventTabNavProps {
@@ -17,12 +18,27 @@ interface EventTabNavProps {
   currentSection: string;
   /** Viewer's role — the single signal that decides which tabs appear. */
   viewerRole: UserRole;
+  /** Per-section completion tone for customers (green/amber/red dots). */
+  sectionStatus?: SectionStatusMap;
 }
+
+const STATUS_DOT: Record<Exclude<SectionStatus, "neutral">, string> = {
+  green: "bg-[hsl(142_60%_45%)]",
+  amber: "bg-[hsl(43_90%_55%)]",
+  red: "bg-[hsl(0_72%_55%)]",
+};
+
+const STATUS_LABEL: Record<Exclude<SectionStatus, "neutral">, string> = {
+  green: "complete",
+  amber: "in review",
+  red: "needs you",
+};
 
 export function EventTabNav({
   eventId,
   currentSection,
   viewerRole,
+  sectionStatus,
 }: EventTabNavProps) {
   const internal = isInternalRole(viewerRole);
 
@@ -30,13 +46,15 @@ export function EventTabNav({
     const { label, route } = SECTION_META[section];
     const href = route === "" ? `/events/${eventId}` : `/events/${eventId}/${route}`;
     const isActive = currentSection === route;
+    const status = sectionStatus?.[section];
+    const showDot = status && status !== "neutral";
     return (
       <Link
         key={section}
         href={href}
         data-tour={route ? `tab-${route}` : "tab-overview"}
         className={cn(
-          "shrink-0 rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors",
+          "inline-flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
           isActive
             ? "bg-primary text-primary-foreground shadow-sm"
@@ -45,6 +63,22 @@ export function EventTabNav({
         aria-current={isActive ? "page" : undefined}
       >
         {label}
+        {showDot && (
+          <>
+            <span
+              className={cn(
+                "size-1.5 shrink-0 rounded-full",
+                STATUS_DOT[status as Exclude<SectionStatus, "neutral">],
+                isActive && "ring-1 ring-primary-foreground/70",
+              )}
+              aria-hidden
+            />
+            <span className="sr-only">
+              {" "}
+              ({STATUS_LABEL[status as Exclude<SectionStatus, "neutral">]})
+            </span>
+          </>
+        )}
       </Link>
     );
   }

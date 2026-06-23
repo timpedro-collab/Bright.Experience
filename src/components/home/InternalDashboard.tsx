@@ -39,7 +39,9 @@ import { MyWorkDashboard } from "@/components/dashboard/MyWorkDashboard";
 import { StreakIndicator } from "@/components/dashboard/StreakIndicator";
 import { TourShell } from "@/components/onboarding/TourShell";
 import { Pagination } from "@/components/ui/Pagination";
+import { HealthBadge, StageBadge } from "@/components/ui/StatusBadge";
 
+import { formatDateMedium } from "@/lib/dates";
 import { healthLabel } from "@/components/home/home-helpers";
 import type { getInternalQueueCounts } from "@/lib/queries/admin-queues";
 import type { EventFilters } from "@/lib/queries/events";
@@ -89,11 +91,27 @@ export function InternalDashboard({
     portfolio.events.length > 0 ? portfolio.events : events;
   const stageData = portfolio.stageData;
 
+  // Events that need a human now — blocked first, then at-risk, soonest date
+  // first. Folded in from the former /ops command center so this is the one
+  // internal cockpit.
+  const needsAttention = portfolio.events
+    .filter((e) => e.healthStatus === "red" || e.healthStatus === "amber")
+    .sort((a, b) => {
+      if (a.healthStatus !== b.healthStatus) {
+        return a.healthStatus === "red" ? -1 : 1;
+      }
+      return (
+        new Date(a.eventDateStart).getTime() -
+        new Date(b.eventDateStart).getTime()
+      );
+    })
+    .slice(0, 6);
+
   return (
     <TourShell role={user.role} autoStart={false}>
       <EditionShell>
         <EditionChrome
-          breadcrumbs={[{ label: "Your library" }]}
+          breadcrumbs={[{ label: "Command center" }]}
           rightSlot={
             <>
               <NotificationBell unreadCount={unread} />
@@ -118,9 +136,12 @@ export function InternalDashboard({
           />
 
           {queueCounts && (
-            <InternalWorkQueue queues={queueCounts} viewerRole={user.role} />
+            <div data-tour="work-queue">
+              <InternalWorkQueue queues={queueCounts} viewerRole={user.role} />
+            </div>
           )}
 
+          <div data-tour="kpis">
           <KpiGrid>
             <KpiCard label="Total events" value={portfolio.total} icon={Layers} />
             <KpiCard
@@ -142,6 +163,7 @@ export function InternalDashboard({
               hint="assigned to you"
             />
           </KpiGrid>
+          </div>
 
           {/* Cloud-grade portfolio chart (real event data) */}
           {portfolioEvents.length > 0 && (
@@ -156,6 +178,47 @@ export function InternalDashboard({
                 series={[{ key: "count", name: "Events", tone: "primary" }]}
               />
             </ChartCard>
+          )}
+
+          {needsAttention.length > 0 && (
+            <GlassCard data-tour="needs-attention">
+              <GlassCardHeader
+                title="Needs attention"
+                description="Blocked and at-risk events, most urgent first"
+                action={
+                  <Link
+                    href="/pipeline"
+                    className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:opacity-80 transition-opacity"
+                  >
+                    Open pipeline <ArrowRight className="size-4" />
+                  </Link>
+                }
+              />
+              <div className="p-6">
+                <ul className="space-y-2">
+                  {needsAttention.map((event) => (
+                    <li key={event.id}>
+                      <Link
+                        href={`/events/${event.id}`}
+                        className="flex flex-wrap items-center gap-3 rounded-2xl border border-border/60 px-4 py-3 transition-colors hover:bg-muted/40"
+                      >
+                        <span className="min-w-0 flex-1">
+                          <span className="block truncate text-sm font-medium text-foreground">
+                            {event.name}
+                          </span>
+                          <span className="block truncate text-xs text-muted-foreground">
+                            {event.account.name} ·{" "}
+                            {formatDateMedium(event.eventDateStart)}
+                          </span>
+                        </span>
+                        <StageBadge stage={event.currentStage} />
+                        <HealthBadge status={event.healthStatus} />
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </GlassCard>
           )}
 
           <GlassCard data-tour="my-work">
@@ -191,6 +254,7 @@ export function InternalDashboard({
                 <LibraryViewToggle view={libraryView} />
                 <Link
                   href="/events/new"
+                  data-tour="new-edition"
                   className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-[var(--bb-shadow-premium)] hover:brightness-110"
                 >
                   New edition <ArrowRight className="size-4" />

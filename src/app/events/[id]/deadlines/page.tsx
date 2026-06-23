@@ -4,7 +4,8 @@ import { CalendarClock } from "lucide-react";
 
 import Link from "next/link";
 
-import { EventPageShell, EditorialEyebrow } from "@/components/brand";
+import { EventPageShell } from "@/components/brand/event-page-shell";
+import { EditorialEyebrow } from "@/components/brand";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { DeadlineTimeline } from "@/components/events/DeadlineTimeline";
 
@@ -33,11 +34,17 @@ export default async function DeadlinesPage({
   if (!event) return notFound();
 
   const isInternal = isInternalRole(user.role);
-  const overdue = deadlines.filter((d) => d.urgency === "overdue").length;
-  const dueSoon = deadlines.filter((d) => d.urgency === "due_soon").length;
+  // Customers only see their own deadlines, so the headline counts must come
+  // from the same set the timeline renders — otherwise the subtitle could
+  // claim overdue items the customer's own list never shows.
+  const visibleDeadlines = isInternal
+    ? deadlines
+    : deadlines.filter((d) => d.owner === "customer");
+  const overdue = visibleDeadlines.filter((d) => d.urgency === "overdue").length;
+  const dueSoon = visibleDeadlines.filter((d) => d.urgency === "due_soon").length;
 
   const subtitle =
-    deadlines.length === 0
+    visibleDeadlines.length === 0
       ? "No upcoming deadlines for this event."
       : overdue > 0
         ? `${overdue} overdue item${overdue === 1 ? "" : "s"} need attention now.`
@@ -51,12 +58,12 @@ export default async function DeadlinesPage({
       user={user}
       unreadCount={unread}
       section="Deadlines"
-      title="Timeline & deadlines."
+      title="Deadlines."
       subtitle={subtitle}
       isInternal={isInternal}
       viewerRole={user.role}
     >
-      {deadlines.length === 0 ? (
+      {visibleDeadlines.length === 0 ? (
         <section className="py-8">
           <EmptyState
             icon={CalendarClock}
@@ -84,11 +91,8 @@ export default async function DeadlinesPage({
           <div className="mt-5">
             <DeadlineTimeline
               isInternal={isInternal}
-              deadlines={
-                isInternal
-                  ? deadlines
-                  : deadlines.filter((d) => d.owner === "customer")
-              }
+              viewerRole={user.role}
+              deadlines={visibleDeadlines}
             />
           </div>
         </section>

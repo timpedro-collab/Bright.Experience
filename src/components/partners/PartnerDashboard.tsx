@@ -2,8 +2,10 @@
 import { Badge } from "@/components/ui/badge";
 import { HeroMetric, HeroMetricSatellite } from "@/components/ui/hero-metric";
 import { cn } from "@/lib/utils";
+import { formatUSDFromCents } from "@/lib/currency";
 
 interface PartnerSummary {
+  /** All amounts are integer cents. */
   totalEarned: number;
   pending: number;
   paid: number;
@@ -24,13 +26,8 @@ const STATUS_STYLES: Record<string, { label: string; variant: "success" | "warni
   inactive: { label: "Inactive", variant: "muted" },
 };
 
-function formatGBP(amount: number): string {
-  return new Intl.NumberFormat("en-GB", {
-    style: "currency",
-    currency: "GBP",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount);
+function formatGBP(cents: number): string {
+  return formatUSDFromCents(cents);
 }
 
 export function PartnerDashboard({ partner, summary, partnerSlug }: PartnerDashboardProps) {
@@ -67,9 +64,9 @@ export function PartnerDashboard({ partner, summary, partnerSlug }: PartnerDashb
 
       <HeroMetric
         label="Pipeline value"
-        value={formatGBP(summary.totalEarned + summary.pending)}
+        value={formatGBP(summary.totalEarned)}
         tone="default"
-        hint={`${formatGBP(summary.totalEarned)} earned to date · ${formatGBP(summary.pending)} pending`}
+        hint={`${formatGBP(summary.paid)} paid · ${formatGBP(summary.pending)} pending`}
         animate={false}
         satellites={
           <>

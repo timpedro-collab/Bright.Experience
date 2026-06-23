@@ -98,7 +98,7 @@ export function PackageForm({ pkg, machines, onClose }: PackageFormProps) {
           </Select>
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="pkg-price">Base price (£)</Label>
+          <Label htmlFor="pkg-price">Base price (¢)</Label>
           <Input id="pkg-price" type="number" value={basePrice} onChange={(e) => setBasePrice(e.target.value)} />
         </div>
       </div>
