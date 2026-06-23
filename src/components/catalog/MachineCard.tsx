@@ -11,6 +11,8 @@ interface MachineCardProps {
     slug: string;
     tagline?: string;
     heroImageUrl?: string | null;
+    capacityLabel?: string | null;
+    mechanisms?: string[] | null;
   };
   index?: number;
   featured?: boolean;
@@ -53,6 +55,11 @@ export function MachineCard({ machine, index = 0, featured = false }: MachineCar
           </div>
         )}
         <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/60 to-transparent" />
+        {machine.capacityLabel && (
+          <span className="absolute left-3 top-3 rounded-full border border-white/15 bg-black/45 px-2.5 py-1 text-[0.7rem] font-medium text-white/90 backdrop-blur-sm">
+            {machine.capacityLabel}
+          </span>
+        )}
       </div>
 
       <div className="relative p-5">

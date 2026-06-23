@@ -9,6 +9,7 @@ const PUBLIC_PREFIXES = [
   "/forgot-password",
   "/catalog",
   "/resources",
+  "/presentation",
   "/quiz",
   "/book",
   "/proposal",

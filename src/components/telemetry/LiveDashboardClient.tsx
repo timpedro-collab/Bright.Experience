@@ -102,9 +102,16 @@ export function LiveDashboardClient({
   }, [eventId]);
 
   useEffect(() => {
-    if (!isPolling) return;
-    const id = setInterval(fetchData, POLL_INTERVAL_MS);
-    return () => clearInterval(id);
+    // Refresh immediately on mount so the chart, feed and machine status fill
+    // right away (the SSR snapshot seeds an empty hourly curve), then keep the
+    // dashboard current on the polling interval. The first call is deferred a
+    // tick so we don't trigger a synchronous setState inside the effect body.
+    const kickoff = setTimeout(fetchData, 0);
+    const id = isPolling ? setInterval(fetchData, POLL_INTERVAL_MS) : undefined;
+    return () => {
+      clearTimeout(kickoff);
+      if (id) clearInterval(id);
+    };
   }, [fetchData, isPolling]);
 
   const allZero =

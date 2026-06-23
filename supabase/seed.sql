@@ -45,23 +45,65 @@ on conflict (id) do nothing;
 -- ============================================================
 -- CATALOG: machines
 -- ============================================================
-insert into machines (id, name, slug, tagline, description, hero_image_url, video_url, is_active, sort_order) values
-  ('a1a1a1a1-a1a1-4a1a-8a1a-a1a1a1a1a1a1', 'Experience Portal Compact', 'experience-portal-compact',
-    'The compact gifting kiosk',
-    'A smaller-footprint Experience Portal with single-pull dispense, designed for high-frequency sampling moments at retail, transport hubs, and festivals. Same game engine, same lead capture — just smaller.',
-    '/catalog/experience-portal-compact-hero.jpg', null, true, 1),
-  ('a2a2a2a2-a2a2-4a2a-8a2a-a2a2a2a2a2a2', 'Experience Portal', 'experience-portal',
-    'The standard activation unit',
-    'The Europa — a 55" portrait touchscreen wrapped in a fully branded shell, with built-in lead capture, prize dispensing, and Bright.Blue''s entire game engine. The machine behind the majority of Bright.Blue activations. Compact enough for retail, powerful enough for stadiums.',
-    '/catalog/experience-portal-hero.jpg', null, true, 2),
-  ('a3a3a3a3-a3a3-4a3a-8a3a-a3a3a3a3a3a3', 'Experience Portal XL', 'experience-portal-xl',
-    'The large-format interactive experience',
-    'Full-body interactive experience cabinet with a 65" landscape display, capacitive touch, RFID, and Bright.Blue''s game engine. Built for activations where presence and scale matter.',
-    '/catalog/experience-portal-xl-hero.jpg', null, true, 3),
-  ('a4a4a4a4-a4a4-4a4a-8a4a-a4a4a4a4a4a4', 'Experience Portal Studio', 'experience-portal-studio',
-    'Bespoke creative + content',
-    'The Bright.Blue studio team — design, animation, video, and photography — packaged as bookable creative capacity alongside any hardware activation.',
-    '/catalog/experience-portal-studio-hero.jpg', null, true, 4)
+-- Catalogue mirrors the Bright.Blue events brochure. Slugs for the three
+-- dispensing portals are intentionally kept stable (they wire the quiz,
+-- packages and creative asset slots); only the display names changed.
+insert into machines (id, name, slug, tagline, description, hero_image_url, gallery_urls, capacity_label, mechanisms, dispenses, features, best_for, video_url, is_active, sort_order) values
+  ('a2a2a2a2-a2a2-4a2a-8a2a-a2a2a2a2a2a2', 'Europa Experience Portal', 'experience-portal',
+    'The signature activation portal',
+    'Our flagship Experience Portal and the machine behind the majority of Bright.Blue activations. A fully branded 55" portrait touchscreen wrapped in a custom shell, with built-in lead capture, the complete Bright.Blue game engine, and four dispense mechanisms — belts, pushers, spirals and a lift — so it can hand out anything from a token gift to full-size product. Compact enough for retail, powerful enough for a stadium concourse.',
+    '/catalog/machines/europa/01-hero-pelion.jpg',
+    '["/catalog/machines/europa/01-hero-pelion.jpg","/catalog/machines/europa/02-costa-cup.jpg","/catalog/machines/europa/05-play-to-win.jpg","/catalog/machines/europa/03-ice-screen.jpg","/catalog/machines/europa/04-pepsi.jpg","/catalog/machines/europa/06-chocolate.jpg"]'::jsonb,
+    'Up to 800 products',
+    '["Belts","Pushers","Spirals","Lift"]'::jsonb,
+    '["Token gifts","Soft drinks","Cosmetics","Chocolate bars","Alcohol","Stationery","Tech","Accessories","Toys","Socks"]'::jsonb,
+    '[]'::jsonb,
+    '["Retail & shopping-centre sampling","Festival and event concourses","Product launches that hand out full-size product","High-volume lead capture in busy spaces"]'::jsonb,
+    null, true, 1),
+  ('a1a1a1a1-a1a1-4a1a-8a1a-a1a1a1a1a1a1', 'Blinx Experience Portal', 'experience-portal-compact',
+    'The premium smart locker',
+    'A premium smart-locker portal built for high-value reveals. Behind illuminated glass doors, Blinx showcases up to 30 hero products — watches, jewellery, limited-edition merch or full product bundles — and releases them on cue after a game, a purchase or a lead capture. The most editorial unit in the range, made for luxury lobbies and flagship moments.',
+    '/catalog/machines/blinx/01-hero-porsche.jpg',
+    '["/catalog/machines/blinx/01-hero-porsche.jpg","/catalog/machines/blinx/03-hibiki.jpg","/catalog/machines/blinx/02-absolut.jpg"]'::jsonb,
+    'Up to 30 premium products',
+    '["Premium smart locker"]'::jsonb,
+    '["Merchandise","Jewellery","Watches","Alcohol","Equipment","Product bundles","Tech","Toys","Accessories","Apparel"]'::jsonb,
+    '[]'::jsonb,
+    '["Luxury and flagship retail","Hotel and venue lobbies","High-value prize reveals & VIP gifting","Limited-edition product drops"]'::jsonb,
+    null, true, 2),
+  ('a3a3a3a3-a3a3-4a3a-8a3a-a3a3a3a3a3a3', 'Hyperion Experience Portal', 'experience-portal-xl',
+    'The large-format showpiece',
+    'The largest portal in the range and an unmissable centrepiece. Hyperion pairs a wall of branded product behind glass with the same belts, pushers, spirals and lift mechanisms — holding up to 1,200 items — so it keeps dispensing through the busiest days of a show. Built for stands and activations where presence and scale do the talking.',
+    '/catalog/machines/hyperion/01-hero-redbull.jpg',
+    '["/catalog/machines/hyperion/01-hero-redbull.jpg","/catalog/machines/hyperion/03-dual-window.jpg","/catalog/machines/hyperion/02-lucozade.jpg"]'::jsonb,
+    'Up to 1,200 products',
+    '["Belts","Pushers","Spirals","Lift"]'::jsonb,
+    '["Gift boxes","Cosmetics","Accessories","Apparel","Alcohol","Bundles","Toys","Tech","Food & drink","Merchandise"]'::jsonb,
+    '[]'::jsonb,
+    '["Trade-show hero stands","Multi-day exhibitions & conferences","Stadium and arena concourses","High-volume sampling that can''t run dry"]'::jsonb,
+    null, true, 3),
+  ('a4a4a4a4-a4a4-4a4a-8a4a-a4a4a4a4a4a4', 'Callisto Experience Portal', 'callisto-experience-portal',
+    'The frozen experience portal',
+    'A fully refrigerated Experience Portal that dispenses frozen treats on demand. Callisto keeps up to 594 items — ice creams, lollies, gelato and sorbet cups, even alcoholic ice pops and frozen cocktails — at temperature, then hands them out the moment a guest finishes a game or signs up. The crowd-stopper for summer activations.',
+    '/catalog/machines/callisto/01-hero-benjerry.jpg',
+    '["/catalog/machines/callisto/01-hero-benjerry.jpg","/catalog/machines/callisto/02-magnum-vegan.jpg","/catalog/machines/callisto/03-frozen-show.jpg"]'::jsonb,
+    'Up to 594 frozen items',
+    '["Belts","Pushers","Spirals","Lift","Frozen"]'::jsonb,
+    '["Ice cream & lollies","Mini sorbet cups","Mini gelato cups","Alcoholic ice pops","Frozen cocktails","Ice cream sandwiches"]'::jsonb,
+    '[]'::jsonb,
+    '["Summer festivals & outdoor events","Shopping-centre sampling","FMCG ice cream & dessert launches","Hospitality & premium bar activations"]'::jsonb,
+    null, true, 4),
+  ('a5a5a5a5-a5a5-4a5a-8a5a-a5a5a5a5a5a5', 'Experience Kiosks', 'experience-kiosks',
+    'Screens that capture and convert',
+    'When you don''t need to dispense, you need a kiosk. Available tabletop, freestanding or wall-mounted, Experience Kiosks run the full Bright.Blue game engine and lead-capture flow on a single touchscreen — perfect for gamified experiences, visitor sign-ups and showcasing information wherever space is tight.',
+    '/catalog/machines/kiosks/01-hero-freestanding.jpg',
+    '["/catalog/machines/kiosks/01-hero-freestanding.jpg","/catalog/machines/kiosks/02-tabletop.jpg","/catalog/machines/kiosks/03-wall-mounted.jpg"]'::jsonb,
+    'Screen only — no dispense',
+    '["Tabletop","Freestanding","Wall-mounted"]'::jsonb,
+    '[]'::jsonb,
+    '["Gamified experiences","Lead & data capture","Visitor sign-ups","Showcase information"]'::jsonb,
+    '["Conference & expo registration","Info points and wayfinding","Tight retail counters & pop-ups","A data-capture add-on beside a larger unit"]'::jsonb,
+    null, true, 5)
 on conflict (id) do nothing;
 
 -- ============================================================
@@ -112,7 +154,12 @@ insert into machine_games (machine_id, game_id) values
   ('a3a3a3a3-a3a3-4a3a-8a3a-a3a3a3a3a3a3', 'b3b3b3b3-b3b3-4b3b-8b3b-b3b3b3b3b3b3'),
   ('a3a3a3a3-a3a3-4a3a-8a3a-a3a3a3a3a3a3', 'b4b4b4b4-b4b4-4b4b-8b4b-b4b4b4b4b4b4'),
   ('a3a3a3a3-a3a3-4a3a-8a3a-a3a3a3a3a3a3', 'b5b5b5b5-b5b5-4b5b-8b5b-b5b5b5b5b5b5'),
-  ('a3a3a3a3-a3a3-4a3a-8a3a-a3a3a3a3a3a3', 'b6b6b6b6-b6b6-4b6b-8b6b-b6b6b6b6b6b6')
+  ('a3a3a3a3-a3a3-4a3a-8a3a-a3a3a3a3a3a3', 'b6b6b6b6-b6b6-4b6b-8b6b-b6b6b6b6b6b6'),
+  ('a4a4a4a4-a4a4-4a4a-8a4a-a4a4a4a4a4a4', 'b1b1b1b1-b1b1-4b1b-8b1b-b1b1b1b1b1b1'),
+  ('a4a4a4a4-a4a4-4a4a-8a4a-a4a4a4a4a4a4', 'b2b2b2b2-b2b2-4b2b-8b2b-b2b2b2b2b2b2'),
+  ('a5a5a5a5-a5a5-4a5a-8a5a-a5a5a5a5a5a5', 'b1b1b1b1-b1b1-4b1b-8b1b-b1b1b1b1b1b1'),
+  ('a5a5a5a5-a5a5-4a5a-8a5a-a5a5a5a5a5a5', 'b3b3b3b3-b3b3-4b3b-8b3b-b3b3b3b3b3b3'),
+  ('a5a5a5a5-a5a5-4a5a-8a5a-a5a5a5a5a5a5', 'b6b6b6b6-b6b6-4b6b-8b6b-b6b6b6b6b6b6')
 on conflict do nothing;
 
 -- ============================================================

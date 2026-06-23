@@ -100,28 +100,30 @@ export interface MachineVariant {
 }
 
 /**
- * The three hardware variants. `screenImage` points at a distinct placeholder
- * file per variant (currently a copy of the calibrated kiosk render) so Theo
- * knows exactly which asset to swap. `Experience Portal Studio` is a creative
- * service SKU, not hardware, so it is intentionally excluded.
+ * The three dispensing portal variants used for creative slot placement.
+ * Slugs are kept stable (they wire the quiz, packages and asset slots); the
+ * labels mirror the public catalogue names. `screenImage` points at a distinct
+ * placeholder file per variant so Theo knows exactly which asset to swap.
+ * The frozen unit (Callisto) and the Kiosk range are catalogue-only and do not
+ * carry creative slot placements, so they are intentionally excluded here.
  */
 export const MACHINE_VARIANTS: MachineVariant[] = [
   {
     slug: "experience-portal-compact",
-    label: "Experience Portal Compact",
-    shortLabel: "EP Compact",
+    label: "Blinx Experience Portal",
+    shortLabel: "Blinx",
     screenImage: "/machine/placeholders/compact.png",
   },
   {
     slug: "experience-portal",
-    label: "Experience Portal",
-    shortLabel: "EP",
+    label: "Europa Experience Portal",
+    shortLabel: "Europa",
     screenImage: "/machine/placeholders/portal.png",
   },
   {
     slug: "experience-portal-xl",
-    label: "Experience Portal XL",
-    shortLabel: "EP XL",
+    label: "Hyperion Experience Portal",
+    shortLabel: "Hyperion",
     screenImage: "/machine/placeholders/xl.png",
   },
 ];

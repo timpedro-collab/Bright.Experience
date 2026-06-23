@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowRight, ChevronRight, Sparkles } from "lucide-react";
+import { ArrowRight, ChevronRight, Sparkles, Boxes, Cog, Check, Package, MapPin } from "lucide-react";
 
 import { Container, Section } from "@/components/ui/section";
 import { Button } from "@/components/ui/button";
@@ -103,6 +103,113 @@ export default async function MachineDetailPage({ params }: PageProps) {
           </div>
         </Container>
       </Section>
+
+      {(() => {
+        const capacity = (machine.capacity_label as string | null) ?? null;
+        const mechanisms = (machine.mechanisms as string[] | null) ?? [];
+        const dispenses = (machine.dispenses as string[] | null) ?? [];
+        const features = (machine.features as string[] | null) ?? [];
+        const bestFor = (machine.best_for as string[] | null) ?? [];
+        const hasSpecs =
+          Boolean(capacity) ||
+          mechanisms.length > 0 ||
+          dispenses.length > 0 ||
+          features.length > 0 ||
+          bestFor.length > 0;
+        if (!hasSpecs) return null;
+
+        const dispenseLabel = dispenses.length > 0 ? "What it dispenses" : "Capabilities";
+        const dispenseItems = dispenses.length > 0 ? dispenses : features;
+
+        return (
+          <Section className="border-b border-border/60">
+            <Container>
+              <div className="grid gap-12 md:grid-cols-2">
+                <div>
+                  <p className="text-overline text-muted-foreground mb-2">Specifications</p>
+                  <h2 className="text-heading text-3xl font-bold text-foreground md:text-4xl">
+                    At a glance
+                  </h2>
+                  <dl className="mt-6 space-y-5">
+                    {capacity && (
+                      <div className="flex items-start gap-3">
+                        <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border/60 bg-muted/40 text-[hsl(189,100%,75%)]">
+                          <Boxes className="h-4 w-4" />
+                        </span>
+                        <div>
+                          <dt className="text-overline text-muted-foreground">Capacity</dt>
+                          <dd className="text-base font-medium text-foreground">{capacity}</dd>
+                        </div>
+                      </div>
+                    )}
+                    {mechanisms.length > 0 && (
+                      <div className="flex items-start gap-3">
+                        <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border/60 bg-muted/40 text-[hsl(189,100%,75%)]">
+                          <Cog className="h-4 w-4" />
+                        </span>
+                        <div>
+                          <dt className="text-overline text-muted-foreground">
+                            {mechanisms.length === 1 ? "Format" : "Dispense mechanisms"}
+                          </dt>
+                          <dd className="mt-1.5 flex flex-wrap gap-1.5">
+                            {mechanisms.map((m) => (
+                              <Badge key={m} variant="outline">
+                                {m}
+                              </Badge>
+                            ))}
+                          </dd>
+                        </div>
+                      </div>
+                    )}
+                  </dl>
+
+                  {dispenseItems.length > 0 && (
+                    <div className="mt-8">
+                      <p className="text-overline text-muted-foreground mb-3 flex items-center gap-2">
+                        <Package className="h-3.5 w-3.5" /> {dispenseLabel}
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {dispenseItems.map((d) => (
+                          <span
+                            key={d}
+                            className="rounded-full border border-border/60 bg-muted/30 px-3 py-1 text-sm text-foreground/80"
+                          >
+                            {d}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {bestFor.length > 0 && (
+                  <div>
+                    <p className="text-overline text-muted-foreground mb-2 flex items-center gap-2">
+                      <MapPin className="h-3.5 w-3.5" /> Where it works well
+                    </p>
+                    <h2 className="text-heading text-3xl font-bold text-foreground md:text-4xl">
+                      Best-fit moments
+                    </h2>
+                    <ul className="mt-6 space-y-3">
+                      {bestFor.map((b) => (
+                        <li
+                          key={b}
+                          className="flex items-start gap-3 rounded-[var(--radius-card)] border border-border/50 bg-muted/20 p-4"
+                        >
+                          <Check className="mt-0.5 h-5 w-5 shrink-0 text-[hsl(189,100%,75%)]" />
+                          <span className="text-sm leading-relaxed text-foreground/90 md:text-base">
+                            {b}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            </Container>
+          </Section>
+        );
+      })()}
 
       {(() => {
         const raw = (machine.gallery_urls as string[] | null) ?? [];

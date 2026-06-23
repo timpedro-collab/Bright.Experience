@@ -74,6 +74,7 @@ export default async function MachinesIndexPage() {
                     slug: m.slug,
                     tagline: m.tagline ?? undefined,
                     heroImageUrl: m.hero_image_url,
+                    capacityLabel: (m as { capacity_label?: string | null }).capacity_label,
                   }}
                   index={i}
                 />

@@ -5,6 +5,7 @@
 import { notFound, redirect } from "next/navigation";
 
 import { HourlyChart } from "@/components/telemetry/HourlyChart";
+import { hourlyCurveFromTotal } from "@/lib/metrics/drivers";
 import { getEventById } from "@/lib/queries/events";
 import { getUser } from "@/lib/auth";
 import { canViewSection } from "@/lib/event-access";
@@ -65,10 +66,20 @@ export default async function LivePrintPage({
     if (type.includes("play")) hourlyMap[hour].plays++;
     if (type === "lead_captured" || type === "lead") hourlyMap[hour].leads++;
   }
-  const hourly = Object.entries(hourlyMap).map(([h, v]) => ({
+  let hourly = Object.entries(hourlyMap).map(([h, v]) => ({
     hour: Number(h),
     ...v,
   }));
+
+  // Fall back to a snapshot-derived curve when no same-day raw telemetry exists
+  // (completed events), so the printed report still shows a time-of-day chart.
+  const hasHourlyData = hourly.some((h) => h.plays > 0 || h.leads > 0);
+  if (!hasHourlyData && metrics && Number(metrics.total_plays) > 0) {
+    hourly = hourlyCurveFromTotal(
+      Number(metrics.total_plays),
+      Number(metrics.peak_hour ?? 14),
+    );
+  }
 
   const dateStr = new Date().toLocaleDateString("en-US", {
     day: "numeric",

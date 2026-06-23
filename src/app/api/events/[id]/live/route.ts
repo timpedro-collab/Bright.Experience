@@ -14,6 +14,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getLiveSnapshot } from "@/lib/brightblue/client";
+import { hourlyCurveFromTotal } from "@/lib/metrics/drivers";
 
 export const dynamic = "force-dynamic";
 
@@ -111,9 +112,21 @@ export async function GET(
     if (type === "lead_captured" || type === "lead") hourlyMap[hour].leads++;
   }
 
-  const hourly = Object.entries(hourlyMap)
+  let hourly = Object.entries(hourlyMap)
     .map(([h, v]) => ({ hour: Number(h), ...v }))
     .filter((h) => h.hour >= 8 && h.hour <= 20);
+
+  // No same-day raw telemetry (e.g. a completed event whose by-hour rows were
+  // never streamed): synthesize the curve from the latest snapshot total so the
+  // post-event view still shows a believable time-of-day breakdown that totals
+  // to the headline metrics.
+  const hasHourlyData = hourly.some((h) => h.plays > 0 || h.leads > 0);
+  if (!hasHourlyData && metrics && Number(metrics.total_plays) > 0) {
+    hourly = hourlyCurveFromTotal(
+      Number(metrics.total_plays),
+      Number(metrics.peak_hour ?? 14),
+    );
+  }
 
   const feedLabels: Record<string, string> = {
     play_started: "Game session started",

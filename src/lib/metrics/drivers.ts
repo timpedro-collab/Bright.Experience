@@ -48,6 +48,45 @@ export function metricsFromPlays(plays: number) {
   };
 }
 
+/**
+ * Synthesize a believable hour-of-day curve from an event total.
+ *
+ * Used by the live dashboard + print report when there is no same-day raw
+ * telemetry to aggregate (e.g. a completed event whose by-hour rows were never
+ * streamed). Distributes `totalPlays` across the trading window as a gaussian
+ * peaking at `peakHour`, with leads derived at the standard opt-in rate — so
+ * the chart's totals stay consistent with the headline metrics.
+ */
+export function hourlyCurveFromTotal(
+  totalPlays: number,
+  peakHour = 14,
+  openHour = 8,
+  closeHour = 20,
+): { hour: number; plays: number; leads: number }[] {
+  if (!totalPlays || totalPlays <= 0) {
+    const empty: { hour: number; plays: number; leads: number }[] = [];
+    for (let h = openHour; h <= closeHour; h++) empty.push({ hour: h, plays: 0, leads: 0 });
+    return empty;
+  }
+  const sigma = 2.8; // hours — a natural mid-afternoon hump
+  const weights: number[] = [];
+  let weightSum = 0;
+  for (let h = openHour; h <= closeHour; h++) {
+    const d = h - peakHour;
+    const w = Math.exp(-(d * d) / (2 * sigma * sigma));
+    weights.push(w);
+    weightSum += w;
+  }
+  return weights.map((w, i) => {
+    const plays = Math.round((totalPlays * w) / weightSum);
+    return {
+      hour: openHour + i,
+      plays,
+      leads: Math.round(plays * DRIVERS.leadConversion),
+    };
+  });
+}
+
 export interface SnapshotRow {
   event_id: string;
   snapshot_date: string;

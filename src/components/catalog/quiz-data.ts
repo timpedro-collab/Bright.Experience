@@ -508,13 +508,13 @@ export function getRecommendation(answers: QuizAnswers): QuizRecommendation {
       ? {
           machineSlug: "experience-portal",
           packageSlug: "bright-vend-pro-weekend",
-          machineName: "Experience Portal",
+          machineName: "Europa Experience Portal",
           packageName: "Weekend",
         }
       : {
           machineSlug: "experience-portal-compact",
           packageSlug: "bright-vend-single-day",
-          machineName: "Experience Portal Compact",
+          machineName: "Blinx Experience Portal",
           packageName: "Single day",
         };
   } else if (wantsLeads || wantsAwareness || wantsEngagement) {
@@ -523,20 +523,20 @@ export function getRecommendation(answers: QuizAnswers): QuizRecommendation {
       ? {
           machineSlug: "experience-portal-xl",
           packageSlug: "bright-play-tour",
-          machineName: "Experience Portal XL",
+          machineName: "Hyperion Experience Portal",
           packageName: "Tour edition",
         }
       : {
           machineSlug: "experience-portal-xl",
           packageSlug: "bright-play-five-day",
-          machineName: "Experience Portal XL",
+          machineName: "Hyperion Experience Portal",
           packageName: "Five-day activation",
         };
   } else {
     match = {
       machineSlug: "experience-portal-xl",
       packageSlug: "bespoke",
-      machineName: "Experience Portal XL",
+      machineName: "Hyperion Experience Portal",
       packageName: "Bespoke",
     };
   }

@@ -6,7 +6,7 @@ export async function getMachines() {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("machines")
-    .select("id, name, slug, tagline, hero_image_url, sort_order")
+    .select("id, name, slug, tagline, hero_image_url, capacity_label, mechanisms, sort_order")
     .eq("is_active", true)
     .order("sort_order");
 
@@ -24,6 +24,7 @@ export async function getMachineBySlug(slug: string) {
     .from("machines")
     .select(
       `id, name, slug, tagline, description, hero_image_url, gallery_urls, video_url,
+       capacity_label, mechanisms, dispenses, features, best_for,
        is_active, sort_order, created_at,
        machine_games ( game_id, games ( id, name, slug, thumbnail_url, category, is_active ) ),
        packages ( id, name, slug, tier, base_price, duration_days, is_bookable )`

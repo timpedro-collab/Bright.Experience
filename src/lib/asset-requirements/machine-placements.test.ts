@@ -36,7 +36,7 @@ describe("machine placement registry", () => {
     const slot = slotForAsset("Idle Screen Advert", "experience-portal-xl");
     expect(slot?.slotKey).toBe("experience-portal-xl/idle-advert");
     expect(slot?.slotLetter).toBe("A");
-    expect(slot?.machineLabel).toBe("Experience Portal XL");
+    expect(slot?.machineLabel).toBe("Hyperion Experience Portal");
   });
 
   it("returns null for assets with no on-machine placement", () => {
