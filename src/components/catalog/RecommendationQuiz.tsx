@@ -360,7 +360,7 @@ function NumberStep({
         rows={[
           { icon: Eye, label: "Projected impressions", value: formatNumberUS(reach.impressions) },
         ]}
-        note="Eyeballs across the unit's three branded screens, scaled from your expected attendance. Your event lead confirms plays and leads on the walkthrough."
+        note="Eyeballs on your branded activation, scaled from your expected attendance. Your event lead confirms plays and leads on the walkthrough."
       />
     </div>
   );
@@ -421,7 +421,7 @@ function DurationStep({
             ? [{ icon: MapPin, label: "Equivalent DOOH value", value: formatUSDFromCents(reach.doohMediaValueCents) }]
             : []),
         ]}
-        note="Modelled from the site's real daily footfall across three branded screens. Your event lead confirms plays and leads on the walkthrough."
+        note="Modelled from the site's real daily footfall. Your event lead confirms plays and leads on the walkthrough."
       />
     </div>
   );

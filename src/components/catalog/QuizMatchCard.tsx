@@ -241,8 +241,8 @@ function ProjectedReach({ recommendation }: { recommendation: QuizRecommendation
       </div>
       <p className="mt-3 text-[0.6875rem] leading-snug text-muted-foreground">
         {track === "experiential"
-          ? "Modelled from the site's real daily footfall across the unit's three branded screens. Your event lead confirms the final figures on the walkthrough."
-          : "Across the unit's three branded screens. Your event lead confirms the final figures on the walkthrough."}
+          ? "Modelled from the site's real daily footfall. Your event lead confirms the final figures on the walkthrough."
+          : "Scaled from your expected attendance. Your event lead confirms the final figures on the walkthrough."}
       </p>
     </div>
   );

@@ -146,8 +146,8 @@ export function ProposalDocumentView({
               </div>
               <p className="mt-5 max-w-[64ch] text-xs leading-relaxed text-muted-foreground">
                 {doc.reach.track === "experiential"
-                  ? "Modelled from the site's real daily footfall across the unit's three branded screens (main touchscreen + two rolling-advert side screens). Final figures confirmed on your walkthrough."
-                  : "Across the unit's three branded screens, scaled from your expected attendance. Final figures confirmed on your walkthrough."}
+                  ? "Modelled from the site's real daily footfall and the unit's branded advertising. Final figures confirmed on your walkthrough."
+                  : "Scaled from your expected attendance and the unit's branded advertising. Final figures confirmed on your walkthrough."}
               </p>
             </div>
           </Card>
