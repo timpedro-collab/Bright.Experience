@@ -92,18 +92,18 @@ const UPLOADS: {
     fileSize: 156_400,
     revisionCount: 0,
   },
-  // ── Coca-Cola Christmas Market (e4) ───────────────────────────────────────
+  // ── Coca-Cola Notting Hill Carnival (e4) ──────────────────────────────────
   {
     id: "a4f00000-0000-4000-8000-000000000010", // Home Banner Ad
     fileUrl: "/catalog/case-studies/costa-matcha/02-winner-qr-scan.png",
-    fileName: "xmas-home-banner.png",
+    fileName: "carnival-home-banner.png",
     fileSize: 271_300,
     revisionCount: 0,
   },
   {
     id: "a4f00000-0000-4000-8000-000000000004", // Payment Terminal Screen
     fileUrl: "/catalog/case-studies/costa-matcha/06-full-setup-queue.png",
-    fileName: "xmas-payment-screen.png",
+    fileName: "carnival-payment-screen.png",
     fileSize: 144_700,
     revisionCount: 0,
   },

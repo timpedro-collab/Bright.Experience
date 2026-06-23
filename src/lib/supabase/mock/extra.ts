@@ -23,7 +23,7 @@ const P_TOM = "44444444-4444-4444-4444-444444444444"; // operations_lead
 
 const EVT_COKE_SUMMER = "e1111111-1111-1111-1111-111111111111";
 const EVT_SAMSUNG_LAUNCH = "e2222222-2222-2222-2222-222222222222";
-const EVT_COKE_XMAS = "e4444444-4444-4444-4444-444444444444";
+const EVT_COKE_CARNIVAL = "e4444444-4444-4444-4444-444444444444";
 const EVT_SAMSUNG_UNPACKED = "e5555555-5555-5555-5555-555555555555";
 const EVT_COKE_SPRING = "e6666666-6666-6666-6666-666666666666";
 
@@ -390,7 +390,7 @@ export const EXTRA_TABLES: Record<string, MockRow[]> = {
 
   campaign_events: [
     { id: "cb000000-0000-4000-8000-000000000001", campaign_id: CMP_COKE, event_id: EVT_COKE_SUMMER, sort_order: 0, created_at: "2026-03-01T10:00:00Z" },
-    { id: "cb000000-0000-4000-8000-000000000002", campaign_id: CMP_COKE, event_id: EVT_COKE_XMAS, sort_order: 1, created_at: "2026-04-01T10:00:00Z" },
+    { id: "cb000000-0000-4000-8000-000000000002", campaign_id: CMP_COKE, event_id: EVT_COKE_CARNIVAL, sort_order: 1, created_at: "2026-04-01T10:00:00Z" },
     { id: "cb000000-0000-4000-8000-000000000003", campaign_id: CMP_COKE, event_id: EVT_COKE_SPRING, sort_order: 2, created_at: "2026-03-01T10:00:00Z" },
     { id: "cb000000-0000-4000-8000-000000000004", campaign_id: CMP_SAMSUNG, event_id: EVT_SAMSUNG_LAUNCH, sort_order: 0, created_at: "2026-04-01T10:00:00Z" },
     { id: "cb000000-0000-4000-8000-000000000005", campaign_id: CMP_SAMSUNG, event_id: EVT_SAMSUNG_UNPACKED, sort_order: 1, created_at: "2026-04-01T10:00:00Z" },
