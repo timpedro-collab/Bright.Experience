@@ -4,13 +4,18 @@
  * projected-reach and DOOH media-value numbers hold up in a sales conversation.
  *
  * London Waterloo is the hero site:
- *   - Great Britain's busiest station; JCDecaux's Waterloo channel cites
- *     ~2.2M footfall/week (~300k/day) delivering ~40M weekly viewed
- *     impressions across its screen estate.
- * We model a single brand activation off daily footfall and a pass-rate, then
- * multiply impressions across the unit's ad faces. The DOOH media value uses
- * premium, site-appropriate OOH CPMs (iconic central-London rail commands far
- * higher rates than a regional high street).
+ *   - 70.4M passenger entries + exits in 2024–25 — Great Britain's 2nd busiest
+ *     station (Office of Rail and Road, station usage 2024–25).
+ *   - JCDecaux's Waterloo channel cites ~2.2M footfall/week delivering ~40M
+ *     weekly viewed impressions across its screen estate.
+ * We model a single brand activation conservatively off daily footfall and a
+ * pass-rate, then multiply impressions across the unit's premium screen estate.
+ *
+ * CPM here is the open-market rate for *premium, full-motion* digital OOH at
+ * these flagship sites (station dominations and large-format mall screens trade
+ * far above standard roadside DOOH), so the "equivalent media value" reflects
+ * what a brand would actually pay to buy the same premium impressions. It is a
+ * ceiling, shown to the customer as an "up to" figure.
  *
  * Pure module (no I/O) so it is safe to import from the client-side quiz.
  */
@@ -54,13 +59,12 @@ export const EXPERIENTIAL_LOCATIONS: ExperientialLocation[] = [
     shortName: "Waterloo",
     region: "London",
     tier: "tier_1",
-    dailyFootfall: 300_000,
+    dailyFootfall: 195_000,
     passRate: 0.4,
-    cpm: 42,
+    cpm: 95,
     blurb:
-      "Great Britain's busiest station — ~2.2M footfall a week through one concourse of affluent commuters.",
-    source:
-      "JCDecaux Motion@Waterloo (~2.2M footfall/week ≈ 300k/day); ORR usage 2024–25. Premium iconic-rail DOOH CPM.",
+      "Great Britain's 2nd-busiest station — 70.4M passengers a year through one concourse of affluent commuters.",
+    source: "ORR station usage 2024–25 (70.4M entries+exits); JCDecaux Motion@Waterloo.",
     hero: true,
   },
   {
@@ -69,11 +73,11 @@ export const EXPERIENTIAL_LOCATIONS: ExperientialLocation[] = [
     shortName: "Westfield London",
     region: "London",
     tier: "tier_1",
-    dailyFootfall: 95_000,
+    dailyFootfall: 85_000,
     passRate: 0.35,
-    cpm: 30,
+    cpm: 65,
     blurb: "Europe's largest shopping centre — a dwelling, high-intent retail crowd.",
-    source: "Unibail-Rodamco-Westfield ~28–30M visitors/year; premium retail DOOH CPM.",
+    source: "Unibail-Rodamco-Westfield reported ~28–30M visitors/year.",
   },
   {
     key: "manchester-piccadilly",
@@ -81,11 +85,11 @@ export const EXPERIENTIAL_LOCATIONS: ExperientialLocation[] = [
     shortName: "Manchester Piccadilly",
     region: "North West",
     tier: "tier_2",
-    dailyFootfall: 75_000,
+    dailyFootfall: 68_000,
     passRate: 0.38,
-    cpm: 24,
+    cpm: 48,
     blurb: "The North West's primary rail gateway — strong commuter + leisure mix.",
-    source: "ORR station usage — ~25M entries+exits/year; major-rail DOOH CPM.",
+    source: "ORR station usage — ~25M entries+exits/year.",
   },
   {
     key: "birmingham-newstreet",
@@ -93,11 +97,11 @@ export const EXPERIENTIAL_LOCATIONS: ExperientialLocation[] = [
     shortName: "Birmingham",
     region: "West Midlands",
     tier: "tier_2",
-    dailyFootfall: 110_000,
+    dailyFootfall: 90_000,
     passRate: 0.34,
-    cpm: 22,
+    cpm: 48,
     blurb: "The busiest interchange outside London, feeding straight into the Bullring.",
-    source: "ORR station usage — Birmingham New Street ~47M entries+exits/year; major-rail DOOH CPM.",
+    source: "ORR station usage — Birmingham New Street ~47M entries+exits/year.",
   },
   // ---- Partner networks ---------------------------------------------------
   // Promotional space booked through our managed partners. Footfall shown is a
@@ -109,11 +113,11 @@ export const EXPERIENTIAL_LOCATIONS: ExperientialLocation[] = [
     shortName: "Space & People",
     region: "UK & Ireland network",
     tier: "tier_2",
-    dailyFootfall: 60_000,
+    dailyFootfall: 55_000,
     passRate: 0.32,
-    cpm: 18,
+    cpm: 38,
     blurb: "Promotional pitches across 100+ UK & Ireland shopping centres — dwelling, high-intent shoppers.",
-    source: "Space & People managed retail-mall network; representative per-centre footfall + retail DOOH CPM.",
+    source: "Space & People managed retail-mall network; representative per-centre daily footfall.",
     partner: true,
   },
   {
@@ -122,11 +126,11 @@ export const EXPERIENTIAL_LOCATIONS: ExperientialLocation[] = [
     shortName: "Simon Malls",
     region: "US network",
     tier: "tier_1",
-    dailyFootfall: 55_000,
+    dailyFootfall: 50_000,
     passRate: 0.34,
-    cpm: 32,
+    cpm: 70,
     blurb: "Flagship US shopping destinations — high-dwell, high-spend retail crowds.",
-    source: "Simon Property Group flagship-mall network; representative per-mall footfall + premium US retail DOOH CPM.",
+    source: "Simon Property Group flagship-mall network; representative per-mall daily footfall.",
     partner: true,
   },
 ];
@@ -138,10 +142,10 @@ export const FALLBACK_EXPERIENTIAL_LOCATION: ExperientialLocation = {
   shortName: "Your location",
   region: "UK",
   tier: "tier_3",
-  dailyFootfall: 35_000,
-  passRate: 0.3,
-  cpm: 15,
-  blurb: "Tell us where — we'll model the reach off the site's real footfall.",
+    dailyFootfall: 35_000,
+    passRate: 0.3,
+    cpm: 30,
+    blurb: "Tell us where — we'll model the reach off the site's real footfall.",
   source: "Conservative tier-3 high-street estimate; refined from the postcode on the call.",
 };
 

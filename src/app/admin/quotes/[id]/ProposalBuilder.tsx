@@ -159,7 +159,7 @@ function IntakeDataCard({ quote }: { quote: Record<string, unknown> }) {
             <div className="grid grid-cols-2 gap-2">
               {impressions != null && <ReachStat icon={Eye} value={formatNumberUS(impressions)} label="Impressions" />}
               {leads != null && <ReachStat icon={Users} value={formatNumberUS(leads)} label="Leads" />}
-              {dooh != null && <ReachStat icon={MapPin} value={formatUSDFromCents(dooh)} label="DOOH value" />}
+              {dooh != null && <ReachStat icon={MapPin} value={`Up to ${formatUSDFromCents(dooh)}`} label="DOOH value" />}
             </div>
           </>
         )}

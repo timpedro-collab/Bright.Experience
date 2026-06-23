@@ -1566,11 +1566,12 @@ export const MOCK_TABLES: Record<string, MockRow[]> = {
       // Projected reach (Waterloo 195k/day · 40% pass · 3 screens · 3 days).
       // Impressions scale with footfall; plays/leads are capped at one unit's
       // realistic ~220 plays/day throughput (660 over 3 days → ~594 leads).
+      // DOOH = 702,000 imp × $95 premium-station CPM (an "up to" ceiling).
       attendees: null,
       estimated_impressions: 702000,
       estimated_interactions: 660,
       estimated_leads: 594,
-      dooh_media_value: 912600,
+      dooh_media_value: 6669000,
       addons: ["sampling-unlock", "dynamic-sponsors", "live-telemetry"],
       total_amount: null,
       // Booked in-app 15-minute walkthrough.

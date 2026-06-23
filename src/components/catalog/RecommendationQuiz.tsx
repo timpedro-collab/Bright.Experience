@@ -418,7 +418,7 @@ function DurationStep({
         rows={[
           { icon: Eye, label: "Projected impressions", value: formatNumberUS(reach.impressions) },
           ...(reach.doohMediaValueCents != null
-            ? [{ icon: MapPin, label: "Equivalent DOOH value", value: formatUSDFromCents(reach.doohMediaValueCents) }]
+            ? [{ icon: MapPin, label: "Equivalent DOOH value", value: `Up to ${formatUSDFromCents(reach.doohMediaValueCents)}` }]
             : []),
         ]}
         note="Modelled from the site's real daily footfall. Your event lead confirms plays and leads on the walkthrough."

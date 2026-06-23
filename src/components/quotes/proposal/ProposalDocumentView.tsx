@@ -141,7 +141,7 @@ export function ProposalDocumentView({
                 <ReachStat icon={Eye} value={formatNumberUS(doc.reach.impressions)} label="Impressions" />
                 <ReachStat icon={Users} value={formatNumberUS(doc.reach.leads)} label="Leads" />
                 {doc.reach.doohMediaValueCents != null && (
-                  <ReachStat icon={MapPin} value={formatUSDFromCents(doc.reach.doohMediaValueCents)} label="DOOH media value" />
+                  <ReachStat icon={MapPin} value={`Up to ${formatUSDFromCents(doc.reach.doohMediaValueCents)}`} label="DOOH media value" />
                 )}
               </div>
               <p className="mt-5 max-w-[64ch] text-xs leading-relaxed text-muted-foreground">
