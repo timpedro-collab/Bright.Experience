@@ -1,0 +1,345 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Bright.Blue Case Study — Costa Coffee · Catch-A-Matcha</title>
+<style>
+  :root {
+    --brand: #183DF7; --brand-deep: #1c1c45; --brand-ink: #050519; --brand-soft: #80E8FF; --brand-light: #9DBCFB;
+    --success: #1FA968;
+    --bg: #ffffff; --surface-alt: #F5F7FD; --border: #E6E9F2; --border-strong: #D3D8E6;
+    --text: #050519; --text-muted: #4A4D66; --text-faint: #8A8FA6;
+    --radius: 1rem; --radius-sm: 0.625rem;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; overflow-x: hidden; }
+  body { overflow-x: hidden; font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: var(--text); font-size: 15px; line-height: 1.6; -webkit-font-smoothing: antialiased; background: var(--bg); }
+
+  h1, h2, h3 { font-family: Inter, system-ui, sans-serif; letter-spacing: -0.025em; font-weight: 600; line-height: 1.15; }
+  h1 { font-size: 44px; font-weight: 700; letter-spacing: -0.035em; }
+  h2 { font-size: 27px; }
+  h3 { font-size: 18px; }
+  .overline { text-transform: uppercase; letter-spacing: 0.18em; font-size: 11px; font-weight: 600; }
+  p { margin-bottom: 12px; } p:last-child { margin-bottom: 0; }
+
+  .section-inner { max-width: 880px; margin: 0 auto; padding: 0 48px; }
+
+  .hero { background: var(--brand-ink); padding: 80px 48px 72px; position: relative; overflow: hidden; }
+  .hero::before { content: ""; position: absolute; inset: 0; background: radial-gradient(ellipse 80% 60% at 0% 0%, rgba(24,61,247,.18), transparent 60%), radial-gradient(ellipse 60% 80% at 100% 100%, rgba(128,232,255,.08), transparent 60%); pointer-events: none; }
+  .hero-inner { max-width: 880px; margin: 0 auto; position: relative; z-index: 1; }
+  .logo-lockup { display: flex; align-items: center; justify-content: center; gap: 28px; margin-bottom: 52px; }
+  .logo-lockup img.bb-logo { height: 40px; width: auto; }
+  .hero .eyebrow { text-align: center; text-transform: uppercase; letter-spacing: 0.28em; font-size: 12px; font-weight: 600; color: var(--brand-soft); margin-bottom: 18px; }
+  .hero h1 { color: #fff; text-align: center; margin-bottom: 12px; }
+  .hero .subtitle { text-align: center; color: rgba(255,255,255,.55); font-size: 17px; margin-bottom: 48px; }
+  .hero-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: rgba(255,255,255,.08); border-radius: var(--radius); overflow: hidden; }
+  .hero-stat { background: rgba(255,255,255,.04); padding: 28px 16px; text-align: center; }
+  .hero-stat .value { font-size: 28px; font-weight: 700; color: #fff; letter-spacing: -0.03em; line-height: 1.1; margin-bottom: 6px; }
+  .hero-stat .label { text-transform: uppercase; letter-spacing: 0.14em; font-size: 10px; color: rgba(255,255,255,.4); font-weight: 600; }
+  .hero-footer { margin-top: 40px; text-align: center; text-transform: uppercase; letter-spacing: 0.2em; font-size: 10px; color: rgba(255,255,255,.25); font-weight: 600; }
+
+  .photo-inline { border-radius: var(--radius); overflow: hidden; border: 1px solid var(--border); margin-bottom: 36px; }
+  .photo-inline img { width: 100%; height: auto; display: block; }
+  .section-dark .photo-inline { border-color: rgba(255,255,255,.12); }
+
+  .section-light { background: var(--bg); padding: 72px 0; }
+  .section-alt { background: var(--surface-alt); padding: 72px 0; }
+  .section-dark { background: var(--brand-deep); padding: 72px 0; color: rgba(255,255,255,.85); }
+  .section-dark h2, .section-dark h3 { color: #fff; }
+  .section-header { margin-bottom: 32px; }
+  .section-header .overline { color: var(--brand); display: block; margin-bottom: 10px; }
+  .section-header h2 { margin-bottom: 14px; }
+  .section-header p { color: var(--text-muted); font-size: 15px; max-width: 720px; }
+  .section-dark .section-header .overline { color: var(--brand-soft); }
+  .section-dark .section-header p { color: rgba(255,255,255,.6); }
+
+  .stats-row { display: grid; gap: 16px; margin: 28px 0; }
+  .stats-row.cols-2 { grid-template-columns: repeat(2, 1fr); }
+  .stats-row.cols-3 { grid-template-columns: repeat(3, 1fr); }
+  .stat-card { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 24px 22px; background: var(--bg); }
+  .stat-card .value { font-size: 30px; font-weight: 700; color: var(--text); letter-spacing: -0.02em; line-height: 1.1; margin-bottom: 6px; }
+  .stat-card .label { text-transform: uppercase; letter-spacing: 0.12em; font-size: 10px; color: var(--text-faint); font-weight: 600; }
+  .stat-card.success .value { color: var(--success); }
+  .stat-card.brand .value { color: var(--brand); }
+  .section-dark .stat-card { background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.1); }
+  .section-dark .stat-card .value { color: #fff; }
+  .section-dark .stat-card .label { color: rgba(255,255,255,.45); }
+  .section-dark .stat-card.success .value { color: var(--brand-soft); }
+  .section-dark .stat-card.brand .value { color: var(--brand-soft); }
+
+  .cards-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin: 24px 0; }
+  .card { border: 1px solid var(--border); border-radius: var(--radius); padding: 28px; background: #fff; }
+  .card-accent { border-top: 3px solid var(--brand); }
+  .card h3 { margin-bottom: 12px; }
+  .card p { font-size: 14px; color: var(--text-muted); }
+
+  .footnote { font-size: 13px; color: var(--text-faint); font-style: italic; margin-top: 18px; padding-top: 14px; border-top: 1px dashed var(--border); }
+
+  .chart-wrap { margin-top: 28px; }
+  .chart-wrap svg { width: 100%; height: auto; display: block; }
+  .chart-caption { text-transform: uppercase; letter-spacing: 0.14em; font-size: 11px; color: var(--text-faint); font-weight: 600; margin-bottom: 16px; }
+  .donut-wrap { display: flex; flex-direction: column; align-items: center; }
+  .donut-wrap svg { width: 280px; max-width: 70%; }
+  .legend { display: flex; gap: 32px; justify-content: center; margin-top: 18px; }
+  .legend .item { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--text-muted); }
+  .legend .chip { width: 16px; height: 16px; border-radius: 4px; }
+
+  .table-wrap { margin: 24px 0; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  thead th { text-transform: uppercase; letter-spacing: 0.1em; font-size: 10px; font-weight: 600; color: var(--text-faint); text-align: left; padding: 12px 16px; border-bottom: 2px solid var(--border-strong); }
+  tbody td { padding: 13px 16px; border-bottom: 1px solid var(--border); }
+  tbody tr:last-child td { border-bottom: none; }
+  td.date { color: var(--text-muted); white-space: nowrap; width: 140px; }
+
+  .insight { font-size: 16px; color: rgba(255,255,255,.82); line-height: 1.75; }
+  .insight strong { color: #fff; }
+  .note { font-size: 14px; color: rgba(255,255,255,.7); line-height: 1.7; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1); border-radius: var(--radius); padding: 24px 28px; margin-top: 24px; }
+  .note strong { color: #fff; }
+
+  .doc-footer { padding: 48px 0; text-align: center; border-top: 1px solid var(--border); background: var(--bg); }
+  .doc-footer img { height: 26px; width: auto; margin-bottom: 16px; opacity: .4; }
+  .doc-footer p { text-transform: uppercase; letter-spacing: 0.16em; font-size: 10px; color: var(--text-faint); font-weight: 600; margin: 0; }
+
+  @media (max-width: 640px) {
+    .section-inner { padding: 0 24px; }
+    .hero { padding: 56px 24px 48px; }
+    .hero-stats, .stats-row.cols-2, .stats-row.cols-3, .cards-grid { grid-template-columns: 1fr 1fr; }
+  }
+  @media print {
+    .hero { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .section-dark, .stat-card, .photo-banner img, svg { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-inner">
+    <div class="logo-lockup">
+      <img src="/brand/bright-blue-wordmark-light.png" alt="Bright.Blue" class="bb-logo" />
+    </div>
+    <div class="eyebrow">Case Study</div>
+    <h1>Costa Coffee · Catch-A-Matcha</h1>
+    <p class="subtitle">A gamified sampling roadshow across ten UK city centres</p>
+    <div class="hero-stats">
+      <div class="hero-stat"><div class="value">3,270</div><div class="label">Game plays</div></div>
+      <div class="hero-stat"><div class="value">200K+</div><div class="label">Brand impressions</div></div>
+      <div class="hero-stat"><div class="value">1,980</div><div class="label">Marketing opt-ins</div></div>
+      <div class="hero-stat"><div class="value">100%</div><div class="label">Consent rate</div></div>
+    </div>
+    <p class="hero-footer">Bright.Blue &middot; Confidential</p>
+  </div>
+</header>
+
+<!-- 01 OVERVIEW -->
+<section class="section-light">
+  <div class="section-inner">
+    <div class="photo-inline"><img src="/catalog/case-studies/costa-matcha/07-giant-cup-storefront.png" alt="Costa Coffee giant matcha-cup activation in a city centre directly outside a Costa store" /></div>
+    <div class="section-header">
+      <span class="overline">01 · The Activation</span>
+      <h2>A live engagement play, measured on participation</h2>
+      <p>Over five consecutive weekends, Costa took an interactive Bright.Blue activation to ten UK city centres, each sited in a high-footfall location directly outside a Costa Coffee store. Every interaction combined a branded game, a merchandise dispense and a product sample, gated to an adult (18+) audience. As an experiential format, success is measured on plays, sampling, consented data capture and audience quality, not on passive media reach.</p>
+    </div>
+    <div class="cards-grid">
+      <div class="card card-accent">
+        <h3>Play, sample, share data</h3>
+        <p>A giant matcha-cup installation drew crowds in, and the game turned a glance into a full hands-on interaction: play, win merchandise, sample the product, and opt in.</p>
+      </div>
+      <div class="card card-accent">
+        <h3>A touring footprint</h3>
+        <p>Ten city centres in five weekends gave national reach from a single unit, testing the concept across very different high-street environments.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 02 PERFORMANCE -->
+<section class="section-dark">
+  <div class="section-inner">
+    <div class="photo-inline"><img src="/catalog/case-studies/costa-matcha/01-girl-tapping-screen.png" alt="Customer playing the gamified matcha-cup activation on the touchscreen" /></div>
+    <div class="section-header">
+      <span class="overline">02 · Activation Performance</span>
+      <h2>3,270 hands-on interactions</h2>
+      <p>Engagement, merchandise and product sampling across the ten live days.</p>
+    </div>
+    <div class="stats-row cols-3">
+      <div class="stat-card brand"><div class="value">3,270</div><div class="label">Total game plays</div></div>
+      <div class="stat-card"><div class="value">3,270</div><div class="label">Merchandise dispensed</div></div>
+      <div class="stat-card"><div class="value">3,270</div><div class="label">Product samples</div></div>
+    </div>
+    <div class="stats-row cols-3">
+      <div class="stat-card"><div class="value">10</div><div class="label">Live activation days</div></div>
+      <div class="stat-card"><div class="value">10</div><div class="label">UK city centres</div></div>
+      <div class="stat-card"><div class="value">55</div><div class="label">Plays in busiest hour</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 03 BRAND EXPOSURE -->
+<section class="section-alt">
+  <div class="section-inner">
+    <div class="photo-inline"><img src="/catalog/case-studies/costa-matcha/08-matcha-merch-sign.png" alt="Costa limited-edition free matcha merch signage beside the giant cup with a queue of visitors" /></div>
+    <div class="section-header">
+      <span class="overline">03 · Brand Exposure</span>
+      <h2>Over 200,000 brand impressions</h2>
+      <p>Total brand exposure generated by the installation across the city-centre roadshow.</p>
+    </div>
+    <div class="stats-row cols-2">
+      <div class="stat-card brand"><div class="value">200,000+</div><div class="label">Overall brand impressions</div></div>
+      <div class="stat-card success"><div class="value">3,270</div><div class="label">Live product trials</div></div>
+    </div>
+    <p class="footnote">Estimated total brand impressions based on average city-centre footfall passing within sight of the giant matcha-cup installation. Each activation was sited in a high-footfall city centre directly outside a Costa Coffee store, lifting passing footfall further, modelled on roughly 20,000 people per live day across the 10 live days.</p>
+  </div>
+</section>
+
+<!-- 04 ENGAGEMENT & DATA -->
+<section class="section-light">
+  <div class="section-inner">
+    <div class="section-header">
+      <span class="overline">04 · Engagement &amp; Data Capture</span>
+      <h2>Thousands of fully consented contacts</h2>
+      <p>Game interaction and the first-party data captured at the point of play.</p>
+    </div>
+    <div class="stats-row cols-2">
+      <div class="stat-card brand"><div class="value">1,980</div><div class="label">Marketing opt-ins</div></div>
+      <div class="stat-card success"><div class="value">100%</div><div class="label">Opt-in consent rate</div></div>
+    </div>
+    <div class="chart-wrap">
+      <div class="chart-caption">Share of daily plays by hour</div>
+      <svg data-bar="9am:10.1,10am:13.7,11am:16.2,12pm:13.9,1pm:13.8,2pm:13.8,3pm:11.6,4pm:5.0" data-suffix="%"></svg>
+    </div>
+  </div>
+</section>
+
+<!-- 05 DEMOGRAPHICS -->
+<section class="section-alt">
+  <div class="section-inner">
+    <div class="section-header">
+      <span class="overline">05 · Demographics</span>
+      <h2>Who engaged with the activation</h2>
+      <p>Audience profile captured through the gated game and data-capture flow.</p>
+    </div>
+    <div class="chart-caption">Gender split</div>
+    <div class="donut-wrap">
+      <svg data-donut="Female:67,Male:33"></svg>
+      <div class="legend">
+        <div class="item"><span class="chip" style="background:#183DF7;"></span>Female &middot; 67%</div>
+        <div class="item"><span class="chip" style="background:#9DBCFB;"></span>Male &middot; 33%</div>
+      </div>
+    </div>
+    <div class="chart-wrap">
+      <div class="chart-caption">Age distribution</div>
+      <svg data-bar="18-24:18,25-34:20,35-44:30,45-54:22,55+:10" data-suffix="%"></svg>
+    </div>
+  </div>
+</section>
+
+<!-- 06 FOOTPRINT -->
+<section class="section-light">
+  <div class="section-inner">
+    <div class="section-header">
+      <span class="overline">06 · Activation Footprint</span>
+      <h2>Ten city centres, five weekends</h2>
+      <p>A different high-footfall location each live day across five consecutive weekends.</p>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Date</th><th>Activation location</th></tr></thead>
+        <tbody>
+          <tr><td class="date">28 Feb 2026</td><td>Falkland Square, Poole</td></tr>
+          <tr><td class="date">01 Mar 2026</td><td>Kings Walk, Gloucester</td></tr>
+          <tr><td class="date">07 Mar 2026</td><td>Castle Court Shopping Centre, Caerphilly</td></tr>
+          <tr><td class="date">08 Mar 2026</td><td>Shrewsbury Square, Shrewsbury</td></tr>
+          <tr><td class="date">14 Mar 2026</td><td>The Arc, Bury St Edmunds</td></tr>
+          <tr><td class="date">15 Mar 2026</td><td>The Square, Market Harborough</td></tr>
+          <tr><td class="date">21 Mar 2026</td><td>Northgate, Wakefield</td></tr>
+          <tr><td class="date">22 Mar 2026</td><td>Market Place, Durham</td></tr>
+          <tr><td class="date">28 Mar 2026</td><td>Scotch Street, Carlisle</td></tr>
+          <tr><td class="date">29 Mar 2026</td><td>High Street, Perth</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- 07 KEY INSIGHTS -->
+<section class="section-dark">
+  <div class="section-inner">
+    <div class="photo-inline"><img src="/catalog/case-studies/costa-matcha/04-winners-matchilda.png" alt="Three winners holding their Matchilda plush prizes beside the Costa activation" /></div>
+    <div class="section-header">
+      <span class="overline">07 · Key Insights</span>
+      <h2>Live trial at national scale</h2>
+    </div>
+    <p class="insight">Across five weekends and ten city centres, the activation drove <strong>3,270 hands-on interactions</strong>, each one a game played, a sample tried and a piece of merchandise won. The experience drew a predominantly <strong>female (67%)</strong> and family-aged crowd, with <strong>35-44</strong> the single largest group, and footfall peaked at <strong>55 plays in a single hour</strong>. Sited directly outside a Costa Coffee store in each city centre, the installation delivered an estimated <strong>200,000+ brand impressions</strong> to passing footfall. Crucially, <strong>100% of customers who shared their details opted in to marketing</strong>, turning thousands of live product trials into a fully consented first-party database.</p>
+    <div class="note">As an experiential activation, this is measured on <strong>engagement, sampling, audience quality and consented data capture</strong>, the metrics that matter for a live event format. It is the same hardware behind our DOOH and retail case studies, deployed against a different objective.</div>
+  </div>
+</section>
+
+<footer class="doc-footer">
+  <img src="/brand/bright-blue-symbol.png" alt="Bright.Blue" />
+  <p>Bright.Blue &middot; Costa Coffee Experiential Case Study &middot; Confidential</p>
+</footer>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  function renderBar(svg) {
+    const data = svg.dataset.bar.split(',').map(s => { const [l, v] = s.split(':'); return { l, v: parseFloat(v) }; });
+    const suffix = svg.dataset.suffix || '';
+    const W = 820, H = 320, mL = 14, mR = 14, mT = 36, mB = 50;
+    svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+    const baseY = H - mB, zoneH = H - mT - mB, zoneW = W - mL - mR;
+    const max = Math.max(...data.map(d => d.v));
+    const step = zoneW / data.length, barW = step * 0.58;
+    const base = document.createElementNS(NS, 'line');
+    base.setAttribute('x1', mL); base.setAttribute('y1', baseY); base.setAttribute('x2', W - mR); base.setAttribute('y2', baseY);
+    base.setAttribute('stroke', '#E6E9F2'); base.setAttribute('stroke-width', '1.5'); svg.appendChild(base);
+    data.forEach((d, i) => {
+      const x = mL + step * i + (step - barW) / 2;
+      const h = d.v / max * zoneH, y = baseY - h;
+      const rect = document.createElementNS(NS, 'rect');
+      rect.setAttribute('x', x); rect.setAttribute('y', y); rect.setAttribute('width', barW); rect.setAttribute('height', h);
+      rect.setAttribute('rx', 6); rect.setAttribute('fill', d.v === max ? '#183DF7' : '#9DBCFB');
+      svg.appendChild(rect);
+      const t = document.createElementNS(NS, 'text');
+      t.setAttribute('x', x + barW / 2); t.setAttribute('y', y - 12); t.setAttribute('text-anchor', 'middle');
+      t.setAttribute('font-family', 'Inter, sans-serif'); t.setAttribute('font-size', '20'); t.setAttribute('font-weight', '700'); t.setAttribute('fill', '#050519');
+      t.textContent = d.v + suffix; svg.appendChild(t);
+      const c = document.createElementNS(NS, 'text');
+      c.setAttribute('x', x + barW / 2); c.setAttribute('y', baseY + 30); c.setAttribute('text-anchor', 'middle');
+      c.setAttribute('font-family', 'Inter, sans-serif'); c.setAttribute('font-size', '18'); c.setAttribute('fill', '#8A8FA6');
+      c.textContent = d.l; svg.appendChild(c);
+    });
+  }
+  function renderDonut(svg) {
+    const data = svg.dataset.donut.split(',').map(s => { const [l, v] = s.split(':'); return { l, v: parseFloat(v) }; });
+    const colors = ['#183DF7', '#9DBCFB'];
+    const cx = 150, cy = 150, R = 122, r = 74;
+    svg.setAttribute('viewBox', '0 0 300 300');
+    const total = data.reduce((a, b) => a + b.v, 0);
+    let ang = -Math.PI / 2;
+    data.forEach((d, i) => {
+      const frac = d.v / total, end = ang + frac * 2 * Math.PI, large = frac > 0.5 ? 1 : 0;
+      const x1 = cx + R * Math.cos(ang), y1 = cy + R * Math.sin(ang);
+      const x2 = cx + R * Math.cos(end), y2 = cy + R * Math.sin(end);
+      const xi2 = cx + r * Math.cos(end), yi2 = cy + r * Math.sin(end);
+      const xi1 = cx + r * Math.cos(ang), yi1 = cy + r * Math.sin(ang);
+      const path = document.createElementNS(NS, 'path');
+      path.setAttribute('d', `M ${x1} ${y1} A ${R} ${R} 0 ${large} 1 ${x2} ${y2} L ${xi2} ${yi2} A ${r} ${r} 0 ${large} 0 ${xi1} ${yi1} Z`);
+      path.setAttribute('fill', colors[i % colors.length]); svg.appendChild(path);
+      const mid = ang + frac * Math.PI, lr = (R + r) / 2;
+      const lx = cx + lr * Math.cos(mid), ly = cy + lr * Math.sin(mid);
+      const t = document.createElementNS(NS, 'text');
+      t.setAttribute('x', lx); t.setAttribute('y', ly); t.setAttribute('text-anchor', 'middle'); t.setAttribute('dominant-baseline', 'middle');
+      t.setAttribute('font-family', 'Inter, sans-serif'); t.setAttribute('font-size', '22'); t.setAttribute('font-weight', '700');
+      t.setAttribute('fill', i === 0 ? '#fff' : '#1c1c45');
+      t.textContent = d.v + '%'; svg.appendChild(t);
+      ang = end;
+    });
+  }
+  document.querySelectorAll('svg[data-bar]').forEach(renderBar);
+  document.querySelectorAll('svg[data-donut]').forEach(renderDonut);
+</script>
+
+</body>
+</html>

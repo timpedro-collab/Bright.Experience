@@ -162,12 +162,18 @@ export interface TaskGroupByEvent {
 }
 
 /**
- * Open tasks for the given role or user, grouped by active event.
+ * Open *internal* tasks for the given role or user, grouped by active event.
  *
- * Pulls tasks where `assigned_role = role` OR `assigned_to = userId`
- * from non-terminal events, excluding completed/skipped tasks. Results
- * are ordered so tasks with the earliest due date appear first, then
- * by event start date.
+ * This powers the internal "needs you now" / my-work surfaces, so it returns
+ * only `internal_action` tasks — work the Bright.Blue team actually does.
+ * `customer_action` tasks are the customer's responsibility (tracked on the
+ * customer side and at the event-health level); surfacing them here made an
+ * internal user's list show jobs they don't own — and that the customer had
+ * often already completed — which read as "to-do but already done".
+ *
+ * Pulls tasks where `assigned_role = role` OR `assigned_to = userId` from
+ * non-terminal events, excluding completed/skipped tasks. Ordered by earliest
+ * due date first, then by event start date.
  */
 export async function getTasksByRole(
   role: UserRole,
@@ -180,6 +186,7 @@ export async function getTasksByRole(
     .select(
       "*, events!inner(id, name, account_id, event_date_start, health_status, current_stage, accounts(name))"
     )
+    .eq("task_type", "internal_action")
     .not("status", "in", '("complete","skipped")')
     .not("events.current_stage", "in", '("complete")')
     .or(`assigned_role.eq.${role},assigned_to.eq.${userId}`)

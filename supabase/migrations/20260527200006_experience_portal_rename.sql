@@ -33,24 +33,8 @@ WHERE id = 'a4a4a4a4-a4a4-4a4a-8a4a-a4a4a4a4a4a4';
 UPDATE packages SET machine_id = 'a2a2a2a2-a2a2-4a2a-8a2a-a2a2a2a2a2a2'
 WHERE machine_id = 'a2a2a2a2-a2a2-4a2a-8a2a-a2a2a2a2a2a2';
 
--- Add Costa Coffee case study
-INSERT INTO case_studies (
-  id, title, slug, client_name, event_type, location,
-  description, hero_image_url, gallery_urls,
-  stats_json, testimonial_quote, testimonial_author,
-  is_published, published_at
-) VALUES (
-  'c5c5c5c5-c5c5-4c5c-8c5c-c5c5c5c5c5c5',
-  'Costa Coffee — Catch-A-Matcha',
-  'costa-coffee-catch-a-matcha',
-  'Costa Coffee',
-  'experiential',
-  '10 UK city centres across 5 weekends',
-  'Costa Coffee wanted to launch their new Iced Matcha range with a moment people would actually remember. Bright.Blue designed "Catch-A-Matcha" — a reflex-based touchscreen game housed inside a giant, fully branded matcha cup Experience Portal. Passers-by tapped iced matcha drinks as they popped up on screen. Score high enough and you win — scan the QR code for a free Iced Matcha from the nearest Costa store, or choose from exclusive merch including the "Matchilda" plush and Crochet Cosie. The activation drew queues around the block, generated thousands of QR redemptions, and created an avalanche of organic social content.',
-  null,
-  '[]'::jsonb,
-  '{}'::jsonb,
-  null, null,
-  true,
-  now()
-) ON CONFLICT (id) DO NOTHING;
+-- The Costa Coffee "Catch-A-Matcha" case study is seeded canonically in
+-- supabase/seed.sql (id d1d1…, slug costa-coffee-catch-a-matcha) with its
+-- hero image, photo gallery and real performance stats. It was previously
+-- inserted here under a second id/slug, which collided with the seed's unique
+-- slug on a fresh reset, so that insert has been removed.

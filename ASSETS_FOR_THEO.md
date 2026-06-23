@@ -31,7 +31,7 @@ Everything below is already wired in code — each item has a clear home and a g
 
 | Case study | Slug | File to supply |
 |---|---|---|
-| Costa Coffee | `costa-matcha-launch` | `/case-studies/costa-hero.jpg` |
+| Costa Coffee | `costa-coffee-catch-a-matcha` | ✅ Done — real activation photos wired (hero + 9-photo gallery + full report). No action needed. |
 | BIBA | `biba-conference` | `/case-studies/biba-hero.jpg` |
 | Pelion | `pelion-expo` | `/case-studies/pelion-hero.jpg` |
 | Storyblok | `storyblok-dmexco` | `/case-studies/storyblok-hero.jpg` |
@@ -54,14 +54,16 @@ These are the on‑screen creatives that render inside the **machine mockup** an
 - **Where referenced:** `src/lib/supabase/mock/dataset.ts` → `assets[].file_url` / `asset_versions[].preview_url`.
 - **Renders in:** `src/components/assets/MachinePreview.tsx` (screen overlay) and `src/components/assets/AnnotatablePreview.tsx`.
 
+> Note: the `costa-matcha/*` photos below are **now supplied** (real Costa Catch‑A‑Matcha activation photography is in `public/catalog/case-studies/costa-matcha/`). They're listed here only because they double as the on‑screen creative proofs for the Coca‑Cola demo event; swap for Coca‑Cola creative if you want that event to read as fully bespoke.
+
 | File to supply | Used as |
 |---|---|
-| `/catalog/case-studies/costa-matcha/01-girl-tapping-screen.png` | Game page banner proof |
-| `/catalog/case-studies/costa-matcha/02-winner-qr-scan.png` | Home banner proof |
-| `/catalog/case-studies/costa-matcha/03-prize-selection.png` | Home‑banner / prize art |
-| `/catalog/case-studies/costa-matcha/04-winners-matchilda.png` | Packshot proof |
-| `/catalog/case-studies/costa-matcha/05-tap-to-start.png` | Payment‑screen proof |
-| `/catalog/case-studies/costa-matcha/06-full-setup-queue.png` | Setup/queue photo |
+| `/catalog/case-studies/costa-matcha/01-girl-tapping-screen.png` | ✅ supplied — Game page banner proof |
+| `/catalog/case-studies/costa-matcha/02-winner-qr-scan.png` | ✅ supplied — Home banner proof |
+| `/catalog/case-studies/costa-matcha/03-prize-selection.png` | ✅ supplied — Home‑banner / prize art |
+| `/catalog/case-studies/costa-matcha/04-winners-matchilda.png` | ✅ supplied — Packshot proof |
+| `/catalog/case-studies/costa-matcha/05-tap-to-start.png` | ✅ supplied — Payment‑screen proof |
+| `/catalog/case-studies/costa-matcha/06-full-setup-queue.png` | ✅ supplied — Setup/queue photo |
 | `/uploads/coca-cola-logo.svg` | Accepted primary‑logo asset |
 | `/previews/samsung-wrap-v2.png` | Samsung wrap proof preview |
 

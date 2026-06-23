@@ -143,7 +143,7 @@ export default async function VenueDashboardPage({ params }: Props) {
         <Kpi
           label="Booked revenue"
           value={formatUSDFromCents(econ.bookedCents)}
-          hint={`${econ.reserved} sponsor${econ.reserved === 1 ? "" : "s"} confirmed`}
+          hint={`${econ.booked} slot${econ.booked === 1 ? "" : "s"} booked · ${econ.confirmed} confirmed`}
         />
         <Kpi
           label="Open slot value"
@@ -153,7 +153,7 @@ export default async function VenueDashboardPage({ params }: Props) {
         <Kpi
           label="Fill rate"
           value={`${econ.fillRate}%`}
-          hint={`${econ.reserved} of ${econ.total} slots`}
+          hint={`${econ.booked} of ${econ.total} slots`}
         />
         <Kpi
           label="Active placements"

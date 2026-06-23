@@ -3,13 +3,22 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { Download, FileText, Image, Film, Presentation } from "lucide-react";
+import {
+  Download,
+  FileText,
+  Image,
+  Film,
+  Presentation,
+  ExternalLink,
+} from "lucide-react";
 
 interface PartnerResourceCardProps {
   title: string;
   description: string;
   fileUrl?: string;
   category: string;
+  /** Open in a new tab to view (instead of forcing a file download). */
+  viewInBrowser?: boolean;
 }
 
 const CATEGORY_STYLES: Record<string, string> = {
@@ -33,6 +42,7 @@ export function PartnerResourceCard({
   description,
   fileUrl,
   category,
+  viewInBrowser = false,
 }: PartnerResourceCardProps) {
   const Icon = CATEGORY_ICONS[category] ?? FileText;
   const badgeClass = CATEGORY_STYLES[category] ?? "bg-muted/40 text-muted-foreground border-border/60";
@@ -63,10 +73,17 @@ export function PartnerResourceCard({
             size="sm"
             className="w-full border-border/60 bg-muted/40 text-foreground hover:bg-accent"
           >
-            <a href={fileUrl} download>
-              <Download size={14} className="mr-2" />
-              Download
-            </a>
+            {viewInBrowser ? (
+              <a href={fileUrl} target="_blank" rel="noopener noreferrer">
+                <ExternalLink size={14} className="mr-2" />
+                View report
+              </a>
+            ) : (
+              <a href={fileUrl} download>
+                <Download size={14} className="mr-2" />
+                Download
+              </a>
+            )}
           </Button>
         ) : (
           <Button

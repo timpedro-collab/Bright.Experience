@@ -8,6 +8,7 @@ const PUBLIC_PREFIXES = [
   "/auth",
   "/forgot-password",
   "/catalog",
+  "/resources",
   "/quiz",
   "/book",
   "/proposal",
@@ -30,9 +31,14 @@ const PUBLIC_PREFIXES = [
  * callback handles the post-OAuth path, and `getUser()` server-side
  * actions re-check the profile on demand.
  */
+/** A venue's public advertiser page: /venues/<slug>/advertise (no auth). */
+const PUBLIC_VENUE_ADVERTISE = /^\/venues\/[^/]+\/advertise$/;
+
 export async function middleware(request: NextRequest) {
   const pathnameEarly = request.nextUrl.pathname;
-  const isPublicEarly = PUBLIC_PREFIXES.some((p) => pathnameEarly.startsWith(p));
+  const isPublicEarly =
+    PUBLIC_PREFIXES.some((p) => pathnameEarly.startsWith(p)) ||
+    PUBLIC_VENUE_ADVERTISE.test(pathnameEarly);
   const isRootEarly = pathnameEarly === "/";
 
   // Standalone mock build: auth is a cookie holding the seeded profile id.
@@ -75,9 +81,9 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const pathname = request.nextUrl.pathname;
-  const isPublicRoute = PUBLIC_PREFIXES.some((prefix) =>
-    pathname.startsWith(prefix)
-  );
+  const isPublicRoute =
+    PUBLIC_PREFIXES.some((prefix) => pathname.startsWith(prefix)) ||
+    PUBLIC_VENUE_ADVERTISE.test(pathname);
 
   const isRoot = pathname === "/";
   if (!user && !isPublicRoute && !isRoot) {

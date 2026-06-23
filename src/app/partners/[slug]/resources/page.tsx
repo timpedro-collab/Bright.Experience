@@ -10,7 +10,15 @@ interface ResourcesPageProps {
   params: Promise<{ slug: string }>;
 }
 
-const RESOURCES = [
+interface ResourceItem {
+  title: string;
+  description: string;
+  category: string;
+  fileUrl: string;
+  viewInBrowser?: boolean;
+}
+
+const RESOURCES: ResourceItem[] = [
   {
     title: "Bright.Blue Partner Pitch Deck",
     description: "Comprehensive sales presentation covering our technology, case studies, and partnership benefits.",
@@ -30,16 +38,11 @@ const RESOURCES = [
     fileUrl: "/api/partner-resources/activation-product-sheet",
   },
   {
-    title: "Client Case Study — Coca-Cola",
-    description: "How Coca-Cola used Bright.Blue to drive 15,000 interactions at their summer campaign.",
+    title: "Client Case Study — Costa Coffee (Catch-A-Matcha)",
+    description: "A gamified sampling roadshow across ten UK city centres — 3,270 plays, 200K+ impressions, and a 100% marketing opt-in rate.",
     category: "case-study",
-    fileUrl: "/api/partner-resources/case-study-cocacola",
-  },
-  {
-    title: "Client Case Study — Diageo",
-    description: "Diageo's matchday fan-zone activation that drove 2,400 prize redemptions across three match days.",
-    category: "case-study",
-    fileUrl: "/api/partner-resources/case-study-diageo",
+    fileUrl: "/resources/costa-catch-a-matcha-case-study.html",
+    viewInBrowser: true,
   },
   {
     title: "Brand Guidelines & Logos",
@@ -85,6 +88,7 @@ export default async function PartnerResourcesPage({ params }: ResourcesPageProp
             description={resource.description}
             fileUrl={resource.fileUrl}
             category={resource.category}
+            viewInBrowser={resource.viewInBrowser}
           />
         ))}
       </div>

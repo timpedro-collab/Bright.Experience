@@ -20,6 +20,10 @@ interface CaseStudyCardProps {
 const STAT_LABELS: Record<string, string> = {
   samples: "samples",
   plays: "plays",
+  gamePlays: "game plays",
+  brandImpressions: "impressions",
+  marketingOptIns: "opt-ins",
+  consentRatePct: "consent rate",
   leads: "leads",
   leadOptInPct: "opt-in",
   npsScore: "NPS",

@@ -1,7 +1,7 @@
 /** Global search API — returns events, accounts, tasks, and (for internal users) profiles. */
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { isInternalRole } from "@/lib/roles";
+import { isInternalRole, isPartnerRole } from "@/lib/roles";
 import type { UserRole } from "@/types";
 
 export async function GET(request: NextRequest) {
@@ -23,25 +23,38 @@ export async function GET(request: NextRequest) {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("role")
+    .select("role, account_id")
     .eq("id", user.id)
     .single();
 
   const role = (profile?.role ?? "customer_user") as UserRole;
   const internal = isInternalRole(role);
+  const partner = isPartnerRole(role);
+  const accountId = (profile?.account_id as string | null) ?? null;
   const pattern = `%${q}%`;
 
+  // Customers may only ever find their own account's delivery data; partners
+  // have no delivery events at all. Internal roles search everything. This
+  // mirrors production RLS, which the mock client does not enforce.
+  const scopeToAccount = !internal && !partner ? (accountId ?? "__none__") : null;
+
+  let eventsQuery = supabase
+    .from("events")
+    .select("id, name, accounts!inner(name)")
+    .ilike("name", pattern)
+    .limit(5);
+  if (scopeToAccount) eventsQuery = eventsQuery.eq("account_id", scopeToAccount);
+
+  let tasksQuery = supabase
+    .from("tasks")
+    .select("id, title, event_id, target_path, events!inner(name, account_id)")
+    .ilike("title", pattern)
+    .limit(5);
+  if (scopeToAccount) tasksQuery = tasksQuery.eq("events.account_id", scopeToAccount);
+
   const [eventsRes, tasksRes, accountsRes] = await Promise.all([
-    supabase
-      .from("events")
-      .select("id, name, accounts!inner(name)")
-      .ilike("name", pattern)
-      .limit(5),
-    supabase
-      .from("tasks")
-      .select("id, title, event_id, target_path, events!inner(name)")
-      .ilike("title", pattern)
-      .limit(5),
+    partner ? Promise.resolve({ data: [] }) : eventsQuery,
+    partner ? Promise.resolve({ data: [] }) : tasksQuery,
     internal
       ? supabase
           .from("accounts")

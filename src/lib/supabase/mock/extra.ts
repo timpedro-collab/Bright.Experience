@@ -227,12 +227,14 @@ export const EXTRA_TABLES: Record<string, MockRow[]> = {
   ],
 
   // Appended to the existing profiles so partner-portal logins resolve.
+  // has_completed_onboarding must be true, or the home redirect sends partners
+  // to the customer /welcome wizard before the partner/venue portal redirect.
   profiles: [
-    { id: P_MAYA, name: "Maya Patel", email: "maya@northern.events", role: "partner_admin", account_id: null },
-    { id: P_AARON, name: "Aaron Howe", email: "aaron@excel.london", role: "partner_admin", account_id: null },
-    { id: P_OLIVIA, name: "Olivia Reed", email: "olivia@southern-activations.com", role: "partner_admin", account_id: null },
-    { id: P_DANIEL, name: "Daniel Cole", email: "daniel@westfield-stratford.com", role: "partner_admin", account_id: null },
-    { id: P_PRIYA, name: "Priya Shah", email: "priya@necgroup.co.uk", role: "partner_admin", account_id: null },
+    { id: P_MAYA, name: "Maya Patel", email: "maya@northern.events", role: "partner_admin", account_id: null, has_completed_onboarding: true },
+    { id: P_AARON, name: "Aaron Howe", email: "aaron@excel.london", role: "partner_admin", account_id: null, has_completed_onboarding: true },
+    { id: P_OLIVIA, name: "Olivia Reed", email: "olivia@southern-activations.com", role: "partner_admin", account_id: null, has_completed_onboarding: true },
+    { id: P_DANIEL, name: "Daniel Cole", email: "daniel@westfield-stratford.com", role: "partner_admin", account_id: null, has_completed_onboarding: true },
+    { id: P_PRIYA, name: "Priya Shah", email: "priya@necgroup.co.uk", role: "partner_admin", account_id: null, has_completed_onboarding: true },
   ],
 
   partner_users: [

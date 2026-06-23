@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, MapPin, Calendar } from "lucide-react";
+import { ArrowLeft, MapPin, Calendar, FileText } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -31,6 +31,10 @@ export default async function CaseStudyDetailPage({ params }: Props) {
   const { slug } = await params;
   const cs = await getCaseStudyBySlug(slug);
   if (!cs) notFound();
+
+  const details = parseDetails(
+    (cs as { details_json?: unknown }).details_json ?? null,
+  );
 
   const publishedDate = cs.published_at
     ? new Date(cs.published_at).toLocaleDateString("en-US", {
@@ -89,8 +93,19 @@ export default async function CaseStudyDetailPage({ params }: Props) {
         <h1 className="text-heading text-3xl font-extrabold md:text-4xl">
           {cs.title}
         </h1>
-        {cs.client_name && (
-          <p className="text-lg text-muted-foreground">{cs.client_name}</p>
+        {details?.subtitle ? (
+          <p className="text-lg text-muted-foreground">{details.subtitle}</p>
+        ) : (
+          cs.client_name && (
+            <p className="text-lg text-muted-foreground">{cs.client_name}</p>
+          )
+        )}
+        {details?.reportUrl && (
+          <Button variant="outline" size="sm" className="mt-1 gap-2" asChild>
+            <a href={details.reportUrl} target="_blank" rel="noopener noreferrer">
+              <FileText className="h-3.5 w-3.5" /> View the full case study
+            </a>
+          </Button>
         )}
       </div>
 
@@ -105,6 +120,9 @@ export default async function CaseStudyDetailPage({ params }: Props) {
           </CardContent>
         </Card>
       )}
+
+      {/* Activation details */}
+      {details && <ActivationDetails details={details} />}
 
       {/* Gallery */}
       {(() => {
@@ -176,6 +194,182 @@ function formatStatValue(key: string, value: unknown): string {
     return value.toLocaleString("en-US");
   }
   return String(value);
+}
+
+interface ActivationDetailsData {
+  subtitle?: string;
+  reportUrl?: string;
+  performance?: { value: string; label: string }[];
+  demographics?: {
+    gender?: { label: string; pct: number }[];
+    age?: { label: string; pct: number }[];
+  };
+  footprint?: { date: string; location: string }[];
+  insight?: string;
+  note?: string;
+}
+
+/** Defensively read the optional structured details blob off a case study. */
+function parseDetails(raw: unknown): ActivationDetailsData | null {
+  if (!raw || typeof raw !== "object") return null;
+  const d = raw as ActivationDetailsData;
+  const hasContent =
+    d.performance?.length ||
+    d.demographics?.gender?.length ||
+    d.demographics?.age?.length ||
+    d.footprint?.length ||
+    d.insight ||
+    d.note ||
+    d.subtitle ||
+    d.reportUrl;
+  return hasContent ? d : null;
+}
+
+/** Horizontal labelled bar used for demographic breakdowns. */
+function BarRow({ label, pct }: { label: string; pct: number }) {
+  return (
+    <div className="flex items-center gap-3">
+      <span className="w-16 shrink-0 text-sm text-muted-foreground">{label}</span>
+      <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-muted/40">
+        <div
+          className="h-full rounded-full bg-primary"
+          style={{ width: `${Math.min(100, Math.max(0, pct))}%` }}
+        />
+      </div>
+      <span className="w-10 shrink-0 text-right text-sm font-semibold tabular-nums text-foreground">
+        {pct}%
+      </span>
+    </div>
+  );
+}
+
+function ActivationDetails({ details }: { details: ActivationDetailsData }) {
+  const { performance, demographics, footprint, insight, note } = details;
+  return (
+    <div className="mt-12 space-y-10">
+      {/* Activation performance */}
+      {performance && performance.length > 0 && (
+        <section>
+          <p className="text-overline text-muted-foreground mb-4">
+            Activation performance
+          </p>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {performance.map((p) => (
+              <div
+                key={p.label}
+                className="rounded-[var(--radius-card)] border border-border/30 bg-card/40 p-5"
+              >
+                <p className="text-heading text-2xl font-bold text-primary tabular-nums">
+                  {p.value}
+                </p>
+                <p className="mt-1 text-xs uppercase tracking-widest text-muted-foreground">
+                  {p.label}
+                </p>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Demographics */}
+      {(demographics?.gender?.length || demographics?.age?.length) && (
+        <section>
+          <p className="text-overline text-muted-foreground mb-4">
+            Who engaged
+          </p>
+          <div className="grid gap-6 md:grid-cols-2">
+            {demographics?.gender && demographics.gender.length > 0 && (
+              <Card>
+                <CardContent className="space-y-3 p-6">
+                  <p className="text-sm font-semibold text-foreground">
+                    Gender split
+                  </p>
+                  {demographics.gender.map((g) => (
+                    <BarRow key={g.label} label={g.label} pct={g.pct} />
+                  ))}
+                </CardContent>
+              </Card>
+            )}
+            {demographics?.age && demographics.age.length > 0 && (
+              <Card>
+                <CardContent className="space-y-3 p-6">
+                  <p className="text-sm font-semibold text-foreground">
+                    Age distribution
+                  </p>
+                  {demographics.age.map((a) => (
+                    <BarRow key={a.label} label={a.label} pct={a.pct} />
+                  ))}
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </section>
+      )}
+
+      {/* Footprint */}
+      {footprint && footprint.length > 0 && (
+        <section>
+          <p className="text-overline text-muted-foreground mb-4">
+            Activation footprint
+          </p>
+          <Card>
+            <CardContent className="p-0">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border/40 text-left">
+                    <th className="px-6 py-3 text-xs font-medium uppercase tracking-widest text-muted-foreground">
+                      Date
+                    </th>
+                    <th className="px-6 py-3 text-xs font-medium uppercase tracking-widest text-muted-foreground">
+                      Activation location
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {footprint.map((row) => (
+                    <tr
+                      key={`${row.date}-${row.location}`}
+                      className="border-b border-border/20 last:border-0"
+                    >
+                      <td className="whitespace-nowrap px-6 py-3 text-muted-foreground">
+                        {row.date}
+                      </td>
+                      <td className="px-6 py-3 text-foreground">
+                        {row.location}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </CardContent>
+          </Card>
+        </section>
+      )}
+
+      {/* Key insight */}
+      {(insight || note) && (
+        <section>
+          <p className="text-overline text-muted-foreground mb-4">
+            Key insights
+          </p>
+          <Card className="border-primary/20 bg-primary/[0.03]">
+            <CardContent className="space-y-4 p-6 md:p-8">
+              {insight && (
+                <p className="text-base leading-relaxed text-foreground/90">
+                  {insight}
+                </p>
+              )}
+              {note && (
+                <p className="rounded-[var(--radius-card)] border border-border/30 bg-card/40 p-4 text-sm leading-relaxed text-muted-foreground">
+                  {note}
+                </p>
+              )}
+            </CardContent>
+          </Card>
+        </section>
+      )}
+    </div>
+  );
 }
 
 function StatsRow({ stats }: { stats: Record<string, unknown> | null }) {

@@ -19,7 +19,7 @@ export function EmbedCodeGenerator({ venueSlug }: EmbedCodeGeneratorProps) {
     ? window.location.origin
     : "https://app.bright.blue";
 
-  const embedUrl = `${baseUrl}/book?venue=${venueSlug}`;
+  const embedUrl = `${baseUrl}/venues/${venueSlug}/advertise`;
 
   const embedCode = `<iframe
   src="${embedUrl}"

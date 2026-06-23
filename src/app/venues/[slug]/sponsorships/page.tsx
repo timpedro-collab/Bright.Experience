@@ -62,9 +62,15 @@ export default async function SponsorshipsPage({ params }: Props) {
             endDate: s.end_date,
             price: s.price != null ? Number(s.price) : undefined,
             status: s.status,
+            sponsorId: s.sponsor_account_id
+              ? String(s.sponsor_account_id)
+              : undefined,
             sponsorName: s.sponsor_account_id
               ? sponsorNameById.get(String(s.sponsor_account_id))
               : undefined,
+            campaign:
+              (s.game_config_json as { campaign?: string } | null)?.campaign ??
+              undefined,
           })),
         };
       })
@@ -78,11 +84,12 @@ export default async function SponsorshipsPage({ params }: Props) {
 
   const summaryStats = [
     { label: "Booked revenue", value: formatUSDFromCents(econ.bookedCents) },
+    { label: "Confirmed", value: formatUSDFromCents(econ.confirmedCents) },
     { label: "Open slot value", value: formatUSDFromCents(econ.openCents) },
     { label: "Fill rate", value: `${econ.fillRate}%` },
     {
-      label: "Slots",
-      value: `${econ.reserved}/${econ.total}`,
+      label: "Slots booked",
+      value: `${econ.booked}/${econ.total}`,
     },
   ];
 

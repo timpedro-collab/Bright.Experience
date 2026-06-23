@@ -181,20 +181,198 @@ export async function createSponsorshipSlot(data: {
   return { success: true as const, data: { id: slot.id } };
 }
 
-/** Reserve a sponsorship slot for a sponsor account. */
-export async function reserveSlot(slotId: string, sponsorAccountId: string) {
+/**
+ * Reserve a sponsorship slot for a sponsor account, optionally tagging the
+ * campaign that will run in it. available → reserved (a soft hold).
+ */
+export async function reserveSlot(
+  slotId: string,
+  sponsorAccountId: string,
+  campaign?: string,
+) {
   const { supabase } = await requireVenueManagerForSlot(slotId);
+
+  const { data: existing } = await supabase
+    .from("sponsorship_slots")
+    .select("game_config_json")
+    .eq("id", slotId)
+    .maybeSingle();
+  const gameConfig: Record<string, unknown> = {
+    ...((existing?.game_config_json as Record<string, unknown>) ?? {}),
+  };
+  if (campaign?.trim()) gameConfig.campaign = campaign.trim();
 
   const { error } = await supabase
     .from("sponsorship_slots")
     .update({
       sponsor_account_id: sponsorAccountId,
       status: "reserved",
+      game_config_json: gameConfig,
     })
     .eq("id", slotId)
     .eq("status", "available");
 
   if (error) return { success: false as const, error: "Failed to reserve slot" };
+
+  revalidatePath("/venues");
+  return { success: true as const, data: { id: slotId } };
+}
+
+/** Confirm a held slot as a booked, paid campaign. reserved → active. */
+export async function confirmSlot(slotId: string) {
+  const { supabase } = await requireVenueManagerForSlot(slotId);
+
+  const { error } = await supabase
+    .from("sponsorship_slots")
+    .update({ status: "active" })
+    .eq("id", slotId)
+    .eq("status", "reserved");
+
+  if (error) return { success: false as const, error: "Failed to confirm booking" };
+
+  revalidatePath("/venues");
+  return { success: true as const, data: { id: slotId } };
+}
+
+/** Mark a confirmed slot's run as finished. active → completed. */
+export async function completeSlot(slotId: string) {
+  const { supabase } = await requireVenueManagerForSlot(slotId);
+
+  const { error } = await supabase
+    .from("sponsorship_slots")
+    .update({ status: "completed" })
+    .eq("id", slotId)
+    .eq("status", "active");
+
+  if (error) return { success: false as const, error: "Failed to complete slot" };
+
+  revalidatePath("/venues");
+  return { success: true as const, data: { id: slotId } };
+}
+
+/** Release a held or booked slot back to open inventory, clearing the sponsor. */
+export async function releaseSlot(slotId: string) {
+  const { supabase } = await requireVenueManagerForSlot(slotId);
+
+  const { data: existing } = await supabase
+    .from("sponsorship_slots")
+    .select("game_config_json")
+    .eq("id", slotId)
+    .maybeSingle();
+  const gameConfig: Record<string, unknown> = {
+    ...((existing?.game_config_json as Record<string, unknown>) ?? {}),
+  };
+  delete gameConfig.campaign;
+  delete gameConfig.enquiry;
+  delete gameConfig.source;
+
+  const { error } = await supabase
+    .from("sponsorship_slots")
+    .update({
+      sponsor_account_id: null,
+      status: "available",
+      game_config_json: gameConfig,
+    })
+    .eq("id", slotId);
+
+  if (error) return { success: false as const, error: "Failed to release slot" };
+
+  revalidatePath("/venues");
+  return { success: true as const, data: { id: slotId } };
+}
+
+/** Edit a slot's price and/or dates. `price` is whole dollars → integer cents. */
+export async function updateSlot(
+  slotId: string,
+  data: { price?: number; startDate?: string; endDate?: string },
+) {
+  const { supabase } = await requireVenueManagerForSlot(slotId);
+
+  const updates: Record<string, unknown> = {};
+  if (data.price !== undefined)
+    updates.price = data.price != null ? Math.round(data.price * 100) : null;
+  if (data.startDate !== undefined) updates.start_date = data.startDate;
+  if (data.endDate !== undefined) updates.end_date = data.endDate;
+  if (Object.keys(updates).length === 0)
+    return { success: true as const, data: { id: slotId } };
+
+  const { error } = await supabase
+    .from("sponsorship_slots")
+    .update(updates)
+    .eq("id", slotId);
+
+  if (error) return { success: false as const, error: "Failed to update slot" };
+
+  revalidatePath("/venues");
+  return { success: true as const, data: { id: slotId } };
+}
+
+/** Delete a sponsorship slot. */
+export async function deleteSlot(slotId: string) {
+  const { supabase } = await requireVenueManagerForSlot(slotId);
+
+  const { error } = await supabase
+    .from("sponsorship_slots")
+    .delete()
+    .eq("id", slotId);
+
+  if (error) return { success: false as const, error: "Failed to delete slot" };
+
+  revalidatePath("/venues");
+  return { success: true as const, data: { id: slotId } };
+}
+
+/**
+ * Public advertiser enquiry: an advertiser requests an open ad slot from the
+ * venue's public "Advertise" page. Places a soft hold (available → reserved)
+ * tagged with the requester's details so the venue operator sees it land in
+ * their sponsorship board and can confirm or release it.
+ *
+ * Intentionally unauthenticated — this is the inbound demand side of the
+ * marketplace. Only ever moves a slot from available → reserved.
+ */
+export async function requestVenueSlot(
+  slotId: string,
+  enquiry: { company: string; contactName: string; email: string; message?: string },
+) {
+  if (!enquiry.company?.trim() || !enquiry.email?.trim()) {
+    return { success: false as const, error: "Company and email are required" };
+  }
+
+  const { createClient } = await import("@/lib/supabase/server");
+  const supabase = await createClient();
+
+  const { data: existing } = await supabase
+    .from("sponsorship_slots")
+    .select("game_config_json, status")
+    .eq("id", slotId)
+    .maybeSingle();
+
+  if (!existing) return { success: false as const, error: "Slot not found" };
+  if (existing.status !== "available") {
+    return { success: false as const, error: "That slot has just been taken — please pick another." };
+  }
+
+  const gameConfig: Record<string, unknown> = {
+    ...((existing.game_config_json as Record<string, unknown>) ?? {}),
+    campaign: enquiry.company.trim(),
+    source: "advertiser_request",
+    enquiry: {
+      company: enquiry.company.trim(),
+      contactName: enquiry.contactName?.trim() || null,
+      email: enquiry.email.trim(),
+      message: enquiry.message?.trim() || null,
+      requestedAt: new Date().toISOString(),
+    },
+  };
+
+  const { error } = await supabase
+    .from("sponsorship_slots")
+    .update({ status: "reserved", game_config_json: gameConfig })
+    .eq("id", slotId)
+    .eq("status", "available");
+
+  if (error) return { success: false as const, error: "Couldn't send your request. Please try again." };
 
   revalidatePath("/venues");
   return { success: true as const, data: { id: slotId } };
