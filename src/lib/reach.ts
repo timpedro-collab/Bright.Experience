@@ -12,9 +12,10 @@
  *    unit). This also yields an out-of-home (DOOH) media value — the open-
  *    market cost of buying the equivalent impressions on that site's screens.
  *
- * The Bright frozen vending unit carries three ad surfaces — a main front
- * touchscreen plus two non-touch side screens that play rolling adverts —
- * so every exposure counts across `SCREEN_MULTIPLIER` screens.
+ * A large branded Bright unit carries multiple ad faces — a main touchscreen
+ * plus wrap/side surfaces running the brand's creative — so each pass counts
+ * across `SCREEN_MULTIPLIER` exposures. (Exact surfaces vary by machine; this
+ * is a conservative default for a wrapped, multi-face activation.)
  *
  * Pure module: numbers in, numbers out, no I/O. Money is returned in integer
  * cents to match the app-wide currency convention (see `src/lib/currency.ts`).
@@ -22,8 +23,9 @@
 import { DEFAULT_CONVERSION_RATE } from "./roi";
 
 /**
- * Ad surfaces on the Bright frozen unit: 1 front touchscreen + 2 side
- * screens, all running the brand's creative. Multiplies raw exposures.
+ * Default ad faces on a wrapped activation unit (main touchscreen + side/wrap
+ * surfaces running the brand's creative). Multiplies raw exposures. Varies by
+ * machine; callers can override via the `screens` input.
  */
 export const SCREEN_MULTIPLIER = 3;
 
