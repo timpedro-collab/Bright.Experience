@@ -1,6 +1,12 @@
 /** Zod schemas for asset upload validation */
 import { z } from "zod";
+import { uuidLike } from "./id";
 
+/**
+ * Canonical allow-list for event-asset uploads. The `event-assets` storage
+ * bucket constraints (`src/lib/storage/signed-url.ts`) derive from these
+ * constants so the schema and the bucket can never drift apart.
+ */
 export const ALLOWED_FILE_TYPES = [
   "image/png",
   "image/jpeg",
@@ -13,9 +19,11 @@ export const ALLOWED_FILE_TYPES = [
 
 export const MAX_FILE_SIZE_MB = 50;
 
+/** Structured input for `uploadAsset` — ids plus the staged file's metadata. */
 export const assetUploadSchema = z.object({
-  name: z.string().min(1, "Asset name is required"),
-  assetType: z.string().min(1, "Asset type is required"),
+  assetId: uuidLike("Invalid asset ID"),
+  eventId: uuidLike("Invalid event ID"),
+  fileName: z.string().min(1, "File name is required"),
   fileType: z.string().refine(
     (val) => (ALLOWED_FILE_TYPES as readonly string[]).includes(val),
     "Unsupported file format"

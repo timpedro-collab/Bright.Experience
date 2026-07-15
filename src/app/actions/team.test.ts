@@ -29,6 +29,10 @@ vi.mock("@/lib/notifications/dispatch", () => ({
   dispatchNotification: (...args: unknown[]) => dispatchNotification(...args),
 }));
 
+// The approval branch validates the routed event id with the team schema,
+// so the mocked latest event uses a realistic UUID-shaped id.
+const EVENT_ID = "e1111111-1111-1111-1111-111111111111";
+
 const LEAD = {
   id: "admin1",
   name: "Lead Contact",
@@ -68,7 +72,7 @@ describe("inviteTeammate", () => {
 
   it("does NOT instantly provision someone outside the company domain", async () => {
     supabase.setTableResponse("profiles", { data: null, error: null });
-    supabase.setTableResponse("events", { data: { id: "evt1" }, error: null });
+    supabase.setTableResponse("events", { data: { id: EVENT_ID }, error: null });
     // Force the request-pipeline existing-check to short-circuit cleanly.
     supabase.setTableResponse("event_team_members", {
       data: { id: "tm1" },
@@ -84,7 +88,7 @@ describe("inviteTeammate", () => {
 
   it("does NOT instantly provision an admin-level invite, even same-domain", async () => {
     supabase.setTableResponse("profiles", { data: null, error: null });
-    supabase.setTableResponse("events", { data: { id: "evt1" }, error: null });
+    supabase.setTableResponse("events", { data: { id: EVENT_ID }, error: null });
     supabase.setTableResponse("event_team_members", {
       data: { id: "tm1" },
       error: null,

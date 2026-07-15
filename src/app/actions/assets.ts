@@ -26,6 +26,7 @@ import {
   imageDimensionsFromBuffer,
 } from "@/lib/asset-requirements/validate";
 import { isInternalRole, canReviewCreativeAssets } from "@/lib/roles";
+import { assetUploadSchema } from "@/lib/validations/assets";
 import type { ActionResult } from "@/types/actions";
 import type { UserRole } from "@/types";
 
@@ -60,6 +61,17 @@ export async function uploadAsset(formData: FormData): Promise<ActionResult> {
 
   if (!file || !assetId || !eventId) {
     return { success: false, error: "Missing required fields" };
+  }
+
+  const parsed = assetUploadSchema.safeParse({
+    assetId,
+    eventId,
+    fileName: file.name,
+    fileType: file.type,
+    fileSizeBytes: file.size,
+  });
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0]?.message ?? "Invalid upload" };
   }
 
   const check = validateUpload(ASSET_BUCKET, {

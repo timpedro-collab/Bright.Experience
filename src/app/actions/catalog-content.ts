@@ -8,7 +8,7 @@ import type { ActionResult } from "@/types/actions";
 
 /**
  * Resolve the acting user and confirm they own the creative/product catalog
- * (creative_lead, events_lead, admin, developer). Package and case-study
+ * (creative_lead, events_lead, admin). Package and case-study
  * mutations are not a general internal-staff capability — Ops/QA must not
  * edit, publish, or delete catalog content.
  */

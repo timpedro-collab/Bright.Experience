@@ -71,7 +71,7 @@ const OWNER_TO_INTERNAL_ROLE: Partial<Record<OwnerRole, UserRole[]>> = {
   creative: ["creative_lead"],
   operations: ["operations_lead"],
   qa: ["qa_lead"],
-  development: ["developer"],
+  development: ["admin"],
   logistics: ["operations_lead"],
   reporting: ["events_lead"],
   ae: ["events_lead"],

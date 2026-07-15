@@ -8,7 +8,7 @@ import type { ActionResult } from "@/types/actions";
 
 /**
  * Resolve the acting user and confirm they own the creative/product catalog
- * (creative_lead, events_lead, admin, developer). Catalog mutations are not a
+ * (creative_lead, events_lead, admin). Catalog mutations are not a
  * general internal-staff capability — Ops/QA must not edit or delete catalog.
  */
 async function requireCatalogEditor() {

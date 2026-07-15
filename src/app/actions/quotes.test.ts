@@ -268,6 +268,31 @@ describe("acceptQuote", () => {
     const result = await acceptQuote("q1");
     expect(result.success).toBe(false);
   });
+
+  it("rate-limits a burst of public decisions from one connection", async () => {
+    // Distinct IP so this burst doesn't drain the shared test bucket.
+    const { headers } = await import("next/headers");
+    const mocked = vi.mocked(headers);
+    mocked.mockResolvedValue(new Headers({ "x-forwarded-for": "203.0.113.42" }));
+    try {
+      supabase.setTableResponse("quotes", {
+        data: { contact_name: "Casey", company_name: "Acme" },
+        error: null,
+      });
+      const { acceptQuote } = await import("./quotes");
+      const results = [];
+      for (let i = 0; i < 11; i++) {
+        results.push(await acceptQuote("q1"));
+      }
+      expect(results.slice(0, 10).every((r) => r.success)).toBe(true);
+      expect(results[10].success).toBe(false);
+      if (!results[10].success) {
+        expect(results[10].error).toMatch(/Too many/);
+      }
+    } finally {
+      mocked.mockResolvedValue(new Headers());
+    }
+  });
 });
 
 describe("declineQuote", () => {

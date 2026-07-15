@@ -14,6 +14,7 @@ import { dispatchNotification } from "@/lib/notifications/dispatch";
 import { writeAudit } from "@/lib/audit";
 import { enqueueApprovalDecision } from "@/lib/pipedrive/triggers";
 import { isInternalRole, canRecordApprovalOnBehalf } from "@/lib/roles";
+import { approvalDecisionSchema } from "@/lib/validations/approvals";
 import type { ActionResult } from "@/types/actions";
 import type { UserRole } from "@/types";
 
@@ -32,6 +33,11 @@ export async function decideApproval(
   feedback?: string,
   onBehalf = false
 ): Promise<ActionResult> {
+  const parsed = approvalDecisionSchema.safeParse({ approvalId, decision, feedback });
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  }
+
   const supabase = await createClient();
   const {
     data: { user },

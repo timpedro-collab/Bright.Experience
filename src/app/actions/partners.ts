@@ -4,7 +4,18 @@
 import { requireInternalUser } from "@/lib/auth";
 import { requirePartnerForSlug } from "@/lib/auth/portal";
 import { isAdminRole } from "@/lib/roles";
+import { applicationLimiter, getClientIp } from "@/lib/rate-limit";
 import { createClient } from "@/lib/supabase/server";
+import {
+  addPartnerUserSchema,
+  approveCommissionSchema,
+  approvePartnerSchema,
+  createPartnerQuoteSchema,
+  markCommissionPaidSchema,
+  partnerApplicationSchema,
+  recordAttributionSchema,
+  suspendPartnerSchema,
+} from "@/lib/validations/partners";
 import { revalidatePath } from "next/cache";
 
 /**
@@ -35,6 +46,22 @@ export async function applyAsPartner(data: {
   referralSource?: string;
   notes?: string;
 }) {
+  // Anonymous public form — throttle before doing any work.
+  if (!applicationLimiter(await getClientIp())) {
+    return {
+      success: false as const,
+      error: "Too many applications from this connection. Please try again shortly.",
+    };
+  }
+
+  const parsed = partnerApplicationSchema.safeParse(data);
+  if (!parsed.success) {
+    return {
+      success: false as const,
+      error: parsed.error.issues[0]?.message ?? "Invalid input",
+    };
+  }
+
   const supabase = await createClient();
 
   const slug = data.name
@@ -83,6 +110,14 @@ export async function applyAsPartner(data: {
 
 /** Approve a pending partner, setting status to 'active'. */
 export async function approvePartner(partnerId: string) {
+  const parsed = approvePartnerSchema.safeParse({ partnerId });
+  if (!parsed.success) {
+    return {
+      success: false as const,
+      error: parsed.error.issues[0]?.message ?? "Invalid input",
+    };
+  }
+
   const { supabase, profile } = await requireInternalUser();
   if (!isAdminRole(profile.role)) {
     return { success: false as const, error: "Forbidden: admin access only" };
@@ -105,6 +140,14 @@ export async function approvePartner(partnerId: string) {
 
 /** Suspend an active partner. */
 export async function suspendPartner(partnerId: string) {
+  const parsed = suspendPartnerSchema.safeParse({ partnerId });
+  if (!parsed.success) {
+    return {
+      success: false as const,
+      error: parsed.error.issues[0]?.message ?? "Invalid input",
+    };
+  }
+
   const { supabase, profile } = await requireInternalUser();
   if (!isAdminRole(profile.role)) {
     return { success: false as const, error: "Forbidden: admin access only" };
@@ -128,6 +171,14 @@ export async function addPartnerUser(
   profileId: string,
   role: string = "member"
 ) {
+  const parsed = addPartnerUserSchema.safeParse({ partnerId, profileId, role });
+  if (!parsed.success) {
+    return {
+      success: false as const,
+      error: parsed.error.issues[0]?.message ?? "Invalid input",
+    };
+  }
+
   const { supabase, profile } = await requireInternalUser();
   if (!isAdminRole(profile.role)) {
     return { success: false as const, error: "Forbidden: admin access only" };
@@ -164,6 +215,14 @@ export async function recordAttribution(input: {
 }) {
   if (!input.partnerId && !input.partnerCode) {
     return { success: false as const, error: "Need partnerId or partnerCode" };
+  }
+
+  const parsed = recordAttributionSchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      success: false as const,
+      error: parsed.error.issues[0]?.message ?? "Invalid input",
+    };
   }
 
   const supabase = await createClient();
@@ -228,6 +287,14 @@ export async function createPartnerQuote(
     return { success: false as const, error: "Contact name and email are required" };
   }
 
+  const parsed = createPartnerQuoteSchema.safeParse({ slug, ...data });
+  if (!parsed.success) {
+    return {
+      success: false as const,
+      error: parsed.error.issues[0]?.message ?? "Invalid input",
+    };
+  }
+
   const { supabase, partnerId } = await requirePartnerForSlug(slug);
 
   const { data: quote, error } = await supabase
@@ -270,6 +337,14 @@ export async function createPartnerQuote(
 
 /** Approve a commission. `amountDollars` is the whole-dollar figure the admin types; stored as integer cents. */
 export async function approveCommission(attributionId: string, amountDollars: number) {
+  const parsed = approveCommissionSchema.safeParse({ attributionId, amountDollars });
+  if (!parsed.success) {
+    return {
+      success: false as const,
+      error: parsed.error.issues[0]?.message ?? "Invalid input",
+    };
+  }
+
   const { supabase, profile } = await requireInternalUser();
   if (!isAdminRole(profile.role)) {
     return { success: false as const, error: "Forbidden: admin access only" };
@@ -291,6 +366,14 @@ export async function approveCommission(attributionId: string, amountDollars: nu
 
 /** Mark a commission as paid. */
 export async function markCommissionPaid(attributionId: string) {
+  const parsed = markCommissionPaidSchema.safeParse({ attributionId });
+  if (!parsed.success) {
+    return {
+      success: false as const,
+      error: parsed.error.issues[0]?.message ?? "Invalid input",
+    };
+  }
+
   const { supabase, profile } = await requireInternalUser();
   if (!isAdminRole(profile.role)) {
     return { success: false as const, error: "Forbidden: admin access only" };

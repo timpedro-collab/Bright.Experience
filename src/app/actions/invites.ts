@@ -11,6 +11,10 @@
 import { requireInternalUser } from "@/lib/auth";
 import { isAdminRole } from "@/lib/roles";
 import { getServiceRoleClient } from "@/lib/supabase/service-role";
+import {
+  inviteCustomerUserSchema,
+  inviteCustomerUserSystemSchema,
+} from "@/lib/validations/invites";
 
 export type InviteRole = "customer_admin" | "customer_user";
 
@@ -43,6 +47,11 @@ export async function inviteCustomerUser(
     return { success: false, error: "Email, account, and role are required." };
   }
 
+  const parsed = inviteCustomerUserSchema.safeParse({ email, accountId, role });
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  }
+
   const validRoles: InviteRole[] = ["customer_admin", "customer_user"];
   if (!validRoles.includes(role)) {
     return { success: false, error: `Invalid role: ${role}` };
@@ -51,7 +60,7 @@ export async function inviteCustomerUser(
   try {
     const supabase = getServiceRoleClient();
 
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3001";
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
     const { data: authData, error: authError } =
       await supabase.auth.admin.inviteUserByEmail(email, {
@@ -112,6 +121,11 @@ export async function inviteCustomerUserSystem(
     return { success: false, error: "Email, account, and role are required." };
   }
 
+  const parsed = inviteCustomerUserSystemSchema.safeParse({ email, accountId, role });
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  }
+
   const validRoles: InviteRole[] = ["customer_admin", "customer_user"];
   if (!validRoles.includes(role)) {
     return { success: false, error: `Invalid role: ${role}` };
@@ -119,7 +133,7 @@ export async function inviteCustomerUserSystem(
 
   try {
     const supabase = getServiceRoleClient();
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3001";
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
     const { data: authData, error: authError } =
       await supabase.auth.admin.inviteUserByEmail(email, {

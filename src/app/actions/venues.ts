@@ -7,6 +7,21 @@ import {
   requireVenueManagerForPlacement,
   requireVenueManagerForSlot,
 } from "@/lib/auth/portal";
+import {
+  completeSlotSchema,
+  confirmSlotSchema,
+  createPlacementSchema,
+  createSponsorshipSlotSchema,
+  createVenuePackageSchema,
+  createVenueSchema,
+  deleteSlotSchema,
+  releaseSlotSchema,
+  requestVenueSlotSchema,
+  reserveSlotSchema,
+  updatePlacementStatusSchema,
+  updateSlotSchema,
+  updateVenueSchema,
+} from "@/lib/validations/venues";
 import { revalidatePath } from "next/cache";
 
 /** Create a new venue record. */
@@ -18,6 +33,11 @@ export async function createVenue(data: {
   venueType?: string;
   capacity?: number;
 }) {
+  const parsed = createVenueSchema.safeParse(data);
+  if (!parsed.success) {
+    return { success: false as const, error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  }
+
   const { supabase } = await requireInternalUser();
 
   const slug = data.name
@@ -57,6 +77,11 @@ export async function createVenuePackage(data: {
     return { success: false as const, error: "Package name is required" };
   }
 
+  const parsed = createVenuePackageSchema.safeParse(data);
+  if (!parsed.success) {
+    return { success: false as const, error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  }
+
   const { supabase } = await requireVenueManager(data.venueId);
 
   const { data: pkg, error } = await supabase
@@ -90,6 +115,11 @@ export async function updateVenue(
     contactInfoJson?: Record<string, unknown>;
   }
 ) {
+  const parsed = updateVenueSchema.safeParse({ id, ...data });
+  if (!parsed.success) {
+    return { success: false as const, error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  }
+
   const { supabase } = await requireVenueManager(id);
 
   const updates: Record<string, unknown> = {};
@@ -119,6 +149,11 @@ export async function createPlacement(data: {
   startDate: string;
   endDate?: string;
 }) {
+  const parsed = createPlacementSchema.safeParse(data);
+  if (!parsed.success) {
+    return { success: false as const, error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  }
+
   const { supabase } = await requireVenueManager(data.venueId);
 
   const { data: placement, error } = await supabase
@@ -141,6 +176,11 @@ export async function createPlacement(data: {
 
 /** Update the status of an existing placement. */
 export async function updatePlacementStatus(id: string, status: string) {
+  const parsed = updatePlacementStatusSchema.safeParse({ id, status });
+  if (!parsed.success) {
+    return { success: false as const, error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  }
+
   const { supabase } = await requireVenueManagerForPlacement(id);
 
   const { error } = await supabase
@@ -161,6 +201,11 @@ export async function createSponsorshipSlot(data: {
   endDate: string;
   price?: number;
 }) {
+  const parsed = createSponsorshipSlotSchema.safeParse(data);
+  if (!parsed.success) {
+    return { success: false as const, error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  }
+
   const { supabase } = await requireVenueManagerForPlacement(data.placementId);
 
   const { data: slot, error } = await supabase
@@ -190,6 +235,11 @@ export async function reserveSlot(
   sponsorAccountId: string,
   campaign?: string,
 ) {
+  const parsed = reserveSlotSchema.safeParse({ slotId, sponsorAccountId, campaign });
+  if (!parsed.success) {
+    return { success: false as const, error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  }
+
   const { supabase } = await requireVenueManagerForSlot(slotId);
 
   const { data: existing } = await supabase
@@ -220,6 +270,11 @@ export async function reserveSlot(
 
 /** Confirm a held slot as a booked, paid campaign. reserved → active. */
 export async function confirmSlot(slotId: string) {
+  const parsed = confirmSlotSchema.safeParse({ slotId });
+  if (!parsed.success) {
+    return { success: false as const, error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  }
+
   const { supabase } = await requireVenueManagerForSlot(slotId);
 
   const { error } = await supabase
@@ -236,6 +291,11 @@ export async function confirmSlot(slotId: string) {
 
 /** Mark a confirmed slot's run as finished. active → completed. */
 export async function completeSlot(slotId: string) {
+  const parsed = completeSlotSchema.safeParse({ slotId });
+  if (!parsed.success) {
+    return { success: false as const, error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  }
+
   const { supabase } = await requireVenueManagerForSlot(slotId);
 
   const { error } = await supabase
@@ -252,6 +312,11 @@ export async function completeSlot(slotId: string) {
 
 /** Release a held or booked slot back to open inventory, clearing the sponsor. */
 export async function releaseSlot(slotId: string) {
+  const parsed = releaseSlotSchema.safeParse({ slotId });
+  if (!parsed.success) {
+    return { success: false as const, error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  }
+
   const { supabase } = await requireVenueManagerForSlot(slotId);
 
   const { data: existing } = await supabase
@@ -286,6 +351,11 @@ export async function updateSlot(
   slotId: string,
   data: { price?: number; startDate?: string; endDate?: string },
 ) {
+  const parsed = updateSlotSchema.safeParse({ slotId, ...data });
+  if (!parsed.success) {
+    return { success: false as const, error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  }
+
   const { supabase } = await requireVenueManagerForSlot(slotId);
 
   const updates: Record<string, unknown> = {};
@@ -309,6 +379,11 @@ export async function updateSlot(
 
 /** Delete a sponsorship slot. */
 export async function deleteSlot(slotId: string) {
+  const parsed = deleteSlotSchema.safeParse({ slotId });
+  if (!parsed.success) {
+    return { success: false as const, error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  }
+
   const { supabase } = await requireVenueManagerForSlot(slotId);
 
   const { error } = await supabase
@@ -337,6 +412,11 @@ export async function requestVenueSlot(
 ) {
   if (!enquiry.company?.trim() || !enquiry.email?.trim()) {
     return { success: false as const, error: "Company and email are required" };
+  }
+
+  const parsed = requestVenueSlotSchema.safeParse({ slotId, ...enquiry });
+  if (!parsed.success) {
+    return { success: false as const, error: parsed.error.issues[0]?.message ?? "Invalid input" };
   }
 
   const { createClient } = await import("@/lib/supabase/server");

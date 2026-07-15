@@ -14,6 +14,7 @@ import {
   canViewCommercial,
   canViewCreativeProduct,
   canViewLocations,
+  canOrderStudioWork,
 } from "./roles";
 import type { UserRole } from "@/types";
 
@@ -23,7 +24,6 @@ describe("isInternalRole", () => {
     "creative_lead",
     "operations_lead",
     "qa_lead",
-    "developer",
     "admin",
   ] as const)("treats %s as internal", (role) => {
     expect(isInternalRole(role)).toBe(true);
@@ -67,8 +67,8 @@ describe("isPartnerRole", () => {
 });
 
 describe("creative review ownership", () => {
-  it("lets the Creative team (+ admin/developer) action creative reviews", () => {
-    for (const role of ["creative_lead", "admin", "developer"] as UserRole[]) {
+  it("lets the Creative team (+ admin) action creative reviews", () => {
+    for (const role of ["creative_lead", "admin"] as UserRole[]) {
       expect(canReviewCreativeAssets(role)).toBe(true);
     }
   });
@@ -98,7 +98,6 @@ describe("approval sign-off on behalf", () => {
       "events_lead",
       "creative_lead",
       "admin",
-      "developer",
     ] as UserRole[]) {
       expect(canRecordApprovalOnBehalf(role)).toBe(true);
     }
@@ -110,9 +109,34 @@ describe("approval sign-off on behalf", () => {
   });
 });
 
+describe("studio ordering", () => {
+  it("lets internal staff and the client's lead contact order studio work", () => {
+    for (const role of [
+      "events_lead",
+      "creative_lead",
+      "operations_lead",
+      "qa_lead",
+      "admin",
+      "customer_admin",
+    ] as UserRole[]) {
+      expect(canOrderStudioWork(role)).toBe(true);
+    }
+  });
+
+  it("blocks junior customer users and partners from ordering studio work", () => {
+    for (const role of [
+      "customer_user",
+      "partner_member",
+      "partner_admin",
+    ] as UserRole[]) {
+      expect(canOrderStudioWork(role)).toBe(false);
+    }
+  });
+});
+
 describe("back-office ownership", () => {
   it("commercial surfaces are Events Lead + Admin only (not Ops/QA/Creative)", () => {
-    for (const role of ["events_lead", "admin", "developer"] as UserRole[]) {
+    for (const role of ["events_lead", "admin"] as UserRole[]) {
       expect(canViewCommercial(role)).toBe(true);
     }
     for (const role of [
@@ -130,7 +154,6 @@ describe("back-office ownership", () => {
       "creative_lead",
       "events_lead",
       "admin",
-      "developer",
     ] as UserRole[]) {
       expect(canViewCreativeProduct(role)).toBe(true);
     }
@@ -144,7 +167,6 @@ describe("back-office ownership", () => {
       "operations_lead",
       "events_lead",
       "admin",
-      "developer",
     ] as UserRole[]) {
       expect(canViewLocations(role)).toBe(true);
     }

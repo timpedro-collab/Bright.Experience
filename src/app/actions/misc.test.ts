@@ -108,19 +108,31 @@ describe("notifications action — createNotification", () => {
 // briefing.ts
 // ──────────────────────────────────────────────────────────
 describe("briefing action — saveBriefingResponse", () => {
+  // The action validates input with the briefing-response schema, so tests
+  // use a realistic UUID-shaped event id.
+  const BRIEFING_EVENT_ID = "e1111111-1111-1111-1111-111111111111";
+
   it("returns error when unauthenticated", async () => {
     supabase.setUser(null);
     const { saveBriefingResponse } = await import("./briefing");
-    const result = await saveBriefingResponse("evt-1", "creative", {});
+    const result = await saveBriefingResponse(BRIEFING_EVENT_ID, "creative", {});
     expect(result.success).toBe(false);
     if (!result.success) expect(result.error).toMatch(/authenticated/);
+  });
+
+  it("rejects a malformed event id via validation", async () => {
+    supabase.setUser({ id: "u1" });
+    const { saveBriefingResponse } = await import("./briefing");
+    const result = await saveBriefingResponse("evt-1", "creative", { brand: "Acme" });
+    expect(result.success).toBe(false);
+    if (!result.success) expect(result.error).toMatch(/Invalid event ID/);
   });
 
   it("saves a draft (no submit dispatch)", async () => {
     supabase.setUser({ id: "u1" });
     supabase.setTableResponse("briefing_responses", { data: null, error: null });
     const { saveBriefingResponse } = await import("./briefing");
-    await saveBriefingResponse("evt-1", "creative", { brand: "Acme" }, false);
+    await saveBriefingResponse(BRIEFING_EVENT_ID, "creative", { brand: "Acme" }, false);
     expect(dispatchNotification).not.toHaveBeenCalled();
   });
 
@@ -130,7 +142,7 @@ describe("briefing action — saveBriefingResponse", () => {
     supabase.setTableResponse("events", { data: { name: "Spring" }, error: null });
     supabase.setTableResponse("profiles", { data: { name: "Casey" }, error: null });
     const { saveBriefingResponse } = await import("./briefing");
-    await saveBriefingResponse("evt-1", "creative", { brand: "Acme" }, true);
+    await saveBriefingResponse(BRIEFING_EVENT_ID, "creative", { brand: "Acme" }, true);
     expect(dispatchNotification).toHaveBeenCalledWith(
       "briefing.submitted",
       expect.any(Object)

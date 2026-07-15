@@ -15,6 +15,7 @@ import { autoCompleteTaskByPath, autoCompleteTaskByPathAndTitle } from "@/app/ac
 import { validateUpload, storagePathFor, createSignedReadUrl } from "@/lib/storage/signed-url";
 import { scanUpload } from "@/lib/storage/scan";
 import { bumpStreak } from "./streak";
+import { briefingResponseSchema } from "@/lib/validations/briefing";
 import type { ActionResult } from "@/types/actions";
 
 /** Save (or submit) a briefing response for an event. */
@@ -24,6 +25,11 @@ export async function saveBriefingResponse(
   responses: Record<string, unknown>,
   submit: boolean = false
 ): Promise<ActionResult> {
+  const parsed = briefingResponseSchema.safeParse({ eventId, formType, responses, submit });
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0]?.message ?? "Invalid briefing" };
+  }
+
   const supabase = await createClient();
   const {
     data: { user },

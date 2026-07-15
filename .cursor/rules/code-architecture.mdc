@@ -33,7 +33,7 @@ src/
     queries/        → Supabase read queries, one file per entity
     validations/    → Zod schemas, one file per domain
     utils.ts        → cn() and shared utilities
-    rbac.ts         → Role/permission helpers
+    roles.ts        → Role/permission helpers
   types/            → TypeScript types and enums
   app/actions/      → Server Actions grouped by domain
 ```

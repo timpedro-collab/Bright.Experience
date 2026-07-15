@@ -27,6 +27,7 @@ import { writeAudit } from "@/lib/audit";
 import { checkComplianceForStageGate } from "./compliance";
 import { createHandoffNote } from "./handoff-notes";
 import { bumpStreak } from "./streak";
+import { advanceStageSchema } from "@/lib/validations/stages";
 import { STAGE_CONFIG } from "@/types";
 import type { Stage } from "@/types";
 import type { ActionResult } from "@/types/actions";
@@ -117,6 +118,11 @@ export async function canAdvanceStage(
 export async function advanceStage(
   eventId: string
 ): Promise<ActionResult<{ from: Stage; to: Stage }>> {
+  const parsed = advanceStageSchema.safeParse({ eventId });
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  }
+
   const supabase = await createClient();
   const {
     data: { user },

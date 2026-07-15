@@ -4,7 +4,7 @@
 import { cookies, headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
-import { quoteLimiter, getClientIp } from "@/lib/rate-limit";
+import { quoteLimiter, decisionLimiter, getClientIp } from "@/lib/rate-limit";
 import { sanitiseCapabilitySlugs } from "@/lib/capabilities";
 import { sendProposalIntakeNotification } from "@/lib/email";
 import { dispatchNotification } from "@/lib/notifications/dispatch";
@@ -190,6 +190,14 @@ export async function bookWalkthrough(
   scheduledAt: string,
   slotLabel: string,
 ) {
+  // Public confirmation-page action — throttle unauthenticated writes.
+  if (!decisionLimiter(await getClientIp())) {
+    return {
+      success: false as const,
+      error: "Too many requests. Please wait a moment and try again.",
+    };
+  }
+
   const supabase = await createClient();
   const { error } = await supabase
     .from("quotes")
@@ -231,6 +239,14 @@ export async function updateQuoteCapabilities(
   quoteId: string,
   capabilitySlugs: string[]
 ) {
+  // Public confirmation-page action — throttle unauthenticated writes.
+  if (!decisionLimiter(await getClientIp())) {
+    return {
+      success: false as const,
+      error: "Too many requests. Please wait a moment and try again.",
+    };
+  }
+
   const supabase = await createClient();
   const addons = sanitiseCapabilitySlugs(capabilitySlugs);
 

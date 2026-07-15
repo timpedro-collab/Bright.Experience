@@ -3,11 +3,18 @@
 
 import { requireInternalUser } from "@/lib/auth";
 import { canViewCommercial } from "@/lib/roles";
+import {
+  addEventToCampaignSchema,
+  createCampaignSchema,
+  duplicateEventForCampaignSchema,
+  removeEventFromCampaignSchema,
+  updateCampaignStatusSchema,
+} from "@/lib/validations/campaigns";
 import { revalidatePath } from "next/cache";
 
 /**
  * Guard: resolve the caller and require a commercial role
- * (events_lead / admin / developer) — campaigns are a commercial surface.
+ * (events_lead / admin) — campaigns are a commercial surface.
  */
 async function requireCommercialUser() {
   const ctx = await requireInternalUser();
@@ -28,6 +35,11 @@ export async function createCampaign(data: {
   endDate?: string;
   status?: string;
 }) {
+  const parsed = createCampaignSchema.safeParse(data);
+  if (!parsed.success) {
+    return { success: false as const, error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  }
+
   const { supabase } = await requireCommercialUser();
 
   const status = CAMPAIGN_STATUSES.includes(
@@ -57,6 +69,11 @@ export async function createCampaign(data: {
 
 /** Link an event to a campaign. */
 export async function addEventToCampaign(campaignId: string, eventId: string) {
+  const parsed = addEventToCampaignSchema.safeParse({ campaignId, eventId });
+  if (!parsed.success) {
+    return { success: false as const, error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  }
+
   const { supabase } = await requireCommercialUser();
 
   const { data: existing } = await supabase
@@ -93,6 +110,11 @@ export async function addEventToCampaign(campaignId: string, eventId: string) {
 
 /** Remove an event from a campaign. */
 export async function removeEventFromCampaign(campaignId: string, eventId: string) {
+  const parsed = removeEventFromCampaignSchema.safeParse({ campaignId, eventId });
+  if (!parsed.success) {
+    return { success: false as const, error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  }
+
   const { supabase } = await requireCommercialUser();
 
   const { error } = await supabase
@@ -110,6 +132,11 @@ export async function removeEventFromCampaign(campaignId: string, eventId: strin
 
 /** Update a campaign's lifecycle status. */
 export async function updateCampaignStatus(id: string, status: string) {
+  const parsed = updateCampaignStatusSchema.safeParse({ id, status });
+  if (!parsed.success) {
+    return { success: false as const, error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  }
+
   const { supabase } = await requireCommercialUser();
 
   const { error } = await supabase
@@ -130,6 +157,11 @@ export async function duplicateEventForCampaign(
   newDates: { start: string; end: string },
   newLocation?: string
 ) {
+  const parsed = duplicateEventForCampaignSchema.safeParse({ eventId, newDates, newLocation });
+  if (!parsed.success) {
+    return { success: false as const, error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  }
+
   const { supabase } = await requireCommercialUser();
 
   const { data: source, error: fetchError } = await supabase

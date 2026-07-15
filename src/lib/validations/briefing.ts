@@ -1,15 +1,27 @@
-/** Zod schemas for creative briefing form validation */
+/** Zod schemas for briefing form submissions */
 import { z } from "zod";
+import { uuidLike } from "./id";
 
-export const briefingFormSchema = z.object({
-  brandName: z.string().min(1, "Brand name is required"),
-  campaignObjective: z.string().min(10, "Please describe the campaign objective"),
-  targetAudience: z.string().optional(),
-  keyMessages: z.string().optional(),
-  brandGuidelines: z.string().optional(),
-  colorPreferences: z.string().optional(),
-  inspirationLinks: z.string().optional(),
-  additionalNotes: z.string().optional(),
+/** Longest answer we accept for a single briefing question. */
+export const MAX_ANSWER_LENGTH = 5000;
+
+/**
+ * Structured input for `saveBriefingResponse`. Briefings are free-form
+ * question/answer blobs keyed by snake_case question ids (the creative and
+ * ops forms each define their own field sets, and the brand kit merges into
+ * the creative blob), so responses are validated as a bounded string record
+ * rather than a fixed shape.
+ */
+export const briefingResponseSchema = z.object({
+  eventId: uuidLike("Invalid event ID"),
+  formType: z.enum(["creative", "ops"]),
+  responses: z.record(
+    z.string(),
+    z
+      .string()
+      .max(MAX_ANSWER_LENGTH, `Answers must be under ${MAX_ANSWER_LENGTH} characters`)
+  ),
+  submit: z.boolean(),
 });
 
-export type BriefingFormInput = z.infer<typeof briefingFormSchema>;
+export type BriefingResponseInput = z.infer<typeof briefingResponseSchema>;

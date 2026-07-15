@@ -4,19 +4,21 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { profileNameSchema } from "@/lib/validations/profile";
 import type { ActionResult } from "@/types/actions";
 
 /** Update the current user's display name. */
 export async function updateProfileName(name: string): Promise<ActionResult> {
+  const parsed = profileNameSchema.safeParse({ name });
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  }
+
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return { success: false, error: "Not authenticated" };
-
-  if (!name.trim() || name.trim().length < 2) {
-    return { success: false, error: "Name must be at least 2 characters" };
-  }
 
   const { error } = await supabase
     .from("profiles")

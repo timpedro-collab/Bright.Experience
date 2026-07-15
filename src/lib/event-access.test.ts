@@ -7,7 +7,7 @@ import {
 } from "./event-access";
 import type { UserRole } from "@/types";
 
-const FULL_ACCESS: UserRole[] = ["events_lead", "admin", "developer"];
+const FULL_ACCESS: UserRole[] = ["events_lead", "admin"];
 
 describe("event-access matrix", () => {
   it("gives full-access roles every section", () => {

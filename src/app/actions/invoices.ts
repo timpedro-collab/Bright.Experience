@@ -2,7 +2,13 @@
 
 /**
  * Server actions for invoice and payment tracking.
- * Internal-only — powers the finance dashboard and per-event invoice tab.
+ * Internal-only — powers the finance dashboard.
+ *
+ * The portal treats invoices as DISPLAY-ONLY by design: real invoices are
+ * raised and settled in the finance system, and this dashboard just mirrors
+ * their status. `createInvoice` / `updateInvoiceStatus` are retained (and
+ * tested) for the day billing moves in-portal, but no UI calls them — see
+ * HANDOFF.md "deferred features".
  */
 
 import { createClient } from "@/lib/supabase/server";
@@ -129,7 +135,8 @@ export async function createInvoice(
       account_id: accountId,
       invoice_number: invoiceNumber,
       amount: data.amount,
-      currency: data.currency ?? "USD",
+      // All Bright.Blue commercial figures are GBP pence (see lib/currency.ts).
+      currency: data.currency ?? "GBP",
       payment_method: data.paymentMethod ?? "invoice",
       po_number: data.poNumber ?? null,
       due_at: data.dueAt ?? null,

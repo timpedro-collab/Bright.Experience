@@ -68,7 +68,7 @@ export const ALL_SECTIONS: EventSection[] = Object.keys(
 ) as EventSection[];
 
 /** Roles that see every section (orchestration / full-stack). */
-const FULL_ACCESS_ROLES: UserRole[] = ["events_lead", "admin", "developer"];
+const FULL_ACCESS_ROLES: UserRole[] = ["events_lead", "admin"];
 
 const CUSTOMER_ROLES: UserRole[] = ["customer_user", "customer_admin"];
 

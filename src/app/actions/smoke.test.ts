@@ -236,7 +236,7 @@ describe("partners action — applyAsPartner", () => {
     const result = await applyAsPartner({
       name: "Smith Events",
       contactName: "Smith",
-      contactEmail: "smith@x",
+      contactEmail: "smith@smithevents.com",
       type: "agency",
     });
     expect(result.success).toBe(true);
@@ -251,9 +251,37 @@ describe("partners action — applyAsPartner", () => {
     const result = await applyAsPartner({
       name: "Smith Events",
       contactName: "Smith",
-      contactEmail: "smith@x",
+      contactEmail: "smith@smithevents.com",
       type: "agency",
     });
     expect(result.success).toBe(false);
+  });
+
+  it("rate-limits repeated applications from one connection", async () => {
+    // Distinct IP so this burst doesn't share a bucket with the tests above.
+    const { headers } = await import("next/headers");
+    vi.mocked(headers).mockResolvedValue(
+      new Headers({ "x-forwarded-for": "203.0.113.77" })
+    );
+    supabase.setTableResponse("partners", {
+      data: { id: "p1", partner_code: "BB-TEST123" },
+      error: null,
+    });
+    const { applyAsPartner } = await import("./partners");
+    const application = {
+      name: "Burst Events",
+      contactName: "Burst",
+      contactEmail: "burst@burstevents.com",
+      type: "agency",
+    };
+    const results = [];
+    for (let i = 0; i < 6; i++) {
+      results.push(await applyAsPartner(application));
+    }
+    expect(results.slice(0, 5).every((r) => r.success)).toBe(true);
+    expect(results[5].success).toBe(false);
+    if (!results[5].success) {
+      expect(results[5].error).toMatch(/Too many/);
+    }
   });
 });

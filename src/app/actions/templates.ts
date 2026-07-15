@@ -4,11 +4,16 @@
 import { redirect } from "next/navigation";
 import { requireInternalUser } from "@/lib/auth";
 import { canViewCommercial } from "@/lib/roles";
+import {
+  createTemplateSchema,
+  saveEventAsTemplateSchema,
+  saveTemplateDataSchema,
+} from "@/lib/validations/templates";
 import type { ActionResult } from "@/types/actions";
 
 /**
  * Guard: resolve the caller and require a commercial role
- * (events_lead / admin / developer) — templates are a commercial surface.
+ * (events_lead / admin) — templates are a commercial surface.
  */
 async function requireCommercialUser() {
   const ctx = await requireInternalUser();
@@ -37,6 +42,11 @@ export async function createTemplate(
   const description = String(formData.get("description") ?? "").trim() || null;
   const eventType = String(formData.get("eventType") ?? "activation");
   const packageType = String(formData.get("packageType") ?? "standard");
+
+  const parsed = createTemplateSchema.safeParse({ name, description, eventType, packageType });
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  }
 
   const { data, error } = await supabase
     .from("event_templates")
@@ -76,6 +86,11 @@ export async function saveTemplateData(
     product_config_defaults_json?: Record<string, unknown> | null;
   }
 ): Promise<ActionResult> {
+  const parsed = saveTemplateDataSchema.safeParse({ templateId, ...data });
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  }
+
   const { supabase } = await requireCommercialUser();
 
   const { error } = await supabase
@@ -92,6 +107,11 @@ export async function saveEventAsTemplate(
   eventId: string,
   templateName: string
 ): Promise<ActionResult<{ id: string }>> {
+  const parsed = saveEventAsTemplateSchema.safeParse({ eventId, templateName });
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  }
+
   const { supabase } = await requireCommercialUser();
 
   const { data: event } = await supabase

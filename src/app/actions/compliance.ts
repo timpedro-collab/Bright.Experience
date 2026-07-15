@@ -12,6 +12,12 @@ import { isInternalRole } from "@/lib/roles";
 import { dispatchNotification } from "@/lib/notifications/dispatch";
 import { validateUpload, storagePathFor } from "@/lib/storage/signed-url";
 import { scanUpload } from "@/lib/storage/scan";
+import {
+  createComplianceRequirementSchema,
+  uploadComplianceDocumentSchema,
+  reviewComplianceDocumentSchema,
+  seedComplianceSchema,
+} from "@/lib/validations/compliance";
 import type { ActionResult } from "@/types/actions";
 import {
   DOC_TYPE_LABELS,
@@ -62,6 +68,17 @@ export async function createComplianceRequirement(
   requiredMinimum?: string,
   expiresAt?: string
 ): Promise<ActionResult<{ id: string }>> {
+  const parsed = createComplianceRequirementSchema.safeParse({
+    eventId,
+    documentType,
+    title,
+    requiredMinimum,
+    expiresAt,
+  });
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  }
+
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { success: false, error: "Not authenticated" };
@@ -95,6 +112,11 @@ export async function uploadComplianceDocument(
 
   if (!docId || !eventId || !file) {
     return { success: false, error: "Missing required fields" };
+  }
+
+  const parsed = uploadComplianceDocumentSchema.safeParse({ docId, eventId, currentValue });
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0]?.message ?? "Invalid input" };
   }
 
   const supabase = await createClient();
@@ -171,6 +193,11 @@ export async function reviewComplianceDocument(
   decision: "approved" | "rejected",
   notes?: string
 ): Promise<ActionResult> {
+  const parsed = reviewComplianceDocumentSchema.safeParse({ docId, eventId, decision, notes });
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  }
+
   const reviewer = await getUser();
   if (!reviewer) return { success: false, error: "Not authenticated" };
   if (!isInternalRole(reviewer.role)) {
@@ -274,6 +301,13 @@ export async function seedComplianceFromAccount(
   eventId: string,
   accountId: string
 ): Promise<void> {
+  // Void-returning action: surface invalid input by throwing so the caller's
+  // try/catch (provisioning) logs it rather than silently no-opping.
+  const parsed = seedComplianceSchema.safeParse({ eventId, accountId });
+  if (!parsed.success) {
+    throw new Error(parsed.error.issues[0]?.message ?? "Invalid input");
+  }
+
   const supabase = await createClient();
   const { data: requirements } = await supabase
     .from("client_compliance_requirements")

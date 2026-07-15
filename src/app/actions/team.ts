@@ -12,6 +12,13 @@ import { createClient } from "@/lib/supabase/server";
 import { getUser, requireInternalUser } from "@/lib/auth";
 import { dispatchNotification } from "@/lib/notifications/dispatch";
 import { inviteCustomerUserSystem } from "@/app/actions/invites";
+import {
+  approveTeamMemberSchema,
+  inviteTeammateSchema,
+  rejectTeamMemberSchema,
+  removeTeamMemberSchema,
+  requestTeamMemberSchema,
+} from "@/lib/validations/team";
 import type { ActionResult } from "@/types/actions";
 
 /** Role label stored on an approval-routed request that should become an admin. */
@@ -33,6 +40,11 @@ export async function inviteTeammate(
   email: string,
   asAdmin = false,
 ): Promise<TeammateInviteOutcome> {
+  const parsed = inviteTeammateSchema.safeParse({ email, asAdmin });
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  }
+
   const user = await getUser();
   if (!user) return { success: false, error: "Not authenticated" };
   if (user.role !== "customer_admin") {
@@ -123,6 +135,15 @@ export async function requestTeamMember(
   const trimmedEmail = email.trim().toLowerCase();
   if (!trimmedEmail) return { success: false, error: "Email is required" };
 
+  const parsed = requestTeamMemberSchema.safeParse({
+    eventId,
+    email: trimmedEmail,
+    roleLabel,
+  });
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  }
+
   const supabase = await createClient();
 
   const { data: existing } = await supabase
@@ -182,6 +203,11 @@ export async function requestTeamMember(
 export async function approveTeamMember(
   memberId: string,
 ): Promise<ActionResult> {
+  const parsed = approveTeamMemberSchema.safeParse({ memberId });
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  }
+
   const { supabase, profile } = await requireInternalUser();
 
   const { data: member } = await supabase
@@ -234,6 +260,11 @@ export async function approveTeamMember(
 export async function rejectTeamMember(
   memberId: string,
 ): Promise<ActionResult> {
+  const parsed = rejectTeamMemberSchema.safeParse({ memberId });
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  }
+
   const { supabase } = await requireInternalUser();
 
   const { data: member, error } = await supabase
@@ -257,6 +288,11 @@ export async function rejectTeamMember(
 export async function removeTeamMember(
   memberId: string,
 ): Promise<ActionResult> {
+  const parsed = removeTeamMemberSchema.safeParse({ memberId });
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  }
+
   const user = await getUser();
   if (!user) return { success: false, error: "Not authenticated" };
   const supabase = await createClient();

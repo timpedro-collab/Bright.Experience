@@ -63,7 +63,7 @@ export async function submitAssetReview(input: unknown) {
     .eq("id", user.id)
     .single();
   const reviewerRole = reviewerProfile?.role as UserRole | undefined;
-  // Creative sign-off belongs to the Creative team (+ admin/developer).
+  // Creative sign-off belongs to the Creative team (+ admin).
   // Events Lead, Ops and QA cannot decide on creative assets.
   if (!reviewerRole || !canReviewCreativeAssets(reviewerRole)) {
     return {

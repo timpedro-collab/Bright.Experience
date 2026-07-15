@@ -5,7 +5,6 @@ const INTERNAL_ROLES: UserRole[] = [
   "creative_lead",
   "operations_lead",
   "qa_lead",
-  "developer",
   "admin",
 ];
 
@@ -23,7 +22,7 @@ export function isAdminRole(role: UserRole): boolean {
  * roles (creative, ops, QA) complete their own work but do not advance the
  * stage — orchestration stays with the Events Lead / Admin.
  */
-export const STAGE_ADVANCE_ROLES: UserRole[] = ["events_lead", "admin", "developer"];
+export const STAGE_ADVANCE_ROLES: UserRole[] = ["events_lead", "admin"];
 
 export function canAdvanceEventStage(role: UserRole): boolean {
   return STAGE_ADVANCE_ROLES.includes(role);
@@ -34,15 +33,11 @@ export function canAdvanceEventStage(role: UserRole): boolean {
  *
  * Reviewing the creative assets a customer uploads (approve / request a
  * revision / hand to Bright.Studio) is the Creative team's job — NOT the
- * Events Lead's and NOT Ops'. `admin` and `developer` retain access as
- * org-owner / break-glass roles, but the orchestrator (events_lead) and
+ * Events Lead's and NOT Ops'. `admin` retains access as the org-owner /
+ * break-glass role, but the orchestrator (events_lead) and
  * the specialist lanes (operations_lead, qa_lead) cannot action creative.
  */
-export const CREATIVE_REVIEW_ROLES: UserRole[] = [
-  "creative_lead",
-  "admin",
-  "developer",
-];
+export const CREATIVE_REVIEW_ROLES: UserRole[] = ["creative_lead", "admin"];
 
 export function canReviewCreativeAssets(role: UserRole): boolean {
   return CREATIVE_REVIEW_ROLES.includes(role);
@@ -66,14 +61,13 @@ export function canViewCreativeQueue(role: UserRole): boolean {
  * Customer sign-off is the customer's decision. The only internal roles
  * that may record it on the customer's behalf are the customer-facing
  * ones — the Events Lead (account manager) and the Creative team that
- * produced the deliverable, plus admin/developer. Ops and QA never touch
+ * produced the deliverable, plus admin. Ops and QA never touch
  * sign-off.
  */
 export const ON_BEHALF_APPROVAL_ROLES: UserRole[] = [
   "events_lead",
   "creative_lead",
   "admin",
-  "developer",
 ];
 
 export function canRecordApprovalOnBehalf(role: UserRole): boolean {
@@ -85,8 +79,8 @@ export function canRecordApprovalOnBehalf(role: UserRole): boolean {
  *
  * The internal admin surfaces are NOT a single bucket. Each belongs to a
  * specific function, and the specialist lanes (Ops, QA) shouldn't wander
- * into commercial or creative back-office that isn't theirs. `developer`
- * is retained everywhere as a break-glass full-stack role.
+ * into commercial or creative back-office that isn't theirs. `admin` is
+ * retained everywhere as the org-owner / break-glass role.
  */
 
 /**
@@ -94,7 +88,7 @@ export function canRecordApprovalOnBehalf(role: UserRole): boolean {
  * success queue, task templates, campaigns, benchmarks, recommendations,
  * and partner management. Owned by the Events Lead (account manager) + Admin.
  */
-export const COMMERCIAL_ROLES: UserRole[] = ["events_lead", "admin", "developer"];
+export const COMMERCIAL_ROLES: UserRole[] = ["events_lead", "admin"];
 
 export function canViewCommercial(role: UserRole): boolean {
   return COMMERCIAL_ROLES.includes(role);
@@ -109,7 +103,6 @@ export const CREATIVE_PRODUCT_ROLES: UserRole[] = [
   "creative_lead",
   "events_lead",
   "admin",
-  "developer",
 ];
 
 export function canViewCreativeProduct(role: UserRole): boolean {
@@ -124,11 +117,21 @@ export const LOCATIONS_ROLES: UserRole[] = [
   "operations_lead",
   "events_lead",
   "admin",
-  "developer",
 ];
 
 export function canViewLocations(role: UserRole): boolean {
   return LOCATIONS_ROLES.includes(role);
+}
+
+/**
+ * Ordering Bright.Studio creative work is a commercial commitment, so it is
+ * reserved for internal staff and the client's lead contact
+ * (`customer_admin`) — junior invited customer users cannot raise orders.
+ */
+export const STUDIO_ORDER_ROLES: UserRole[] = [...INTERNAL_ROLES, "customer_admin"];
+
+export function canOrderStudioWork(role: UserRole): boolean {
+  return STUDIO_ORDER_ROLES.includes(role);
 }
 
 /**

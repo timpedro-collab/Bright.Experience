@@ -17,6 +17,10 @@ const enqueueStageAdvance = vi.fn();
 // stage-advance RBAC guard.
 let mockRole = "events_lead";
 
+// advanceStage validates the event id with the stage schema, so tests use a
+// realistic UUID-shaped id.
+const EVENT_ID = "e1111111-1111-1111-1111-111111111111";
+
 vi.mock("@/lib/supabase/server", () => ({
   createClient: vi.fn(async () => supabase),
 }));
@@ -47,7 +51,7 @@ describe("canAdvanceStage", () => {
   it("returns false with 'Event not found' when the event is missing", async () => {
     supabase.setTableResponse("events", { data: null, error: null });
     const { canAdvanceStage } = await import("./stages");
-    const result = await canAdvanceStage("evt-1");
+    const result = await canAdvanceStage(EVENT_ID);
     expect(result.canAdvance).toBe(false);
     expect(result.blockers).toContain("Event not found");
   });
@@ -58,7 +62,7 @@ describe("canAdvanceStage", () => {
       error: null,
     });
     const { canAdvanceStage } = await import("./stages");
-    const result = await canAdvanceStage("evt-1");
+    const result = await canAdvanceStage(EVENT_ID);
     expect(result.canAdvance).toBe(false);
     expect(result.blockers[0]).toMatch(/final/i);
   });
@@ -71,7 +75,7 @@ describe("canAdvanceStage", () => {
     });
     supabase.setTableResponse("tasks", { data: [], error: null });
     const { canAdvanceStage } = await import("./stages");
-    const result = await canAdvanceStage("evt-1");
+    const result = await canAdvanceStage(EVENT_ID);
     expect(result.canAdvance).toBe(true);
     expect(result.blockers).toEqual([]);
   });
@@ -86,7 +90,7 @@ describe("canAdvanceStage", () => {
       error: null,
     });
     const { canAdvanceStage } = await import("./stages");
-    const result = await canAdvanceStage("evt-1");
+    const result = await canAdvanceStage(EVENT_ID);
     expect(result.canAdvance).toBe(false);
     expect(result.blockers).toContain("Upload hero");
   });
@@ -96,7 +100,7 @@ describe("advanceStage", () => {
   it("returns error when not authenticated", async () => {
     supabase.setUser(null);
     const { advanceStage } = await import("./stages");
-    const result = await advanceStage("evt-1");
+    const result = await advanceStage(EVENT_ID);
     expect(result.success).toBe(false);
     if (!result.success) expect(result.error).toMatch(/authenticated/);
   });
@@ -105,7 +109,7 @@ describe("advanceStage", () => {
     supabase.setUser({ id: "u1" });
     mockRole = "creative_lead";
     const { advanceStage } = await import("./stages");
-    const result = await advanceStage("evt-1");
+    const result = await advanceStage(EVENT_ID);
     expect(result.success).toBe(false);
     if (!result.success) expect(result.error).toMatch(/advance stages/);
   });
@@ -121,7 +125,7 @@ describe("advanceStage", () => {
       error: null,
     });
     const { advanceStage } = await import("./stages");
-    const result = await advanceStage("evt-1");
+    const result = await advanceStage(EVENT_ID);
     expect(result.success).toBe(false);
     if (!result.success) expect(result.error).toMatch(/Cannot advance/);
   });
@@ -135,11 +139,11 @@ describe("advanceStage", () => {
     supabase.setTableResponse("tasks", { data: [], error: null });
     supabase.setTableResponse("audit_entries", { data: null, error: null });
     const { advanceStage } = await import("./stages");
-    await advanceStage("evt-1");
+    await advanceStage(EVENT_ID);
     expect(dispatchNotification).toHaveBeenCalledWith(
       "stage.changed",
-      expect.objectContaining({ eventId: "evt-1", eventName: "Spring" })
+      expect.objectContaining({ eventId: EVENT_ID, eventName: "Spring" })
     );
-    expect(enqueueStageAdvance).toHaveBeenCalledWith("evt-1", expect.any(String));
+    expect(enqueueStageAdvance).toHaveBeenCalledWith(EVENT_ID, expect.any(String));
   });
 });

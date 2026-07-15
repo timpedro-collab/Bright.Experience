@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { writeAudit } from "@/lib/audit";
 import { dispatchNotification } from "@/lib/notifications/dispatch";
 import { isInternalRole } from "@/lib/roles";
+import { addCommentSchema, deleteCommentSchema } from "@/lib/validations/comments";
 import type { ActionResult } from "@/types/actions";
 import type { UserRole } from "@/types";
 
@@ -16,6 +17,11 @@ export async function addComment(
   body: string,
   parentId?: string,
 ): Promise<ActionResult<{ id: string }>> {
+  const parsed = addCommentSchema.safeParse({ eventId, assetId, body, parentId });
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  }
+
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { success: false, error: "Not authenticated" };
@@ -77,6 +83,11 @@ export async function addComment(
 
 /** Delete a comment — only the author or an internal user may delete. */
 export async function deleteComment(commentId: string): Promise<ActionResult> {
+  const parsed = deleteCommentSchema.safeParse({ commentId });
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  }
+
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { success: false, error: "Not authenticated" };

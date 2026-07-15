@@ -45,7 +45,6 @@ export async function prepareProposal(
       total_amount: totalAmount,
       proposal_notes: data.proposalNotes ?? null,
       expires_at: expiresAt,
-      valid_until: expiresAt,
     })
     .eq("id", quoteId);
 

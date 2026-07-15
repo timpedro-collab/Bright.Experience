@@ -17,7 +17,7 @@ import type { UserRole } from "@/types";
 import type { ActionResult } from "@/types/actions";
 
 /** Roles allowed to record a QA sign-off. */
-const QA_SIGN_OFF_ROLES: UserRole[] = ["qa_lead", "events_lead", "admin", "developer"];
+const QA_SIGN_OFF_ROLES: UserRole[] = ["qa_lead", "events_lead", "admin"];
 
 /** Update a QA item status. Failed items require notes as failure_reason; fixed items set fix_description. */
 export async function updateQAItem(

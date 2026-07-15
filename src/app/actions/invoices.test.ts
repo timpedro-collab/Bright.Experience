@@ -56,6 +56,7 @@ describe("createInvoice", () => {
     const payload = insertCall!.args[0] as Record<string, unknown>;
     expect(payload.invoice_number).toBe("BB-00005");
     expect(payload.status).toBe("draft");
+    expect(payload.currency).toBe("GBP");
   });
 });
 

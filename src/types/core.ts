@@ -36,7 +36,6 @@ export type UserRole =
   | "creative_lead"
   | "operations_lead"
   | "qa_lead"
-  | "developer"
   | "admin"
   | "partner_member"
   | "partner_admin";

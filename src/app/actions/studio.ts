@@ -12,8 +12,8 @@ import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { sendStudioOrderNotification } from "@/lib/email";
 import { dispatchNotification } from "@/lib/notifications/dispatch";
-import { canReviewCreativeAssets } from "@/lib/roles";
-import { hasPermission } from "@/lib/rbac";
+import { canReviewCreativeAssets, canOrderStudioWork } from "@/lib/roles";
+import { studioRequestSchema } from "@/lib/validations/studio";
 import type { StudioServiceType, UserRole } from "@/types";
 import type { ActionResult } from "@/types/actions";
 
@@ -34,7 +34,7 @@ export async function createStudioRequest(
     .eq("id", user.id)
     .single();
   const actorRole = actorProfile?.role as UserRole | undefined;
-  if (!actorRole || !hasPermission(actorRole, "studio.order")) {
+  if (!actorRole || !canOrderStudioWork(actorRole)) {
     return {
       success: false,
       error: "Your role can't order Bright.Studio work.",
@@ -48,6 +48,15 @@ export async function createStudioRequest(
 
   if (!eventId || !serviceType || !title) {
     return { success: false, error: "Missing required fields" };
+  }
+
+  const parsed = studioRequestSchema.safeParse({
+    serviceType,
+    title,
+    description,
+  });
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0]?.message ?? "Invalid request" };
   }
 
   const { data, error } = await supabase
@@ -86,7 +95,7 @@ export async function createStudioRequest(
     .single();
 
   const account = event?.accounts as unknown as Record<string, unknown> | null;
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3001";
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
   sendStudioOrderNotification({
     title,

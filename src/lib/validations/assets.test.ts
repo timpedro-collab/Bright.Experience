@@ -1,6 +1,6 @@
 /**
  * Tests for the asset upload schema. Pins the file-type allow-list and
- * the 50 MB size cap.
+ * the 50 MB size cap, plus the id/file-metadata shape `uploadAsset` uses.
  */
 
 import { describe, it, expect } from "vitest";
@@ -11,8 +11,9 @@ import {
 } from "./assets";
 
 const validUpload = {
-  name: "Hero image",
-  assetType: "image",
+  assetId: "a1f00000-0000-4000-8000-000000000001",
+  eventId: "e1111111-1111-1111-1111-111111111111",
+  fileName: "hero-image.png",
   fileType: "image/png",
   fileSizeBytes: 10 * 1024 * 1024,
 };
@@ -22,16 +23,22 @@ describe("assetUploadSchema", () => {
     expect(() => assetUploadSchema.parse(validUpload)).not.toThrow();
   });
 
-  it("rejects an empty name", () => {
+  it("rejects a non-uuid asset id", () => {
     expect(() =>
-      assetUploadSchema.parse({ ...validUpload, name: "" })
-    ).toThrow(/Asset name is required/);
+      assetUploadSchema.parse({ ...validUpload, assetId: "not-a-uuid" })
+    ).toThrow(/Invalid asset ID/);
   });
 
-  it("rejects an empty assetType", () => {
+  it("rejects a non-uuid event id", () => {
     expect(() =>
-      assetUploadSchema.parse({ ...validUpload, assetType: "" })
-    ).toThrow(/Asset type is required/);
+      assetUploadSchema.parse({ ...validUpload, eventId: "nope" })
+    ).toThrow(/Invalid event ID/);
+  });
+
+  it("rejects an empty file name", () => {
+    expect(() =>
+      assetUploadSchema.parse({ ...validUpload, fileName: "" })
+    ).toThrow(/File name is required/);
   });
 
   it("rejects unsupported MIME types", () => {
