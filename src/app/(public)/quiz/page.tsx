@@ -8,7 +8,7 @@
 import type { Metadata } from "next";
 
 import { Container, Section } from "@/components/ui/section";
-import { RecommendationQuiz } from "@/components/catalog/RecommendationQuiz";
+import { RecommendationQuiz } from "@/components/catalog/quiz/RecommendationQuiz";
 import { getMachines } from "@/lib/queries/machines";
 import { RidgeArtwork, EditorialEyebrow } from "@/components/brand";
 

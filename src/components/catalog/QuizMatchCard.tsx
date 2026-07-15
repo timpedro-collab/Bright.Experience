@@ -20,8 +20,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { encodeCapabilityParam, getCapabilities } from "@/lib/capabilities";
-import { formatNumberUS, formatUSDFromCents } from "@/lib/currency";
-import { goalLabel, type QuizRecommendation } from "./quiz-data";
+import { formatNumberUS, formatMoneyFromPence } from "@/lib/currency";
+import { goalLabel, type QuizRecommendation } from "./quiz/quiz-data";
 import { RefineDrawer } from "./RefineDrawer";
 
 interface MachineSummary {
@@ -236,7 +236,7 @@ function ProjectedReach({ recommendation }: { recommendation: QuizRecommendation
         <ReachStat icon={Eye} value={formatNumberUS(reach.impressions)} label="Impressions" />
         <ReachStat icon={Users} value={formatNumberUS(reach.leads)} label="Leads" />
         {reach.doohMediaValueCents != null && (
-          <ReachStat icon={MapPin} value={`Up to ${formatUSDFromCents(reach.doohMediaValueCents)}`} label="DOOH media value" />
+          <ReachStat icon={MapPin} value={`Up to ${formatMoneyFromPence(reach.doohMediaValueCents)}`} label="DOOH media value" />
         )}
       </div>
       <p className="mt-3 text-[0.6875rem] leading-snug text-muted-foreground">

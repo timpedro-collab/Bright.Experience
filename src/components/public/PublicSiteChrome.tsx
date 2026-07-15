@@ -105,7 +105,7 @@ export function PublicSiteChrome({
         </Container>
       </header>
 
-      <main className="flex-1">{children}</main>
+      <main id="main-content" className="flex-1 scroll-mt-6">{children}</main>
 
       {/* Editorial footer — bright.blue lockup, locations strip, link columns */}
       <footer className="border-t border-border/40 bg-[hsl(233,66%,5%)]">

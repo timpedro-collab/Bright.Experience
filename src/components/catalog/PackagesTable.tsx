@@ -7,7 +7,7 @@ import { Plus, Pencil } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { PackageForm } from "./PackageForm";
-import { formatUSDFromCents } from "@/lib/currency";
+import { formatMoneyFromPence } from "@/lib/currency";
 
 interface Pkg {
   id: string;
@@ -67,7 +67,7 @@ export function PackagesTable({ packages, allMachines }: PackagesTableProps) {
                   </td>
                   <td className="px-4 py-3 text-muted-foreground">{p.machineName ?? "—"}</td>
                   <td className="px-4 py-3 text-right font-mono text-foreground tabular-nums">
-                    {p.base_price != null ? formatUSDFromCents(p.base_price) : "—"}
+                    {p.base_price != null ? formatMoneyFromPence(p.base_price) : "—"}
                   </td>
                   <td className="px-4 py-3">
                     <Badge variant={p.is_bookable ? "success" : "muted"}>

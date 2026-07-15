@@ -4,6 +4,7 @@ import Link from "next/link";
 import { MapPin, ArrowUpRight } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { logoForClient } from "@/lib/marketing/client-logos";
 
 interface CaseStudyCardProps {
   caseStudy: {
@@ -51,6 +52,12 @@ export function CaseStudyCard({ caseStudy, index = 0 }: CaseStudyCardProps) {
   const stat = caseStudy.statsJson
     ? Object.entries(caseStudy.statsJson)[0]
     : null;
+  // Photo-less studies get a deliberate branded tile (client logo on the
+  // brand gradient) instead of a placeholder monogram — swap to real event
+  // photography by setting hero_image_url in the seed data.
+  const clientLogo = !caseStudy.heroImageUrl
+    ? logoForClient(caseStudy.clientName)
+    : undefined;
 
   return (
     <Link
@@ -73,6 +80,15 @@ export function CaseStudyCard({ caseStudy, index = 0 }: CaseStudyCardProps) {
             sizes="(min-width: 1280px) 33vw, (min-width: 768px) 50vw, 100vw"
             className="object-cover transition-transform duration-500 group-hover:scale-105"
           />
+        ) : clientLogo?.src ? (
+          <div className="absolute inset-0 flex items-center justify-center bg-[radial-gradient(circle_at_50%_40%,hsl(230,93%,53%,0.35),transparent_70%)]">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={clientLogo.src}
+              alt={clientLogo.name}
+              className="h-12 w-auto max-w-[60%] object-contain opacity-80 brightness-0 invert transition-transform duration-500 group-hover:scale-105"
+            />
+          </div>
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">
             <span className="text-heading text-5xl font-bold text-white/15">CS</span>

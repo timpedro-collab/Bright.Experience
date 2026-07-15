@@ -1,13 +1,15 @@
-/** Public catalog storefront — hero, logos, machines, case studies, trust band, CTA */
+/**
+ * Catalog index — a compact browse page one click in from the homepage.
+ * The marketing story (hero, trust band, testimonials) lives on `/`; this
+ * page just lets a visitor scan the range: machines, games, packages,
+ * case studies.
+ */
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Gamepad2, Package as PackageIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Container, Section } from "@/components/ui/section";
-import { CatalogHero } from "@/components/catalog/CatalogHero";
-import { LogosStrip } from "@/components/catalog/LogosStrip";
-import { TrustBand } from "@/components/catalog/TrustBand";
 import { MachineCard } from "@/components/catalog/MachineCard";
 import { CaseStudyCard } from "@/components/catalog/CaseStudyCard";
 
@@ -33,17 +35,36 @@ export default async function CatalogPage() {
 
   return (
     <>
-      <CatalogHero />
-
-      <LogosStrip />
+      {/* Compact index header */}
+      <Section spacing="md">
+        <Container>
+          <div className="max-w-2xl">
+            <p className="text-overline text-muted-foreground mb-2">The catalog</p>
+            <h1 className="text-heading text-4xl font-bold text-foreground md:text-5xl">
+              Browse the range
+            </h1>
+            <p className="mt-3 text-muted-foreground">
+              Machines, games, and packages — every unit brandable, prize-rich,
+              and instrumented for proof. Not sure where to start?{" "}
+              <Link
+                href="/quiz"
+                className="font-medium text-[var(--color-bb-cobalt)] underline decoration-from-font underline-offset-4"
+              >
+                Take the 60-second quiz
+              </Link>
+              .
+            </p>
+          </div>
+        </Container>
+      </Section>
 
       {/* Machines */}
-      <Section id="machines">
+      <Section id="machines" spacing="md" className="border-t border-border/60">
         <Container>
           <SectionHeader
             eyebrow="The hardware"
             title="Our machines"
-            description="Every Bright.Blue machine is engineered for crowd-stopping experiential moments — prize-rich, brandable, and built around our telemetry stack."
+            description="Every Bright.Blue machine is engineered for crowd-stopping experiential moments."
             href="/catalog/machines"
           />
           <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -63,12 +84,34 @@ export default async function CatalogPage() {
         </Container>
       </Section>
 
+      {/* Games + packages quick links */}
+      <Section spacing="md" className="border-t border-border/60">
+        <Container>
+          <div className="grid gap-6 md:grid-cols-2">
+            <IndexLinkCard
+              icon={Gamepad2}
+              title="Games"
+              description="Reflex games, quizzes, prize mechanics — the software side of the draw."
+              href="/catalog/games"
+              cta="Browse games"
+            />
+            <IndexLinkCard
+              icon={PackageIcon}
+              title="Packages"
+              description="Bundled machine + game + delivery tiers, ready to configure and book."
+              href="/catalog/packages"
+              cta="Compare packages"
+            />
+          </div>
+        </Container>
+      </Section>
+
       {/* Case Studies */}
       {caseStudies.length > 0 && (
-        <Section className="border-t border-border/60">
+        <Section spacing="md" className="border-t border-border/60">
           <Container>
             <SectionHeader
-              eyebrow="The proof"
+              eyebrow="In the field"
               title="Recent case studies"
               description="Real-world activations with measurable outcomes."
               href="/catalog/case-studies"
@@ -93,22 +136,20 @@ export default async function CatalogPage() {
         </Section>
       )}
 
-      <TrustBand />
-
-      {/* Bottom CTA */}
-      <Section className="border-t border-border/60">
+      {/* Slim bottom CTA */}
+      <Section spacing="md" className="border-t border-border/60">
         <Container size="md">
           <div className="text-center">
-            <h2 className="text-heading text-3xl font-bold text-foreground md:text-4xl">
-              Ready to stand out?
+            <h2 className="text-heading text-2xl font-bold text-foreground md:text-3xl">
+              Not sure which fits?
             </h2>
-            <p className="mt-3 text-muted-foreground">
-              Two minutes to find the activation that fits your event.
+            <p className="mt-2 text-muted-foreground">
+              60 seconds to a machine and a reach estimate for your event.
             </p>
-            <div className="mt-8 flex justify-center">
+            <div className="mt-6 flex justify-center">
               <Button size="lg" variant="brand" asChild>
                 <Link href="/quiz">
-                  Find your fit
+                  Find your match
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>
@@ -152,5 +193,39 @@ function SectionHeader({
         </Link>
       </Button>
     </div>
+  );
+}
+
+function IndexLinkCard({
+  icon: Icon,
+  title,
+  description,
+  href,
+  cta,
+}: {
+  icon: React.ElementType;
+  title: string;
+  description: string;
+  href: string;
+  cta: string;
+}) {
+  return (
+    <Link
+      href={href}
+      className="group flex items-start gap-5 rounded-[var(--radius-card)] border border-white/[0.06] bg-[hsl(233,56%,11%,0.45)] p-7 backdrop-blur-md transition-all hover:border-white/20 hover:-translate-y-0.5"
+    >
+      <div className="flex size-12 shrink-0 items-center justify-center rounded-[var(--radius-control)] border border-primary/30 bg-primary/10 text-primary">
+        <Icon className="h-5 w-5" />
+      </div>
+      <div>
+        <h3 className="text-heading text-lg font-semibold text-foreground">
+          {title}
+        </h3>
+        <p className="mt-1 text-sm text-muted-foreground">{description}</p>
+        <span className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-[var(--color-bb-cobalt)] group-hover:gap-2.5 transition-all">
+          {cta} <ArrowRight className="size-3.5" />
+        </span>
+      </div>
+    </Link>
   );
 }

@@ -12,7 +12,7 @@ import { CheckCircle2, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EditorialEyebrow, RidgeArtwork } from "@/components/brand";
 import { getBookingReceipt } from "@/app/actions/quotes";
-import { formatUSDFromCents } from "@/lib/currency";
+import { formatMoneyFromPence } from "@/lib/currency";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -63,11 +63,14 @@ export default async function ConfirmationPage({
           </div>
           <EditorialEyebrow accent>Booking received</EditorialEyebrow>
           <h1 className="mt-2 text-display text-[clamp(2rem,3.5vw,3rem)] leading-[1.1] text-foreground">
-            Thank you{receipt.contact_name ? `, ${receipt.contact_name.split(" ")[0]}` : ""}.
+            {receipt.contact_name
+              ? `${receipt.contact_name.split(" ")[0]}, your dates are pencilled in.`
+              : "Your dates are pencilled in."}
           </h1>
           <p className="mt-3 text-base text-muted-foreground leading-relaxed">
-            Your booking is in. Our team will be in touch shortly with
-            confirmation and next steps.
+            Your booking is with our events team now. Your event lead will
+            confirm availability and reply within one working day — usually
+            much sooner.
           </p>
         </div>
       </section>
@@ -88,12 +91,16 @@ export default async function ConfirmationPage({
           {typeof receipt.total_amount === "number" && (
             <Row
               label="Estimated total"
-              value={formatUSDFromCents(receipt.total_amount, { decimals: true })}
+              value={formatMoneyFromPence(receipt.total_amount, { decimals: true })}
             />
           )}
           {Array.isArray(receipt.addons) && receipt.addons.length > 0 && (
             <Row label="Add-ons" value={receipt.addons.join(", ")} />
           )}
+          <p className="pt-3 text-xs text-muted-foreground">
+            Keep your reference handy — quote it in any email and we&apos;ll
+            know exactly which booking you mean.
+          </p>
         </div>
 
         <div className="mt-10 space-y-3">
@@ -102,9 +109,21 @@ export default async function ConfirmationPage({
           </div>
           <div className="h-px bg-border/60" />
           <ol className="text-sm text-muted-foreground space-y-3 pt-2 list-decimal list-inside leading-relaxed">
-            <li>We&apos;ll confirm your dates and availability.</li>
-            <li>You&apos;ll receive a detailed event brief from your account exec.</li>
-            <li>Our creative team begins your build.</li>
+            <li>
+              <span className="text-foreground">Dates confirmed.</span> Your
+              event lead checks machine availability for your dates and
+              confirms by email within one working day.
+            </li>
+            <li>
+              <span className="text-foreground">Your portal opens.</span>{" "}
+              We&apos;ll invite you into your event workspace — every task,
+              deadline, and approval for your activation in one place.
+            </li>
+            <li>
+              <span className="text-foreground">The build begins.</span> A
+              short brief captures your brand and prizes, then our studio
+              starts on your wrap and game.
+            </li>
           </ol>
         </div>
 
@@ -116,7 +135,7 @@ export default async function ConfirmationPage({
             </Link>
           </Button>
           <Button variant="ghost" asChild>
-            <Link href="/catalog">Browse more</Link>
+            <Link href="/catalog">Back to the catalog</Link>
           </Button>
         </div>
       </section>

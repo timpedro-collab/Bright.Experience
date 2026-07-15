@@ -20,26 +20,46 @@ export interface ClientLogo {
 /**
  * Brands Bright.Blue has run activations for — mirrors the "Trusted by leading
  * brands" wall on bright.blue/events. Storyblok and Adyen also appear as named
- * testimonials (see TrustBand). Drop SVG/PNG assets into `/public/logos/*` and
- * set `src` to upgrade from the monogram fallback.
+ * testimonials (see `src/lib/marketing/claims.ts`). Drop SVG/PNG assets into
+ * `/public/logos/*` and set `src` to upgrade from the monogram fallback.
  */
 /**
  * Every logo renders as a uniform white silhouette on the dark panel (see
  * `LogosStrip`) via `brightness-0 invert`. All assets are transparent PNG/SVG
  * (the Pelion and Intact marks have had their opaque white backgrounds stripped
- * so they normalise like the rest). Stacked marks can opt into a taller max-h.
+ * so they normalise like the rest). Stacked marks can opt into a taller height.
  */
 export const CLIENT_LOGOS: ClientLogo[] = [
   { name: "Storyblok", src: "/logos/storyblok.svg" },
   { name: "Adyen", src: "/logos/adyen.svg" },
   { name: "Red Bull", src: "/logos/red-bull.svg" },
-  // Pepsi / Lucozade / Pelion / Intact assets not yet supplied — render the
-  // monogram fallback until the real PNGs are dropped into /public/logos.
-  { name: "Pepsi" },
+  { name: "Pepsi", src: "/logos/pepsi.png" },
   { name: "Porsche", src: "/logos/porsche.svg" },
   { name: "Suntory", src: "/logos/suntory.svg" },
-  { name: "Lucozade" },
+  { name: "Lucozade", src: "/logos/lucozade.png" },
   { name: "Celsius", src: "/logos/celsius.svg" },
-  { name: "Pelion", imgClassName: "max-h-11" },
-  { name: "Intact" },
+  { name: "Pelion", src: "/logos/pelion.png" },
+  { name: "Intact", src: "/logos/intact.png" },
+  // British Insurance Brokers' Association — real BIBA Conference client. Full
+  // lion + wordmark lockup; supplied asset had its white background stripped to
+  // a transparent mask so it normalises to white like the rest of the wall.
+  { name: "British Insurance Brokers' Association", src: "/logos/biba.png" },
 ];
+
+/** Case-study `client_name` values that differ from the logo's display name. */
+const CLIENT_NAME_ALIASES: Record<string, string> = {
+  BIBA: "British Insurance Brokers' Association",
+};
+
+/**
+ * Resolve a client's logo asset by name (case-study `client_name`), so
+ * photo-less case studies can fall back to a deliberate branded tile instead
+ * of a placeholder monogram. Returns undefined when we hold no logo.
+ */
+export function logoForClient(clientName?: string): ClientLogo | undefined {
+  if (!clientName) return undefined;
+  const canonical = CLIENT_NAME_ALIASES[clientName] ?? clientName;
+  return CLIENT_LOGOS.find(
+    (logo) => logo.name.toLowerCase() === canonical.toLowerCase()
+  );
+}

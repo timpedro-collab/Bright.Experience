@@ -5,7 +5,7 @@ import Link from "next/link";
 
 import { Container, Section } from "@/components/ui/section";
 import { getQuoteById } from "@/lib/queries/quotes";
-import { buildProposalDocument } from "@/lib/proposal/build-proposal";
+import { buildProposalDocument } from "@/lib/proposals/build-proposal";
 import { ProposalDocumentView } from "@/components/quotes/proposal/ProposalDocumentView";
 import { PrintProposalButton } from "@/components/quotes/proposal/PrintProposalButton";
 import { PostAcceptBanner } from "@/components/quotes/PostAcceptBanner";

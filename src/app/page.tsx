@@ -4,15 +4,14 @@
  * Two distinct surfaces, one chrome:
  *
  *   - Customer (most users): an editorial spread for the featured
- *     event. Full-bleed ridge artwork hero, three editorial columns
- *     ("Waiting on you" · "The Chapters" · "From your team"), and
- *     a small rail of other editions if the customer has more than
- *     one event. Rendered by `<CustomerDashboard>`.
+ *     event — waiting-on-you actions, stage progress, and team
+ *     activity, plus a rail of other events when they have more than
+ *     one. Rendered by `<CustomerDashboard>`.
  *
- *   - Internal (Bright.Blue employees): "Your library." — a grid of
- *     every active edition rendered as `<EditionPlate>` cards, each
- *     carrying its own unique ridge fingerprint. Rendered by
- *     `<InternalDashboard>`.
+ *   - Internal (Bright.Blue employees): an action-first focus list
+ *     (queues, role tasks, walkthroughs) with a compact portfolio
+ *     strip. Rendered by `<FocusedHome>`. The full event library and
+ *     by-stage charts live on `/pipeline`.
  *
  * This page is a server component: it owns all data fetching and the
  * role branch, then passes plain serializable props into the two
@@ -28,10 +27,14 @@ import {
   getOpenTaskCountsForUser,
   getTasksByRole,
   getTaskProgressByEvent,
+  getTasksByEvent,
 } from "@/lib/queries/tasks";
 import { getTeamForEvent } from "@/lib/queries/team";
 import { getCustomerActionItems } from "@/lib/queries/deadlines";
 import { getPendingQuotesForCustomer, getUpcomingWalkthroughs } from "@/lib/queries/quotes";
+import { getAssetsByEvent } from "@/lib/queries/assets";
+import { getApprovalsByEvent } from "@/lib/queries/approvals";
+import { resolveEventNextStep } from "@/lib/event-next-step";
 import { getStreak } from "@/app/actions/streak";
 import { getUser } from "@/lib/auth";
 import { isInternalRole, isPartnerRole } from "@/lib/roles";
@@ -95,12 +98,34 @@ export default async function HomePage({ searchParams }: HomePageProps) {
 
   // Featured-event-specific data only fetched if there's something to feature.
   const eventIds = events.map((e) => e.id);
-  const [taskCounts, featuredTeam, taskProgress, customerActions] = await Promise.all([
-    getOpenTaskCountsForUser(user.id, isInternal, eventIds),
-    featured ? getTeamForEvent(featured.id) : Promise.resolve([]),
-    getTaskProgressByEvent(eventIds),
-    featured && !isInternal ? getCustomerActionItems(featured.id) : Promise.resolve([]),
-  ]);
+  const [taskCounts, featuredTeam, taskProgress, customerActions, featuredTasks, featuredAssets, featuredApprovals] =
+    await Promise.all([
+      getOpenTaskCountsForUser(user.id, isInternal, eventIds),
+      featured ? getTeamForEvent(featured.id) : Promise.resolve([]),
+      getTaskProgressByEvent(eventIds),
+      featured && !isInternal ? getCustomerActionItems(featured.id) : Promise.resolve([]),
+      featured && !isInternal ? getTasksByEvent(featured.id) : Promise.resolve([]),
+      featured && !isInternal ? getAssetsByEvent(featured.id) : Promise.resolve([]),
+      featured && !isInternal ? getApprovalsByEvent(featured.id) : Promise.resolve([]),
+    ]);
+
+  const featuredNextStep =
+    featured && !isInternal
+      ? resolveEventNextStep({
+          event: featured,
+          tasks: featuredTasks,
+          assets: featuredAssets,
+          approvals: featuredApprovals,
+          isInternal: false,
+        })
+      : null;
+
+  const dueRaw = customerActions.find((a) => a.dueDate)?.dueDate ?? null;
+  const nextStepDueHint = dueRaw
+    ? `Due ${dueRaw} — delay here can slip creative and install windows.`
+    : customerActions.length > 0
+      ? "Complete this before the next stage gate — delays here push creative and install."
+      : null;
 
   const totalPages =
     typeof eventsResult?.totalPages === "number" ? eventsResult.totalPages : 0;
@@ -172,6 +197,8 @@ export default async function HomePage({ searchParams }: HomePageProps) {
       totalPages={totalPages}
       page={page}
       pendingQuotes={pendingQuotes}
+      nextStep={featuredNextStep}
+      nextStepDueHint={nextStepDueHint}
     />
   );
 }
