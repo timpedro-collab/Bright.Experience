@@ -1,9 +1,13 @@
-// Auto-generated mock dataset. Snake_case keys mirror the real DB columns.
+// HAND-MAINTAINED mock dataset. Snake_case keys mirror the real DB columns.
 //
-// Combined net effect of:
+// This file is edited by hand — there is no generator. It aims to be the
+// combined net effect of:
 //   1. supabase/seed.sql              — canonical SQL seed
 //   2. supabase/run-seed.ts           — adds e6, completes e5/e6, telemetry/leads/reports, asset versions
 //   3. supabase/seed-creative-queue.ts — pushes 6 asset slots into the creative review queue
+//
+// The three-way sync between this file and the SQL seeds is MANUAL: if you
+// change seed data, change it in both places (see HANDOFF.md "Mock dataset").
 //
 // Relative dates (daysFromNow / now()) are resolved against a base date of
 // 2026-06-18 so cross-table relationships and demo deadlines stay coherent.
@@ -13,6 +17,7 @@ import {
   buildForecast,
   metricsFromPlays,
 } from "@/lib/metrics/drivers";
+import { generateLeads } from "@/lib/metrics/generate-leads";
 
 export type MockRow = Record<string, unknown>;
 
@@ -118,6 +123,47 @@ const SAMSUNG_GALAXY_REPORT_METRICS = buildReportMetrics({
 });
 const SAMSUNG_GALAXY_FORECAST = buildForecast(SAMSUNG_GALAXY_REPORT_METRICS, 0.12);
 
+/* ----------------------------------------------------------------------------
+ * Captured leads (generated).
+ * Each completed event's headline "Leads" = plays × opt-in. We synthesise that
+ * exact number of individual contacts — with an age drawn so the cohort's
+ * age-band split matches the report demographics — so the leads list, the
+ * leads headline, and the post-event report all tell the same story.
+ * ------------------------------------------------------------------------- */
+const COKE_SPRING_LEADS = generateLeads({
+  eventId: EVT_COKE_SPRING_ID,
+  count: cokeFinal.leads,
+  startDate: "2026-03-20",
+  days: 3,
+  demographics: COKE_SPRING_REPORT_METRICS.demographics ?? {},
+  peakHours: [14, 15, 13],
+  machineInstanceIds: [
+    "e6000000-0000-4000-8000-000000000001",
+    "e6000000-0000-4000-8000-000000000002",
+  ],
+});
+const SAMSUNG_UNPACKED_LEADS = generateLeads({
+  eventId: EVT_SAMSUNG_UNPACKED_ID,
+  count: unpackedFinal.leads,
+  startDate: "2026-04-10",
+  days: 3,
+  demographics: SAMSUNG_UNPACKED_REPORT_METRICS.demographics ?? {},
+  peakHours: [16, 15, 14],
+  machineInstanceIds: [
+    "e5000000-0000-4000-8000-000000000001",
+    "e5000000-0000-4000-8000-000000000002",
+  ],
+});
+const SAMSUNG_GALAXY_LEADS = generateLeads({
+  eventId: EVT_SAMSUNG_GALAXY_ID,
+  count: galaxyFinal.leads,
+  startDate: "2026-05-22",
+  days: 3,
+  demographics: SAMSUNG_GALAXY_REPORT_METRICS.demographics ?? {},
+  peakHours: [18, 19, 17],
+  machineInstanceIds: ["1c1c1c1c-1c1c-4c1c-8c1c-1c1c1c1c1c1c"],
+});
+
 export const MOCK_TABLES: Record<string, MockRow[]> = {
   accounts: [
     { id: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", name: "Coca-Cola UK", slug: "coca-cola-uk" },
@@ -146,7 +192,7 @@ export const MOCK_TABLES: Record<string, MockRow[]> = {
       id: "a2a2a2a2-a2a2-4a2a-8a2a-a2a2a2a2a2a2",
       name: "Europa Experience Portal",
       slug: "experience-portal",
-      tagline: "The signature activation portal",
+      tagline: "The signature portal that turns footfall into opted-in leads",
       description:
         "Our flagship Experience Portal and the machine behind the majority of Bright.Blue activations. A fully branded 55\" portrait touchscreen wrapped in a custom shell, with built-in lead capture, the complete Bright.Blue game engine, and four dispense mechanisms — belts, pushers, spirals and a lift — so it can hand out anything from a token gift to full-size product. Compact enough for retail, powerful enough for a stadium concourse.",
       capacity_label: "Up to 800 products",
@@ -188,7 +234,7 @@ export const MOCK_TABLES: Record<string, MockRow[]> = {
       id: "a1a1a1a1-a1a1-4a1a-8a1a-a1a1a1a1a1a1",
       name: "Blinx Experience Portal",
       slug: "experience-portal-compact",
-      tagline: "The premium smart locker",
+      tagline: "Premium gifting that runs itself — no staff required",
       description:
         "A premium smart-locker portal built for high-value reveals. Behind illuminated glass doors, Blinx showcases up to 30 hero products — watches, jewellery, limited-edition merch or full product bundles — and releases them on cue after a game, a purchase or a lead capture. The most editorial unit in the range, made for luxury lobbies and flagship moments.",
       capacity_label: "Up to 30 premium products",
@@ -226,7 +272,7 @@ export const MOCK_TABLES: Record<string, MockRow[]> = {
       id: "a3a3a3a3-a3a3-4a3a-8a3a-a3a3a3a3a3a3",
       name: "Hyperion Experience Portal",
       slug: "experience-portal-xl",
-      tagline: "The large-format showpiece",
+      tagline: "The showpiece that pulls a queue across the hall",
       description:
         "The largest portal in the range and an unmissable centrepiece. Hyperion pairs a wall of branded product behind glass with the same belts, pushers, spirals and lift mechanisms — holding up to 1,200 items — so it keeps dispensing through the busiest days of a show. Built for stands and activations where presence and scale do the talking.",
       capacity_label: "Up to 1,200 products",
@@ -264,7 +310,7 @@ export const MOCK_TABLES: Record<string, MockRow[]> = {
       id: "a4a4a4a4-a4a4-4a4a-8a4a-a4a4a4a4a4a4",
       name: "Callisto Experience Portal",
       slug: "callisto-experience-portal",
-      tagline: "The frozen experience portal",
+      tagline: "Frozen sampling that stops traffic",
       description:
         "A fully refrigerated Experience Portal that dispenses frozen treats on demand. Callisto keeps up to 594 items — ice creams, lollies, gelato and sorbet cups, even alcoholic ice pops and frozen cocktails — at temperature, then hands them out the moment a guest finishes a game or signs up. The crowd-stopper for summer activations.",
       capacity_label: "Up to 594 frozen items",
@@ -498,17 +544,20 @@ export const MOCK_TABLES: Record<string, MockRow[]> = {
   ],
 
   package_addons: [
+    { package_id: "c2c2c2c2-c2c2-4c2c-8c2c-c2c2c2c2c2c2", name: "Lead capture", description: "GDPR-compliant opted-in lead capture on every play.", price: 45000, category: "mechanics", capability_slug: "lead-capture" },
     { package_id: "c2c2c2c2-c2c2-4c2c-8c2c-c2c2c2c2c2c2", name: "Live telemetry dashboard", description: "Live read of leads, plays, conversions during the event.", price: 50000, category: "reporting", capability_slug: "live-telemetry" },
     { package_id: "c2c2c2c2-c2c2-4c2c-8c2c-c2c2c2c2c2c2", name: "Sampling unlock", description: "Physical sample dispenses when the player wins.", price: 85000, category: "mechanics", capability_slug: "sampling-unlock" },
-    { package_id: "c2c2c2c2-c2c2-4c2c-8c2c-c2c2c2c2c2c2", name: "App / store download QR", description: "Final-screen QR pushing players to your app or product page.", price: 35000, category: "mechanics", capability_slug: "app-qr-drive" },
     { package_id: "c3c3c3c3-c3c3-4c3c-8c3c-c3c3c3c3c3c3", name: "LinkedIn follow gate", description: "B2B-friendly follow-to-play gate at game start.", price: 45000, category: "mechanics", capability_slug: "linkedin-follow" },
     { package_id: "c3c3c3c3-c3c3-4c3c-8c3c-c3c3c3c3c3c3", name: "Survey layer", description: "Lightweight survey layer collecting brand-lift data.", price: 60000, category: "mechanics", capability_slug: "survey-layer" },
-    { package_id: "c3c3c3c3-c3c3-4c3c-8c3c-c3c3c3c3c3c3", name: "Voucher redemption", description: "Branded vouchers with redemption tracking.", price: 55000, category: "mechanics", capability_slug: "voucher-redemption" },
     { package_id: "c3c3c3c3-c3c3-4c3c-8c3c-c3c3c3c3c3c3", name: "Dynamic sponsors", description: "Multi-sponsor rotation throughout the event.", price: 75000, category: "mechanics", capability_slug: "dynamic-sponsors" },
     { package_id: "c4c4c4c4-c4c4-4c4c-8c4c-c4c4c4c4c4c4", name: "Age verification", description: "ID-based age verification for restricted brands.", price: 65000, category: "compliance", capability_slug: "age-verification" },
     { package_id: "c4c4c4c4-c4c4-4c4c-8c4c-c4c4c4c4c4c4", name: "On-unit payments", description: "Take card payments on the unit directly.", price: 70000, category: "commercial", capability_slug: "payments-onunit" },
   ],
 
+  // Case-study photography: only Costa has real imagery so far. For the rest,
+  // drop event photos into /public/catalog/case-studies/<slug>/01-hero.jpg and
+  // set hero_image_url to that path (here AND in seed.sql). Until then the
+  // CaseStudyCard renders a deliberate branded tile from the client's logo.
   case_studies: [
     {
       id: "d1d1d1d1-d1d1-4d1d-8d1d-d1d1d1d1d1d1",
@@ -592,7 +641,7 @@ export const MOCK_TABLES: Record<string, MockRow[]> = {
       location: "Manchester",
       description:
         "A branded Experience Portal on the exhibition floor at the BIBA Conference — a memorable, on-brand draw amongst hundreds of stands that turned footfall into conversations and clean opt-in data.",
-      hero_image_url: null,
+      hero_image_url: null, // drop photo at /catalog/case-studies/biba-conference/01-hero.jpg then set this
       stats_json: { plays: 910, leads: 845, avgDwellSec: 25 },
       testimonial_quote:
         "It gave delegates a reason to stop, and gave our team a natural way to start a conversation.",
@@ -609,7 +658,7 @@ export const MOCK_TABLES: Record<string, MockRow[]> = {
       location: "London",
       description:
         "A custom Experience Portal on Pelion's expo stand — an interactive moment that cut through a noisy hall and captured quality leads without the hard sell.",
-      hero_image_url: null,
+      hero_image_url: null, // drop photo at /catalog/case-studies/pelion-expo/01-hero.jpg then set this
       stats_json: { plays: 540, leads: 480, avgDwellSec: 27 },
       testimonial_quote:
         "A simple, brilliant way to make our stand the one people remembered.",
@@ -626,7 +675,7 @@ export const MOCK_TABLES: Record<string, MockRow[]> = {
       location: "Cologne",
       description:
         "An interactive Experience Portal on the Storyblok stand at DMEXCO — a fun, branded moment that doubled as automatic, high-quality data capture.",
-      hero_image_url: null,
+      hero_image_url: null, // drop photo at /catalog/case-studies/storyblok-dmexco/01-hero.jpg then set this
       stats_json: { plays: 720, leads: 685, avgDwellSec: 31 },
       testimonial_quote:
         "Bright.Blue brought our DMEXCO booth to life. The interactive machine became a magnet for attendees, giving us both a fun experience and high-quality data — automatically.",
@@ -643,7 +692,7 @@ export const MOCK_TABLES: Record<string, MockRow[]> = {
       location: "London",
       description:
         "A fully customised, unattended Experience Portal vending branded gifts across an Adyen business event — delivery, setup, and restocking all handled by Bright.Blue.",
-      hero_image_url: null,
+      hero_image_url: null, // drop photo at /catalog/case-studies/adyen-event-gifting/01-hero.jpg then set this
       stats_json: { giftsVended: 600, interactions: 810, satisfactionPct: 97 },
       testimonial_quote:
         "We vended gifts from their unattended machine and saw fantastic attendee engagement. The team handled everything from delivery and setup to restocking — it let me focus on the event itself.",
@@ -811,7 +860,7 @@ export const MOCK_TABLES: Record<string, MockRow[]> = {
     { id: "d4444444-4444-4444-4444-444444444444", event_id: "e1111111-1111-1111-1111-111111111111", title: "Confirm prize details and quantities", description: "Product name, size, quantity, and any vending-specific requirements", task_type: "customer_action", category: "operations", status: "complete", priority: "high", assigned_to: "22222222-2222-2222-2222-222222222222", due_date: "2026-06-29", completed_at: "2026-06-12T14:30:00Z", is_blocking: true, customer_visible: true, sort_order: 3, assigned_role: "operations_lead", target_path: "configuration" },
     { id: "d5555555-5555-5555-5555-555555555555", event_id: "e1111111-1111-1111-1111-111111111111", title: "Provide onsite contact details", description: "Name, phone, and email for the person on site during the event", task_type: "customer_action", category: "logistics", status: "complete", priority: "medium", assigned_to: null, due_date: "2026-07-08", completed_at: "2026-06-16T09:30:00Z", is_blocking: false, customer_visible: true, sort_order: 4, assigned_role: "operations_lead", target_path: "logistics" },
     { id: "d6666666-6666-6666-6666-666666666666", event_id: "e1111111-1111-1111-1111-111111111111", title: "Design wrap concept", description: null, task_type: "internal_action", category: "creative", status: "pending", priority: "high", assigned_to: "33333333-3333-3333-3333-333333333333", due_date: "2026-06-25", completed_at: null, is_blocking: true, customer_visible: false, sort_order: 5, assigned_role: "creative_lead", target_path: "studio" },
-    { id: "d7777777-7777-7777-7777-777777777777", event_id: "e1111111-1111-1111-1111-111111111111", title: "Configure game logic", description: null, task_type: "internal_action", category: "development", status: "pending", priority: "medium", assigned_to: "55555555-5555-5555-5555-555555555555", due_date: "2026-07-13", completed_at: null, is_blocking: false, customer_visible: false, sort_order: 6, assigned_role: "developer", target_path: "configuration" },
+    { id: "d7777777-7777-7777-7777-777777777777", event_id: "e1111111-1111-1111-1111-111111111111", title: "Configure game logic", description: null, task_type: "internal_action", category: "development", status: "pending", priority: "medium", assigned_to: "55555555-5555-5555-5555-555555555555", due_date: "2026-07-13", completed_at: null, is_blocking: false, customer_visible: false, sort_order: 6, assigned_role: "admin", target_path: "configuration" },
     { id: "d8888888-8888-8888-8888-888888888888", event_id: "e1111111-1111-1111-1111-111111111111", title: "Arrange logistics and transport", description: null, task_type: "internal_action", category: "logistics", status: "pending", priority: "medium", assigned_to: "44444444-4444-4444-4444-444444444444", due_date: "2026-07-28", completed_at: null, is_blocking: false, customer_visible: false, sort_order: 7, assigned_role: "operations_lead", target_path: "logistics" },
 
     // Generic tasks for the remaining events (run-seed.ts re-seed; e5 + e6 closed out as complete)
@@ -1316,8 +1365,10 @@ export const MOCK_TABLES: Record<string, MockRow[]> = {
     { id: "a2000002-0000-4000-8000-000000000002", event_id: "e2222222-2222-2222-2222-222222222222", name: "Campaign Hero Image", description: "Key visual for the activation", asset_type: "imagery", required_format: "PNG or JPEG", required_dimensions: "3840x2160 minimum", file_url: null, file_name: null, file_size: null, version: 1, status: "required", due_date: "2026-04-20" },
     { id: "a3000001-0000-4000-8000-000000000001", event_id: "e3333333-3333-3333-3333-333333333333", name: "Primary Brand Logo", description: "Main logo for wrap and digital touchpoints", asset_type: "logo", required_format: "SVG or PNG (300dpi min)", required_dimensions: "Minimum 2000px wide", file_url: null, file_name: null, file_size: null, version: 1, status: "required", due_date: "2026-04-20" },
     { id: "a3000002-0000-4000-8000-000000000002", event_id: "e3333333-3333-3333-3333-333333333333", name: "Campaign Hero Image", description: "Key visual for the activation", asset_type: "imagery", required_format: "PNG or JPEG", required_dimensions: "3840x2160 minimum", file_url: null, file_name: null, file_size: null, version: 1, status: "required", due_date: "2026-04-20" },
-    { id: "a5000001-0000-4000-8000-000000000001", event_id: "e5555555-5555-5555-5555-555555555555", name: "Primary Brand Logo", description: "Main logo for wrap and digital touchpoints", asset_type: "logo", required_format: "SVG or PNG (300dpi min)", required_dimensions: "Minimum 2000px wide", file_url: null, file_name: null, file_size: null, version: 1, status: "accepted", due_date: "2026-04-20" },
-    { id: "a5000002-0000-4000-8000-000000000002", event_id: "e5555555-5555-5555-5555-555555555555", name: "Campaign Hero Image", description: "Key visual for the activation", asset_type: "imagery", required_format: "PNG or JPEG", required_dimensions: "3840x2160 minimum", file_url: null, file_name: null, file_size: null, version: 1, status: "accepted", due_date: "2026-04-20" },
+    { id: "a5000001-0000-4000-8000-000000000001", event_id: "e5555555-5555-5555-5555-555555555555", name: "Primary Brand Logo", description: "Main logo for wrap and digital touchpoints", asset_type: "logo", required_format: "SVG or PNG (300dpi min)", required_dimensions: "Minimum 2000px wide", file_url: "/catalog/case-studies/costa-matcha/02-winner-qr-scan.png", file_name: "galaxy-logo-master.svg", file_size: 184200, uploaded_by: "22222222-2222-2222-2222-222222222222", customer_visible: true, version: 1, status: "accepted", due_date: "2026-04-20" },
+    { id: "a5000002-0000-4000-8000-000000000002", event_id: "e5555555-5555-5555-5555-555555555555", name: "Campaign Hero Image", description: "Key visual for the activation", asset_type: "imagery", required_format: "PNG or JPEG", required_dimensions: "3840x2160 minimum", file_url: "/catalog/case-studies/costa-matcha/01-machine-hero.png", file_name: "galaxy-hero-keyvisual.png", file_size: 612400, uploaded_by: "22222222-2222-2222-2222-222222222222", customer_visible: true, version: 1, status: "accepted", due_date: "2026-04-20" },
+    { id: "a6000001-0000-4000-8000-000000000001", event_id: "e6666666-6666-6666-6666-666666666666", name: "Primary Brand Logo", description: "Main logo for wrap and digital touchpoints", asset_type: "logo", required_format: "SVG or PNG (300dpi min)", required_dimensions: "Minimum 2000px wide", file_url: "/catalog/case-studies/costa-matcha/02-winner-qr-scan.png", file_name: "coke-logo-master.svg", file_size: 176800, uploaded_by: "22222222-2222-2222-2222-222222222222", customer_visible: true, version: 1, status: "accepted", due_date: "2026-03-10" },
+    { id: "a6000002-0000-4000-8000-000000000002", event_id: "e6666666-6666-6666-6666-666666666666", name: "Campaign Hero Image", description: "Key visual for the activation", asset_type: "imagery", required_format: "PNG or JPEG", required_dimensions: "3840x2160 minimum", file_url: "/catalog/case-studies/costa-matcha/01-machine-hero.png", file_name: "coke-spring-keyvisual.png", file_size: 588900, uploaded_by: "22222222-2222-2222-2222-222222222222", customer_visible: true, version: 1, status: "accepted", due_date: "2026-03-10" },
   ],
 
   approvals: [
@@ -1440,15 +1491,13 @@ export const MOCK_TABLES: Record<string, MockRow[]> = {
     { machine_instance_id: "e5000000-0000-4000-8000-000000000002", event_id: "e5555555-5555-5555-5555-555555555555", event_type: "lead_captured", payload_json: { session: "u2" }, timestamp: "2026-04-12T16:28:00Z" },
   ],
 
+  // Generated so each completed event's lead list reconciles with its report's
+  // headline lead count (plays × opt-in) and age demographics. See generate-leads.ts.
   leads: [
-    { event_id: "e2222222-2222-2222-2222-222222222222", machine_instance_id: "1c1c1c1c-1c1c-4c1c-8c1c-1c1c1c1c1c1c", contact_name: "Casey Morgan", contact_email: "casey.morgan@example.com", custom_fields_json: { interest: "galaxy" }, source: "game", captured_at: "2026-06-18T13:32:00Z" },
-    { event_id: "e2222222-2222-2222-2222-222222222222", machine_instance_id: "1c1c1c1c-1c1c-4c1c-8c1c-1c1c1c1c1c1c", contact_name: "Reece Ellis", contact_email: "reece.ellis@example.com", custom_fields_json: { interest: "trade" }, source: "game", captured_at: "2026-06-18T13:48:00Z" },
-    { event_id: "e6666666-6666-6666-6666-666666666666", contact_name: "Priya Sharma", contact_email: "priya.sharma@example.com", contact_phone: "+44 7700 900123", source: "game", captured_at: "2026-03-20T10:30:00Z" },
-    { event_id: "e6666666-6666-6666-6666-666666666666", contact_name: "Daniel O'Connor", contact_email: "daniel.oconnor@example.com", contact_phone: "+44 7700 900456", source: "game", captured_at: "2026-03-21T11:30:00Z" },
-    { event_id: "e6666666-6666-6666-6666-666666666666", contact_name: "Mei Lin", contact_email: "mei.lin@example.com", contact_phone: "+44 7700 900789", source: "game", captured_at: "2026-03-20T12:30:00Z" },
-    { event_id: "e6666666-6666-6666-6666-666666666666", contact_name: "Carlos Mendes", contact_email: "carlos.mendes@example.com", contact_phone: "+44 7700 900222", source: "game", captured_at: "2026-03-21T13:30:00Z" },
-    { event_id: "e6666666-6666-6666-6666-666666666666", contact_name: "Sophie Dubois", contact_email: "sophie.dubois@example.com", contact_phone: "+44 7700 900333", source: "game", captured_at: "2026-03-20T14:30:00Z" },
-  ],
+    ...COKE_SPRING_LEADS,
+    ...SAMSUNG_UNPACKED_LEADS,
+    ...SAMSUNG_GALAXY_LEADS,
+  ] as unknown as MockRow[],
 
   quotes: [
     {
@@ -1461,7 +1510,6 @@ export const MOCK_TABLES: Record<string, MockRow[]> = {
       company_name: "Coca-Cola UK",
       event_type: "sampling",
       postcode: "W1",
-      location_postcode: "W1",
       event_date_start: "2026-09-12",
       event_date_end: "2026-09-14",
       machine_preference: "Bright.Vend Pro",
@@ -1481,7 +1529,6 @@ export const MOCK_TABLES: Record<string, MockRow[]> = {
       company_name: "Samsung Electronics",
       event_type: "activation",
       postcode: "M1",
-      location_postcode: "M1",
       event_date_start: "2026-10-03",
       event_date_end: "2026-10-07",
       machine_preference: "Bright.Play",
@@ -1502,7 +1549,6 @@ export const MOCK_TABLES: Record<string, MockRow[]> = {
       company_name: "Nike UK",
       event_type: "activation",
       postcode: "EC2",
-      location_postcode: "EC2",
       event_date_start: "2026-09-05",
       event_date_end: "2026-09-07",
       machine_preference: "Bright.Play",
@@ -1522,7 +1568,6 @@ export const MOCK_TABLES: Record<string, MockRow[]> = {
       company_name: "Spotify",
       event_type: "sampling",
       postcode: "N1",
-      location_postcode: "N1",
       event_date_start: "2026-08-22",
       event_date_end: "2026-08-23",
       machine_preference: "Bright.Vend Pro",
@@ -1554,7 +1599,6 @@ export const MOCK_TABLES: Record<string, MockRow[]> = {
       activation_location_key: "london-waterloo",
       activation_days: 3,
       postcode: "SE1",
-      location_postcode: "SE1",
       event_date_start: "2026-07-21",
       event_date_end: "2026-07-23",
       event_timeline: "within-month",

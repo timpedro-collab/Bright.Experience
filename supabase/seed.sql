@@ -50,7 +50,7 @@ on conflict (id) do nothing;
 -- packages and creative asset slots); only the display names changed.
 insert into machines (id, name, slug, tagline, description, hero_image_url, gallery_urls, capacity_label, mechanisms, dispenses, features, best_for, video_url, is_active, sort_order) values
   ('a2a2a2a2-a2a2-4a2a-8a2a-a2a2a2a2a2a2', 'Europa Experience Portal', 'experience-portal',
-    'The signature activation portal',
+    'The signature portal that turns footfall into opted-in leads',
     'Our flagship Experience Portal and the machine behind the majority of Bright.Blue activations. A fully branded 55" portrait touchscreen wrapped in a custom shell, with built-in lead capture, the complete Bright.Blue game engine, and four dispense mechanisms — belts, pushers, spirals and a lift — so it can hand out anything from a token gift to full-size product. Compact enough for retail, powerful enough for a stadium concourse.',
     '/catalog/machines/europa/01-hero-pelion.jpg',
     '["/catalog/machines/europa/01-hero-pelion.jpg","/catalog/machines/europa/02-costa-cup.jpg","/catalog/machines/europa/05-play-to-win.jpg","/catalog/machines/europa/03-ice-screen.jpg","/catalog/machines/europa/04-pepsi.jpg","/catalog/machines/europa/06-chocolate.jpg"]'::jsonb,
@@ -61,7 +61,7 @@ insert into machines (id, name, slug, tagline, description, hero_image_url, gall
     '["Trade shows & conferences","Retail & shopping-centre sampling","Festival and event concourses","Product launches that hand out full-size product","High-volume lead capture in busy spaces"]'::jsonb,
     null, true, 1),
   ('a1a1a1a1-a1a1-4a1a-8a1a-a1a1a1a1a1a1', 'Blinx Experience Portal', 'experience-portal-compact',
-    'The premium smart locker',
+    'Premium gifting that runs itself — no staff required',
     'A premium smart-locker portal built for high-value reveals. Behind illuminated glass doors, Blinx showcases up to 30 hero products — watches, jewellery, limited-edition merch or full product bundles — and releases them on cue after a game, a purchase or a lead capture. The most editorial unit in the range, made for luxury lobbies and flagship moments.',
     '/catalog/machines/blinx/01-hero-porsche.jpg',
     '["/catalog/machines/blinx/01-hero-porsche.jpg","/catalog/machines/blinx/03-hibiki.jpg","/catalog/machines/blinx/02-absolut.jpg"]'::jsonb,
@@ -72,7 +72,7 @@ insert into machines (id, name, slug, tagline, description, hero_image_url, gall
     '["Luxury and flagship retail","Hotel and venue lobbies","High-value prize reveals & VIP gifting","Limited-edition product drops"]'::jsonb,
     null, true, 2),
   ('a3a3a3a3-a3a3-4a3a-8a3a-a3a3a3a3a3a3', 'Hyperion Experience Portal', 'experience-portal-xl',
-    'The large-format showpiece',
+    'The showpiece that pulls a queue across the hall',
     'The largest portal in the range and an unmissable centrepiece. Hyperion pairs a wall of branded product behind glass with the same belts, pushers, spirals and lift mechanisms — holding up to 1,200 items — so it keeps dispensing through the busiest days of a show. Built for stands and activations where presence and scale do the talking.',
     '/catalog/machines/hyperion/01-hero-redbull.jpg',
     '["/catalog/machines/hyperion/01-hero-redbull.jpg","/catalog/machines/hyperion/03-dual-window.jpg","/catalog/machines/hyperion/02-lucozade.jpg"]'::jsonb,
@@ -83,7 +83,7 @@ insert into machines (id, name, slug, tagline, description, hero_image_url, gall
     '["Trade-show hero stands","Multi-day exhibitions & conferences","Stadium and arena concourses","High-volume sampling that can''t run dry"]'::jsonb,
     null, true, 3),
   ('a4a4a4a4-a4a4-4a4a-8a4a-a4a4a4a4a4a4', 'Callisto Experience Portal', 'callisto-experience-portal',
-    'The frozen experience portal',
+    'Frozen sampling that stops traffic',
     'A fully refrigerated Experience Portal that dispenses frozen treats on demand. Callisto keeps up to 594 items — ice creams, lollies, gelato and sorbet cups, even alcoholic ice pops and frozen cocktails — at temperature, then hands them out the moment a guest finishes a game or signs up. The crowd-stopper for summer activations.',
     '/catalog/machines/callisto/01-hero-benjerry.jpg',
     '["/catalog/machines/callisto/01-hero-benjerry.jpg","/catalog/machines/callisto/02-magnum-vegan.jpg","/catalog/machines/callisto/03-frozen-show.jpg"]'::jsonb,
@@ -197,18 +197,21 @@ on conflict (id) do nothing;
 -- CATALOG: package_addons (canonical capability slugs)
 -- ============================================================
 insert into package_addons (package_id, name, description, price, category, capability_slug) values
+  ('c2c2c2c2-c2c2-4c2c-8c2c-c2c2c2c2c2c2', 'Lead capture',                 'GDPR-compliant opted-in lead capture on every play.',              45000,  'mechanics',     'lead-capture'),
   ('c2c2c2c2-c2c2-4c2c-8c2c-c2c2c2c2c2c2', 'Live telemetry dashboard',     'Live read of leads, plays, conversions during the event.',          50000,  'reporting',     'live-telemetry'),
   ('c2c2c2c2-c2c2-4c2c-8c2c-c2c2c2c2c2c2', 'Sampling unlock',              'Physical sample dispenses when the player wins.',                  85000,  'mechanics',     'sampling-unlock'),
-  ('c2c2c2c2-c2c2-4c2c-8c2c-c2c2c2c2c2c2', 'App / store download QR',     'Final-screen QR pushing players to your app or product page.',     35000,  'mechanics',     'app-qr-drive'),
   ('c3c3c3c3-c3c3-4c3c-8c3c-c3c3c3c3c3c3', 'LinkedIn follow gate',         'B2B-friendly follow-to-play gate at game start.',                  45000,  'mechanics',     'linkedin-follow'),
   ('c3c3c3c3-c3c3-4c3c-8c3c-c3c3c3c3c3c3', 'Survey layer',                 'Lightweight survey layer collecting brand-lift data.',             60000,  'mechanics',     'survey-layer'),
-  ('c3c3c3c3-c3c3-4c3c-8c3c-c3c3c3c3c3c3', 'Voucher redemption',           'Branded vouchers with redemption tracking.',                       55000,  'mechanics',     'voucher-redemption'),
   ('c3c3c3c3-c3c3-4c3c-8c3c-c3c3c3c3c3c3', 'Dynamic sponsors',             'Multi-sponsor rotation throughout the event.',                     75000,  'mechanics',     'dynamic-sponsors'),
   ('c4c4c4c4-c4c4-4c4c-8c4c-c4c4c4c4c4c4', 'Age verification',             'ID-based age verification for restricted brands.',                 65000,  'compliance',    'age-verification'),
   ('c4c4c4c4-c4c4-4c4c-8c4c-c4c4c4c4c4c4', 'On-unit payments',             'Take card payments on the unit directly.',                         70000,  'commercial',    'payments-onunit');
 
 -- ============================================================
 -- CATALOG: case_studies
+-- Photography: only Costa has real imagery so far. For the others, drop event
+-- photos at /public/catalog/case-studies/<slug>/01-hero.jpg and set
+-- hero_image_url to that path (here AND in the mock dataset.ts). Until then
+-- the CaseStudyCard renders a branded tile from the client's logo.
 -- ============================================================
 insert into case_studies (id, title, slug, client_name, event_type, location, description, hero_image_url, gallery_urls, stats_json, testimonial_quote, testimonial_author, is_published, published_at) values
   ('d1d1d1d1-d1d1-4d1d-8d1d-d1d1d1d1d1d1', 'Costa Coffee — Catch-A-Matcha', 'costa-coffee-catch-a-matcha',
@@ -304,7 +307,7 @@ insert into tasks (id, event_id, title, description, task_type, category, status
   ('11111111-1111-4111-8111-111111111104', 'e1111111-1111-1111-1111-111111111111', 'Confirm prize details and quantities', 'Product name, size, quantity, and any vending-specific requirements', 'customer_action', 'operations', 'complete', 'high', '22222222-2222-2222-2222-222222222222', '2026-04-18', '2026-06-12T14:30:00Z', true, true, 3, 'operations_lead', 'configuration'),
   ('11111111-1111-4111-8111-111111111105', 'e1111111-1111-1111-1111-111111111111', 'Provide onsite contact details', 'Name, phone, and email for the person on site during the event', 'customer_action', 'logistics', 'pending', 'medium', null, '2026-05-01', null, false, true, 4, 'operations_lead', 'logistics'),
   ('11111111-1111-4111-8111-111111111106', 'e1111111-1111-1111-1111-111111111111', 'Design wrap concept', null, 'internal_action', 'creative', 'pending', 'high', '33333333-3333-3333-3333-333333333333', '2026-04-20', null, true, false, 5, 'creative_lead', 'studio'),
-  ('11111111-1111-4111-8111-111111111107', 'e1111111-1111-1111-1111-111111111111', 'Configure game logic', null, 'internal_action', 'development', 'pending', 'medium', '55555555-5555-5555-5555-555555555555', '2026-05-15', null, false, false, 6, 'developer', 'configuration'),
+  ('11111111-1111-4111-8111-111111111107', 'e1111111-1111-1111-1111-111111111111', 'Configure game logic', null, 'internal_action', 'development', 'pending', 'medium', '55555555-5555-5555-5555-555555555555', '2026-05-15', null, false, false, 6, 'admin', 'configuration'),
   ('11111111-1111-4111-8111-111111111108', 'e1111111-1111-1111-1111-111111111111', 'Arrange logistics and transport', null, 'internal_action', 'logistics', 'pending', 'medium', '44444444-4444-4444-4444-444444444444', '2026-06-30', null, false, false, 7, 'operations_lead', 'logistics');
 
 -- Generic tasks for other events
@@ -354,8 +357,10 @@ insert into assets (id, event_id, name, description, asset_type, required_format
   ('a2000002-0000-4000-8000-000000000002', 'e2222222-2222-2222-2222-222222222222', 'Campaign Hero Image', 'Key visual for the activation', 'imagery', 'PNG or JPEG', '3840x2160 minimum', null, null, null, 1, 'required', '2026-04-20'),
   ('a3000001-0000-4000-8000-000000000001', 'e3333333-3333-3333-3333-333333333333', 'Primary Brand Logo', 'Main logo for wrap and digital touchpoints', 'logo', 'SVG or PNG (300dpi min)', 'Minimum 2000px wide', null, null, null, 1, 'required', '2026-04-20'),
   ('a3000002-0000-4000-8000-000000000002', 'e3333333-3333-3333-3333-333333333333', 'Campaign Hero Image', 'Key visual for the activation', 'imagery', 'PNG or JPEG', '3840x2160 minimum', null, null, null, 1, 'required', '2026-04-20'),
-  ('a5000001-0000-4000-8000-000000000001', 'e5555555-5555-5555-5555-555555555555', 'Primary Brand Logo', 'Main logo for wrap and digital touchpoints', 'logo', 'SVG or PNG (300dpi min)', 'Minimum 2000px wide', null, null, null, 1, 'required', '2026-04-20'),
-  ('a5000002-0000-4000-8000-000000000002', 'e5555555-5555-5555-5555-555555555555', 'Campaign Hero Image', 'Key visual for the activation', 'imagery', 'PNG or JPEG', '3840x2160 minimum', null, null, null, 1, 'required', '2026-04-20')
+  ('a5000001-0000-4000-8000-000000000001', 'e5555555-5555-5555-5555-555555555555', 'Primary Brand Logo', 'Main logo for wrap and digital touchpoints', 'logo', 'SVG or PNG (300dpi min)', 'Minimum 2000px wide', '/catalog/case-studies/costa-matcha/02-winner-qr-scan.png', 'galaxy-logo-master.svg', 184200, 1, 'accepted', '2026-04-20'),
+  ('a5000002-0000-4000-8000-000000000002', 'e5555555-5555-5555-5555-555555555555', 'Campaign Hero Image', 'Key visual for the activation', 'imagery', 'PNG or JPEG', '3840x2160 minimum', '/catalog/case-studies/costa-matcha/01-machine-hero.png', 'galaxy-hero-keyvisual.png', 612400, 1, 'accepted', '2026-04-20'),
+  ('a6000001-0000-4000-8000-000000000001', 'e6666666-6666-6666-6666-666666666666', 'Primary Brand Logo', 'Main logo for wrap and digital touchpoints', 'logo', 'SVG or PNG (300dpi min)', 'Minimum 2000px wide', '/catalog/case-studies/costa-matcha/02-winner-qr-scan.png', 'coke-logo-master.svg', 176800, 1, 'accepted', '2026-03-10'),
+  ('a6000002-0000-4000-8000-000000000002', 'e6666666-6666-6666-6666-666666666666', 'Campaign Hero Image', 'Key visual for the activation', 'imagery', 'PNG or JPEG', '3840x2160 minimum', '/catalog/case-studies/costa-matcha/01-machine-hero.png', 'coke-spring-keyvisual.png', 588900, 1, 'accepted', '2026-03-10')
 on conflict (id) do nothing;
 
 -- ============================================================
@@ -427,9 +432,9 @@ insert into leads (event_id, machine_instance_id, contact_name, contact_email, c
 -- ============================================================
 -- QUOTES + LINE ITEMS (one of each track)
 -- ============================================================
-insert into quotes (id, account_id, track, status, contact_name, contact_email, company_name, event_type, postcode, location_postcode, event_date_start, event_date_end, machine_preference, game_preference, footfall_estimate_text, addons, total_amount, created_at) values
-  ('21212121-2121-4121-8121-212121212121', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'book_now', 'submitted',     'James Chen',  'james.chen@cocacola.com', 'Coca-Cola UK',       'sampling',  'W1', 'W1', '2026-09-12', '2026-09-14', 'Bright.Vend Pro', 'Spin & Reveal',  '5000-10000', '["live-telemetry","sampling-unlock"]'::jsonb,  null, '2026-04-12T10:00:00Z'),
-  ('22222222-2222-4222-8222-222222222220', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'proposal', 'proposal_sent', 'Aisha Khan',  'aisha@samsung.example',   'Samsung Electronics', 'activation', 'M1', 'M1', '2026-10-03', '2026-10-07', 'Bright.Play',     'Photo Booth Pro','15000-20000', '["live-telemetry","linkedin-follow","survey-layer"]'::jsonb, 2750000, '2026-03-30T14:00:00Z')
+insert into quotes (id, account_id, track, status, contact_name, contact_email, company_name, event_type, postcode, event_date_start, event_date_end, machine_preference, game_preference, footfall_estimate_text, addons, total_amount, created_at) values
+  ('21212121-2121-4121-8121-212121212121', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'book_now', 'submitted',     'James Chen',  'james.chen@cocacola.com', 'Coca-Cola UK',       'sampling',  'W1', '2026-09-12', '2026-09-14', 'Bright.Vend Pro', 'Spin & Reveal',  '5000-10000', '["live-telemetry","sampling-unlock"]'::jsonb,  null, '2026-04-12T10:00:00Z'),
+  ('22222222-2222-4222-8222-222222222220', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'proposal', 'proposal_sent', 'Aisha Khan',  'aisha@samsung.example',   'Samsung Electronics', 'activation', 'M1', '2026-10-03', '2026-10-07', 'Bright.Play',     'Photo Booth Pro','15000-20000', '["live-telemetry","linkedin-follow","survey-layer"]'::jsonb, 2750000, '2026-03-30T14:00:00Z')
 on conflict (id) do nothing;
 
 insert into quote_line_items (quote_id, label, description, amount, category, sort_order) values

@@ -1,5 +1,9 @@
 import { readFileSync } from "node:fs";
 import { createClient } from "@supabase/supabase-js";
+import { generateLeads } from "../src/lib/metrics/generate-leads";
+
+// Age-band split used to give captured leads realistic, report-aligned ages.
+const LEAD_DEMOGRAPHICS = { "18-24": 30, "25-34": 39, "35-44": 19, "45-54": 8, "55+": 4 };
 
 // Load env from .env.local (gitignored) so secrets never live in code.
 function loadEnvLocal() {
@@ -257,27 +261,24 @@ async function seed() {
   if (snapErr) { console.error("Metrics snapshots:", snapErr.message); return; }
   console.log("Metrics snapshots seeded");
 
-  // A handful of captured leads.
-  const leadRows = [
-    { contact_name: "Priya Sharma", contact_email: "priya.sharma@example.com", contact_phone: "+44 7700 900123" },
-    { contact_name: "Daniel O'Connor", contact_email: "daniel.oconnor@example.com", contact_phone: "+44 7700 900456" },
-    { contact_name: "Mei Lin", contact_email: "mei.lin@example.com", contact_phone: "+44 7700 900789" },
-    { contact_name: "Carlos Mendes", contact_email: "carlos.mendes@example.com", contact_phone: "+44 7700 900222" },
-    { contact_name: "Sophie Dubois", contact_email: "sophie.dubois@example.com", contact_phone: "+44 7700 900333" },
-  ].map((l, i) => ({
-    event_id: E6,
-    ...l,
-    source: "game",
-    captured_at: `2026-03-2${(i % 2)}T1${i}:30:00Z`,
-  }));
+  // The customer-visible published post-event report.
+  const totalPlays = 5690, totalInteractions = 7700, totalLeads = 1877, totalPrizes = 1329;
+
+  // Captured leads — one row per opted-in contact so the leads list reconciles
+  // with the report's headline lead count, each with a report-aligned age.
+  const leadRows = generateLeads({
+    eventId: E6,
+    count: totalLeads,
+    startDate: "2026-03-20",
+    days: 3,
+    demographics: LEAD_DEMOGRAPHICS,
+    peakHours: [14, 15, 13],
+  });
   // Clear prior demo leads for this event so re-runs don't accumulate.
   await supabase.from("leads").delete().eq("event_id", E6);
   const { error: leadErr } = await supabase.from("leads").insert(leadRows);
   if (leadErr) { console.error("Leads:", leadErr.message); return; }
   console.log("Leads seeded");
-
-  // The customer-visible published post-event report.
-  const totalPlays = 5690, totalInteractions = 7700, totalLeads = 1877, totalPrizes = 1329;
   const { error: repErr } = await supabase.from("event_reports").upsert([
     {
       id: "e7666666-6666-6666-6666-666666666666",
@@ -326,6 +327,20 @@ async function seed() {
   ]);
   if (rep5Err) { console.error("Report (e5):", rep5Err.message); return; }
   console.log("Completed-event (e5) report seeded");
+
+  // E5 captured leads — reconcile the leads list with the report's lead count.
+  const e5LeadRows = generateLeads({
+    eventId: E5,
+    count: e5Leads,
+    startDate: "2026-04-10",
+    days: 3,
+    demographics: LEAD_DEMOGRAPHICS,
+    peakHours: [16, 15, 14],
+  });
+  await supabase.from("leads").delete().eq("event_id", E5);
+  const { error: lead5Err } = await supabase.from("leads").insert(e5LeadRows);
+  if (lead5Err) { console.error("Leads (e5):", lead5Err.message); return; }
+  console.log("Completed-event (e5) leads seeded");
 
   console.log("\nSeed complete!");
 }

@@ -49,14 +49,16 @@ select cmp_ok(
   'internal user sees all game configs'
 );
 
--- (4) Customer can fill in their own event's product config (insert)
+-- (4) Customer can fill in their own event's product config. One config per
+-- event since 20260602120000 (UNIQUE event_id), so the write is an upsert.
 select _rls_test_as('00000000-0000-4000-8000-000000000020');
 insert into product_configurations (event_id, total_units)
-values ('00000000-0000-4000-8000-0000000000e1', 750);
-select cmp_ok(
-  (select count(*)::int from product_configurations where event_id = '00000000-0000-4000-8000-0000000000e1'),
-  '>=', 2,
-  'customer can insert own-event product config'
+values ('00000000-0000-4000-8000-0000000000e1', 750)
+on conflict (event_id) do update set total_units = excluded.total_units;
+select is(
+  (select total_units::int from product_configurations where event_id = '00000000-0000-4000-8000-0000000000e1'),
+  750,
+  'customer can upsert own-event product config'
 );
 
 -- (5) Customer sees own-event product config

@@ -1,12 +1,13 @@
 -- =====================================================================
 -- RLS: event_reports, benchmarks
 --
--- Verifies:
---   1. Customer sees only event_reports for their own events
---   2. Customer CANNOT see other accounts' reports
---   3. Public (anon) can see published reports via share_token
---   4. Internal sees every report
---   5. Benchmarks are world-readable (acquisition funnel uses them)
+-- Verifies (post 20260713000000_rls_qa_reports_hardening):
+--   1. Customer sees only PUBLISHED event_reports for their own events
+--   2. Customer CANNOT see their own unpublished (draft) reports
+--   3. Customer CANNOT see other accounts' reports
+--   4. Public (anon) can see published reports via share_token
+--   5. Internal sees every report (drafts included)
+--   6. Benchmarks are world-readable (acquisition funnel uses them)
 -- =====================================================================
 
 begin;
@@ -22,24 +23,31 @@ insert into benchmarks (id, event_type, metric_name, avg_value, sample_size) val
   ('00000000-0000-4000-8000-0000000000dd', 'activation', 'plays_per_day', 250, 24)
 on conflict (id) do nothing;
 
-select plan(5);
+select plan(6);
 
--- (1) Acme customer sees own reports (both)
+-- (1) Acme customer sees only their published report
 select _rls_test_as('00000000-0000-4000-8000-000000000020');
 select is(
-  (select count(*)::int from event_reports where event_id = '00000000-0000-4000-8000-0000000000e1'),
-  2,
-  'customer sees own event reports'
+  (select array_agg(id order by id)::uuid[] from event_reports where event_id = '00000000-0000-4000-8000-0000000000e1'),
+  array['00000000-0000-4000-8000-0000000000db'::uuid],
+  'customer sees only their published event reports'
 );
 
--- (2) Acme customer cannot see Other's reports
+-- (2) Acme customer cannot see their own draft report
+select is(
+  (select count(*)::int from event_reports where id = '00000000-0000-4000-8000-0000000000da'),
+  0,
+  'customer cannot see their own unpublished report'
+);
+
+-- (3) Acme customer cannot see Other's reports
 select is(
   (select count(*)::int from event_reports where event_id = '00000000-0000-4000-8000-0000000000e2'),
   0,
   'customer cannot see other-account reports'
 );
 
--- (3) Anon can see the published shared report
+-- (4) Anon can see the published shared report
 select _rls_test_anon();
 select is(
   (select array_agg(id order by id)::uuid[] from event_reports),
@@ -47,7 +55,7 @@ select is(
   'anon sees only published shared reports'
 );
 
--- (4) Internal sees all reports
+-- (5) Internal sees all reports
 select _rls_test_as('00000000-0000-4000-8000-000000000011');
 select is(
   (select count(*)::int from event_reports),
@@ -55,7 +63,7 @@ select is(
   'internal sees every report'
 );
 
--- (5) Anon reads benchmarks
+-- (6) Anon reads benchmarks
 select _rls_test_anon();
 select is(
   (select count(*)::int from benchmarks),
