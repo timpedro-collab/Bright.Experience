@@ -18,7 +18,7 @@ Each row tells you:
 | Customer / partner logos in seed data | `supabase/seed.sql` — references monogram SVGs at `/public/brand/logos/*.svg` | We don't have rights to real customer logos until contracts are signed | Phase 1 (catalog) + Phase 5 (partner portal) — replace with the signed-off brand kit |
 | ~~Legal copy on `/privacy`, `/terms`~~ | ~~`src/app/(public)/privacy/page.tsx`, `src/app/(public)/terms/page.tsx`~~ | ~~Lorem-shaped placeholder; needs legal review~~ | ~~Done — pages built with `LegalShell`~~ |
 | Virus scan on uploaded assets | `src/lib/storage/scan.ts` — `scanUpload` hook is wired into all upload actions but is a graceful no-op until `FILE_SCAN_URL`/`FILE_SCAN_TOKEN` are set | We don't have a chosen AV provider (ClamAV vs Cloudmersive vs S3 Object Lambda) yet; the integration point is built and tested, just unconfigured | Point `FILE_SCAN_URL` at a ClamAV REST shim / cloud AV endpoint once chosen |
-| Real auth callback redirect domain | `src/app/auth/callback/route.ts` — uses `request.nextUrl.origin` which trusts the incoming host | Fine for local + Vercel previews; production deploy may need an allow-list | Phase 8 (auth hardening) — pin to `NEXT_PUBLIC_SITE_URL` once domain is locked |
+| ~~Real auth callback redirect domain~~ | ~~`src/app/auth/callback/route.ts` — uses `request.nextUrl.origin` which trusts the incoming host~~ | ~~Fine for local + Vercel previews; production deploy may need an allow-list~~ | **Done** — redirects pin to `NEXT_PUBLIC_SITE_URL` and `next` is restricted to same-site paths (`src/lib/auth/safe-redirect.ts` + tests). Request-origin fallback only when the env var is unset (dev/preview). |
 | `pg_prove` not run locally | `package.json` `test:rls` script + `.github/workflows/test.yml` | Docker not running on the dev machine during Phase 0 implementation; pgTAP tests do run in CI on every PR | Already wired in CI — no replacement needed, just a heads-up |
 
 ---
@@ -31,7 +31,7 @@ Each row tells you:
 | ~~Legal copy banner~~ | ~~`src/components/public/LegalShell.tsx` "REPLACE BEFORE LAUNCH" notice~~ | ~~Marker so we never accidentally ship lorem~~ | ~~Done — legal copy in place~~ |
 | Catalog hero photography | `/public/catalog/*.jpg` paths in seed | Stand-in monogram tiles; not the brand photoshoot | Phase 9 (final polish) — replace with the signed-off media kit |
 | `/api/test/login`, `/api/test/reset` Playwright endpoints | Referenced by `e2e/fixtures/auth.ts` + `e2e/fixtures/data.ts` | The three new Phase 1 specs (`public-quiz-to-booking`, `public-partner-attribution`, `public-report-share`) are intentionally guest-only and don't need these endpoints. Internal-persona specs still do. | Phase 2 (internal ops) — the first phase that *needs* a logged-in persona end-to-end |
-| Booking confirmation copy | `src/app/(public)/book/confirmation/[id]/page.tsx` | Headline + next-steps body are placeholder customer voice | Phase 9 (microcopy) — final copy pass |
+| ~~Booking confirmation copy~~ | ~~`src/app/(public)/book/confirmation/[id]/page.tsx`~~ | ~~Headline + next-steps body are placeholder customer voice~~ | **Done** — copy pass shipped: concrete next steps ("dates confirmed within one working day", portal invite, build kickoff) and a keep-your-reference note. |
 
 ---
 
@@ -46,7 +46,21 @@ because they're new features (not just visibility fixes).
 | **Configuration → Bright.Studio "do it for me" upsell** | `src/app/events/[id]/configuration/page.tsx`, `GameConfigForm`, `ProductConfigForm` | Customers can fill in the game/prize config themselves today. The intended flow also lets them **click-to-select** "have Bright.Studio do this for me", with clear per-line pricing that totals up; on confirm it should create to-dos in the internal Bright.Studio queue. Needs a pricing/selection UI + task generation + (likely) a `studio_requests` line-item model — a feature build, not a visibility tweak. | Next feature sprint. Wire selections → `requestStudioFixForAsset`-style action that seeds Studio tasks. |
 | **Expose Configuration (and Studio storefront) to customers** | `src/lib/event-access.ts` (`CUSTOMER_SECTIONS`) | Role→section visibility is now a single matrix (`event-access.ts`) that drives both the nav AND server guards. Configuration + Studio are currently scoped to internal roles; the customer-facing Configuration self-serve + Bright.Studio upsell isn't built yet, so customers are redirected from those pages rather than shown a half-finished form. | Add `"configuration"` / `"studio"` to `CUSTOMER_SECTIONS` once the upsell above lands and the storefront copy is signed off. The guards + nav update automatically. |
 | ~~**Granular deadline ownership labels**~~ | ~~`src/components/events/DeadlineTimeline.tsx`~~ | ~~Internal deadline rows show a coarse "Customer / Internal" tag rather than the specific team (`Bright.Blue creative`, `QA`, etc.) from `src/lib/ownership.ts`.~~ | **Done** — `getDeadlinesByEvent` now resolves each row's owner via `ownerForTaskRow` (milestones → account manager), and `DeadlineTimeline` renders the team via `OWNER_TEAM_DISPLAY_LABEL`. |
-| **QA / event_reports RLS hardening** | `supabase/migrations/*` | Page-level guards block customers from QA + draft reports today (and the print/export routes now check publish status). RLS still technically allows customer SELECT on `qa_items` / unpublished `event_reports` — defense-in-depth gap, not an active leak. | DB owners post-handoff: tighten SELECT policies to `is_internal_user()` / `is_published = true`. |
+| ~~**QA / event_reports RLS hardening**~~ | ~~`supabase/migrations/*` (`qa_items`, `event_reports`)~~ | ~~App-layer guards masked a defense-in-depth gap: RLS still allowed customer SELECT on `qa_items` and unpublished `event_reports`.~~ | **Done** — `20260713000000_rls_qa_reports_hardening.sql`: `qa_items` SELECT is internal-only; customers read `event_reports` only when `is_published = true`. pgTAP: `rls_qa_items.test.sql` + updated `rls_reports.sql`. |
+
+---
+
+## Security & Cloud-handoff pass (July 2026)
+
+Shipped in the "Next 10" fix build: rate limiter wired onto every public
+entry point, qa_items/event_reports RLS hardening, auth-callback redirect
+pinning, the Cloud webhook simulator, legacy `quotes` column drop, and the
+`machine_instances.current_placement_id` FK. What remains stubbed:
+
+| What | Where | Why stubbed | Replace in |
+| --- | --- | --- | --- |
+| Distributed rate-limit store | `src/lib/rate-limit.ts` — in-memory `Map`, per-instance | The limiter is now invoked everywhere it should be, but serverless instances don't share the bucket; limits reset on cold start | Dev team (`docs/11-cloud-handoff.md` D3) — back `checkRateLimit` with Upstash/KV, same signature |
+| Cloud → portal event-ID assignment push | `docs/10-integrations.md` §1c; `src/lib/brightblue/client.ts` | Cloud must learn which portal event each machine serves. Recommended `PUT /machines/:serial/assignment` push isn't built — open CTO decision (push vs resolve-on-ingest) | Dev team, first Cloud integration sprint. Until then `scripts/simulate-cloud-webhook.ts` stamps the event UUID explicitly |
 
 ---
 

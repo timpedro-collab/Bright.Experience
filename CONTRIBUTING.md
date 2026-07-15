@@ -5,7 +5,7 @@ Welcome. This doc gets you from a fresh clone to your first PR.
 ## Setup
 
 ```bash
-nvm use 22                                # node 22 is the target
+nvm use 22                                # node 22 is the target (minimum 20, per package.json engines)
 npm install
 cp .env.example .env.local                # then fill in Supabase + Pipedrive keys
 npm run dev
@@ -69,7 +69,7 @@ The pre-commit hook (Husky + lint-staged) runs `eslint --fix` and
 
 ### A new notification archetype
 
-1. Register it in `src/lib/notifications/archetypes.ts`.
+1. Register it under `src/lib/notifications/archetypes/` (catalogue modules + `index.ts` exports).
 2. Decide whether it's Class A (action_required) or Class B (FYI).
 3. Add a test in `src/lib/notifications/archetypes.test.ts` for the new template.
 4. If it needs a new resolver, add one in `resolve-owners.ts` + a test.
@@ -136,5 +136,5 @@ Before requesting review:
 - Architecture / conventions → `docs/`, `AGENTS.md`, `.cursor/rules/`
 - Testing patterns → `docs/testing.md`
 - Database schema → `supabase/migrations/` (declarative SQL)
-- Notification archetypes → `src/lib/notifications/archetypes.ts`
+- Notification archetypes → `src/lib/notifications/archetypes/`
 - Pipedrive write-back → `src/lib/pipedrive/`

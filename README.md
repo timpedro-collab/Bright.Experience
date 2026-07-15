@@ -1,8 +1,13 @@
 # Bright.Experience
 
-The full-platform experience engine for Bright.Blue Events — from discovery and quoting, through creative production and approval, to event delivery, live telemetry, and proof of performance. One portal serving four audiences: **customers**, the internal **operations** team, the **creative** team, and **partners / venues**.
+The delivery-and-proof portal for Bright.Blue Events — one workspace to run an
+activation from kickoff through live telemetry to post-event proof of performance.
+Catalog, quiz, and quoting are the **intake** path that feeds delivery; partner and
+venue portals are secondary growth surfaces.
 
-The product is organised around journeys, not screens. Every surface earns its place in one of three flows below, rendered on a single, consistent **Cloud** design system.
+The product is organised around journeys, not screens. Every surface earns its
+place in one of three flows below, rendered on a single, consistent **Cloud**
+design system.
 
 ## The three journeys
 
@@ -37,7 +42,7 @@ flowchart TD
 
 - **Customer** — discovery → booking/proposal → onboarding → event hub (assets, approvals, tasks, messages, live, leads, reports).
 - **Creative + approval** — customer uploads land in the creative review queue (`/admin/asset-reviews`), where each asset is checked against its spec, previewed on the machine, and approved or sent back with a note. Paid creative help routes through Bright.Studio.
-- **Ops** — the delivery pipeline kanban (`/pipeline`), per-user work (`/inbox`, My Work on `/`), and the 10 delivery stages with their QA / logistics / compliance gates.
+- **Ops** — the delivery pipeline kanban (`/pipeline`), per-user work (`/inbox`, focus list on `/`), and the 10 delivery stages with their QA / logistics / compliance gates.
 
 ## Tech Stack
 
@@ -62,7 +67,7 @@ flowchart TD
 
 ### Prerequisites
 
-- Node.js 18+
+- Node.js 20+ (22 recommended — enforced via the `engines` field in `package.json`)
 - npm 9+
 - A Supabase project (free tier works for development)
 
@@ -88,7 +93,9 @@ npx tsx supabase/run-seed.ts
 npm run dev
 ```
 
-Open [http://localhost:3001](http://localhost:3001) to view the app.
+Open [http://localhost:3000](http://localhost:3000) to view the app.
+
+Day-1 CTO notes: [`HANDOFF.md`](./HANDOFF.md).
 
 ### Environment Variables
 
@@ -102,9 +109,11 @@ Open [http://localhost:3001](http://localhost:3001) to view the app.
 | `BRIGHTBLUE_API_KEY` + `BRIGHTBLUE_API_URL` | Recommended | Live Cloud telemetry poll | Live dashboard falls back to DB |
 | `BRIGHTBLUE_WEBHOOK_SECRET` | Recommended | HMAC verify on inbound telemetry webhooks | Inbound telemetry rejected (503) |
 | `NEXT_PUBLIC_SENTRY_DSN` | Recommended | Error reporting (prod) | Sentry disabled |
-| `CRON_SECRET` | Optional | Bearer auth on `/api/cron/*` | Cron routes 401 unless Vercel header |
+| `CRON_SECRET` | Optional | Bearer auth on `/api/cron/*` | Cron routes 401 |
 | `PIPEDRIVE_API_TOKEN` | Optional | CRM write-back | No-op (or falls back to DB config) |
 | `FROM_EMAIL` / `STUDIO_TEAM_EMAIL` / `SALES_TEAM_EMAIL` | Optional | Email addresses | Defaults to `@brightblue.co.uk` |
+| `BOOKING_AUTO_PROVISION` | Optional | Set `"true"` (production only) to auto-create accounts/events/invites on public booking | Bookings recorded, provisioning skipped |
+| `FILE_SCAN_URL` / `FILE_SCAN_TOKEN` | Optional | Malware scan on uploads (`src/lib/storage/scan.ts`) | Scan skipped — uploads pass unscanned |
 
 See `.env.example` for the full list with setup instructions.
 
@@ -151,7 +160,7 @@ src/
 │   ├── notifications/      # Unified notification spine (dispatch, archetypes, email shell)
 │   ├── brightblue/         # Cloud telemetry client
 │   ├── asset-requirements/ # Game-flow asset specs + on-machine placement previews
-│   ├── rbac.ts / roles.ts  # Role & permission helpers
+│   ├── roles.ts        # Role & permission helpers (single source of truth)
 │   └── …                   # auth, dates, env, surfaces, exports
 ├── types/index.ts          # TypeScript types and enums (stages, statuses, entities)
 └── middleware.ts           # Auth middleware and route protection
@@ -241,23 +250,27 @@ Stage advancement is gated by blocking tasks/milestones (`canAdvanceStage` in [`
 | `creative_lead` | Internal | Creative / studio management + asset reviews |
 | `operations_lead` | Internal | Operations and logistics |
 | `qa_lead` | Internal | Quality assurance |
-| `developer` | Internal | Technical configuration |
-| `admin` | Internal | Full platform access |
+| `admin` | Internal | Full platform access (includes technical configuration) |
 | `partner_member` / `partner_admin` | Partner | Partner portal access + management |
 
 ## Available Scripts
 
 | Command | Description |
 |---------|-------------|
-| `npm run dev` | Start development server (port 3001) |
+| `npm run dev` | Start development server (port 3000) |
 | `npm run build` | Production build |
 | `npm run start` | Start production server |
 | `npm run lint` | Run ESLint |
-| `npx tsc --noEmit` | Type-check the project |
+| `npm run typecheck` | Type-check (`tsc --noEmit`) |
+| `npm test` | Unit + integration tests (Vitest) |
+| `npm run test:watch` | Vitest watch mode |
+| `npm run test:coverage` | Coverage report |
+| `npm run test:rls` | pgTAP RLS tests (Docker / Supabase CLI) |
+| `npm run test:e2e` | Playwright end-to-end tests |
 
 ## Documentation
 
-See the `docs/` directory:
+See the `docs/` directory (and [`HANDOFF.md`](./HANDOFF.md) for Day-1 CTO notes):
 
 - **01 Product Definition** — what the platform is, who it serves, success criteria
 - **02 Event Lifecycle** — the 10-stage delivery pipeline with health tracking
@@ -268,6 +281,8 @@ See the `docs/` directory:
 - **07 Platform Vision** — catalog, quoting, partners, venues
 - **08 Pricing & Quoting Model** — two-track quoting strategy
 - **09 Design System** — the Cloud language reference and banned patterns
+- **10 Integrations** — webhooks, crons, external systems
+- **11 Cloud Handoff** — authoritative schema + Cloud integration notes
 
 ## Production Checklist
 
@@ -278,9 +293,9 @@ Before going live, verify every item:
 3. **`SUPABASE_SERVICE_ROLE_KEY`** — set server-side only; never exposed to the browser.
 4. **Supabase Auth** — redirect URLs configured to match the production domain.
 5. **Resend** — domain verified, `RESEND_API_KEY` set, `FROM_EMAIL` on the verified domain.
-6. **Cron secrets** — `CRON_SECRET` set in Vercel, matching `vercel.json` cron headers.
+6. **Cron secrets** — `CRON_SECRET` set in Vercel, matching Bearer auth on `/api/cron/*`.
 7. **Bright.Blue Cloud** — `BRIGHTBLUE_WEBHOOK_SECRET` set, webhook URL registered; `BRIGHTBLUE_API_URL`/`BRIGHTBLUE_API_KEY` set for live poll.
 8. **Sentry** — `NEXT_PUBLIC_SENTRY_DSN` set (and `SENTRY_ORG`/`SENTRY_PROJECT` for source-map upload in CI).
 9. **Database migrations** — `npx supabase db push` applies everything in `supabase/migrations/`.
-10. **Stubs** — review `STUBS-TO-REPLACE.md` and replace any launch-blocking stubs (payments, virus scan).
+10. **Stubs** — review `STUBS-TO-REPLACE.md` and replace any launch-blocking stubs (e.g. virus scan endpoint).
 11. **Legal copy** — `/privacy` and `/terms` contain reviewed legal text, not placeholders.

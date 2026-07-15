@@ -7,6 +7,11 @@
 
 Bright.Experience v1 was scoped as a **post-sale delivery portal** — a workspace for events that are already sold. What you're describing is a fundamentally different product surface that sits **upstream, alongside, and beyond** that delivery layer:
 
+> **Note (historical snapshot):** the "Current" column below was written before the
+> catalog, quoting, booking, and partner/venue surfaces shipped. Much of the
+> "Expanded" column now exists in demo form — see `DEMO_ROADMAP.md` for what is
+> actually built versus gated. This table is kept as the original framing.
+
 | Layer | Current | Expanded |
 |-------|---------|----------|
 | **Pre-sale** | ❌ Not in scope | Quoting engine, game catalog, package builder, self-serve onboarding |
@@ -23,6 +28,14 @@ The platform becomes **four products in one skin**:
 
 All sharing one design system, one auth layer, one data model.
 
+> **Gating status (2026-07):** Catalog, Partner, and Runway all exist as
+> demo-ready surfaces today. Deeper Runway operations (slot scheduling,
+> rotation), white-label theming, and commission depth (statements, payout
+> runs) are deliberately gated on a signed venue/partner rather than built
+> speculatively. In-portal invoices are display-only by design. Finance, exec
+> read-only, and sponsor personas are deliberate deferrals. See `HANDOFF.md`
+> "Deferred / gated features".
+
 ---
 
 ## New User Personas
@@ -38,20 +51,31 @@ All sharing one design system, one auth layer, one data model.
 
 ### Updated Role Model
 
+> **Implemented today vs aspirational.** The app’s live `user_role` enum and RBAC use
+> `partner_member` / `partner_admin` (plus customer and internal roles). The finer
+> reseller / venue / sponsor role names below are **ASPIRATIONAL** — product vision
+> for a future split, not shipped auth roles. Do not treat them as schema truth.
+
 ```
-External Roles:
-  - prospect            → browsing, quoting, no account yet
+External Roles (IMPLEMENTED):
   - customer_user       → active event, delivery access
   - customer_admin      → delivery access + team + reporting
+
+External Roles (ASPIRATIONAL):
+  - prospect            → browsing, quoting, no account yet (funnel is anon today)
   - sponsor             → sponsorship-only access (runway)
-  
-Partner Roles:
+
+Partner Roles (IMPLEMENTED):
+  - partner_member      → partner portal access (reseller or venue org)
+  - partner_admin       → partner portal + team / config management
+
+Partner Roles (ASPIRATIONAL — not separate enum values):
   - reseller            → sends clients, sees pipeline, earns attribution
   - reseller_admin      → manages reseller team, views all client events
   - venue_operator      → manages package listings, sees purchaser pipeline
   - venue_admin         → manages venue team, configures packages
 
-Internal Roles:
+Internal Roles (IMPLEMENTED):
   - events_lead         → (unchanged)
   - creative_lead       → (unchanged)
   - operations_lead     → (unchanged)

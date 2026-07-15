@@ -76,11 +76,11 @@ Resend, Sentry, Pipedrive, Bright.Blue Cloud (webhook + REST), optional file-sca
 
 # Part B — Data Model Reference (complete schema)
 
-50 tables across 17 domains. Source: all 46 files in `supabase/migrations/`.
+50 tables across 17 domains. Source: the files in `supabase/migrations/` (56 at last count — trust the folder over this number).
 
 **Project-wide conventions:**
 - **RLS helper functions** (`security definer stable`): `is_internal_user()` (true for staff roles: `events_lead, creative_lead, operations_lead, qa_lead, developer, admin`), `user_account_id()` (caller's `profiles.account_id`), `user_partner_id()` (caller's `partner_users.partner_id`). Defined in `20260403000000_initial_schema.sql` and `20260403000007_partner_tables.sql`.
-- **`update_updated_at()` trigger** auto-stamps `updated_at` on UPDATE — but only where attached. **Several later tables have `updated_at` with no trigger** (see Part E1).
+- **`update_updated_at()` trigger** auto-stamps `updated_at` on UPDATE. Originally only eight tables had it; `20260529000000_add_missing_updated_at_triggers.sql` backfills every remaining table that carries the column.
 - Customers get SELECT/INSERT/UPDATE within their account scope only; **no customer DELETE policies exist anywhere** (destructive ops are internal-only or cascade via FK).
 
 ### Relationship overview
@@ -149,7 +149,7 @@ flowchart TD
 - **`venue_packages`** (`venue_runway`) — venue-sold packages, optionally bundling a Bright.Blue `package`. *(No `updated_at`.)*
 
 ### Domain 7 — Quoting / Commercial
-- **`quotes`** (`quoting_engine`) — the 3-track (standard/proposal/book_now) quote/proposal record. Heavily evolved; **final `status` allow-list** (`020260606`): `draft, submitted, preparing, walkthrough_scheduled, proposal_sent, delivered, accepted, expired, declined`. Many legacy/duplicate columns (see E2). `proposal_content jsonb`, `engagement_scope`, `addons jsonb` (GIN). RLS: public INSERT (anon prospect submissions), customers see own account.
+- **`quotes`** (`quoting_engine`) — the 3-track (standard/proposal/book_now) quote/proposal record. Heavily evolved; **final `status` allow-list** (`020260606`): `draft, submitted, preparing, walkthrough_scheduled, proposal_sent, delivered, accepted, expired, declined`. Legacy/duplicate columns dropped in `20260713000001` (E2). `proposal_content jsonb`, `engagement_scope`, `addons jsonb` (GIN). RLS: public INSERT (anon prospect submissions), customers see own account.
 - **`quote_line_items`** (`quoting_engine`) — priced lines.
 - **`locations`** (`quoting_engine`) — postcode-prefix -> pricing tier lookup (public read).
 - **`prospect_sessions`** (`quoting_engine`) — anonymous funnel sessions (public create/read).
@@ -160,7 +160,7 @@ flowchart TD
 - **`machines`**, **`games`**, **`machine_games`** (M:N), **`packages`**, **`package_addons`** (`capability_slug` added), **`case_studies`** — all in `catalog_tables`. Public read of active/bookable/published rows; internal CRUD. *(Catalog tables have `updated_at` but no triggers — see E1.)* Rows seeded via `seed.sql`; renames/galleries in `027200006`/`027200007`.
 
 ### Domain 9 — Telemetry / Live Event
-- **`machine_instances`** (`telemetry_tables`) — serial-tracked physical units. `current_placement_id` has **no FK** (E7).
+- **`machine_instances`** (`telemetry_tables`) — serial-tracked physical units. `current_placement_id` FK added in `20260713000002` (E6).
 - **`telemetry_events`** (`telemetry_tables`) — raw machine event stream (play/lead/heartbeat/error).
 - **`leads`** (`telemetry_tables`) — captured leads.
 - **`event_metrics_snapshot`** (`telemetry_tables`) — daily aggregates, `UNIQUE(event_id, snapshot_date)`, `is_final` added.
@@ -271,7 +271,7 @@ These are the roadmap items that depend on cloud infrastructure or backend syste
 
 ### D3. Distributed rate-limit store (roadmap #1 cloud half) — **DEFERRED to dev team**
 - **What / why.** `src/lib/rate-limit.ts` is an in-memory token bucket. On Vercel each serverless instance has its own memory, so limits leak across instances and reset on cold start. For real protection it needs a shared store.
-- **Build notes.** Back `checkRateLimit` with **Upstash Redis** (or Vercel KV) behind the same function signature so callers don't change. (The app-side wiring of the limiter onto login/reset/intake is Stream A in the plan — this item is only the shared store.)
+- **Build notes.** Back `checkRateLimit` with **Upstash Redis** (or Vercel KV) behind the same function signature so callers don't change. The app-side wiring is **done** — the limiter guards login/reset (`authLimiter`), quote intake + booking (`quoteLimiter`), proposal-page decisions (`decisionLimiter`), and partner apply (`applicationLimiter`). Only the shared store remains.
 - **Acceptance.** Rate limits hold across instances and survive cold starts.
 
 ### D4. Product analytics (roadmap #5) — **DEFERRED to dev team**
@@ -284,37 +284,42 @@ These are the roadmap items that depend on cloud infrastructure or backend syste
 
 ### D6. Reserved-but-unbuilt
 - `studio-deliverables` bucket + `createSignedUploadUrl` helper exist with **no caller** — the future Bright.Studio delivery hand-back feature.
-- `VenuePackageBuilder` create action unwired (`src/components/venues/VenuePackageBuilder.tsx:30`) — buildable now (Stream A roadmap #6).
+- ~~`VenuePackageBuilder` create action unwired~~ — **wired** (`createVenuePackage` in `src/app/actions/venues.ts`, called from `src/components/venues/VenuePackageBuilder.tsx`).
 
 ---
 
 # Part E — Known Tech Debt & Loose Ends
 
-1. **`updated_at` columns with no trigger.** These never auto-stamp unless the app sets them: `event_team_members`, `invoices`, `account_payment_preferences`, `compliance_documents`, `client_compliance_requirements`, `game_configurations`, `product_configurations`, `venue_requirements`, `scheduled_exports`, `notification_preferences`, `pipedrive_config`, and catalog tables (`machines`, `games`, `packages`, `case_studies`). Recommend a single follow-up migration attaching `set_updated_at`.
-2. **Deprecated/duplicate `quotes` columns.** `footfall_estimate` (int, legacy), `location_postcode`, `dates_start/end`, `valid_until`, `budget_indication` are superseded by `footfall_estimate_text`, `postcode`, `event_date_start/end`, `expires_at`, `engagement_scope`. The promised "drop legacy columns" migration does not exist yet.
-3. **Workstream tables got RLS a day late.** `20260529000001_rls_workstream_tables.sql` retro-fits RLS onto the 028200002-era tables (compliance/invoices/configs/venue_requirements/handoff_notes) that briefly shipped exposed. Net state is correct.
+> Struck-through items are **resolved** — kept here (with the fixing migration/
+> file) so you don't re-investigate them.
+
+1. ~~**`updated_at` columns with no trigger.**~~ **Resolved** by `20260529000000_add_missing_updated_at_triggers.sql` — attaches `set_updated_at` to every remaining table with an `updated_at` column (idempotent `do $$` loop).
+2. ~~**Deprecated/duplicate `quotes` columns.**~~ **Resolved** by `20260713000001_drop_legacy_quotes_columns.sql` — drops `footfall_estimate` (int), `location_postcode`, `dates_start/end`, `valid_until`, `budget_indication` in favour of `footfall_estimate_text`, `postcode`, `event_date_start/end`, `expires_at`, `engagement_scope`. All code/seed references were removed in the same change set.
+3. **Workstream tables got RLS a day late.** `20260529000002_rls_workstream_tables.sql` retro-fits RLS onto the 028200002-era tables (compliance/invoices/configs/venue_requirements/handoff_notes) that briefly shipped exposed. Net state is correct. *(File renamed from `…000001` — it originally shared a version number with `notification_digest_timing`, which broke `supabase db reset` on fresh clones.)*
 4. **`scheduled_exports`** originally had a permissive `using(true)` policy — replaced by internal-only. Don't reintroduce.
 5. **`studio_pricing`** original write policy used a non-existent `auth.jwt() ->> 'user_role'` claim — replaced with `is_internal_user()`.
-6. **`machine_instances.current_placement_id`** has no FK (loose uuid).
-7. **`/api/cron/reports` not scheduled** in `vercel.json` (A4).
-8. **`.env.example` drift:** `SENTRY_DSN` is listed but no code reads it (only `NEXT_PUBLIC_SENTRY_DSN`); `SENTRY_ORG`/`SENTRY_PROJECT` are used but undocumented. `docs/10-integrations.md` §6 checklist omits Sentry/FILE_SCAN/BOOKING_AUTO_PROVISION.
+6. ~~**`machine_instances.current_placement_id`** has no FK.~~ **Resolved** by `20260713000002_machine_instances_placement_fk.sql` — adds the FK (couldn't exist at creation; `placements` is created three migrations later) + index, and widens the `telemetry_events.event_type` allow-list to the vocabulary the webhook/UI already handle.
+7. ~~**`/api/cron/reports` not scheduled** in `vercel.json`.~~ **Resolved** — all four crons are scheduled (see `vercel.json`).
+8. ~~**`.env.example` drift** around Sentry vars.~~ **Resolved** — `.env.example` documents `NEXT_PUBLIC_SENTRY_DSN`/`SENTRY_ORG`/`SENTRY_PROJECT`/`SENTRY_AUTH_TOKEN`, and `docs/10-integrations.md` §8 lists them.
 9. **`ALTER TYPE ... ADD VALUE`** (e.g. `20260403000001` adds `confirmed`) cannot run inside a transaction block on some runners — relevant to the migration tooling.
 10. **Catalog rows depend on `seed.sql`** — rename/gallery migrations `UPDATE` fixed UUIDs that only exist if the seed ran.
+11. **RLS hardening for `qa_items` + `event_reports`** shipped in `20260713000000_rls_qa_reports_hardening.sql`: customer SELECT on `qa_items` dropped (internal-only tool), customer SELECT on `event_reports` now requires `is_published = true`. pgTAP: `rls_qa_items.test.sql`, updated `rls_reports.sql`.
+12. **Session middleware exempts machine-to-machine paths.** `/api/webhooks/*` and `/api/cron/*` are in the middleware public list (`src/middleware.ts`) — they enforce their own auth (HMAC / `CRON_SECRET`). Don't remove them from the list or signed webhooks 307 to `/login`.
 
 ---
 
 # Part F — Go-Live Acceptance Checklist
 
-- [ ] All 46 migrations + `seed.sql` + `seed-users.ts` applied to a Postgres-17 cloud project.
+- [ ] All 56 migrations + `seed.sql` + `seed-users.ts` applied to a Postgres-17 cloud project (`supabase db reset` proves the chain locally).
 - [ ] 5 storage buckets present; project `file_size_limit` >= 200 MB.
 - [ ] Supabase Auth: prod Site URL + redirect allow-list + custom SMTP (Resend) + email templates + password/confirmation policy + raised email rate limit.
-- [ ] All required env vars set in Vercel; recommended ones set per enabled feature.
-- [ ] 3 crons live + `/api/cron/reports` scheduled.
-- [ ] Bright.Blue Cloud webhook registered with matching `BRIGHTBLUE_WEBHOOK_SECRET`; outbound API reachable.
+- [ ] All required env vars set in Vercel; recommended ones set per enabled feature. `NEXT_PUBLIC_SITE_URL` must be the production domain — the auth callback pins redirects to it (`src/lib/auth/safe-redirect.ts`).
+- [ ] All 4 crons live (`vercel.json`), `CRON_SECRET` set.
+- [ ] Bright.Blue Cloud webhook registered with matching `BRIGHTBLUE_WEBHOOK_SECRET`; outbound API reachable. Prove the pipe with `npx tsx scripts/simulate-cloud-webhook.ts` before pointing real machines at it.
 - [ ] Resend domain verified; a test notification email delivers.
 - [ ] Sentry receiving events + source maps uploading.
 - [ ] Pipedrive token + field mapping configured; outbox drains.
 - [ ] `next/image` remote hosts match real storage/CDN.
-- [ ] Rate limiter backed by a distributed store (Upstash/KV) and actually invoked.
+- [ ] Rate limiter backed by a distributed store (Upstash/KV) — the limiter is already invoked on login/reset, quote intake, booking, proposal decisions, and partner apply; only the shared store remains (Part D3).
 - [ ] (Optional) File-scan AV reachable; decide fail-open vs fail-closed.
-- [ ] Tech-debt items in Part E triaged (at minimum: `updated_at` triggers + reports cron).
+- [ ] Remaining Part E items triaged (9, 10 are informational; the rest are resolved).

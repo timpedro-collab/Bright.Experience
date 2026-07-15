@@ -4,6 +4,178 @@ All notable changes to the Bright.Experience platform are documented here.
 
 ---
 
+## [World-class UX polish — optimistic UI, live motion, power-user chrome] - 2026-07-13
+
+Ranked perceived-quality build: every high-frequency interaction updates the screen instantly and reconciles with the server in the background, the live dashboard visibly breathes, and keyboard users get first-class chrome. Verified in-browser end to end; 977 tests passing.
+
+### Tier 1 — Feels instant
+- **Optimistic task complete/skip with Undo** — `TaskChecklist` flips a task into its new group via `useOptimistic` before the server action resolves and reverts (with an error toast) on failure. Success toasts carry an **Undo** action backed by the new `reopenTask` server action (`src/app/actions/tasks.ts`), which restores a completed/skipped task to `pending`/`in_progress`, clears completion metadata, audits a `task_reopened` entry, and enforces that only internal roles reopen internal tasks. New `tasks.test.ts` + `TaskChecklist.test.tsx` cover the action branches and the optimistic flip/revert/undo flows.
+- **Instant notification mark-read** — `NotificationList` dims and re-buckets a notification on click via `useOptimistic`; the server call follows.
+- **Optimistic approvals** — `ApprovalActions` applies the decision (and fires approval confetti) immediately, reverting with an error toast if `decideApproval` fails.
+- **Instant message + comment send** — `MessageThread` and `AssetCommentThread` append the new entry (with a "Sending…" state) and clear the composer immediately; a failed send restores the draft text.
+- **`useProgressToast`** accepts an optional action (used for Undo) and extends toast duration so it can be clicked.
+
+### Tier 2 — The live dashboard breathes
+- **Session deltas + value pulses** — `LiveCounter` shows "+N since you opened" against a mount-time baseline and pulses brand-blue when a value ticks up (`live-value-pulse` keyframes in `globals.css`).
+- **Relative freshness** — `LiveDashboardClient` replaces the static clock time with a ticking "Updated Xs ago" label and announces totals through a polite `aria-live` region.
+- **Feed + status motion** — new items slide into `LiveFeed` (`feed-item-in`), and `MachineStatusCard` rings its badge on a status change (`status-pulse`). All animations are neutralised by the global reduced-motion block.
+
+### Tier 3 — Power-user chrome
+- **Global G-shortcuts** — `G then E` (home), `G then N` (notifications), `G then I` (inbox, internal only) from anywhere outside a text field, with a 1.5s sequence window.
+- **`?` shortcuts overlay** — a dialog listing every shortcut, opened from any page.
+- **Command palette upgrades** — a **Recent** group persisting the last five destinations to `localStorage` (new `src/lib/palette-recents.ts` + test) and role-scoped **Quick actions** (create event, invite customer/teammate). New `CommandPalette.test.tsx` covers sequences, input guards, and the overlay.
+
+### Tier 4 — Perceived speed + finish
+- **Streaming event overview** — `/events/[id]` renders the hero shell immediately and streams the heavy content behind `Suspense` with a shaped skeleton; the root `loading.tsx` swaps the spinner for a dashboard-shaped skeleton.
+- **Numeric discipline** — `tabular-nums` + right alignment across money/metric columns (`PartnerPipelineTable`, `PartnerDetailView` attributions, `CommissionTracker`).
+- **Skip to content** — a focus-revealed link in the root layout targeting `#main-content` in `EditionBody` and `PublicSiteChrome`.
+
+---
+
+## [Next 10 — security seams, Cloud handoff loop, schema debt] - 2026-07-13
+
+Ranked fix-and-finish build: close the three open security seams, make the Bright.Blue Cloud integration provable end-to-end, clear the promised schema debt, and bring the handoff docs back to truth.
+
+### Tier 1 — Security
+- **Rate limiter fully wired** — `applyAsPartner` (new `applicationLimiter`) and the public proposal-page mutations `acceptQuote` / `declineQuote` / `bookWalkthrough` / `updateQuoteCapabilities` (new `decisionLimiter`) now throttle by caller IP; login/reset and quote intake/booking were already guarded. New `src/lib/rate-limit.test.ts` plus burst tests in the partners + quotes action suites.
+- **RLS hardening** — `20260713000000_rls_qa_reports_hardening.sql`: customers can no longer SELECT `qa_items` (internal-only tool) or unpublished `event_reports` at the DB level. New pgTAP file `rls_qa_items.test.sql`; `rls_reports.sql` updated (6 assertions). Full RLS suite: 122 passing.
+- **Auth callback pinned** — new `src/lib/auth/safe-redirect.ts` (+ tests): redirects pin to `NEXT_PUBLIC_SITE_URL` (request-origin fallback only in dev/preview) and `next` is restricted to same-site relative paths, closing the open-redirect seam from STUBS Phase 0.
+
+### Tier 2 — Bright.Blue Cloud handoff loop
+- **Webhook simulator** — `scripts/simulate-cloud-webhook.ts` HMAC-signs and POSTs realistic payloads for all four event types (`telemetry.batch`, `lead.captured`, `machine.heartbeat`, `report.ready`) at any URL; verified against local dev (4× HTTP 200 ingested, bad signature → 401).
+- **Middleware exemption** — `/api/webhooks/*` and `/api/cron/*` added to the public prefix list; the session gate was 307-redirecting signed machine-to-machine calls to `/login` and silently dropping them.
+- **Event-ID mapping contract** — new `docs/10-integrations.md` §1c: how Cloud learns the portal event UUID (join keys, recommended push-on-assignment flow, resolve-on-ingest alternative, open CTO decision).
+- **Live poll route** was already Cloud-first with local fallback (`getLiveSnapshot` → DB aggregation) — verified, no change needed.
+
+### Tier 3 — Schema debt
+- **Legacy `quotes` columns dropped** — `20260713000001`: `footfall_estimate`, `location_postcode`, `dates_start/end`, `valid_until`, `budget_indication` (the reconcile migration's promised follow-up). Last code touches removed (`prepareProposal` `valid_until` write, quote-list `location_postcode` select, seed/mock rows).
+- **`machine_instances.current_placement_id` FK + index** — `20260713000002`; also widens the `telemetry_events.event_type` allow-list to the vocabulary the webhook/UI already handle (`interaction`, `screen_touch`, `survey_completed`, `linkedin_follow`, `qr_scan`).
+- **Duplicate migration version fixed** — `rls_workstream_tables` renamed `20260529000001` → `20260529000002` (it shared a version with `notification_digest_timing`, breaking `supabase db reset` on fresh clones). Full `db reset` now proves the 56-migration chain.
+
+### Tier 4 — Polish & doc truth
+- **Booking confirmation copy pass** — concrete, dated next steps (dates confirmed within one working day → portal invite → build kickoff) and a keep-your-reference note.
+- **Handoff docs refreshed** — `docs/11-cloud-handoff.md` Part E items 1/2/6/7/8 struck as resolved (with fixing migrations), Part F counts + rate-limiter status corrected, D6 `VenuePackageBuilder` marked wired; `STUBS-TO-REPLACE.md` auth-callback, booking-copy, and QA/reports-RLS rows struck, new "Security & Cloud-handoff pass" section lists the two remaining stubs (distributed rate-limit store, Cloud assignment push).
+
+---
+
+## [World-class merged homepage] - 2026-07-10
+
+One canonical marketing homepage at `/` merging the bright.blue/events story with the portal catalog; `/catalog` slimmed to a browse index. Fixes the sales-psychology audit findings: proof hierarchy, hedged claims, broken case-study visuals, CTA payoff.
+
+### New
+- **`src/lib/marketing/claims.ts` (+ test)** — single source of truth for every marketing number and quote: hero stat pills (92% rebook first), three hard-number trust stats (GDPR demoted to a caption), both full Storyblok + Adyen testimonials, honest scarcity line, quiz CTA payoff copy.
+- **`src/components/public/landing/`** — homepage split into focused sections: `HeroSection` (proof-led headline "Crowd-stopping activations. Measured to the play.", widened subhead beyond exhibitions, payoff microcopy under the CTA), `PillarsSection`, `MachinesShowcase` (top-3 machines with real brand photos, anchors the hero's "Explore the machines"), `ProofSection` (case-study row + hard-stat tiles + dual testimonials), `PlatformSection` (capability tiles + Payments/Ads/Age-Verification/Telemetry/Analytics chips + Cloud live band, reordered below proof), `FinalCta` (quiz payoff + "Talk to us" → /proposal + scarcity line).
+- **`logoForClient` in `client-logos.ts` (+ test)** — photo-less case studies now render the client's logo on a brand gradient instead of a grey "CS" monogram; seeds carry drop-path comments for real photography (`/catalog/case-studies/<slug>/01-hero.jpg`).
+
+### Changed
+- **`PublicLanding`** rebuilt as a thin composer fetching machines + case studies (new section order: hero → logos → pillars → machines → proof → platform → how-it-works → CTA).
+- **`/catalog`** slimmed to a compact browse index (small header, machines grid, games/packages link cards, case studies, slim CTA) — the duplicated hero/trust band/logo wall removed; `CatalogHero` + `TrustBand` deleted as dead code.
+- **Machine taglines** in `seed.sql` + mock dataset rewritten to outcome language (e.g. "The premium smart locker" → "Premium gifting that runs itself — no staff required").
+
+## [Path to 10/10 — Round 2: fixes & cleanup] - 2026-07-10
+
+Round-2 audit fixes: dead code, RBAC consolidation, validation everywhere, role-model holes, demo-visible bugs, and doc/roadmap gating. No new product surfaces.
+
+### P0 — Landmines
+- **Dead USD code deleted** — `src/lib/proposals/generate.ts` + `document.ts` (unimported, USD-formatted) and `src/components/cloud/format.ts` (USD `formatCurrency` shadowed everywhere) removed.
+- **RBAC consolidated** — `src/lib/rbac.ts` deleted; the only enforced key (`studio.order`) became `canOrderStudioWork` in `src/lib/roles.ts`, now the single role model.
+
+### P1 — Validation & role model
+- **Orphaned schemas wired** — `approvals`, `assets`, `studio`, `briefing` Zod schemas now actually run inside their server actions; new shared `uuidLike` validator (`src/lib/validations/id.ts`) accepts seeded demo ids.
+- **Zod validation added** to 10 more action domains (`partners`, `team`, `invites`, `venues`, `templates`, `campaigns`, `profile`, `stages`, `compliance`, `comments`) with co-located schema tests.
+- **Task reassignment** — new `reassignTask` action + `ReassignTaskMenu` on task rows lets orchestrators move internal work between team lanes (audited, customer tasks excluded).
+- **QA/ops queues** — internal home focus now surfaces "awaiting QA sign-off" (qa_lead + orchestrators) and flags overdue setups as critical for ops; dead `InternalWorkQueue` component deleted.
+- **`developer` role merged into `admin`** — role unions, arrays, UI labels, seeds, and a remap migration (`20260710000000_merge_developer_role.sql`).
+- **Partner split made real** — commissions tab, payout KPIs, and per-deal commission money now gated on `isPartnerAdmin`; member sellers see pipeline only.
+- **Overview KPI/card match** — the customer "What's needed from you" card now renders the same `getCustomerActionItems` list the "Needs you" KPI counts (via `CustomerActionSummary`).
+
+### P2 — Demo polish
+- **Live hourly buckets in UTC** — poll route uses `getUTCHours()` to match SSR.
+- **Empty-MIME uploads** — `AssetUploadZone` infers MIME from the file extension when the browser hands over an empty `type`.
+- **Invoices frozen read-only** — edit/issue UI removed (`InvoiceActions` deleted); dashboard is a status mirror; action default currency now GBP; mock invoice rows GBP.
+- **Quiz cleanup** — `quiz-data.ts` moved into `catalog/quiz/`; re-export shim deleted.
+
+### Docs, config & gating
+- **Port fallbacks** `localhost:3001` → `3000` (invites, studio, notification dispatch/email shell).
+- **`engines: { node: ">=20" }`** in package.json; README / CONTRIBUTING / HANDOFF aligned.
+- **Doc fixes** — Resend template path (`archetypes/` + `email-shell.ts`); docs/07 historical-snapshot banner + gating status; README env table adds `BOOKING_AUTO_PROVISION` + `FILE_SCAN_*`; README roles table drops `developer`.
+- **Mock dataset honesty** — false "Auto-generated" header replaced with hand-maintained warning; HANDOFF documents the manual three-way seed sync and a new "Deferred / gated features" section (Runway depth, white-label, commission depth, display-only invoices, deferred personas); DEMO_ROADMAP gating note.
+- **Test truth** — `roi.test.ts` / `bright-studio.test.ts` no longer pin USD output.
+
+## [Path to 10/10 — Pass 5 World-class deltas] - 2026-07-09
+
+- **Home next action** — customer home elevates `resolveEventNextStep` via `HomeNextStep` (single blocking CTA + due/consequence hint).
+- **Spec-aware asset intake** — off-spec files are blocked from upload (no “Upload anyway”); checklist must pass first.
+- **Board-ready reports** — reports subtitle and customer copy frame &lt;24h proof + share/export as the renew artefact.
+
+## [Path to 10/10 — Pass 4 Demo polish] - 2026-07-09
+
+- **GBP** — `formatMoneyFromPence` / `formatGBP` (en-GB); legacy USD helpers alias to GBP; call sites migrated.
+- **Needs you KPI** — event overview uses `getCustomerActionItems` (same as home).
+- **Live hourly** — seeded from telemetry or `hourlyCurveFromTotal` (no empty first paint).
+- **Overview sidebar** — activity feed gated to `canViewSection(..., "activity")`.
+- **aggregate-metrics API** — customers may only query their own `accountId`.
+- **Login** — relative-path redirect allow-list; docstring fixed.
+- **Partner resources** — clearer empty-state copy when no file URL.
+
+## [Path to 10/10 — Pass 3 Hardening] - 2026-07-09
+
+Tests, query bounds, capability-slug sync, and a small client seam fix.
+
+- **Tests** — `generate-leads`, `ExportMenu`, `remindCustomerTask`, `RemindCustomerButton`, and `TourProvider` finish → localStorage.
+- **SecurityForm** — uses `createClient` from `@/lib/supabase/client` (mock-mode aware) instead of raw `createBrowserClient`.
+- **Lead queries** — `getLeadsByEvent` capped at 5000; `getLeadAggregates` and leads export capped at 10_000.
+- **Capability slugs** — new migration `20260709120000_sync_capability_slug_check.sql` aligns DB check with `capabilities.ts`; seed + mock dataset remapped (dropped `voucher-redemption` / `app-qr-drive`, added `lead-capture`).
+- **STUBS** — clarified open `qa_items` / unpublished `event_reports` RLS defense-in-depth gap.
+- **Lint** — `prefer-const` in `generate-leads.ts`.
+
+## [Path to 10/10 — Pass 2 Architecture] - 2026-07-09
+
+Code-quality pass: pages compose, queries read, actions mutate. Split monoliths; consolidate proposal libs.
+
+- **Queries** — extracted page-level Supabase `.from()` reads into `src/lib/queries/` (briefing, customer queue, venue packages, notification prefs, accounts, API keys, live print helpers, campaigns count, etc.).
+- **RecommendationQuiz** — split into `src/components/catalog/quiz/` (`OptionGrid`, `NumberStep`, `DurationStep`, `LocationStep`, `OwnLocationsStep`, `FootfallHeat`, `ReachPreview`); old path re-exports.
+- **Inbox** — `TaskGroup` / `TaskRow` moved to `src/components/inbox/`; page fetches + composes only.
+- **Proposals** — `build-proposal.ts` moved from `src/lib/proposal/` → `src/lib/proposals/`; empty `proposal/` removed.
+- **VenueSponsorshipBoard** — `SlotCard` + `AddSlotForm` extracted to sibling files under `src/components/venues/`.
+- **Docs** — HANDOFF mock-dataset sync note (`dataset.ts` ↔ `seed.sql` / `run-seed.ts`).
+
+## [Path to 10/10 — Pass 1 Doc Sync + Late May–Jun Catch-up] - 2026-07-09
+
+Documentation and housekeeping pass aligning product positioning, data-model coverage, integrations, and demo ops with what actually shipped. No product behaviour change beyond dead-code removal and localhost port defaults.
+
+### Product positioning & docs
+- **`docs/01-product-definition.md`** — one-liner and "What This Product Is Not" rewritten: delivery + proof primary; catalog/quiz/quoting as intake; partners/venues secondary. Retired the "not a sales tool / events already sold" contradiction.
+- **`docs/07-platform-vision.md`** — Updated Role Model marks `reseller_*` / `venue_*` / `sponsor` as **ASPIRATIONAL**; implemented partner roles are `partner_member` / `partner_admin`.
+- **`docs/04-data-model.md`** — concise Phase 7/8 + May–Jun entity table (`venues`, `placements`, `sponsorship_slots`, `campaigns`, `invoices`, `compliance_documents`, `game_configurations`, `product_configurations`, `scheduled_exports`, `event_team_members`, `comments`, `notification_preferences`, `pipedrive_outbox`) with cross-link to `docs/11-cloud-handoff.md`.
+- **`docs/10-integrations.md`** — digest cron hourly (`0 * * * *`); Pipedrive max 3 attempts; removed `x-vercel-cron` bypass; documented `/api/cron/reports`, Sentry, and file-scan.
+- **`HANDOFF.md`** — new Day-1 CTO onboarding at repo root (Pass 1 complete; subsequent passes follow).
+- **`DEMO_ROADMAP.md`** — tour is on-demand via user menu / welcome, not every sign-in.
+- **`CONTRIBUTING.md`** — notification archetypes point at `archetypes/` directory.
+- **`README.md`** — delivery + proof lead; port 3000; test/typecheck scripts; payments dropped from production checklist stubs.
+
+### Late May–June product work (catch-up entry)
+Shipped across late May–June and not previously summarised in one place:
+- **Onboarding tour** — role-aware guided tour, launchable from the user menu ("Take the tour") and welcome flow; not forced on every sign-in.
+- **Lead capture as priced capability** — `lead-capture` moved from always-on to tailorable / separately priced in `src/lib/capabilities.ts` (+ migration).
+- **Proposal documents** — richer proposal / reach-model surfaces for quiz and intake.
+- **Compliance vault** — `compliance_documents` + account requirements, event compliance UI.
+- **Invoices** — `invoices` + account payment preferences (no in-portal card checkout; Stripe stubs removed).
+- **Machine / game config** — `game_configurations` and `product_configurations` per event.
+- **Focused internal home** — `FocusedHome` replaced the old internal library dashboard.
+- **Customer invites & welcome** — `/admin/invites`, `/welcome`, env alignment (`NEXT_PUBLIC_SITE_URL`).
+- **Bright.Blue Cloud + live dashboards** — inbound webhooks, outbound client, live polling, ops briefing tabs.
+- **Notification spine** — archetypes directory, digest timing, preferences, reminder cron.
+- **Venue runway & partner portals** — placements, sponsorship slots, partner commissions/resources.
+- **Sentry + file-scan hooks** — observability wired; AV scan env-gated no-op until configured.
+
+### Housekeeping
+- Port defaults standardised to **3000** (`.env.example`, README, digest cron fallback).
+- Deleted unused `InternalDashboard.tsx` / `MyWorkDashboard.tsx` and empty orphan route directories.
+- `src/lib/capabilities.ts` docstring corrected to four always-on + eight tailorable.
+
+---
+
 ## [Customer Invites, Env Alignment & Doc Sync] - 2026-05-27
 
 ### Customer Invite / Onboarding Flow

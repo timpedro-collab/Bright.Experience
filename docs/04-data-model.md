@@ -475,7 +475,7 @@ MachineInstance {
   serial_number       string          // unique hardware identifier
   nickname            string?
   current_event_id    UUID? → Event
-  current_placement_id UUID?
+  current_placement_id UUID? → Placement
   status              string          // available | deployed | maintenance | retired
   last_heartbeat      timestamp?
   firmware_version    string?
@@ -677,3 +677,32 @@ PartnerAttribution {
 - `event.completion_percentage` — derived from milestone completion
 - `milestone.status` — derived from child task completion
 - `stage.can_advance` — derived from exit gate conditions
+
+---
+
+## Phase 7/8 + May–Jun entities (concise)
+
+The entity blocks above cover the original delivery core. Later migrations added
+venue/runway, commercial, compliance, config, and integration tables. For column-level
+detail, RLS notes, and migration provenance, treat
+[`docs/11-cloud-handoff.md`](./11-cloud-handoff.md) as authoritative.
+
+| Entity / table | Purpose |
+|----------------|---------|
+| `venues` | Host locations; partner-owned scoping |
+| `placements` | A machine at a venue for a date range |
+| `sponsorship_slots` | Bookable sponsor windows on a placement |
+| `campaigns` / `campaign_events` | Multi-event campaign grouping |
+| `invoices` | Issued invoices (no in-portal card payments) |
+| `compliance_documents` | Per-event insurance / DPA / RAMS (with expiry) |
+| `game_configurations` | Per-event game setup (prizes, form fields, params) |
+| `product_configurations` | Per-event product/sampling + machine config JSON |
+| `scheduled_exports` | Recurring report/export schedules |
+| `event_team_members` | Customer-added teammates (pending / approved / removed) |
+| `comments` | Threaded comments on event or asset |
+| `notification_preferences` | Per-user / per-kind in-portal + email mode |
+| `pipedrive_outbox` | Durable CRM write-back queue (hourly drain) |
+
+Related tables also documented in the cloud handoff (not duplicated here):
+`venue_packages`, `venue_requirements`, `client_compliance_requirements`,
+`account_payment_preferences`, `pipedrive_config`, `hourly_metrics`, `studio_pricing`.

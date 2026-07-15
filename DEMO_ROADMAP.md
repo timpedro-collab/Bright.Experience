@@ -24,8 +24,10 @@
   | **Maya Patel** | Reseller Partner | Northern Events | The reseller channel |
   | **Aaron Howe** | Venue · ExCeL London | Venue | The media marketplace |
 
-- **Reset between runs:** sign out (or use an incognito window per persona). Each sign‑in
-  replays that role's guided tour — let it play on the first persona, skip it after.
+- **Reset between runs:** sign out (or use an incognito window per persona). The guided
+  tour is **on-demand**, not automatic on every sign-in — launch it from the user menu
+  (**Take the tour**) or from `/welcome` when onboarding is still incomplete. Let it
+  play once for the first persona you demo; skip it for the rest.
 - **Hero data to land on:**
   - Customer events: **Coca‑Cola Summer Festival 2026** (fully delivered — every section green)
     and **Coca‑Cola Notting Hill Carnival** (in flight, ~7 weeks out).
@@ -129,6 +131,15 @@ study is in their library to sell with).
 - "And the momentum is real — UK clients are coming back and referring us on their own, and there's strong interest from **Magnum in the US** to make us their key activation partner across festivals, stadiums and concerts. We expect other brands to follow."
 - "We're also bringing in **Catherine Dogra** from **Informa** — a world of **800+ live events and 7m+ attendees a year**. The platform is ready for that scale."
 - "Next we connect it all up: events site into the landing page, and the portal into **Connect**, where brands self-serve short‑term activations beyond retail."
+
+---
+
+> **Gated depth (by design):** Runway slot scheduling, white‑label theming, and
+> deeper commission workflows (statements, payout runs) are demo‑ready but
+> intentionally shallow until a venue/partner signs — see `HANDOFF.md`
+> "Deferred / gated features". Commissions are only visible to the partner
+> org lead (`partner_admin`), which all seeded partner personas are. Invoices
+> across the platform are display‑only by design.
 
 ---
 
