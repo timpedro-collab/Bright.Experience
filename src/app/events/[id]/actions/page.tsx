@@ -14,6 +14,7 @@ import { getUnreadCount } from "@/lib/queries/notifications";
 import { getUser } from "@/lib/auth";
 import { isInternalRole } from "@/lib/roles";
 import { canViewSection } from "@/lib/event-access";
+import { ownerForTask } from "@/lib/ownership";
 
 export default async function ActionsPage({
   params,
@@ -39,13 +40,20 @@ export default async function ActionsPage({
 
   const allTasks = isInternal
     ? tasks
-    : tasks.filter((t) => t.customerVisible);
+    : tasks.filter(
+        (t) => t.customerVisible && t.taskType === "customer_action",
+      );
 
+  // "Your actions" for an internal user = open work they own. Customer-owned
+  // tasks (briefing, asset upload, etc.) never belong here, regardless of any
+  // internal assigned_role left on the row.
   const myTasks = isInternal
     ? tasks.filter(
         (t) =>
-          t.assignedRole === user.role ||
-          t.assignedTo?.id === user.id
+          ownerForTask(t) !== "customer" &&
+          t.status !== "complete" &&
+          t.status !== "skipped" &&
+          (t.assignedRole === user.role || t.assignedTo?.id === user.id),
       )
     : allTasks;
 

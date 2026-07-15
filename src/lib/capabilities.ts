@@ -1,9 +1,10 @@
 /**
  * Canonical capability vocabulary for Bright.Experience.
  *
- * Source of truth for the nine capabilities that every customer-facing surface
- * (quiz, match reveal, refine drawer, proposal intake, admin quote view) speaks.
- * The customer never sees the slug — they see the `outcome` line.
+ * Source of truth for the twelve capabilities (four always-on + eight
+ * tailorable) that every customer-facing surface (quiz, match reveal, refine
+ * drawer, proposal intake, admin quote view) speaks. The customer never sees
+ * the slug — they see the `outcome` line.
  *
  * Editing this file is the **only** place to add or rename a capability. The DB
  * mirrors the slug list via a check constraint on `package_addons.capability_slug`.
@@ -49,12 +50,15 @@ export interface Capability {
 }
 
 /* ----------------------------------------------------------------------------
- * The catalogue — five always-on + seven tailorable
+ * The catalogue — four always-on + eight tailorable
  * ------------------------------------------------------------------------- */
 
 /**
  * Always-on capabilities. Included in every activation. Never toggled.
  * Surface them on the match reveal as reassurance, not as choices.
+ *
+ * Note: lead capture / first-party data collection is intentionally NOT here —
+ * it is a tailorable, separately-priced capability (see `lead-capture` below).
  */
 export const ALWAYS_ON: ReadonlyArray<Pick<Capability, "slug" | "outcome" | "capability">> = [
   {
@@ -66,11 +70,6 @@ export const ALWAYS_ON: ReadonlyArray<Pick<Capability, "slug" | "outcome" | "cap
     slug: "branded-wrap",
     outcome: "Branded wrap and creative build",
     capability: "In-house design studio",
-  },
-  {
-    slug: "lead-capture",
-    outcome: "GDPR lead capture form",
-    capability: "Compliant first-party data capture",
   },
   {
     slug: "engagement-dashboard",
@@ -92,6 +91,21 @@ export const ALWAYS_ON: ReadonlyArray<Pick<Capability, "slug" | "outcome" | "cap
  * when several appear together.
  */
 export const CAPABILITIES: ReadonlyArray<Capability> = [
+  {
+    slug: "lead-capture",
+    outcome: "Capture opted-in leads on every play",
+    mechanism: "GDPR-compliant lead capture form",
+    capability: "Compliant first-party data capture",
+    kind: "tailorable",
+    defaultPricePence: 45_000,
+    preSelect: ({ objective, eventType }) =>
+      objective === "lead-generation" ||
+      objective === "leads" ||
+      objective === "research" ||
+      eventType === "trade-show" ||
+      eventType === "exhibition" ||
+      eventType === "conference",
+  },
   {
     slug: "live-telemetry",
     outcome: "Your team sees every lead the moment it lands",

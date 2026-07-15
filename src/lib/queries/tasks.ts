@@ -28,8 +28,12 @@ export async function getOpenTaskCountsForUser(
     .in("event_id", eventIds)
     .not("status", "in", '("complete","skipped")');
 
+  // Internal users only ever count their *own* delivery work (internal_action).
+  // Customer-owned tasks (creative briefing, asset upload, etc.) must never
+  // surface in an internal user's "needs you" counts — even if a customer task
+  // somehow carries an internal assignee in the data.
   query = isInternal
-    ? query.eq("assigned_to", userId)
+    ? query.eq("assigned_to", userId).eq("task_type", "internal_action")
     : query.eq("customer_visible", true).eq("task_type", "customer_action");
 
   const { data, error } = await query;
@@ -97,6 +101,8 @@ export async function getTasksAssignedToUser(
       "*, assigned:profiles!tasks_assigned_to_fkey(id, name, email, role, account_id), events!inner(id, name, account_id, accounts(name))"
     )
     .eq("assigned_to", userId)
+    // Inbox is internal-only "your work": never include customer-owned tasks.
+    .eq("task_type", "internal_action")
     .order("due_date", { ascending: true, nullsFirst: false });
 
   if (options.includeCompletedSince) {

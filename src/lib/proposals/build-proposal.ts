@@ -242,6 +242,8 @@ const DEFAULT_NARRATIVE = {
 
 /* Rationale shown when an add-on is "called out" as tailored to the brief. */
 const ADDON_REASON: Record<string, string> = {
+  "lead-capture":
+    "you want first-party data — opted-in contacts are captured from every play",
   "live-telemetry":
     "you want real pipeline — your team sees every lead the moment it lands",
   "sampling-unlock":

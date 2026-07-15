@@ -83,7 +83,7 @@ export const internalArchetypes = {
     },
     defaults: { inPortal: true, emailMode: "immediate" },
     audience: "internal",
-    roleScope: ["creative_lead", "events_lead", "admin", "developer"],
+    roleScope: ["creative_lead", "events_lead", "admin"],
   },
   "briefing.submitted": {
     kind: "briefing.submitted",
@@ -115,7 +115,7 @@ export const internalArchetypes = {
     },
     defaults: { inPortal: true, emailMode: "immediate" },
     audience: "internal",
-    roleScope: ["creative_lead", "events_lead", "admin", "developer"],
+    roleScope: ["creative_lead", "events_lead", "admin"],
   },
   "studio.status_changed": {
     kind: "studio.status_changed",

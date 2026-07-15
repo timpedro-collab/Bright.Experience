@@ -23,7 +23,6 @@ const EDIT_ROLES: UserRole[] = [
   "creative_lead",
   "events_lead",
   "admin",
-  "developer",
 ];
 
 type Product = ProductConfiguration["productsJson"][number];

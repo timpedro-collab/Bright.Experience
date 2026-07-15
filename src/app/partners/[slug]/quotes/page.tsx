@@ -41,7 +41,7 @@ export default async function PartnerQuotesPage({ params }: QuotesPageProps) {
       scope={partnerName}
       section="Quotes"
       slug={slug}
-      tabs={partnerTabs(slug)}
+      tabs={partnerTabs(slug, user.role)}
       title="Quote pipeline"
       subtitle="Send a new quote, chase the open ones, and watch them convert."
     >

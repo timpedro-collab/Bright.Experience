@@ -18,6 +18,7 @@ import {
   CheckCircle2,
   CalendarClock,
   CalendarCheck,
+  ShieldCheck,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -33,6 +34,7 @@ const KIND_ICON: Record<FocusKind, React.ElementType> = {
   studio_order: Sparkles,
   task: ListChecks,
   setup: Truck,
+  qa_signoff: ShieldCheck,
 };
 
 const TONE_ICON_WRAP: Record<FocusTone, string> = {

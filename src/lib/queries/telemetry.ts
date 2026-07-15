@@ -35,3 +35,25 @@ export async function getTelemetryByType(eventId: string, eventType: string) {
   if (error || !data) return [];
   return data;
 }
+
+/**
+ * Telemetry rows for a closed time window (e.g. same-day hourly chart).
+ * Returns event_type + timestamp only — enough to bucket by hour.
+ */
+export async function getTelemetryInRange(
+  eventId: string,
+  startIso: string,
+  endIso: string,
+) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("telemetry_events")
+    .select("event_type, timestamp")
+    .eq("event_id", eventId)
+    .gte("timestamp", startIso)
+    .lte("timestamp", endIso)
+    .order("timestamp");
+
+  if (error || !data) return [];
+  return data as Array<{ event_type: string; timestamp: string }>;
+}

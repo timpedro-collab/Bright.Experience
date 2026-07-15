@@ -8,7 +8,7 @@ import { WebhookManager } from "@/components/api/WebhookManager";
 
 import { getUser } from "@/lib/auth";
 import { isAdminRole } from "@/lib/roles";
-import { createClient } from "@/lib/supabase/server";
+import { getApiKeys, getWebhookSubscriptions } from "@/lib/queries/api";
 import { getUnreadCount } from "@/lib/queries/notifications";
 
 export default async function ApiManagementPage() {
@@ -16,35 +16,11 @@ export default async function ApiManagementPage() {
   if (!user) redirect("/login");
   if (!isAdminRole(user.role)) redirect("/");
 
-  const supabase = await createClient();
-  const unread = await getUnreadCount(user.id);
-
-  const { data: rawKeys } = await supabase
-    .from("api_keys")
-    .select("id, name, key_prefix, is_active, last_used_at, created_at")
-    .order("created_at", { ascending: false });
-
-  const { data: rawWebhooks } = await supabase
-    .from("webhook_subscriptions")
-    .select("id, url, events, is_active, failure_count")
-    .order("created_at", { ascending: false });
-
-  const keys = (rawKeys ?? []).map((k) => ({
-    id: k.id as string,
-    name: k.name as string,
-    keyPrefix: k.key_prefix as string,
-    isActive: k.is_active as boolean,
-    lastUsedAt: (k.last_used_at as string) ?? undefined,
-    createdAt: k.created_at as string,
-  }));
-
-  const webhooks = (rawWebhooks ?? []).map((w) => ({
-    id: w.id as string,
-    url: w.url as string,
-    events: (w.events ?? []) as string[],
-    isActive: w.is_active as boolean,
-    failureCount: (w.failure_count ?? 0) as number,
-  }));
+  const [unread, keys, webhooks] = await Promise.all([
+    getUnreadCount(user.id),
+    getApiKeys(),
+    getWebhookSubscriptions(),
+  ]);
 
   return (
     <AdminPageShell

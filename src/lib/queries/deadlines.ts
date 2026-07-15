@@ -41,7 +41,7 @@ export async function getDeadlinesByEvent(eventId: string): Promise<DeadlineItem
       .not("status", "in", '("complete","skipped")'),
     supabase
       .from("assets")
-      .select("id, name, due_date, status")
+      .select("id, name, due_date, status, customer_visible")
       .eq("event_id", eventId)
       .not("due_date", "is", null)
       .not("status", "in", '("accepted","rejected")'),
@@ -74,7 +74,9 @@ export async function getDeadlinesByEvent(eventId: string): Promise<DeadlineItem
       title: a.name,
       dueDate: a.due_date,
       urgency: urgencyFor(a.due_date),
-      owner: "customer",
+      // Asset slots default to the customer (they supply the creative). Only an
+      // asset explicitly hidden from the customer belongs to the creative team.
+      owner: a.customer_visible === false ? "creative" : "customer",
       status: a.status,
     });
   }

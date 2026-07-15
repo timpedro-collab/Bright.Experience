@@ -4,36 +4,19 @@ import { redirect } from "next/navigation";
 import { AdminPageShell, EditorialEyebrow } from "@/components/brand";
 import { getUser } from "@/lib/auth";
 import { isAdminRole } from "@/lib/roles";
+import { getAccountOptions } from "@/lib/queries/admin";
 import { getUnreadCount } from "@/lib/queries/notifications";
-import { createClient } from "@/lib/supabase/server";
 import { InviteForm } from "./InviteForm";
-
-interface AccountOption {
-  id: string;
-  name: string;
-}
 
 export default async function AdminInvitesPage() {
   const user = await getUser();
   if (!user) redirect("/login");
   if (!isAdminRole(user.role)) redirect("/");
 
-  const supabase = await createClient();
-
-  const [{ data: accountRows }, unread] = await Promise.all([
-    supabase
-      .from("accounts")
-      .select("id, name")
-      .order("name", { ascending: true }),
+  const [accounts, unread] = await Promise.all([
+    getAccountOptions(),
     getUnreadCount(user.id),
   ]);
-
-  const accounts: AccountOption[] = (accountRows ?? []).map(
-    (a: Record<string, unknown>) => ({
-      id: String(a.id),
-      name: String(a.name),
-    })
-  );
 
   return (
     <AdminPageShell

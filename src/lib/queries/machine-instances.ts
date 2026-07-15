@@ -65,3 +65,20 @@ export async function getMachineInstancesByEvent(eventId: string) {
   if (error || !data) return [];
   return data;
 }
+
+/** Compact machine rows for the live print dashboard. */
+export async function getMachineInstanceSummariesByEvent(eventId: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("machine_instances")
+    .select("serial_number, nickname, status, last_heartbeat")
+    .eq("current_event_id", eventId);
+
+  if (error || !data) return [];
+  return data as Array<{
+    serial_number: string;
+    nickname: string | null;
+    status: string;
+    last_heartbeat: string | null;
+  }>;
+}

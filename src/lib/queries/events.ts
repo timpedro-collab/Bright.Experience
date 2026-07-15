@@ -39,11 +39,19 @@ function mapEvent(row: Record<string, unknown>): Event {
 /** Fetch all events (unpaginated) — used by the home page editorial view. */
 export async function getEvents(): Promise<Event[]> {
   const supabase = await createClient();
-  const { data, error } = await supabase
+  // Mirror the account scope production RLS enforces: customers only ever see
+  // their own account's events. The mock client does no scoping, so apply it
+  // explicitly here for environment parity.
+  const user = await getUser();
+  const scopeAccountId =
+    user && !isInternalRole(user.role) ? user.accountId : null;
+  let query = supabase
     .from("events")
     .select("*, accounts(*)")
     .order("event_date_start");
+  if (scopeAccountId) query = query.eq("account_id", scopeAccountId);
 
+  const { data, error } = await query;
   if (error || !data) return [];
   return data.map(mapEvent);
 }
@@ -95,12 +103,17 @@ export async function getEventsPaginated(
 
 export async function getEventById(id: string): Promise<Event | null> {
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("events")
-    .select("*, accounts(*)")
-    .eq("id", id)
-    .single();
+  // A customer must never resolve another account's event by guessing its id.
+  // Production enforces this via RLS; the mock client doesn't, so we mirror the
+  // same account scope here (matching getEventsPaginated) for parity. Internal
+  // roles are unscoped and can open any event.
+  const user = await getUser();
+  const scopeAccountId =
+    user && !isInternalRole(user.role) ? user.accountId : null;
+  let query = supabase.from("events").select("*, accounts(*)").eq("id", id);
+  if (scopeAccountId) query = query.eq("account_id", scopeAccountId);
 
+  const { data, error } = await query.maybeSingle();
   if (error || !data) return null;
   return mapEvent(data);
 }

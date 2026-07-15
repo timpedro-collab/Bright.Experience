@@ -5,8 +5,8 @@ import { getUser } from "@/lib/auth";
 import { getPartnerForUser } from "@/lib/queries/partners";
 import { getVenueBySlug } from "@/lib/queries/venues";
 import { getUnreadCount } from "@/lib/queries/notifications";
+import { getVenuePackagesByVenueId } from "@/lib/queries/venue-packages";
 import { VenuePackageBuilder } from "@/components/venues/VenuePackageBuilder";
-import { createClient } from "@/lib/supabase/server";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -23,13 +23,8 @@ export default async function PackagesPage({ params }: Props) {
   const partner = await getPartnerForUser(user.id);
   if (!partner || venue.partner_id !== partner.id) redirect("/");
 
-  const supabase = await createClient();
-  const [{ data: packages }, unread] = await Promise.all([
-    supabase
-      .from("venue_packages")
-      .select("id, name, description, price, includes_bright_blue, sort_order")
-      .eq("venue_id", venue.id)
-      .order("sort_order", { ascending: true }),
+  const [packages, unread] = await Promise.all([
+    getVenuePackagesByVenueId(venue.id),
     getUnreadCount(user.id),
   ]);
 
@@ -46,7 +41,7 @@ export default async function PackagesPage({ params }: Props) {
     >
       <VenuePackageBuilder
         venueId={venue.id}
-        existingPackages={(packages as Array<Record<string, unknown>>) ?? []}
+        existingPackages={packages as unknown as Array<Record<string, unknown>>}
       />
     </PortalPageShell>
   );

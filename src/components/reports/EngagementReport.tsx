@@ -87,14 +87,16 @@ export function AudienceDemographicsCard({
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-heading text-base font-semibold text-foreground">
           <Users size={16} className="text-brand" />
-          Audience demographics
+          Audience by age
         </CardTitle>
       </CardHeader>
       <CardContent className="pt-0 space-y-3">
         {ordered.map(([band, pct]) => (
           <div key={band} className="space-y-1">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">{band}</span>
+              <span className="text-sm text-muted-foreground">
+                Age {band.replace("-", "\u2013")}
+              </span>
               <span className="text-sm font-medium text-foreground tabular-nums">
                 {pct}%
               </span>

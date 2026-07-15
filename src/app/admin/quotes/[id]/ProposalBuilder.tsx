@@ -10,8 +10,8 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { prepareProposal } from "@/app/actions/quotes";
 import { RequestedCapabilities } from "@/components/quotes/RequestedCapabilities";
-import { formatUSDFromCents, formatNumberUS } from "@/lib/currency";
-import { timelineLabel } from "@/components/catalog/quiz-data";
+import { formatMoneyFromPence, formatNumberUS } from "@/lib/currency";
+import { timelineLabel } from "@/components/catalog/quiz/quiz-data";
 import { Plus, Trash2, Eye, Users, MapPin } from "lucide-react";
 
 interface LineItem { label: string; amount: string; category: string }
@@ -27,6 +27,34 @@ const SCOPE_LABELS: Record<string, string> = {
 function scopeLabel(value: unknown): string {
   if (typeof value !== "string" || !value) return "—";
   return SCOPE_LABELS[value] ?? value;
+}
+
+/** Quiz/intake objective codes → readable goal. Free-text objectives pass through. */
+const OBJECTIVE_LABELS: Record<string, string> = {
+  sampling: "Sampling & product trial",
+  trial: "Sampling & product trial",
+  "lead-generation": "Lead generation",
+  "lead_generation": "Lead generation",
+  leads: "Lead generation",
+  "product-launch": "Product launch",
+  "brand-awareness": "Brand awareness",
+  awareness: "Brand awareness",
+  brand: "Brand awareness",
+  "brand_lift": "Brand awareness",
+  engagement: "Engagement & footfall",
+  footfall: "Footfall & engagement",
+};
+
+function objectiveLabel(value: unknown): string | null {
+  if (typeof value !== "string" || !value.trim()) return null;
+  return OBJECTIVE_LABELS[value] ?? value;
+}
+
+/** Trim a stored string field to a clean display value, or null when empty. */
+function text(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const t = value.trim();
+  return t.length > 0 ? t : null;
 }
 
 interface ProposalBuilderProps {
@@ -94,7 +122,7 @@ export function ProposalBuilder({ quote }: ProposalBuilderProps) {
             <Separator />
             <div className="flex justify-between font-semibold text-foreground">
               <span>Total</span>
-              <span>{formatUSDFromCents(total, { decimals: true })}</span>
+              <span>{formatMoneyFromPence(total, { decimals: true })}</span>
             </div>
           </CardContent>
         </Card>
@@ -135,6 +163,9 @@ function IntakeDataCard({ quote }: { quote: Record<string, unknown> }) {
       <CardContent className="space-y-2 text-sm">
         <Row label="Track" value={reachTrack ? (isExperiential ? "Experiential" : "Tradeshow") : String(quote.track)} />
         <Row label="Event type" value={String(quote.event_type ?? "—")} />
+        {objectiveLabel(quote.objective) && (
+          <Row label="Goal" value={objectiveLabel(quote.objective)!} />
+        )}
         {isExperiential ? (
           <>
             <Row label="Location" value={String(quote.activation_location ?? quote.venue_name ?? "—")} />
@@ -149,8 +180,19 @@ function IntakeDataCard({ quote }: { quote: Record<string, unknown> }) {
         <Row label="Postcode" value={String(quote.postcode ?? "—")} />
         <Row label="Dates" value={quote.event_date_start ? `${quote.event_date_start} – ${quote.event_date_end ?? "TBD"}` : "—"} />
         <Row label="Timeline" value={timelineLabel(quote.event_timeline as string) ?? "—"} />
-        <Row label="Creative" value={String(quote.creative_needs ?? "—")} />
         <Row label="Scope" value={scopeLabel(quote.engagement_scope)} />
+        {text(quote.machine_preference) && (
+          <Row label="Machine preference" value={text(quote.machine_preference)!} />
+        )}
+        {text(quote.game_preference) && (
+          <Row label="Game preference" value={text(quote.game_preference)!} />
+        )}
+        {text(quote.creative_needs) && (
+          <BlockRow label="Creative direction" value={text(quote.creative_needs)!} />
+        )}
+        {text(quote.special_requirements) && (
+          <BlockRow label="Special requirements" value={text(quote.special_requirements)!} />
+        )}
 
         {hasReach && (
           <>
@@ -159,7 +201,7 @@ function IntakeDataCard({ quote }: { quote: Record<string, unknown> }) {
             <div className="grid grid-cols-2 gap-2">
               {impressions != null && <ReachStat icon={Eye} value={formatNumberUS(impressions)} label="Impressions" />}
               {leads != null && <ReachStat icon={Users} value={formatNumberUS(leads)} label="Leads" />}
-              {dooh != null && <ReachStat icon={MapPin} value={`Up to ${formatUSDFromCents(dooh)}`} label="DOOH value" />}
+              {dooh != null && <ReachStat icon={MapPin} value={`Up to ${formatMoneyFromPence(dooh)}`} label="DOOH value" />}
             </div>
           </>
         )}
@@ -189,9 +231,19 @@ function ReachStat({ icon: Icon, value, label }: { icon: typeof Eye; value: stri
 
 function Row({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex justify-between">
-      <span className="text-muted-foreground">{label}</span>
-      <span className="text-foreground">{value}</span>
+    <div className="flex justify-between gap-4">
+      <span className="shrink-0 text-muted-foreground">{label}</span>
+      <span className="text-right text-foreground">{value}</span>
+    </div>
+  );
+}
+
+/** Stacked label + free-text value, for longer customer-written fields. */
+function BlockRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="space-y-0.5">
+      <span className="block text-muted-foreground">{label}</span>
+      <p className="text-foreground leading-snug">{value}</p>
     </div>
   );
 }

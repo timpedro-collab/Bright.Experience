@@ -33,7 +33,7 @@ import {
   markCommissionPaid,
   addPartnerUser,
 } from "@/app/actions/partners";
-import { formatUSDFromCents } from "@/lib/currency";
+import { formatMoneyFromPence } from "@/lib/currency";
 import { useState } from "react";
 
 interface PartnerDetailViewProps {
@@ -55,7 +55,7 @@ const COMMISSION_STATUS_MAP: Record<string, { label: string; className: string }
 
 /** Commission amounts are integer cents. */
 function formatCurrency(cents: number): string {
-  return formatUSDFromCents(cents);
+  return formatMoneyFromPence(cents);
 }
 
 export function PartnerDetailView({ partner, attributions }: PartnerDetailViewProps) {
@@ -150,7 +150,7 @@ export function PartnerDetailView({ partner, attributions }: PartnerDetailViewPr
                 <TableRow>
                   <TableHead>Date</TableHead>
                   <TableHead>Type</TableHead>
-                  <TableHead>Commission</TableHead>
+                  <TableHead className="text-right">Commission</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
@@ -166,7 +166,7 @@ export function PartnerDetailView({ partner, attributions }: PartnerDetailViewPr
                         {new Date(String(attr.created_at)).toLocaleDateString("en-US")}
                       </TableCell>
                       <TableCell>{attr.quote_id ? "Quote" : "Event"}</TableCell>
-                      <TableCell className="font-mono">
+                      <TableCell className="text-right tabular-nums">
                         {attr.commission_amount != null ? formatCurrency(Number(attr.commission_amount)) : "—"}
                       </TableCell>
                       <TableCell>

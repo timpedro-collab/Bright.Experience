@@ -29,8 +29,11 @@ import { NotificationTimingForm } from "@/components/settings/NotificationTiming
 import { DEFAULT_DIGEST_TIMING } from "@/lib/notifications/digest-timing";
 
 import { getUser } from "@/lib/auth";
-import { createClient } from "@/lib/supabase/server";
-import { getUnreadCount } from "@/lib/queries/notifications";
+import {
+  getNotificationPreferences,
+  getNotificationUserSettings,
+  getUnreadCount,
+} from "@/lib/queries/notifications";
 
 export const metadata = {
   title: "Notification settings · Bright.Experience",
@@ -40,40 +43,28 @@ export default async function NotificationSettingsPage() {
   const user = await getUser();
   if (!user) redirect("/login");
 
-  const supabase = await createClient();
-  const [{ data: preferences }, { data: timingRow }, unread] = await Promise.all([
-    supabase
-      .from("notification_preferences")
-      .select("kind, in_portal, email_mode")
-      .eq("user_id", user.id),
-    supabase
-      .from("notification_user_settings")
-      .select("timezone, digest_hour, quiet_start_hour, quiet_end_hour")
-      .eq("user_id", user.id)
-      .maybeSingle(),
+  const [preferences, timingRow, unread] = await Promise.all([
+    getNotificationPreferences(user.id),
+    getNotificationUserSettings(user.id),
     getUnreadCount(user.id),
   ]);
 
   const timing = {
-    timezone: (timingRow?.timezone as string) ?? DEFAULT_DIGEST_TIMING.timezone,
-    digestHour:
-      (timingRow?.digest_hour as number) ?? DEFAULT_DIGEST_TIMING.digestHour,
+    timezone: timingRow?.timezone ?? DEFAULT_DIGEST_TIMING.timezone,
+    digestHour: timingRow?.digestHour ?? DEFAULT_DIGEST_TIMING.digestHour,
     quietStartHour:
-      (timingRow?.quiet_start_hour as number) ??
-      DEFAULT_DIGEST_TIMING.quietStartHour,
-    quietEndHour:
-      (timingRow?.quiet_end_hour as number) ??
-      DEFAULT_DIGEST_TIMING.quietEndHour,
+      timingRow?.quietStartHour ?? DEFAULT_DIGEST_TIMING.quietStartHour,
+    quietEndHour: timingRow?.quietEndHour ?? DEFAULT_DIGEST_TIMING.quietEndHour,
   };
 
   const prefMap: Record<
     string,
     { inPortal: boolean; emailMode: "immediate" | "digest" | "off" }
   > = {};
-  for (const row of preferences ?? []) {
-    prefMap[row.kind as string] = {
-      inPortal: Boolean(row.in_portal),
-      emailMode: row.email_mode as "immediate" | "digest" | "off",
+  for (const row of preferences) {
+    prefMap[row.kind] = {
+      inPortal: row.inPortal,
+      emailMode: row.emailMode,
     };
   }
 

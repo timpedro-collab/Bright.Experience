@@ -22,8 +22,7 @@ import { TeamRemoveButton } from "@/components/settings/TeamRemoveButton";
 
 import { getUser } from "@/lib/auth";
 import { getUnreadCount } from "@/lib/queries/notifications";
-import { getTeamForAccount } from "@/lib/queries/team";
-import { createClient } from "@/lib/supabase/server";
+import { getAccountProfiles, getTeamForAccount } from "@/lib/queries/team";
 
 export const metadata = { title: "Team · Bright.Experience" };
 
@@ -32,19 +31,11 @@ export default async function TeamSettingsPage() {
   if (!user) redirect("/login");
   if (user.role !== "customer_admin") redirect("/settings");
 
-  const supabase = await createClient();
-  const [unread, teamMembers] = await Promise.all([
+  const [unread, teamMembers, accountUsers] = await Promise.all([
     getUnreadCount(user.id),
     user.accountId ? getTeamForAccount(user.accountId) : Promise.resolve([]),
+    user.accountId ? getAccountProfiles(user.accountId) : Promise.resolve([]),
   ]);
-
-  const { data: accountUsers } = user.accountId
-    ? await supabase
-        .from("profiles")
-        .select("id, name, email, role, avatar_url")
-        .eq("account_id", user.accountId)
-        .order("name")
-    : { data: [] };
 
   const pending = teamMembers.filter((m) => m.status === "pending");
   const approved = teamMembers.filter((m) => m.status === "approved");
@@ -78,7 +69,7 @@ export default async function TeamSettingsPage() {
             Everyone on your account who can access the portal.
           </p>
           <ul className="mt-4 flex flex-col divide-y divide-border/40 border-t border-b border-border/40">
-            {(accountUsers ?? []).map((u) => (
+            {accountUsers.map((u) => (
               <li key={u.id} className="flex items-center gap-3 py-3">
                 <span className="flex items-center justify-center size-8 rounded-full bg-card border border-border text-overline text-foreground">
                   {(u.name?.[0] ?? u.email[0]).toUpperCase()}

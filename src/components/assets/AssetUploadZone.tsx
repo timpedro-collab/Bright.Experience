@@ -6,9 +6,8 @@
  * backend (`uploadAsset`): drag & drop, a live thumbnail, and an inline
  * spec checklist that evaluates the chosen file against the slot's
  * requirements (accepted file types + pixel dimensions) on the client —
- * before anything is sent. Off-spec files surface a clear warning with a
- * deliberate "Upload anyway" escape hatch (mirroring Theo's flow), so the
- * brand can't *accidentally* submit the wrong thing, but is never blocked.
+ * before anything is sent. Off-spec files are blocked from upload so creative
+ * review never receives the wrong format or dimensions by accident.
  *
  * All server logic is unchanged: validation, review states, signed URLs,
  * notifications, and auto task-completion still run inside `uploadAsset`.
@@ -48,6 +47,31 @@ interface Criterion {
 
 function fileExt(name: string): string {
   return (name.toLowerCase().split(".").pop() ?? "").trim();
+}
+
+const EXT_TO_MIME: Record<string, string> = {
+  png: "image/png",
+  jpg: "image/jpeg",
+  jpeg: "image/jpeg",
+  webp: "image/webp",
+  svg: "image/svg+xml",
+  gif: "image/gif",
+  pdf: "application/pdf",
+  mp4: "video/mp4",
+  mov: "video/quicktime",
+  webm: "video/webm",
+};
+
+/**
+ * Some OS/browser combos hand over files with an empty `type` (drag-drop of
+ * less common formats, network shares). Re-wrap those with a MIME inferred
+ * from the extension so the spec checklist and the server validation don't
+ * falsely reject a perfectly good file.
+ */
+function withInferredType(file: File): File {
+  if (file.type) return file;
+  const mime = EXT_TO_MIME[fileExt(file.name)];
+  return mime ? new File([file], file.name, { type: mime }) : file;
 }
 
 /** "PNG, SVG" from ["image/png","image/svg+xml"]. */
@@ -245,7 +269,8 @@ export function AssetUploadZone({
   }, [preview]);
 
   const stageFile = useCallback(
-    async (file: File) => {
+    async (rawFile: File) => {
+      const file = withInferredType(rawFile);
       if (preview) URL.revokeObjectURL(preview);
       setStaged(file);
       const isPreviewableImage =
@@ -276,6 +301,14 @@ export function AssetUploadZone({
 
   async function doUpload() {
     if (!staged) return;
+    // Spec-aware gate: never send a file that already failed type/dimension checks.
+    if (hasFailures) {
+      toast.error("File doesn't match the spec", {
+        description:
+          "Fix the failed checklist items (format or dimensions) before uploading — this keeps creative review unblocked.",
+      });
+      return;
+    }
     setUploading(true);
     const toastId = toast.loading(`Uploading ${staged.name}…`);
     const fd = new FormData();
@@ -458,12 +491,12 @@ export function AssetUploadZone({
       )}
 
       {hasFailures && (
-        <div className="mt-3 flex items-start gap-2 rounded-xl border border-warning/40 bg-warning/10 px-3 py-2">
-          <TriangleAlert className="size-4 shrink-0 text-warning mt-0.5" />
+        <div className="mt-3 flex items-start gap-2 rounded-xl border border-destructive/40 bg-destructive/10 px-3 py-2">
+          <TriangleAlert className="size-4 shrink-0 text-destructive mt-0.5" />
           <p className="text-xs text-foreground/90 leading-snug">
-            This file is <span className="font-semibold">off-spec</span> and is
-            likely to be sent back by the creative team. You can swap it for a
-            corrected file, or upload it anyway.
+            This file is <span className="font-semibold">off-spec</span>. Swap it
+            for a file that matches the checklist — we block upload so creative
+            review stays unblocked.
           </p>
         </div>
       )}
@@ -471,20 +504,15 @@ export function AssetUploadZone({
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <Button
           onClick={doUpload}
-          disabled={uploading}
+          disabled={uploading || hasFailures}
           size="sm"
-          variant={hasFailures ? "outline" : "default"}
         >
           {uploading ? (
             <Loader2 className="size-4 animate-spin" />
           ) : (
             <Upload className="size-4" />
           )}
-          {uploading
-            ? "Uploading…"
-            : hasFailures
-              ? "Upload anyway"
-              : "Upload"}
+          {uploading ? "Uploading…" : "Upload"}
         </Button>
         <Button
           onClick={clearStaged}

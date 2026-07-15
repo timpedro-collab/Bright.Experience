@@ -7,7 +7,7 @@ import Link from "next/link";
 import { ArrowRight, CheckCircle2, Clock, Wallet } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { formatUSDFromCents } from "@/lib/currency";
+import { formatMoneyFromPence } from "@/lib/currency";
 import type { PartnerDeal } from "@/lib/queries/partner-attributions";
 
 interface ActionItem {
@@ -35,7 +35,7 @@ export function PartnerActionQueue({
       icon: Clock,
       title: `Follow up with ${d.clientName}`,
       detail: d.valueCents
-        ? `Proposal out for ${formatUSDFromCents(d.valueCents)} — awaiting their decision.`
+        ? `Proposal out for ${formatMoneyFromPence(d.valueCents)} — awaiting their decision.`
         : "Proposal sent — awaiting their decision.",
     })),
     ...approved.map((d) => ({
@@ -43,7 +43,7 @@ export function PartnerActionQueue({
       icon: Wallet,
       title: `${d.clientName} commission approved`,
       detail: d.commissionCents
-        ? `${formatUSDFromCents(d.commissionCents)} confirmed and scheduled for your next payout.`
+        ? `${formatMoneyFromPence(d.commissionCents)} confirmed and scheduled for your next payout.`
         : "Confirmed and scheduled for your next payout.",
     })),
   ];

@@ -1,39 +1,63 @@
 /**
  * Currency formatting — single source of truth.
  *
- * Convention: ALL money is stored as integer cents (USD minor units)
+ * Convention: ALL money is stored as integer pence (GBP minor units)
  * throughout the data layer (packages, quotes, line items, reports,
  * commissions, invoices, venue/sponsorship pricing, studio costs). Format for
  * display with the helpers below so the symbol, locale, and unit conversion
  * live in exactly one place.
+ *
+ * Bright.Experience is a UK product (VAT-exclusive prices in Studio copy).
  */
 
-const USD = new Intl.NumberFormat("en-US", {
+const GBP = new Intl.NumberFormat("en-GB", {
   style: "currency",
-  currency: "USD",
+  currency: "GBP",
   minimumFractionDigits: 0,
   maximumFractionDigits: 0,
 });
 
-const USD_WITH_CENTS = new Intl.NumberFormat("en-US", {
+const GBP_WITH_PENCE = new Intl.NumberFormat("en-GB", {
   style: "currency",
-  currency: "USD",
+  currency: "GBP",
   minimumFractionDigits: 2,
   maximumFractionDigits: 2,
 });
 
-/** Format a whole-dollar amount, e.g. formatUSD(1234) -> "$1,234". */
+/** Format a whole-pound amount, e.g. formatGBP(1234) -> "£1,234". */
+export function formatGBP(pounds: number): string {
+  return GBP.format(Math.round(pounds));
+}
+
+/**
+ * Format integer pence as pounds, e.g. formatMoneyFromPence(123456) -> "£1,235"
+ * (or "£1,234.56" with decimals).
+ */
+export function formatMoneyFromPence(
+  pence: number,
+  opts?: { decimals?: boolean },
+): string {
+  const pounds = (pence ?? 0) / 100;
+  return (opts?.decimals ? GBP_WITH_PENCE : GBP).format(pounds);
+}
+
+/**
+ * @deprecated Use {@link formatMoneyFromPence}. Kept as an alias so older
+ * call sites keep compiling while the codebase migrates to GBP naming.
+ */
+export function formatUSDFromCents(
+  cents: number,
+  opts?: { decimals?: boolean },
+): string {
+  return formatMoneyFromPence(cents, opts);
+}
+
+/** @deprecated Use {@link formatGBP}. */
 export function formatUSD(dollars: number): string {
-  return USD.format(Math.round(dollars));
+  return formatGBP(dollars);
 }
 
-/** Format integer cents, e.g. formatUSDFromCents(123456) -> "$1,235" (or "$1,234.56" with decimals). */
-export function formatUSDFromCents(cents: number, opts?: { decimals?: boolean }): string {
-  const dollars = (cents ?? 0) / 100;
-  return (opts?.decimals ? USD_WITH_CENTS : USD).format(dollars);
-}
-
-/** Format a plain number with en-US grouping, e.g. 12345 -> "12,345". */
+/** Format a plain number with en-GB grouping, e.g. 12345 -> "12,345". */
 export function formatNumberUS(value: number): string {
-  return value.toLocaleString("en-US");
+  return value.toLocaleString("en-GB");
 }

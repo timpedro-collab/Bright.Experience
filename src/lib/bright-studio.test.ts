@@ -68,15 +68,15 @@ describe("STUDIO_TURNAROUND", () => {
 describe("formatTierPrice", () => {
   const essential = STUDIO_TIERS[0];
 
-  it("formats static and motion prices as USD", () => {
-    expect(formatTierPrice(essential, "static")).toBe("$32");
-    expect(formatTierPrice(essential, "motion")).toBe("$160");
+  it("formats static and motion prices as GBP", () => {
+    expect(formatTierPrice(essential, "static")).toBe("£32");
+    expect(formatTierPrice(essential, "motion")).toBe("£160");
   });
 
   it("scales across tiers", () => {
     const newAsset = STUDIO_TIERS[2];
-    expect(formatTierPrice(newAsset, "static")).toBe("$120");
-    expect(formatTierPrice(newAsset, "motion")).toBe("$1,080");
+    expect(formatTierPrice(newAsset, "static")).toBe("£120");
+    expect(formatTierPrice(newAsset, "motion")).toBe("£1,080");
   });
 });
 

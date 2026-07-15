@@ -14,13 +14,14 @@ import { PartnerDealList } from "@/components/partners/PartnerPipeline";
 import { ReferralLinkCard } from "@/components/partners/ReferralLinkCard";
 
 import { getUser } from "@/lib/auth";
+import { isPartnerAdmin } from "@/lib/roles";
 import { getPartnerForUser } from "@/lib/queries/partners";
 import {
   getPartnerPipeline,
   getPartnerCommissionSummary,
 } from "@/lib/queries/partner-attributions";
 import { getUnreadCount } from "@/lib/queries/notifications";
-import { formatUSDFromCents } from "@/lib/currency";
+import { formatMoneyFromPence } from "@/lib/currency";
 
 interface DashboardPageProps {
   params: Promise<{ slug: string }>;
@@ -65,6 +66,9 @@ export default async function PartnerDashboardPage({ params }: DashboardPageProp
   ]);
 
   const partnerName = String(partner.name ?? "Partner");
+  // Payout figures are the org lead's business — member sellers see their
+  // pipeline but not the commission money view.
+  const showCommissions = isPartnerAdmin(user.role);
   const wonDeals = deals.filter((d) => d.kind === "event").length;
   const openQuotes = deals.filter(
     (d) => d.kind === "quote" && d.status === "pending",
@@ -78,7 +82,7 @@ export default async function PartnerDashboardPage({ params }: DashboardPageProp
       scope={partnerName}
       section="Dashboard"
       slug={slug}
-      tabs={partnerTabs(slug)}
+      tabs={partnerTabs(slug, user.role)}
       title={`Welcome back, ${partnerName}`}
       subtitle="Everything you need to chase, win, and get paid — in one view."
       heroRight={
@@ -96,12 +100,20 @@ export default async function PartnerDashboardPage({ params }: DashboardPageProp
         </>
       }
     >
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Kpi
-          label="Total earned"
-          value={formatUSDFromCents(summary.totalEarned)}
-          hint="Across all referrals"
-        />
+      <div
+        className={
+          showCommissions
+            ? "grid grid-cols-2 gap-3 lg:grid-cols-4"
+            : "grid grid-cols-3 gap-3"
+        }
+      >
+        {showCommissions && (
+          <Kpi
+            label="Total earned"
+            value={formatMoneyFromPence(summary.totalEarned)}
+            hint="Across all referrals"
+          />
+        )}
         <Kpi
           label="Clients referred"
           value={String(clientsReferred)}
@@ -112,10 +124,18 @@ export default async function PartnerDashboardPage({ params }: DashboardPageProp
           value={String(openQuotes)}
           hint="Awaiting a decision"
         />
-        <Kpi
-          label="Paid to date"
-          value={formatUSDFromCents(summary.totalPaid)}
-        />
+        {showCommissions ? (
+          <Kpi
+            label="Paid to date"
+            value={formatMoneyFromPence(summary.totalPaid)}
+          />
+        ) : (
+          <Kpi
+            label="Won events"
+            value={String(wonDeals)}
+            hint="Referrals that converted"
+          />
+        )}
       </div>
 
       <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -147,18 +167,20 @@ export default async function PartnerDashboardPage({ params }: DashboardPageProp
                   size="sm"
                 />
               ) : (
-                <PartnerDealList deals={deals.slice(0, 5)} />
+                <PartnerDealList deals={deals.slice(0, 5)} showCommissions={showCommissions} />
               )}
             </CardContent>
           </Card>
         </div>
 
         <div className="space-y-6">
-          <NextPayoutCard
-            approvedCents={summary.totalApproved}
-            pendingCents={summary.totalPending}
-            paidCents={summary.totalPaid}
-          />
+          {showCommissions && (
+            <NextPayoutCard
+              approvedCents={summary.totalApproved}
+              pendingCents={summary.totalPending}
+              paidCents={summary.totalPaid}
+            />
+          )}
           <ReferralLinkCard
             partnerCode={String(partner.partner_code ?? "")}
             partnerName={partnerName}

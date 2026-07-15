@@ -22,7 +22,7 @@ interface QAChecklistProps {
   viewerRole?: UserRole;
 }
 
-const QA_SIGN_OFF_ROLES: UserRole[] = ["qa_lead", "events_lead", "admin", "developer"];
+const QA_SIGN_OFF_ROLES: UserRole[] = ["qa_lead", "events_lead", "admin"];
 
 const CATEGORY_LABELS: Record<QACategory, string> = {
   machine: "Machine",

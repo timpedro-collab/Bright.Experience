@@ -5,14 +5,29 @@ import { PAGE_SIZE, paginateQuery, totalPages } from "@/lib/pagination";
 const LEAD_COLUMNS =
   "id, event_id, machine_instance_id, contact_name, contact_email, contact_phone, custom_fields_json, source, captured_at";
 
-/** Fetch all leads captured at an event, newest first. */
+/**
+ * Hard cap for non-paginated lead fetches.
+ * Prefer `getLeadsByEventPaginated` for UI tables; use this only when a
+ * bounded full list is required (exports, aggregates helpers).
+ */
+export const MAX_LEADS_PER_EVENT = 5000;
+
+/** Safety cap for aggregate scans — enough for headline metrics, not unbounded. */
+const MAX_LEAD_AGGREGATE_ROWS = 10_000;
+
+/**
+ * Fetch leads captured at an event, newest first.
+ * Bounded by {@link MAX_LEADS_PER_EVENT}. For paginated UI, use
+ * `getLeadsByEventPaginated` instead.
+ */
 export async function getLeadsByEvent(eventId: string) {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("leads")
     .select(LEAD_COLUMNS)
     .eq("event_id", eventId)
-    .order("captured_at", { ascending: false });
+    .order("captured_at", { ascending: false })
+    .limit(MAX_LEADS_PER_EVENT);
 
   if (error || !data) return [];
   return data;
@@ -56,6 +71,21 @@ export interface LeadAggregates {
   topSource: string;
   /** Leads per hour across the active capture window (first → last lead). */
   perHour: number;
+  /** Age-band → percentage of leads, ordered youngest to oldest. */
+  ageBands: { band: string; count: number; pct: number }[];
+  /** Average age across leads that carry an age, or null if none do. */
+  avgAge: number | null;
+}
+
+const AGE_BAND_ORDER = ["18-24", "25-34", "35-44", "45-54", "55+"];
+
+/** Map a numeric age to its reporting band. */
+function ageToBand(age: number): string {
+  if (age < 25) return "18-24";
+  if (age < 35) return "25-34";
+  if (age < 45) return "35-44";
+  if (age < 55) return "45-54";
+  return "55+";
 }
 
 /**
@@ -65,17 +95,22 @@ export interface LeadAggregates {
  * (today's count, top source) would silently under-report once an event has
  * more than one page of leads. This scans the lightweight columns for the full
  * set so the headline cards are always accurate.
+ *
+ * Safety: capped at {@link MAX_LEAD_AGGREGATE_ROWS} so a pathological event
+ * cannot unbounded-scan forever. Events above that cap should move to SQL
+ * aggregates / a metrics snapshot.
  */
 export async function getLeadAggregates(eventId: string): Promise<LeadAggregates> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("leads")
-    .select("source, captured_at")
+    .select("source, captured_at, custom_fields_json")
     .eq("event_id", eventId)
-    .order("captured_at", { ascending: true });
+    .order("captured_at", { ascending: true })
+    .limit(MAX_LEAD_AGGREGATE_ROWS);
 
   if (error || !data || data.length === 0) {
-    return { total: 0, today: 0, topSource: "—", perHour: 0 };
+    return { total: 0, today: 0, topSource: "—", perHour: 0, ageBands: [], avgAge: null };
   }
 
   const todayStart = new Date();
@@ -83,10 +118,25 @@ export async function getLeadAggregates(eventId: string): Promise<LeadAggregates
 
   let today = 0;
   const sourceMap: Record<string, number> = {};
-  for (const lead of data as { source: string; captured_at: string }[]) {
+  const bandMap: Record<string, number> = {};
+  let ageSum = 0;
+  let ageCount = 0;
+  type LeadRow = {
+    source: string;
+    captured_at: string;
+    custom_fields_json?: { age?: number } | null;
+  };
+  for (const lead of data as LeadRow[]) {
     if (new Date(lead.captured_at) >= todayStart) today += 1;
     const src = lead.source || "unknown";
     sourceMap[src] = (sourceMap[src] ?? 0) + 1;
+    const age = lead.custom_fields_json?.age;
+    if (typeof age === "number" && Number.isFinite(age)) {
+      const band = ageToBand(age);
+      bandMap[band] = (bandMap[band] ?? 0) + 1;
+      ageSum += age;
+      ageCount += 1;
+    }
   }
 
   const topSource =
@@ -98,5 +148,12 @@ export async function getLeadAggregates(eventId: string): Promise<LeadAggregates
   const hours = Math.max((lastAt - firstAt) / 3_600_000, 1);
   const perHour = Math.round(data.length / hours);
 
-  return { total: data.length, today, topSource, perHour };
+  const ageBands = AGE_BAND_ORDER.filter((b) => bandMap[b] > 0).map((band) => ({
+    band,
+    count: bandMap[band],
+    pct: Math.round((bandMap[band] / ageCount) * 100),
+  }));
+  const avgAge = ageCount > 0 ? Math.round(ageSum / ageCount) : null;
+
+  return { total: data.length, today, topSource, perHour, ageBands, avgAge };
 }

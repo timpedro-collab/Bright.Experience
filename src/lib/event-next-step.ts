@@ -329,7 +329,10 @@ export function resolveEventNextStep({
       };
     }
     // Customer-safe: no "blocked"/"blocking" jargon, surface their own item.
-    const customerBlocker = blockingTasks.find((t) => t.customerVisible);
+    // Only a task the customer actually owns (customer_action) can be "their" item.
+    const customerBlocker = blockingTasks.find(
+      (t) => t.customerVisible && t.taskType === "customer_action",
+    );
     return {
       eyebrow: "Needs your attention",
       title: customerBlocker?.title ?? "A few things need your sign-off",

@@ -32,7 +32,6 @@ const EDIT_ROLES: UserRole[] = [
   "creative_lead",
   "events_lead",
   "admin",
-  "developer",
 ];
 
 const PRIZE_MODES: { value: PrizeMode; label: string; description: string }[] = [

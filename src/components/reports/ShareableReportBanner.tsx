@@ -67,10 +67,13 @@ export function ShareableReportBanner({
             <div className="flex items-center gap-2">
               <Globe size={16} className="text-success" />
               <span className="text-sm font-medium text-foreground">
-                Report is live
+                Board-ready — share with stakeholders
               </span>
               <Badge variant="success" className="ml-auto">Published</Badge>
             </div>
+            <p className="text-xs text-muted-foreground">
+              Public link + export (PDF / CSV / Excel). This is the proof artefact that renews the next buy.
+            </p>
 
             <div className="flex items-center gap-2">
               <div className="flex-1 flex items-center gap-2 rounded-lg bg-surface-glass/50 border border-border/60 px-3 py-2">

@@ -14,7 +14,6 @@ const ROLE_DESCRIPTIONS: Record<string, string> = {
   creative_lead: "Creative",
   operations_lead: "Logistics & ops",
   qa_lead: "Quality assurance",
-  developer: "Technical",
   admin: "Support",
 };
 

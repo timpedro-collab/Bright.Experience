@@ -21,7 +21,8 @@ export type FocusKind =
   | "asset_review"
   | "studio_order"
   | "task"
-  | "setup";
+  | "setup"
+  | "qa_signoff";
 
 export type FocusTone = "critical" | "warning" | "info" | "default";
 
@@ -48,7 +49,7 @@ const TONE_RANK: Record<FocusTone, number> = {
 };
 
 /** Roles that own portfolio health + the commercial pipeline. */
-const ORCHESTRATORS: UserRole[] = ["events_lead", "admin", "developer"];
+const ORCHESTRATORS: UserRole[] = ["events_lead", "admin"];
 /** How far ahead an upcoming setup surfaces on the ops home. */
 const SETUP_WINDOW_DAYS = 30;
 const DUE_SOON_DAYS = 3;
@@ -164,16 +165,38 @@ export function buildFocusItems({
     for (const e of portfolio.events) {
       if (!e.setupDate || e.currentStage === "complete") continue;
       const days = daysUntilDate(e.setupDate);
-      if (days < 0 || days > SETUP_WINDOW_DAYS) continue;
+      if (days > SETUP_WINDOW_DAYS) continue;
+      // Past-due setups on a live pipeline are the loudest ops signal —
+      // they surface as critical instead of silently dropping off the list.
       items.push({
         id: `setup-${e.id}`,
         kind: "setup",
-        title: `Setup: ${e.name}`,
+        title: days < 0 ? `Setup overdue: ${e.name}` : `Setup: ${e.name}`,
         reason: e.venueName ?? "Venue to confirm",
         href: `/events/${e.id}/logistics`,
-        cta: "Plan",
-        tone: days <= 7 ? "warning" : "info",
+        cta: days < 0 ? "Resolve" : "Plan",
+        tone: days < 0 ? "critical" : days <= 7 ? "warning" : "info",
         dueDate: e.setupDate,
+      });
+    }
+  }
+
+  // QA's cross-event queue: every event sitting at the QA-readiness gate is
+  // awaiting sign-off. Orchestrators see these too — the gate blocks the
+  // pipeline they own.
+  if (role === "qa_lead" || ORCHESTRATORS.includes(role)) {
+    for (const e of portfolio.events) {
+      if (e.currentStage !== "qa_readiness") continue;
+      const days = e.eventDateStart ? daysUntilDate(e.eventDateStart) : null;
+      items.push({
+        id: `qa-${e.id}`,
+        kind: "qa_signoff",
+        title: `QA sign-off: ${e.name}`,
+        reason: `At the readiness gate · ${e.account.name}`,
+        href: `/events/${e.id}/qa`,
+        cta: "Verify",
+        tone: days !== null && days <= 7 ? "warning" : "info",
+        dueDate: e.eventDateStart,
       });
     }
   }

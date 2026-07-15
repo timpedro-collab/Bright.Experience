@@ -6,6 +6,7 @@ import { EventPageShell } from "@/components/brand/event-page-shell";
 import { EditorialEyebrow, Hairline } from "@/components/brand";
 import { MetricCard } from "@/components/telemetry/MetricCard";
 import { LeadTable } from "@/components/telemetry/LeadTable";
+import { AudienceDemographicsCard } from "@/components/reports/EngagementReport";
 import { ExportMenu } from "@/components/ui/ExportMenu";
 
 import { getUser } from "@/lib/auth";
@@ -57,6 +58,7 @@ export default async function LeadsPage({
       contact_phone?: string;
       source: string;
       captured_at: string;
+      custom_fields_json?: { age?: number } | null;
     }) => ({
       id: l.id,
       contactName: l.contact_name,
@@ -64,7 +66,16 @@ export default async function LeadsPage({
       contactPhone: l.contact_phone,
       source: l.source,
       capturedAt: l.captured_at,
+      age:
+        typeof l.custom_fields_json?.age === "number"
+          ? l.custom_fields_json.age
+          : null,
     }),
+  );
+
+  // Age split for the audience card (matches the post-event report demographics).
+  const ageDemographics: Record<string, number> = Object.fromEntries(
+    aggregates.ageBands.map((b) => [b.band, b.pct]),
   );
 
   return (
@@ -97,12 +108,30 @@ export default async function LeadsPage({
             icon={<Star size={20} />}
           />
           <MetricCard
-            label="Avg per hour"
-            value={aggregates.perHour > 0 ? aggregates.perHour : "—"}
+            label={aggregates.avgAge != null ? "Average age" : "Avg per hour"}
+            value={
+              aggregates.avgAge != null
+                ? `${aggregates.avgAge} yrs`
+                : aggregates.perHour > 0
+                  ? aggregates.perHour
+                  : "—"
+            }
             icon={<Clock size={20} />}
           />
         </div>
       </section>
+
+      {aggregates.ageBands.length > 0 && (
+        <>
+          <Hairline className="opacity-60" />
+          <section className="py-8">
+            <EditorialEyebrow>Audience by age</EditorialEyebrow>
+            <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <AudienceDemographicsCard demographics={ageDemographics} />
+            </div>
+          </section>
+        </>
+      )}
 
       <Hairline className="opacity-60" />
 

@@ -6,7 +6,7 @@
 import { Wallet } from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";
-import { formatUSDFromCents } from "@/lib/currency";
+import { formatMoneyFromPence } from "@/lib/currency";
 
 /** Bright.Blue pays approved commissions on the last business day of the month. */
 function nextPayoutDate(now = new Date()): string {
@@ -37,7 +37,7 @@ export function NextPayoutCard({
           </span>
         </div>
         <p className="mt-3 text-4xl font-bold tabular-nums">
-          {formatUSDFromCents(approvedCents)}
+          {formatMoneyFromPence(approvedCents)}
         </p>
         <p className="mt-1 text-sm text-white/80">
           Lands {nextPayoutDate()}
@@ -46,13 +46,13 @@ export function NextPayoutCard({
         <div className="mt-5 grid grid-cols-2 gap-4 border-t border-white/20 pt-4">
           <div>
             <p className="text-lg font-semibold tabular-nums">
-              {formatUSDFromCents(pendingCents)}
+              {formatMoneyFromPence(pendingCents)}
             </p>
             <p className="text-xs text-white/70">In pipeline</p>
           </div>
           <div>
             <p className="text-lg font-semibold tabular-nums">
-              {formatUSDFromCents(paidCents)}
+              {formatMoneyFromPence(paidCents)}
             </p>
             <p className="text-xs text-white/70">Paid to date</p>
           </div>

@@ -9,8 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { getUser } from "@/lib/auth";
 import { isInternalRole } from "@/lib/roles";
+import { getAccountOptions } from "@/lib/queries/admin";
 import { getUnreadCount } from "@/lib/queries/notifications";
-import { createClient } from "@/lib/supabase/server";
 import { createEventFromForm } from "@/app/actions/events";
 
 export default async function NewEventPage() {
@@ -18,9 +18,8 @@ export default async function NewEventPage() {
   if (!user) redirect("/login");
   if (!isInternalRole(user.role)) redirect("/");
 
-  const supabase = await createClient();
-  const [{ data: accounts }, unread] = await Promise.all([
-    supabase.from("accounts").select("id, name").order("name"),
+  const [accounts, unread] = await Promise.all([
+    getAccountOptions(),
     getUnreadCount(user.id),
   ]);
 
@@ -51,7 +50,7 @@ export default async function NewEventPage() {
                 className="flex h-10 w-full rounded-[var(--radius-control)] border border-input bg-[hsl(233,48%,15%,0.6)] backdrop-blur-sm px-3.5 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 <option value="">Select an account…</option>
-                {(accounts ?? []).map((a) => (
+                {accounts.map((a) => (
                   <option key={a.id} value={a.id}>
                     {a.name}
                   </option>

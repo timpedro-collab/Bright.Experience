@@ -21,7 +21,7 @@ import { GlassCard } from "@/components/cloud";
 import { EditorialEyebrow } from "@/components/brand";
 import { DEFAULT_ACCOUNT_MANAGER } from "@/lib/team";
 import { formatDateShort } from "@/lib/dates";
-import { formatUSDFromCents } from "@/lib/currency";
+import { formatMoneyFromPence } from "@/lib/currency";
 
 interface PendingQuote {
   id: string;
@@ -121,7 +121,7 @@ export function CustomerHoldingState({
               <Detail
                 icon={FileText}
                 label="Estimate"
-                value={formatUSDFromCents(quote.total_amount)}
+                value={formatMoneyFromPence(quote.total_amount)}
               />
             )}
           </dl>

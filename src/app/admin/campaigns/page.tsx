@@ -9,7 +9,7 @@ import { CampaignCard } from "@/components/campaigns/CampaignCard";
 
 import { getUser } from "@/lib/auth";
 import { canViewCommercial } from "@/lib/roles";
-import { getCampaigns } from "@/lib/queries/campaigns";
+import { getCampaigns, getCampaignEventCount } from "@/lib/queries/campaigns";
 import { getUnreadCount } from "@/lib/queries/notifications";
 
 export default async function CampaignsAdminPage() {
@@ -24,18 +24,12 @@ export default async function CampaignsAdminPage() {
 
   const campaignCards = await Promise.all(
     campaigns.map(async (c) => {
-      const { createClient } = await import("@/lib/supabase/server");
-      const supabase = await createClient();
-      const { count } = await supabase
-        .from("campaign_events")
-        .select("id", { count: "exact", head: true })
-        .eq("campaign_id", c.id);
-
+      const eventCount = await getCampaignEventCount(c.id);
       return {
         id: c.id,
         name: c.name,
         status: c.status,
-        eventCount: count ?? 0,
+        eventCount,
         startDate: c.start_date ?? undefined,
         endDate: c.end_date ?? undefined,
       };

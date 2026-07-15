@@ -16,7 +16,6 @@ const TOUR_MAP: Record<UserRole, TourConfig> = {
   creative_lead: creativeLeadTour,
   operations_lead: operationsLeadTour,
   qa_lead: qaLeadTour,
-  developer: adminTour,
   admin: adminTour,
   partner_member: partnerTour,
   partner_admin: partnerTour,

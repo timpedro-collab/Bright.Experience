@@ -76,7 +76,7 @@ export default async function PartnerResourcesPage({ params }: ResourcesPageProp
       scope={partnerName}
       section="Resources"
       slug={slug}
-      tabs={partnerTabs(slug)}
+      tabs={partnerTabs(slug, user.role)}
       title="Resources"
       subtitle="Sales collateral, product sheets, and brand assets"
     >

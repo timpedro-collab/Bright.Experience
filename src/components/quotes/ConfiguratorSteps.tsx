@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
-import { formatUSDFromCents } from "@/lib/currency";
+import { formatMoneyFromPence } from "@/lib/currency";
 import type {
   AddonForConfig,
   GameForConfig,
@@ -123,7 +123,7 @@ export function AddonStep({
                 )}
               </div>
               <span className="text-sm font-semibold text-foreground tabular-nums">
-                +{formatUSDFromCents(addon.price, { decimals: true })}
+                +{formatMoneyFromPence(addon.price, { decimals: true })}
               </span>
             </label>
           );

@@ -7,7 +7,7 @@ import { getVenueBySlug } from "@/lib/queries/venues";
 import { getPlacementsByVenue } from "@/lib/queries/placements";
 import { getSlotsByPlacement } from "@/lib/queries/sponsorship-slots";
 import { getUnreadCount } from "@/lib/queries/notifications";
-import { createClient } from "@/lib/supabase/server";
+import { getAccountOptions } from "@/lib/queries/admin";
 import {
   VenueSponsorshipBoard,
   type PlacementWithSlots,
@@ -15,7 +15,7 @@ import {
 } from "@/components/venues/VenueSponsorshipBoard";
 import { Card, CardContent } from "@/components/ui/card";
 import { summariseSlots } from "@/components/venues/venue-helpers";
-import { formatUSDFromCents } from "@/lib/currency";
+import { formatMoneyFromPence } from "@/lib/currency";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -32,16 +32,13 @@ export default async function SponsorshipsPage({ params }: Props) {
   const partner = await getPartnerForUser(user.id);
   if (!partner || venue.partner_id !== partner.id) redirect("/");
 
-  const supabase = await createClient();
-  const [placements, unread, { data: accounts }] = await Promise.all([
+  const [placements, unread, accounts] = await Promise.all([
     getPlacementsByVenue(venue.id),
     getUnreadCount(user.id),
-    supabase.from("accounts").select("id, name").order("name"),
+    getAccountOptions(),
   ]);
 
-  const sponsors: SponsorOption[] = (
-    (accounts as Array<{ id: string; name: string }>) ?? []
-  ).map((a) => ({ id: a.id, name: a.name }));
+  const sponsors: SponsorOption[] = accounts;
   const sponsorNameById = new Map(sponsors.map((s) => [s.id, s.name]));
 
   const placementsWithSlots: PlacementWithSlots[] = await Promise.all(
@@ -83,9 +80,9 @@ export default async function SponsorshipsPage({ params }: Props) {
   );
 
   const summaryStats = [
-    { label: "Booked revenue", value: formatUSDFromCents(econ.bookedCents) },
-    { label: "Confirmed", value: formatUSDFromCents(econ.confirmedCents) },
-    { label: "Open slot value", value: formatUSDFromCents(econ.openCents) },
+    { label: "Booked revenue", value: formatMoneyFromPence(econ.bookedCents) },
+    { label: "Confirmed", value: formatMoneyFromPence(econ.confirmedCents) },
+    { label: "Open slot value", value: formatMoneyFromPence(econ.openCents) },
     { label: "Fill rate", value: `${econ.fillRate}%` },
     {
       label: "Slots booked",

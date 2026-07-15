@@ -5,7 +5,7 @@ import { AdminPageShell } from "@/components/brand";
 import { getUser } from "@/lib/auth";
 import { canViewCommercial } from "@/lib/roles";
 import { getUnreadCount } from "@/lib/queries/notifications";
-import { getServiceRoleClient } from "@/lib/supabase/service-role";
+import { getTemplateById } from "@/lib/queries/templates";
 import { TemplateEditor } from "@/components/admin/TemplateEditor";
 
 export default async function TemplateEditPage({
@@ -18,16 +18,12 @@ export default async function TemplateEditPage({
   if (!user) redirect("/login");
   if (!canViewCommercial(user.role)) redirect("/");
 
-  const supabase = getServiceRoleClient();
-  const { data: template } = await supabase
-    .from("event_templates")
-    .select("*")
-    .eq("id", id)
-    .single();
+  const [template, unread] = await Promise.all([
+    getTemplateById(id),
+    getUnreadCount(user.id),
+  ]);
 
   if (!template) notFound();
-
-  const unread = await getUnreadCount(user.id);
 
   return (
     <AdminPageShell

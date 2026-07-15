@@ -15,11 +15,11 @@ import { BriefingTabs } from "@/components/briefing/BriefingTabs";
 import { BriefingSidebar } from "@/components/briefing/BriefingSidebar";
 import { BriefingFileUpload } from "@/components/briefing/BriefingFileUpload";
 import { getEventById } from "@/lib/queries/events";
+import { getBriefingResponsesForEvent } from "@/lib/queries/briefing";
 import { getUnreadCount } from "@/lib/queries/notifications";
 import { getUser } from "@/lib/auth";
 import { isInternalRole } from "@/lib/roles";
 import { canViewSection } from "@/lib/event-access";
-import { createClient } from "@/lib/supabase/server";
 import { getBriefingFiles } from "@/app/actions/briefing";
 
 export default async function BriefingPage({
@@ -36,28 +36,16 @@ export default async function BriefingPage({
   const sp = await searchParams;
   const activeTab = sp.tab === "ops" ? "ops" : "creative";
 
-  const [event, unread, briefingFiles] = await Promise.all([
+  const [event, unread, briefingFiles, briefs] = await Promise.all([
     getEventById(id),
     getUnreadCount(user.id),
     getBriefingFiles(id),
+    getBriefingResponsesForEvent(id),
   ]);
   if (!event) return notFound();
 
-  const supabase = await createClient();
-  const [{ data: creativeBrief }, { data: opsBrief }] = await Promise.all([
-    supabase
-      .from("briefing_responses")
-      .select("*")
-      .eq("event_id", id)
-      .eq("form_type", "creative")
-      .maybeSingle(),
-    supabase
-      .from("briefing_responses")
-      .select("*")
-      .eq("event_id", id)
-      .eq("form_type", "ops")
-      .maybeSingle(),
-  ]);
+  const creativeBrief = briefs.creative;
+  const opsBrief = briefs.ops;
 
   const creativeSubmitted = creativeBrief?.is_submitted ?? false;
   const opsSubmitted = opsBrief?.is_submitted ?? false;

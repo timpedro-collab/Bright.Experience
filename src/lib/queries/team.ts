@@ -62,3 +62,26 @@ export async function getTeamForAccount(
   if (error || !data) return [];
   return data.map(mapMember);
 }
+
+export interface AccountProfileRow {
+  id: string;
+  name: string | null;
+  email: string;
+  role: string;
+  avatar_url: string | null;
+}
+
+/** Profiles belonging to an account (settings team roster). */
+export async function getAccountProfiles(
+  accountId: string,
+): Promise<AccountProfileRow[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("id, name, email, role, avatar_url")
+    .eq("account_id", accountId)
+    .order("name");
+
+  if (error || !data) return [];
+  return data as AccountProfileRow[];
+}

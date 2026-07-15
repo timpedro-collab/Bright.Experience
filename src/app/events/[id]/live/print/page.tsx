@@ -7,9 +7,11 @@ import { notFound, redirect } from "next/navigation";
 import { HourlyChart } from "@/components/telemetry/HourlyChart";
 import { hourlyCurveFromTotal } from "@/lib/metrics/drivers";
 import { getEventById } from "@/lib/queries/events";
+import { getLatestEventMetrics } from "@/lib/queries/event-metrics";
+import { getMachineInstanceSummariesByEvent } from "@/lib/queries/machine-instances";
+import { getTelemetryInRange } from "@/lib/queries/telemetry";
 import { getUser } from "@/lib/auth";
 import { canViewSection } from "@/lib/event-access";
-import { createClient } from "@/lib/supabase/server";
 import { Activity, Users, Gift, Clock } from "lucide-react";
 
 export default async function LivePrintPage({
@@ -27,35 +29,15 @@ export default async function LivePrintPage({
   // the PDF export can't leak live KPIs.
   if (!canViewSection(user.role, "live")) return notFound();
 
-  const supabase = await createClient();
   const today = new Date().toISOString().slice(0, 10);
   const startOfDay = `${today}T00:00:00.000Z`;
   const endOfDay = `${today}T23:59:59.999Z`;
 
-  const [metricsRes, machinesRes, hourlyRes] = await Promise.all([
-    supabase
-      .from("event_metrics_snapshot")
-      .select("*")
-      .eq("event_id", id)
-      .order("snapshot_date", { ascending: false })
-      .limit(1)
-      .maybeSingle(),
-    supabase
-      .from("machine_instances")
-      .select("serial_number, nickname, status, last_heartbeat")
-      .eq("current_event_id", id),
-    supabase
-      .from("telemetry_events")
-      .select("event_type, timestamp")
-      .eq("event_id", id)
-      .gte("timestamp", startOfDay)
-      .lte("timestamp", endOfDay)
-      .order("timestamp"),
+  const [metrics, machines, rawHourly] = await Promise.all([
+    getLatestEventMetrics(id),
+    getMachineInstanceSummariesByEvent(id),
+    getTelemetryInRange(id, startOfDay, endOfDay),
   ]);
-
-  const metrics = metricsRes.data;
-  const machines = machinesRes.data ?? [];
-  const rawHourly = hourlyRes.data ?? [];
 
   const hourlyMap: Record<number, { plays: number; leads: number }> = {};
   for (let h = 8; h <= 20; h++) hourlyMap[h] = { plays: 0, leads: 0 };

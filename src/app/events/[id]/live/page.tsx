@@ -25,6 +25,7 @@ import { getMachineInstancesByEvent } from "@/lib/queries/machine-instances";
 import { getUnreadCount } from "@/lib/queries/notifications";
 import { formatDateMedium } from "@/lib/dates";
 import { deriveLiveStatus, type LiveStatus } from "@/lib/live-status";
+import { hourlyCurveFromTotal } from "@/lib/metrics/drivers";
 import type { UserRole } from "@/types";
 
 function LiveBadge({ status }: { status: LiveStatus }) {
@@ -162,8 +163,37 @@ export default async function LiveDashboardPage({
   }));
 
   const initialHourly: { hour: number; plays: number; leads: number }[] = [];
+  const hourlyMap: Record<number, { plays: number; leads: number }> = {};
   for (let h = 8; h <= 20; h++) {
-    initialHourly.push({ hour: h, plays: 0, leads: 0 });
+    hourlyMap[h] = { plays: 0, leads: 0 };
+  }
+  for (const t of telemetry) {
+    const ts = String((t as Record<string, unknown>).timestamp ?? "");
+    const hour = new Date(ts).getUTCHours();
+    if (hour < 8 || hour > 20 || !hourlyMap[hour]) continue;
+    const type = String((t as Record<string, unknown>).event_type ?? "");
+    if (type.includes("play")) hourlyMap[hour].plays++;
+    if (type === "lead_captured" || type === "lead") hourlyMap[hour].leads++;
+  }
+  for (let h = 8; h <= 20; h++) {
+    initialHourly.push({ hour: h, ...hourlyMap[h] });
+  }
+  const hasHourlyData = initialHourly.some((h) => h.plays > 0 || h.leads > 0);
+  if (!hasHourlyData) {
+    const plays = Number(latestMetrics?.total_plays ?? 0);
+    if (plays > 0) {
+      const curve = hourlyCurveFromTotal(plays);
+      for (let i = 0; i < initialHourly.length; i++) {
+        const point = curve.find((c) => c.hour === initialHourly[i].hour);
+        if (point) {
+          initialHourly[i] = {
+            hour: point.hour,
+            plays: point.plays,
+            leads: point.leads,
+          };
+        }
+      }
+    }
   }
 
   return (

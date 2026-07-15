@@ -62,7 +62,6 @@ export default async function AdminUsersPage({ searchParams }: UsersPageProps) {
             <option value="creative_lead">Creative Lead</option>
             <option value="operations_lead">Operations Lead</option>
             <option value="qa_lead">QA Lead</option>
-            <option value="developer">Developer</option>
             <option value="partner_member">Partner Member</option>
             <option value="partner_admin">Partner Admin</option>
           </select>

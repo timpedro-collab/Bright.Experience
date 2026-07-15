@@ -20,25 +20,17 @@ import { timeSince } from "@/lib/dates";
 
 import { getUser } from "@/lib/auth";
 import { canViewCommercial } from "@/lib/roles";
-import { createClient } from "@/lib/supabase/server";
 import { getUnreadCount } from "@/lib/queries/notifications";
-import { STUCK_CUSTOMER_DAYS } from "@/lib/queries/admin-queues";
+import {
+  getStuckCustomerQueueItems,
+  STUCK_CUSTOMER_DAYS,
+} from "@/lib/queries/admin-queues";
 
 export const metadata = {
   title: "Customer queue · Bright.Experience",
 };
 
 const STALE_DAYS = STUCK_CUSTOMER_DAYS;
-
-interface StaleItem {
-  id: string;
-  kind: "approval" | "briefing" | "asset_revision";
-  title: string;
-  eventName: string | null;
-  accountName: string | null;
-  anchor: string;
-  link: string;
-}
 
 function ageDays(iso: string): number {
   if (!iso) return 0;
@@ -52,85 +44,10 @@ export default async function CustomerQueuePage() {
   if (!user) redirect("/login");
   if (!canViewCommercial(user.role)) redirect("/");
 
-  const supabase = await createClient();
-  // Server Components run once per request; reading the current time here
-  // is intentional — the cutoff is a per-request boundary, not render state.
-  // eslint-disable-next-line react-hooks/purity
-  const cutoff = new Date(Date.now() - STALE_DAYS * 24 * 60 * 60 * 1000).toISOString();
-
-  const [approvalsRes, briefingsRes, revisionsRes, unread] = await Promise.all([
-    supabase
-      .from("approvals")
-      .select(
-        "id, event_id, title, requested_at, events(name, accounts(name))"
-      )
-      .eq("status", "pending")
-      .lt("requested_at", cutoff),
-    supabase
-      .from("briefing_responses")
-      .select(
-        "event_id, form_type, updated_at, events(name, accounts(name))"
-      )
-      .eq("is_submitted", false)
-      .lt("updated_at", cutoff),
-    supabase
-      .from("assets")
-      .select(
-        "id, event_id, name, review_decided_at, events(name, accounts(name))"
-      )
-      .eq("review_status", "revision_requested")
-      .lt("review_decided_at", cutoff),
+  const [items, unread] = await Promise.all([
+    getStuckCustomerQueueItems(STALE_DAYS),
     getUnreadCount(user.id),
   ]);
-
-  const items: StaleItem[] = [];
-
-  for (const row of (approvalsRes.data ?? []) as Array<Record<string, unknown>>) {
-    const events = row.events as
-      | { name?: string; accounts?: { name?: string } }
-      | null;
-    items.push({
-      id: `approval-${row.id}`,
-      kind: "approval",
-      title: `Approval pending: ${row.title as string}`,
-      eventName: events?.name ?? null,
-      accountName: events?.accounts?.name ?? null,
-      anchor: String(row.requested_at),
-      link: `/events/${row.event_id}/approvals`,
-    });
-  }
-
-  for (const row of (briefingsRes.data ?? []) as Array<Record<string, unknown>>) {
-    const events = row.events as
-      | { name?: string; accounts?: { name?: string } }
-      | null;
-    items.push({
-      id: `briefing-${row.event_id}-${row.form_type}`,
-      kind: "briefing",
-      title: `Brief not submitted (${String(row.form_type)})`,
-      eventName: events?.name ?? null,
-      accountName: events?.accounts?.name ?? null,
-      anchor: String(row.updated_at),
-      link: `/events/${row.event_id}/briefing`,
-    });
-  }
-
-  for (const row of (revisionsRes.data ?? []) as Array<Record<string, unknown>>) {
-    const events = row.events as
-      | { name?: string; accounts?: { name?: string } }
-      | null;
-    items.push({
-      id: `asset-${row.id}`,
-      kind: "asset_revision",
-      title: `Awaiting re-upload: ${row.name as string}`,
-      eventName: events?.name ?? null,
-      accountName: events?.accounts?.name ?? null,
-      anchor: String(row.review_decided_at),
-      link: `/events/${row.event_id}/assets`,
-    });
-  }
-
-  items.sort((a, b) => a.anchor.localeCompare(b.anchor));
 
   return (
     <AdminPageShell

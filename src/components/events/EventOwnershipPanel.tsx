@@ -12,6 +12,7 @@ import { ChevronRight } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { groupOpenTasksByOwner, resolveOwnerBadge } from "@/lib/ownership";
+import { isAdminRole } from "@/lib/roles";
 import type { Task, UserRole } from "@/types";
 
 const CUSTOMER_ROLES: UserRole[] = ["customer_user", "customer_admin"];
@@ -50,6 +51,12 @@ export function EventOwnershipPanel({
     <Card tone="subtle">
       <CardHeader className="pb-3">
         <CardTitle>Right now, here&apos;s where things sit</CardTitle>
+        {isAdminRole(viewerRole) && (
+          <p className="text-xs text-muted-foreground">
+            Work on the wrong plate? Open a row and use Reassign to move it
+            between teams.
+          </p>
+        )}
       </CardHeader>
       <CardContent>
         <div className="space-y-2">
@@ -59,6 +66,9 @@ export function EventOwnershipPanel({
               viewerRole,
               isInternal
             );
+            // Customers see *that* the Bright.Blue team owns work, but never the
+            // internal task titles themselves. Only their own row shows specifics.
+            const showTitle = isInternal || owner === "customer";
             return (
               <a
                 key={owner}
@@ -81,12 +91,20 @@ export function EventOwnershipPanel({
                     {heading}
                   </p>
                   <p className="mt-1 text-sm text-foreground truncate">
-                    {ownerTasks[0].title}
-                    {ownerTasks.length > 1 && (
-                      <span className="text-muted-foreground">
-                        {" "}
-                        + {ownerTasks.length - 1} more
-                      </span>
+                    {showTitle ? (
+                      <>
+                        {ownerTasks[0].title}
+                        {ownerTasks.length > 1 && (
+                          <span className="text-muted-foreground">
+                            {" "}
+                            + {ownerTasks.length - 1} more
+                          </span>
+                        )}
+                      </>
+                    ) : (
+                      `${ownerTasks.length} item${
+                        ownerTasks.length === 1 ? "" : "s"
+                      } in progress`
                     )}
                   </p>
                 </div>

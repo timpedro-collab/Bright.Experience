@@ -2,7 +2,7 @@
 import { Badge } from "@/components/ui/badge";
 import { HeroMetric, HeroMetricSatellite } from "@/components/ui/hero-metric";
 import { cn } from "@/lib/utils";
-import { formatUSDFromCents } from "@/lib/currency";
+import { formatMoneyFromPence } from "@/lib/currency";
 
 interface PartnerSummary {
   /** All amounts are integer cents. */
@@ -27,7 +27,7 @@ const STATUS_STYLES: Record<string, { label: string; variant: "success" | "warni
 };
 
 function formatGBP(cents: number): string {
-  return formatUSDFromCents(cents);
+  return formatMoneyFromPence(cents);
 }
 
 export function PartnerDashboard({ partner, summary, partnerSlug }: PartnerDashboardProps) {

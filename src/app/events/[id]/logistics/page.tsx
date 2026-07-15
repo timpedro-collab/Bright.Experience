@@ -18,7 +18,7 @@ import { VenueRequirementsSection } from "@/components/logistics/VenueRequiremen
 import { OpsBriefingForm } from "@/components/briefing/OpsBriefingForm";
 
 import { getEventById } from "@/lib/queries/events";
-import { createClient } from "@/lib/supabase/server";
+import { getBriefingResponse } from "@/lib/queries/briefing";
 import { getLogisticsByEvent } from "@/lib/queries/logistics";
 import {
   getOnsiteContact,
@@ -83,17 +83,7 @@ export default async function LogisticsPage({
   // The customer's ops/venue briefing lives on the (creative-gated) briefing
   // page, so Operations never sees it. Surface it read-only here — the
   // logistics lane Operations actually works in.
-  let opsBrief: { responses?: Record<string, unknown>; is_submitted?: boolean } | null = null;
-  if (isInternal) {
-    const supabase = await createClient();
-    const { data } = await supabase
-      .from("briefing_responses")
-      .select("responses, is_submitted")
-      .eq("event_id", id)
-      .eq("form_type", "ops")
-      .maybeSingle();
-    opsBrief = data;
-  }
+  const opsBrief = isInternal ? await getBriefingResponse(id, "ops") : null;
 
   const grouped = groupByType(entries);
   const typeOrder = ["delivery", "setup", "collection"];

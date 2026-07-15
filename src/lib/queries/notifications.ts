@@ -108,3 +108,56 @@ export async function markAllNotificationsRead(
 
   return !error;
 }
+
+export type NotificationEmailMode = "immediate" | "digest" | "off";
+
+export interface NotificationPreferenceRow {
+  kind: string;
+  inPortal: boolean;
+  emailMode: NotificationEmailMode;
+}
+
+export interface NotificationTimingRow {
+  timezone: string | null;
+  digestHour: number | null;
+  quietStartHour: number | null;
+  quietEndHour: number | null;
+}
+
+/** Per-kind preference rows for the settings form. */
+export async function getNotificationPreferences(
+  userId: string,
+): Promise<NotificationPreferenceRow[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("notification_preferences")
+    .select("kind, in_portal, email_mode")
+    .eq("user_id", userId);
+
+  if (error || !data) return [];
+  return data.map((row) => ({
+    kind: row.kind as string,
+    inPortal: Boolean(row.in_portal),
+    emailMode: row.email_mode as NotificationEmailMode,
+  }));
+}
+
+/** Digest / quiet-hours settings for a user (null when never configured). */
+export async function getNotificationUserSettings(
+  userId: string,
+): Promise<NotificationTimingRow | null> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("notification_user_settings")
+    .select("timezone, digest_hour, quiet_start_hour, quiet_end_hour")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (error || !data) return null;
+  return {
+    timezone: (data.timezone as string) ?? null,
+    digestHour: (data.digest_hour as number) ?? null,
+    quietStartHour: (data.quiet_start_hour as number) ?? null,
+    quietEndHour: (data.quiet_end_hour as number) ?? null,
+  };
+}

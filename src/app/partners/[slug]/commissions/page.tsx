@@ -2,6 +2,7 @@
 import { redirect } from "next/navigation";
 
 import { getUser } from "@/lib/auth";
+import { isPartnerAdmin } from "@/lib/roles";
 import { getPartnerForUser } from "@/lib/queries/partners";
 import {
   getPartnerPipeline,
@@ -24,6 +25,8 @@ export default async function PartnerCommissionsPage({ params }: CommissionsPage
 
   const partner = await getPartnerForUser(user.id);
   if (!partner || partner.slug !== slug) redirect("/");
+  // Commission management belongs to the partner org lead, not member sellers.
+  if (!isPartnerAdmin(user.role)) redirect(`/partners/${slug}/dashboard`);
 
   const [deals, summary, unread] = await Promise.all([
     getPartnerPipeline(partner.id),
@@ -41,7 +44,7 @@ export default async function PartnerCommissionsPage({ params }: CommissionsPage
       scope={partnerName}
       section="Commissions"
       slug={slug}
-      tabs={partnerTabs(slug)}
+      tabs={partnerTabs(slug, user.role)}
       title="Commissions"
       subtitle="What's landing next, what's still in the pipeline, and your full history."
     >

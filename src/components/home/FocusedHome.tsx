@@ -39,7 +39,6 @@ const ROLE_LABEL: Record<UserRole, string> = {
   creative_lead: "Creative",
   operations_lead: "Operations",
   qa_lead: "Quality assurance",
-  developer: "Developer",
   admin: "Admin",
   partner_member: "Partner",
   partner_admin: "Partner",

@@ -6,7 +6,7 @@
 import { Building2, FileText, PartyPopper } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import { formatUSDFromCents } from "@/lib/currency";
+import { formatMoneyFromPence } from "@/lib/currency";
 import type { PartnerDeal, CommissionStatus } from "@/lib/queries/partner-attributions";
 
 const STATUS: Record<
@@ -50,7 +50,14 @@ function eventTypeLabel(t?: string): string | null {
   return t.charAt(0).toUpperCase() + t.slice(1);
 }
 
-export function PartnerDealList({ deals }: { deals: PartnerDeal[] }) {
+export function PartnerDealList({
+  deals,
+  showCommissions = true,
+}: {
+  deals: PartnerDeal[];
+  /** Commission money is the partner org lead's view — hidden for member sellers. */
+  showCommissions?: boolean;
+}) {
   return (
     <ul className="divide-y divide-border/50">
       {deals.map((deal) => {
@@ -94,15 +101,19 @@ export function PartnerDealList({ deals }: { deals: PartnerDeal[] }) {
               </div>
             </div>
             <div className="shrink-0 text-right">
-              <p className="text-sm font-semibold tabular-nums text-foreground">
-                {deal.commissionCents != null
-                  ? formatUSDFromCents(deal.commissionCents)
-                  : "—"}
-              </p>
-              <p className="text-[0.65rem] text-muted-foreground">commission</p>
+              {showCommissions && (
+                <>
+                  <p className="text-sm font-semibold tabular-nums text-foreground">
+                    {deal.commissionCents != null
+                      ? formatMoneyFromPence(deal.commissionCents)
+                      : "—"}
+                  </p>
+                  <p className="text-[0.65rem] text-muted-foreground">commission</p>
+                </>
+              )}
               {deal.valueCents != null && (
                 <p className="mt-0.5 text-[0.65rem] text-muted-foreground tabular-nums">
-                  {formatUSDFromCents(deal.valueCents)} deal
+                  {formatMoneyFromPence(deal.valueCents)} deal
                 </p>
               )}
             </div>

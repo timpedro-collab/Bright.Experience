@@ -11,7 +11,6 @@ export const INTERNAL_ROLE_LIST: UserRole[] = [
   "creative_lead",
   "operations_lead",
   "qa_lead",
-  "developer",
   "admin",
 ];
 

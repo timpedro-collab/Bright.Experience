@@ -7,7 +7,7 @@ import Link from "next/link";
 import { ArrowRight, CheckCircle2, Monitor, Ticket } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { formatUSDFromCents } from "@/lib/currency";
+import { formatMoneyFromPence } from "@/lib/currency";
 import { formatDateShort } from "@/lib/dates";
 
 export interface VenueActionItem {
@@ -71,7 +71,7 @@ export function VenueActionQueue({
                     </div>
                     {item.valueCents != null && (
                       <span className="shrink-0 text-sm font-semibold tabular-nums text-foreground">
-                        {formatUSDFromCents(item.valueCents)}
+                        {formatMoneyFromPence(item.valueCents)}
                       </span>
                     )}
                     <ArrowRight className="mt-1 h-3.5 w-3.5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />

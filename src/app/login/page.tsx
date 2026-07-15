@@ -1,16 +1,11 @@
 /**
  * Login — the first impression for every visitor.
  *
- * Two-panel split:
- *   - Left:  full-bleed deep-ink panel with the signature generative ridge
- *            artwork, the gradient brand lockup, an editorial eyebrow, and
- *            an editorial subhead.
- *   - Right: warm linen-paper panel with the actual sign-in form, demo
- *            account pills, and supporting microcopy.
+ * Two-panel split (both deep-ink in the current theme):
+ *   - Left:  generative ridge artwork, brand lockup, editorial eyebrow/subhead.
+ *   - Right: sign-in form, demo account pills (dev only), supporting microcopy.
  *
- * The split is the same "confident spread" the Proposal Edition uses, so
- * a brand-new customer arriving at /login immediately sees the same
- * design language they'll see in every other surface they touch.
+ * `?redirect=` is allow-listed to same-origin relative paths only.
  */
 "use client";
 
@@ -42,7 +37,10 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectTo = searchParams.get("redirect") || "/";
+  const rawRedirect = searchParams.get("redirect") || "/";
+  // Same-origin relative paths only — block protocol-relative and absolute URLs.
+  const redirectTo =
+    rawRedirect.startsWith("/") && !rawRedirect.startsWith("//") ? rawRedirect : "/";
   const isDev = process.env.NODE_ENV === "development";
 
   async function handleSubmit(e: React.FormEvent) {
@@ -56,14 +54,9 @@ export default function LoginPage() {
       setError(result.error);
       setLoading(false);
     } else {
-      // Demo behaviour: replay the role-specific tour on every sign-in. This
-      // one-shot flag is consumed by TourShell on the next page (home or
-      // /welcome) regardless of onboarding state, so it never loops.
-      try {
-        localStorage.setItem("bright_tour_pending", "true");
-      } catch {
-        /* private mode / storage disabled — tour just won't auto-replay */
-      }
+      // The tour no longer auto-replays on sign-in. It stays available on
+      // demand via the "Take the tour" item in the user menu (and the
+      // /welcome screen), so signing in never forces a skip.
       router.push(redirectTo);
       router.refresh();
     }

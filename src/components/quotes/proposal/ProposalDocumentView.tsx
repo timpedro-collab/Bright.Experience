@@ -11,11 +11,11 @@ import { CalendarClock, Check, Sparkles, Eye, Users, MapPin } from "lucide-react
 import { Card } from "@/components/ui/card";
 import { Hairline } from "@/components/brand";
 import { formatGBP } from "@/lib/roi";
-import { formatNumberUS, formatUSDFromCents } from "@/lib/currency";
+import { formatNumberUS, formatMoneyFromPence } from "@/lib/currency";
 import {
   ALWAYS_ON_OUTCOMES,
   type ProposalDocument,
-} from "@/lib/proposal/build-proposal";
+} from "@/lib/proposals/build-proposal";
 import { ProposalActions } from "./ProposalActions";
 
 interface ProposalDocumentViewProps {
@@ -141,7 +141,7 @@ export function ProposalDocumentView({
                 <ReachStat icon={Eye} value={formatNumberUS(doc.reach.impressions)} label="Impressions" />
                 <ReachStat icon={Users} value={formatNumberUS(doc.reach.leads)} label="Leads" />
                 {doc.reach.doohMediaValueCents != null && (
-                  <ReachStat icon={MapPin} value={`Up to ${formatUSDFromCents(doc.reach.doohMediaValueCents)}`} label="DOOH media value" />
+                  <ReachStat icon={MapPin} value={`Up to ${formatMoneyFromPence(doc.reach.doohMediaValueCents)}`} label="DOOH media value" />
                 )}
               </div>
               <p className="mt-5 max-w-[64ch] text-xs leading-relaxed text-muted-foreground">

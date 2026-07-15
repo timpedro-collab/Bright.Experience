@@ -8,13 +8,12 @@ import { describe, it, expect } from "vitest";
 import { INTERNAL_ROLE_LIST, isInternal } from "./roles";
 
 describe("INTERNAL_ROLE_LIST", () => {
-  it("contains all six internal roles", () => {
+  it("contains all five internal roles", () => {
     expect(INTERNAL_ROLE_LIST).toEqual([
       "events_lead",
       "creative_lead",
       "operations_lead",
       "qa_lead",
-      "developer",
       "admin",
     ]);
   });

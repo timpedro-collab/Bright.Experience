@@ -33,7 +33,7 @@ import { getVenueBySlug } from "@/lib/queries/venues";
 import { getPlacementsByVenue } from "@/lib/queries/placements";
 import { getSlotsByPlacement } from "@/lib/queries/sponsorship-slots";
 import { getUnreadCount } from "@/lib/queries/notifications";
-import { formatUSDFromCents } from "@/lib/currency";
+import { formatMoneyFromPence } from "@/lib/currency";
 import { formatDateShort } from "@/lib/dates";
 
 interface Props {
@@ -142,12 +142,12 @@ export default async function VenueDashboardPage({ params }: Props) {
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Kpi
           label="Booked revenue"
-          value={formatUSDFromCents(econ.bookedCents)}
+          value={formatMoneyFromPence(econ.bookedCents)}
           hint={`${econ.booked} slot${econ.booked === 1 ? "" : "s"} booked · ${econ.confirmed} confirmed`}
         />
         <Kpi
           label="Open slot value"
-          value={formatUSDFromCents(econ.openCents)}
+          value={formatMoneyFromPence(econ.openCents)}
           hint={`${econ.available} slot${econ.available === 1 ? "" : "s"} to sell`}
         />
         <Kpi
@@ -225,7 +225,7 @@ export default async function VenueDashboardPage({ params }: Props) {
                         </div>
                         <div className="shrink-0 text-right">
                           <p className="text-sm font-semibold tabular-nums text-foreground">
-                            {formatUSDFromCents(s.bookedCents)}
+                            {formatMoneyFromPence(s.bookedCents)}
                           </p>
                           <p className="text-[0.65rem] text-muted-foreground">
                             booked

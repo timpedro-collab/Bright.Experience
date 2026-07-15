@@ -29,8 +29,9 @@ import {
   type EditionBreadcrumb,
 } from "./index";
 import { PortalTabNav, type PortalTab } from "./PortalTabNav";
+import { isPartnerAdmin } from "@/lib/roles";
 
-import type { User } from "@/types";
+import type { User, UserRole } from "@/types";
 
 interface PortalPageShellProps {
   user: User;
@@ -122,15 +123,22 @@ export function PortalPageShell({
   );
 }
 
-/** Partner portal tab set for a given slug. */
-export function partnerTabs(slug: string): PortalTab[] {
-  return [
+/**
+ * Partner portal tab set for a given slug. Commission management is the
+ * partner org lead's surface — `partner_member` sellers don't see it, so
+ * the tab only renders for `partner_admin` (see `isPartnerAdmin`).
+ */
+export function partnerTabs(slug: string, viewerRole: UserRole): PortalTab[] {
+  const tabs: PortalTab[] = [
     { label: "Dashboard", href: `/partners/${slug}/dashboard` },
     { label: "Clients", href: `/partners/${slug}/clients` },
     { label: "Quotes", href: `/partners/${slug}/quotes` },
-    { label: "Commissions", href: `/partners/${slug}/commissions` },
-    { label: "Resources", href: `/partners/${slug}/resources` },
   ];
+  if (isPartnerAdmin(viewerRole)) {
+    tabs.push({ label: "Commissions", href: `/partners/${slug}/commissions` });
+  }
+  tabs.push({ label: "Resources", href: `/partners/${slug}/resources` });
+  return tabs;
 }
 
 /** Venue portal tab set for a given slug. */

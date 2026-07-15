@@ -134,7 +134,7 @@ export function IntakeWizard(_props: IntakeWizardProps = {}) {
   // — the customer shouldn't re-answer step 0.
   const [step, setStep] = useState(initial.eventType ? 1 : 0);
   const [data, setData] = useState<IntakeFormData>(initial);
-  const [addons] = useState<string[]>(initialAddons);
+  const [addons, setAddons] = useState<string[]>(initialAddons);
   const [submitted, setSubmitted] = useState<null | { quoteId: string }>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -143,11 +143,20 @@ export function IntakeWizard(_props: IntakeWizardProps = {}) {
     setData((prev) => ({ ...prev, [field]: value }));
   }
 
+  function toggleAddon(slug: string) {
+    setAddons((prev) =>
+      prev.includes(slug) ? prev.filter((s) => s !== slug) : [...prev, slug]
+    );
+  }
+
   async function handleSubmit() {
     setLoading(true);
     setError(null);
     const result = await submitProposalIntake({
       ...data,
+      // eventType is required downstream; derive a sensible one from the
+      // chosen capabilities when the quiz didn't already set it.
+      eventType: deriveEventType(addons, data.eventType),
       attendees: data.attendees ? Number(data.attendees) : undefined,
       activationDays: data.activationDays ? Number(data.activationDays) : undefined,
       estimatedImpressions: data.estimatedImpressions ? Number(data.estimatedImpressions) : undefined,
@@ -166,7 +175,7 @@ export function IntakeWizard(_props: IntakeWizardProps = {}) {
   }
 
   const canProceed =
-    (step === 0 && data.eventType) ||
+    (step === 0 && (addons.length > 0 || data.objective.trim().length > 0 || data.eventType)) ||
     (step === 1 && (data.postcode || data.venueName)) ||
     step === 2 ||
     step === 3 ||
@@ -208,8 +217,9 @@ export function IntakeWizard(_props: IntakeWizardProps = {}) {
 
       {step === 0 && (
         <IntakeStepEvent
-          eventType={data.eventType}
+          selectedAddons={addons}
           objective={data.objective}
+          onToggleAddon={toggleAddon}
           onChange={handleChange}
         />
       )}
@@ -271,6 +281,18 @@ export function IntakeWizard(_props: IntakeWizardProps = {}) {
       </div>
     </div>
   );
+}
+
+/**
+ * Resolve a non-empty `eventType` for the quote. The quiz may have set one;
+ * otherwise we infer a sensible format from the chosen capabilities so the
+ * proposal narrative and validation have something concrete to work with.
+ */
+function deriveEventType(addons: string[], existing: string): string {
+  if (existing) return existing;
+  if (addons.includes("payments-onunit")) return "retail";
+  if (addons.includes("sampling-unlock")) return "sampling";
+  return "activation";
 }
 
 /**

@@ -32,6 +32,7 @@ import { TourShell } from "@/components/onboarding/TourShell";
 import { StreakIndicator } from "@/components/dashboard/StreakIndicator";
 import { CustomerActionSummary } from "@/components/events/CustomerActionSummary";
 import { CustomerHoldingState } from "@/components/home/CustomerHoldingState";
+import { HomeNextStep } from "@/components/home/HomeNextStep";
 import { TeamColumn } from "@/components/home/TeamColumn";
 import { ProgressColumn } from "@/components/home/ProgressColumn";
 import { OtherEventsRail } from "@/components/home/OtherEventsRail";
@@ -44,6 +45,7 @@ import {
 import { STAGE_CONFIG } from "@/types";
 import type { Event, EventTeamMember, Stage, User } from "@/types";
 import { stageLabelFor, healthLabelFor } from "@/lib/customer-copy";
+import type { NextStep } from "@/lib/event-next-step";
 import type { getCustomerActionItems } from "@/lib/queries/deadlines";
 import type { getPendingQuotesForCustomer } from "@/lib/queries/quotes";
 
@@ -60,6 +62,9 @@ interface CustomerDashboardProps {
   totalPages: number;
   page: number;
   pendingQuotes: Awaited<ReturnType<typeof getPendingQuotesForCustomer>>;
+  /** Single blocking next action for the featured event (customer home hero CTA). */
+  nextStep?: NextStep | null;
+  nextStepDueHint?: string | null;
 }
 
 export function CustomerDashboard({
@@ -75,6 +80,8 @@ export function CustomerDashboard({
   totalPages,
   page,
   pendingQuotes,
+  nextStep = null,
+  nextStepDueHint = null,
 }: CustomerDashboardProps) {
   return (
     <TourShell role={user.role} autoStart={false}>
@@ -132,6 +139,10 @@ export function CustomerDashboard({
             />
 
             <div className="space-y-8 py-6" data-tour="featured-event">
+              {nextStep && (
+                <HomeNextStep nextStep={nextStep} dueHint={nextStepDueHint} />
+              )}
+
               <KpiGrid>
                 <KpiCard
                   label="Time to event"

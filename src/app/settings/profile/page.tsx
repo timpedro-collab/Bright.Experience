@@ -20,7 +20,7 @@ import { ProfileForm } from "@/components/settings/ProfileForm";
 
 import { getUser } from "@/lib/auth";
 import { getUnreadCount } from "@/lib/queries/notifications";
-import { createClient } from "@/lib/supabase/server";
+import { getAccountNameSlug } from "@/lib/queries/admin";
 
 export const metadata = {
   title: "Profile · Bright.Experience",
@@ -29,16 +29,10 @@ export const metadata = {
 export default async function ProfileSettingsPage() {
   const user = await getUser();
   if (!user) redirect("/login");
-  const [unread] = await Promise.all([getUnreadCount(user.id)]);
-
-  const supabase = await createClient();
-  const { data: account } = user.accountId
-    ? await supabase
-        .from("accounts")
-        .select("name, slug")
-        .eq("id", user.accountId)
-        .single()
-    : { data: null };
+  const [unread, account] = await Promise.all([
+    getUnreadCount(user.id),
+    user.accountId ? getAccountNameSlug(user.accountId) : Promise.resolve(null),
+  ]);
 
   return (
     <EditionShell>

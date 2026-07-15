@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { requestVenueSlot } from "@/app/actions/venues";
-import { formatUSDFromCents } from "@/lib/currency";
+import { formatMoneyFromPence } from "@/lib/currency";
 import { formatDateMedium } from "@/lib/dates";
 
 export interface AdvertiseSlot {
@@ -128,7 +128,7 @@ function SlotCard({ slot }: { slot: AdvertiseSlot }) {
           {slot.price != null && (
             <div className="text-right">
               <p className="text-sm font-bold text-brand">
-                {formatUSDFromCents(slot.price)}
+                {formatMoneyFromPence(slot.price)}
               </p>
               <p className="text-[0.65rem] uppercase tracking-wider text-muted-foreground">
                 per week

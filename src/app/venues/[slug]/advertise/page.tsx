@@ -16,12 +16,12 @@ import { Badge } from "@/components/ui/badge";
 import { getVenueBySlug } from "@/lib/queries/venues";
 import { getPlacementsByVenue } from "@/lib/queries/placements";
 import { getSlotsByPlacement } from "@/lib/queries/sponsorship-slots";
-import { formatUSDFromCents } from "@/lib/currency";
+import { getVenuePackagesByVenueId } from "@/lib/queries/venue-packages";
+import { formatMoneyFromPence } from "@/lib/currency";
 import {
   VenueAdvertiseBoard,
   type AdvertiseSlot,
 } from "@/components/venues/VenueAdvertiseBoard";
-import { createClient } from "@/lib/supabase/server";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -70,19 +70,7 @@ export default async function VenueAdvertisePage({ params }: Props) {
   const openSlots = slotGroups.flat();
 
   // Venue packages (rate-card style) for advertisers who want a turnkey buy.
-  const supabase = await createClient();
-  const { data: pkgRows } = await supabase
-    .from("venue_packages")
-    .select("id, name, description, price, includes_bright_blue, sort_order")
-    .eq("venue_id", venue.id)
-    .order("sort_order", { ascending: true });
-  const packages = (pkgRows as Array<{
-    id: string;
-    name: string;
-    description: string | null;
-    price: number | null;
-    includes_bright_blue: boolean;
-  }> | null) ?? [];
+  const packages = await getVenuePackagesByVenueId(venue.id);
 
   const fromPrice = openSlots
     .map((s) => s.price ?? Infinity)
@@ -95,7 +83,7 @@ export default async function VenueAdvertisePage({ params }: Props) {
     { label: "Digital screens", value: String(placements.length) },
     { label: "Slots open now", value: String(openSlots.length) },
     Number.isFinite(fromPrice)
-      ? { label: "From", value: `${formatUSDFromCents(fromPrice)}/wk` }
+      ? { label: "From", value: `${formatMoneyFromPence(fromPrice)}/wk` }
       : null,
   ].filter(Boolean) as { label: string; value: string }[];
 
@@ -177,7 +165,7 @@ export default async function VenueAdvertisePage({ params }: Props) {
                     )}
                     {pkg.price != null && (
                       <p className="text-lg font-bold text-brand">
-                        {formatUSDFromCents(Number(pkg.price))}
+                        {formatMoneyFromPence(Number(pkg.price))}
                       </p>
                     )}
                   </CardContent>

@@ -188,3 +188,32 @@ export async function getAccountsList(): Promise<
     .limit(200);
   return (data ?? []) as Array<{ id: string; name: string; slug: string }>;
 }
+
+/** id + name only — invite / new-event dropdowns. */
+export async function getAccountOptions(): Promise<
+  Array<{ id: string; name: string }>
+> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("accounts")
+    .select("id, name")
+    .order("name", { ascending: true });
+
+  if (error || !data) return [];
+  return data.map((a) => ({ id: String(a.id), name: String(a.name) }));
+}
+
+/** Lightweight account name/slug for profile settings. */
+export async function getAccountNameSlug(
+  accountId: string,
+): Promise<{ name: string; slug: string } | null> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("accounts")
+    .select("name, slug")
+    .eq("id", accountId)
+    .single();
+
+  if (error || !data) return null;
+  return { name: String(data.name), slug: String(data.slug) };
+}

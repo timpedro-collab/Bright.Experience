@@ -115,3 +115,93 @@ export async function getInternalQueueCounts(): Promise<InternalQueueCounts> {
     stuckCustomerActions: stuck,
   };
 }
+
+/** One stale customer-side item for the AE phone-chase queue. */
+export interface StuckCustomerQueueItem {
+  id: string;
+  kind: "approval" | "briefing" | "asset_revision";
+  title: string;
+  eventName: string | null;
+  accountName: string | null;
+  anchor: string;
+  link: string;
+}
+
+/**
+ * Full list of customer-side actions past the stuck threshold, oldest first.
+ * Powers `/admin/customer-queue` (the count helper above powers the dashboard tile).
+ */
+export async function getStuckCustomerQueueItems(
+  days = STUCK_CUSTOMER_DAYS,
+): Promise<StuckCustomerQueueItem[]> {
+  const supabase = await createClient();
+  const cutoff = stuckCutoffIso(days);
+
+  const [approvalsRes, briefingsRes, revisionsRes] = await Promise.all([
+    supabase
+      .from("approvals")
+      .select("id, event_id, title, requested_at, events(name, accounts(name))")
+      .eq("status", "pending")
+      .lt("requested_at", cutoff),
+    supabase
+      .from("briefing_responses")
+      .select("event_id, form_type, updated_at, events(name, accounts(name))")
+      .eq("is_submitted", false)
+      .lt("updated_at", cutoff),
+    supabase
+      .from("assets")
+      .select("id, event_id, name, review_decided_at, events(name, accounts(name))")
+      .eq("review_status", "revision_requested")
+      .lt("review_decided_at", cutoff),
+  ]);
+
+  const items: StuckCustomerQueueItem[] = [];
+
+  for (const row of (approvalsRes.data ?? []) as Array<Record<string, unknown>>) {
+    const events = row.events as
+      | { name?: string; accounts?: { name?: string } }
+      | null;
+    items.push({
+      id: `approval-${row.id}`,
+      kind: "approval",
+      title: `Approval pending: ${row.title as string}`,
+      eventName: events?.name ?? null,
+      accountName: events?.accounts?.name ?? null,
+      anchor: String(row.requested_at),
+      link: `/events/${row.event_id}/approvals`,
+    });
+  }
+
+  for (const row of (briefingsRes.data ?? []) as Array<Record<string, unknown>>) {
+    const events = row.events as
+      | { name?: string; accounts?: { name?: string } }
+      | null;
+    items.push({
+      id: `briefing-${row.event_id}-${row.form_type}`,
+      kind: "briefing",
+      title: `Brief not submitted (${String(row.form_type)})`,
+      eventName: events?.name ?? null,
+      accountName: events?.accounts?.name ?? null,
+      anchor: String(row.updated_at),
+      link: `/events/${row.event_id}/briefing`,
+    });
+  }
+
+  for (const row of (revisionsRes.data ?? []) as Array<Record<string, unknown>>) {
+    const events = row.events as
+      | { name?: string; accounts?: { name?: string } }
+      | null;
+    items.push({
+      id: `asset-${row.id}`,
+      kind: "asset_revision",
+      title: `Awaiting re-upload: ${row.name as string}`,
+      eventName: events?.name ?? null,
+      accountName: events?.accounts?.name ?? null,
+      anchor: String(row.review_decided_at),
+      link: `/events/${row.event_id}/assets`,
+    });
+  }
+
+  items.sort((a, b) => a.anchor.localeCompare(b.anchor));
+  return items;
+}

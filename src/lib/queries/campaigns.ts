@@ -39,6 +39,18 @@ export async function getCampaignById(id: string) {
   return data;
 }
 
+/** Count of events linked to a campaign (head count only). */
+export async function getCampaignEventCount(campaignId: string): Promise<number> {
+  const supabase = await createClient();
+  const { count, error } = await supabase
+    .from("campaign_events")
+    .select("id", { count: "exact", head: true })
+    .eq("campaign_id", campaignId);
+
+  if (error) return 0;
+  return count ?? 0;
+}
+
 /** Fetch all events linked to a campaign, ordered by sort_order. */
 export async function getCampaignEvents(campaignId: string) {
   const supabase = await createClient();

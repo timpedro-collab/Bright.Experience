@@ -22,6 +22,7 @@ interface Lead {
   contactPhone?: string;
   source: string;
   capturedAt: string;
+  age?: number | null;
 }
 
 interface LeadTableProps {
@@ -41,11 +42,12 @@ function formatDateTime(iso: string): string {
 }
 
 function downloadCSV(leads: Lead[]) {
-  const headers = ["Name", "Email", "Phone", "Source", "Captured At"];
+  const headers = ["Name", "Email", "Phone", "Age", "Source", "Captured At"];
   const rows = leads.map((l) => [
     l.contactName,
     l.contactEmail,
     l.contactPhone ?? "",
+    l.age != null ? String(l.age) : "",
     l.source,
     l.capturedAt,
   ]);
@@ -136,6 +138,7 @@ export function LeadTable({ leads }: LeadTableProps) {
                 onSort={toggleSort}
               />
               <TableHead className="text-muted-foreground">Phone</TableHead>
+              <TableHead className="text-muted-foreground">Age</TableHead>
               <SortableHead
                 label="Source"
                 field="source"
@@ -156,7 +159,7 @@ export function LeadTable({ leads }: LeadTableProps) {
             {sorted.length === 0 ? (
               <TableRow>
                 <TableCell
-                  colSpan={5}
+                  colSpan={6}
                   className="text-center text-muted-foreground py-8"
                 >
                   No leads found
@@ -176,6 +179,9 @@ export function LeadTable({ leads }: LeadTableProps) {
                   </TableCell>
                   <TableCell className="text-muted-foreground">
                     {lead.contactPhone ?? "—"}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground tabular-nums">
+                    {lead.age != null ? lead.age : "—"}
                   </TableCell>
                   <TableCell className="text-muted-foreground">
                     {lead.source}

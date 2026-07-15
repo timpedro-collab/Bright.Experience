@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { Users } from "lucide-react";
 
 import { getUser } from "@/lib/auth";
+import { isPartnerAdmin } from "@/lib/roles";
 import { getPartnerForUser } from "@/lib/queries/partners";
 import {
   getPartnerPipeline,
@@ -13,7 +14,7 @@ import { PortalPageShell, partnerTabs } from "@/components/brand";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PartnerDealList } from "@/components/partners/PartnerPipeline";
-import { formatUSDFromCents } from "@/lib/currency";
+import { formatMoneyFromPence } from "@/lib/currency";
 
 interface ClientsPageProps {
   params: Promise<{ slug: string }>;
@@ -32,6 +33,8 @@ export default async function PartnerClientsPage({ params }: ClientsPageProps) {
     getUnreadCount(user.id),
   ]);
   const partnerName = String(partner.name ?? "Partner");
+  // Per-client commission totals are the org lead's view.
+  const showCommissions = isPartnerAdmin(user.role);
 
   // Group every deal under its client so the partner sees relationships, not rows.
   const byClient = new Map<string, PartnerDeal[]>();
@@ -53,9 +56,13 @@ export default async function PartnerClientsPage({ params }: ClientsPageProps) {
       scope={partnerName}
       section="Clients"
       slug={slug}
-      tabs={partnerTabs(slug)}
+      tabs={partnerTabs(slug, user.role)}
       title="Your clients"
-      subtitle="Every company you've referred, and what each has earned you."
+      subtitle={
+        showCommissions
+          ? "Every company you've referred, and what each has earned you."
+          : "Every company you've referred, grouped by relationship."
+      }
     >
       {clients.length === 0 ? (
         <EmptyState
@@ -75,15 +82,17 @@ export default async function PartnerClientsPage({ params }: ClientsPageProps) {
                     {client.deals.length} deal{client.deals.length === 1 ? "" : "s"}
                   </span>
                 </CardTitle>
-                <div className="text-right">
-                  <p className="text-sm font-semibold tabular-nums text-foreground">
-                    {formatUSDFromCents(client.earned)}
-                  </p>
-                  <p className="text-[0.65rem] text-muted-foreground">earned</p>
-                </div>
+                {showCommissions && (
+                  <div className="text-right">
+                    <p className="text-sm font-semibold tabular-nums text-foreground">
+                      {formatMoneyFromPence(client.earned)}
+                    </p>
+                    <p className="text-[0.65rem] text-muted-foreground">earned</p>
+                  </div>
+                )}
               </CardHeader>
               <CardContent>
-                <PartnerDealList deals={client.deals} />
+                <PartnerDealList deals={client.deals} showCommissions={showCommissions} />
               </CardContent>
             </Card>
           ))}

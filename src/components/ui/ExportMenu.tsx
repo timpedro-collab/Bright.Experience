@@ -4,6 +4,12 @@
 import { useState } from "react";
 import { Download, FileText, FileSpreadsheet, File, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 
 interface ExportMenuProps {
@@ -20,14 +26,12 @@ const FORMATS = [
 ] as const;
 
 export function ExportMenu({ eventId, view, hidePdf }: ExportMenuProps) {
-  const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState<string | null>(null);
 
   const formats = hidePdf ? FORMATS.filter((f) => f.key !== "pdf") : FORMATS;
 
   async function handleExport(format: string) {
     setLoading(format);
-    setOpen(false);
     const toastId = toast.loading(`Generating ${format.toUpperCase()}...`);
 
     try {
@@ -65,42 +69,34 @@ export function ExportMenu({ eventId, view, hidePdf }: ExportMenuProps) {
   }
 
   return (
-    <div className="relative">
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={() => setOpen((o) => !o)}
-        disabled={loading !== null}
-        className="gap-1.5"
-      >
-        {loading ? (
-          <Loader2 size={14} className="animate-spin" />
-        ) : (
-          <Download size={14} />
-        )}
-        Export
-      </Button>
-
-      {open && (
-        <>
-          <div
-            className="fixed inset-0 z-40"
-            onClick={() => setOpen(false)}
-          />
-          <div className="absolute right-0 top-full mt-1 z-50 w-40 rounded-md border border-border bg-card shadow-lg py-1">
-            {formats.map(({ key, label, icon: Icon }) => (
-              <button
-                key={key}
-                onClick={() => handleExport(key)}
-                className="flex w-full items-center gap-2.5 px-3 py-2 text-sm text-foreground hover:bg-accent/20 transition-colors"
-              >
-                <Icon size={14} className="text-muted-foreground" />
-                {label}
-              </button>
-            ))}
-          </div>
-        </>
-      )}
-    </div>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={loading !== null}
+          className="gap-1.5"
+        >
+          {loading ? (
+            <Loader2 size={14} className="animate-spin" />
+          ) : (
+            <Download size={14} />
+          )}
+          Export
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-40">
+        {formats.map(({ key, label, icon: Icon }) => (
+          <DropdownMenuItem
+            key={key}
+            onSelect={() => handleExport(key)}
+            className="cursor-pointer"
+          >
+            <Icon size={14} className="text-muted-foreground" />
+            {label}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

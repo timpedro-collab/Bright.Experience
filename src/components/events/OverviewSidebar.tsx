@@ -12,6 +12,7 @@ import { MetricRow } from "@/components/events/MetricRow";
 import { YourTeamWidget } from "@/components/events/YourTeamWidget";
 import { isInternalRole } from "@/lib/roles";
 import { canViewSection } from "@/lib/event-access";
+import { ownerForTask } from "@/lib/ownership";
 import { formatDueProximity } from "@/lib/dates";
 import type { Milestone, Task, Approval, EventTeamMember, UserRole } from "@/types";
 import type { AuditRow } from "@/lib/queries/audit";
@@ -49,7 +50,12 @@ export function OverviewSidebar({
   ).length;
 
   const upcomingTasks = tasks
-    .filter((t) => t.status === "pending" && t.assignedRole === viewerRole)
+    .filter(
+      (t) =>
+        t.status === "pending" &&
+        ownerForTask(t) !== "customer" &&
+        t.assignedRole === viewerRole,
+    )
     .slice(0, 3);
 
   return (
@@ -179,7 +185,8 @@ export function OverviewSidebar({
         </>
       )}
 
-      {recentActivity.length > 0 && (
+      {/* Activity feed is internal-only — customers use Actions / Messages, not the audit log. */}
+      {canViewSection(viewerRole, "activity") && recentActivity.length > 0 && (
         <>
           <Hairline />
           <div>
@@ -187,14 +194,12 @@ export function OverviewSidebar({
             <div className="mt-4">
               <ActivityFeed entries={recentActivity} compact />
             </div>
-            {canViewSection(viewerRole, "activity") && (
-              <Link
-                href={`/events/${eventId}/activity`}
-                className="mt-3 inline-block text-overline text-[var(--color-bb-cobalt)] underline decoration-from-font underline-offset-4 font-medium"
-              >
-                View all activity →
-              </Link>
-            )}
+            <Link
+              href={`/events/${eventId}/activity`}
+              className="mt-3 inline-block text-overline text-[var(--color-bb-cobalt)] underline decoration-from-font underline-offset-4 font-medium"
+            >
+              View all activity →
+            </Link>
           </div>
         </>
       )}

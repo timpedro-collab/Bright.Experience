@@ -17,7 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { EditorialEyebrow } from "@/components/brand";
 import { cn } from "@/lib/utils";
-import { formatUSDFromCents } from "@/lib/currency";
+import { formatMoneyFromPence } from "@/lib/currency";
 import {
   MachineStep,
   GameStep,
@@ -193,7 +193,7 @@ export function ConfigureClient({
       <Separator className="my-6" />
       <div className="flex items-center justify-between">
         <p className="text-lg font-bold text-foreground">
-          Total: {formatUSDFromCents(displayedTotal, { decimals: true })}
+          Total: {formatMoneyFromPence(displayedTotal, { decimals: true })}
         </p>
         <div className="flex gap-3">
           <Button

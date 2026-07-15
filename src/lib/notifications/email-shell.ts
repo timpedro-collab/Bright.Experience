@@ -88,7 +88,7 @@ export function renderNotificationEmail(payload: EmailShellPayload): string {
   const tone = eyebrowTone(payload.eyebrow);
   const ae = DEFAULT_ACCOUNT_MANAGER;
   const baseUrl =
-    process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3001";
+    process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
   const manageHref =
     payload.manageHref ??
     `${baseUrl}/settings/notifications${

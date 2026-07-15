@@ -15,9 +15,8 @@ import { getUser } from "@/lib/auth";
 import { canViewCommercial } from "@/lib/roles";
 import { getUnreadCount } from "@/lib/queries/notifications";
 import { getOutstandingInvoices, type Invoice } from "@/app/actions/invoices";
-import { InvoiceActions } from "@/components/invoices/InvoiceActions";
 import { formatDateShort } from "@/lib/dates";
-import { formatUSDFromCents } from "@/lib/currency";
+import { formatMoneyFromPence } from "@/lib/currency";
 
 export const metadata = {
   title: "Invoices · Bright.Experience",
@@ -89,15 +88,9 @@ export default async function InvoicesPage() {
       align: "right",
       cell: (inv) => (
         <span className="text-sm font-semibold text-foreground tabular-nums">
-          {formatUSDFromCents(inv.amount, { decimals: true })}
+          {formatMoneyFromPence(inv.amount, { decimals: true })}
         </span>
       ),
-    },
-    {
-      key: "actions",
-      header: "",
-      align: "right",
-      cell: (inv) => <InvoiceActions invoiceId={inv.id} status={inv.status} />,
     },
   ];
 
@@ -108,13 +101,13 @@ export default async function InvoicesPage() {
       section="Invoices"
       eyebrow="Internal · Finance"
       title="Outstanding invoices."
-      subtitle="Every open invoice across all events. Overdue items auto-escalate via the notification spine."
+      subtitle="A read-only mirror of every open invoice — raised and settled in the finance system, overdue items auto-escalate via the notification spine."
     >
       <div className="py-8 space-y-8">
         <KpiGrid className="lg:grid-cols-3">
           <KpiCard
             label="Total outstanding"
-            value={formatUSDFromCents(totalOutstanding, { decimals: true })}
+            value={formatMoneyFromPence(totalOutstanding, { decimals: true })}
             icon={Receipt}
             hint={`${invoices.length} open invoice${invoices.length === 1 ? "" : "s"}`}
           />

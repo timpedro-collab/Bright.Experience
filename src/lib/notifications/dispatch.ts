@@ -200,7 +200,7 @@ export async function dispatchNotification(
 
   const notified: string[] = [];
   const baseUrl =
-    process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3001";
+    process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
   // ── In-portal lane ────────────────────────────────────────
   if (!options.skipInPortal) {

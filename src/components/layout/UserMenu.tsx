@@ -2,7 +2,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { LogOut, Moon, Settings, Sun, User as UserIcon } from "lucide-react";
+import { Compass, LogOut, Moon, Settings, Sun, User as UserIcon } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/client";
 import { useTheme } from "@/components/theme/ThemeProvider";
@@ -24,7 +24,6 @@ const ROLE_LABELS: Record<string, string> = {
   creative_lead: "Creative lead",
   operations_lead: "Operations lead",
   qa_lead: "QA lead",
-  developer: "Developer",
   admin: "Administrator",
   partner_member: "Partner",
   partner_admin: "Partner admin",
@@ -43,6 +42,18 @@ export function UserMenu({ user }: UserMenuProps) {
     await supabase.auth.signOut();
     // Land on the public home/landing (catalog, quiz, proposal) rather than
     // the bare login screen.
+    router.push("/");
+    router.refresh();
+  }
+
+  function handleStartTour() {
+    // Hand off to TourShell, which consumes this one-shot flag on the
+    // dashboard ("/") and runs the role-specific tour from the top.
+    try {
+      localStorage.setItem("bright_tour_pending", "true");
+    } catch {
+      /* private mode / storage disabled — tour just won't launch */
+    }
     router.push("/");
     router.refresh();
   }
@@ -103,6 +114,10 @@ export function UserMenu({ user }: UserMenuProps) {
         <DropdownMenuItem onSelect={() => router.push("/settings")}>
           <Settings className="size-4" />
           Settings
+        </DropdownMenuItem>
+        <DropdownMenuItem onSelect={handleStartTour}>
+          <Compass className="size-4" />
+          Take the tour
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem

@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { PAGE_SIZE, paginateQuery, totalPages } from "@/lib/pagination";
 
 const QUOTE_LIST_COLUMNS = `id, track, status, contact_name, contact_email, company_name,
-       package_id, event_type, venue_name, postcode, location_postcode,
+       package_id, event_type, venue_name, postcode,
        event_date_start, event_date_end, total_amount,
        reach_track, attendees, activation_location, activation_days,
        estimated_impressions, dooh_media_value,

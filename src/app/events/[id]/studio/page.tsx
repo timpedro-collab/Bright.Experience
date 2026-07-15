@@ -6,7 +6,7 @@ import { EventPageShell } from "@/components/brand/event-page-shell";
 import { EditorialEyebrow, Hairline } from "@/components/brand";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { formatUSDFromCents } from "@/lib/currency";
+import { formatMoneyFromPence } from "@/lib/currency";
 import { StudioTierCard } from "@/components/studio/StudioServiceCard";
 import { StudioRequestActions } from "@/components/studio/StudioRequestActions";
 
@@ -190,7 +190,7 @@ function RequestRow({
           <p className="mt-1.5 text-overline text-muted-foreground">
             Quote{" "}
             <span className="text-foreground font-semibold">
-              {formatUSDFromCents(request.quotedCost, { decimals: true })}
+              {formatMoneyFromPence(request.quotedCost, { decimals: true })}
             </span>
             {request.quotedDays && (
               <>

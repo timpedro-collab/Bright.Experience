@@ -20,15 +20,19 @@ import {
 } from "./capabilities";
 
 describe("ALWAYS_ON", () => {
-  it("contains exactly the five canonical always-on capabilities", () => {
+  it("contains exactly the four canonical always-on capabilities", () => {
     const slugs = ALWAYS_ON.map((c) => c.slug);
     expect(slugs).toEqual([
       "tap-to-play",
       "branded-wrap",
-      "lead-capture",
       "engagement-dashboard",
       "turnkey",
     ]);
+  });
+
+  it("does not include lead capture — it is a selectable, priced capability", () => {
+    expect(ALWAYS_ON.map((c) => c.slug)).not.toContain("lead-capture");
+    expect(UPSELL_SLUGS.has("lead-capture")).toBe(true);
   });
 });
 

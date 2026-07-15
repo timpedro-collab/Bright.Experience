@@ -12,8 +12,6 @@ import { EventPageShell } from "@/components/brand/event-page-shell";
 import { EditorialEyebrow, Hairline } from "@/components/brand";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { MetricCard } from "@/components/reports/MetricCard";
-import { PredictedVsActual } from "@/components/reports/PredictedVsActual";
-import { BenchmarkComparison } from "@/components/reports/BenchmarkComparison";
 import {
   SurveySentimentCard,
   AudienceDemographicsCard,
@@ -30,7 +28,6 @@ import { getEventById } from "@/lib/queries/events";
 import { getRebookSlugsForEvent } from "@/lib/queries/rebook";
 import { getEventReports } from "@/lib/queries/event-reports";
 import { getLatestEventMetrics } from "@/lib/queries/event-metrics";
-import { getBenchmarkForComparison } from "@/lib/queries/benchmarks";
 import { GenerateReportButton, PublishReportBanner } from "@/components/reports/ReportActions";
 import { ScheduledExportManager } from "@/components/reports/ScheduledExportManager";
 import { getScheduledExports } from "@/app/actions/scheduled-exports";
@@ -40,7 +37,6 @@ import { canViewSection } from "@/lib/event-access";
 import {
   normaliseHighlights,
   normaliseMetrics,
-  normalisePredictions,
 } from "@/lib/reports/normalise";
 
 /**
@@ -133,10 +129,7 @@ export default async function ReportsPage({
     );
   }
 
-  const [latestMetrics, benchmarkList] = await Promise.all([
-    getLatestEventMetrics(id),
-    getBenchmarkForComparison(event.eventType ?? "experiential"),
-  ]);
+  const latestMetrics = await getLatestEventMetrics(id);
 
   // Use the higher of the live snapshot vs the report blob for each metric.
   // The latest daily snapshot is only the final day's reading, whereas the
@@ -157,30 +150,7 @@ export default async function ReportsPage({
       reportMetrics.mediaImpressions
     ),
   };
-  const predictions = normalisePredictions(report.predictionsJson);
   const highlights = normaliseHighlights(report.highlightsJson);
-
-  // Shape the metric records consumed by PredictedVsActual + BenchmarkComparison.
-  const metricsRecord: Record<string, number> = {
-    interactions: metrics.totalInteractions,
-    leads: metrics.totalLeads,
-    impressions: metrics.mediaImpressions,
-  };
-  const predictionsRecord: Record<string, number> = {};
-  if (predictions.estimatedInteractions !== null) {
-    predictionsRecord.interactions = predictions.estimatedInteractions;
-  }
-  if (predictions.estimatedLeads !== null) {
-    predictionsRecord.leads = predictions.estimatedLeads;
-  }
-  if (predictions.estimatedImpressions !== null) {
-    predictionsRecord.impressions = predictions.estimatedImpressions;
-  }
-
-  const benchmarkMap: Record<string, number> = {};
-  for (const b of benchmarkList) {
-    benchmarkMap[b.metricName] = b.avgValue ?? 0;
-  }
 
   return (
     <EventPageShell
@@ -189,11 +159,16 @@ export default async function ReportsPage({
       unreadCount={unread}
       section="Reports"
       title="Proof of performance."
-      subtitle="Headline metrics, predictions vs actuals, and a shareable summary you can hand to stakeholders."
+      subtitle="Board-ready proof within 24 hours of wrap — headline metrics, a shareable link, and exports you can hand to stakeholders."
       isInternal={isInternal}
       viewerRole={user.role}
       heroRight={<ExportMenu eventId={id} view="reports" />}
     >
+      {!isInternal && report.isPublished && (
+        <p className="mb-2 text-sm text-muted-foreground">
+          Share the public link or export PDF/CSV/Excel — this is the artefact that renews the next buy.
+        </p>
+      )}
       {isInternal && !report.isPublished && (
         <PublishReportBanner reportId={report.id} />
       )}
@@ -236,34 +211,6 @@ export default async function ReportsPage({
             </div>
           </div>
         </DashboardTabs>
-      </section>
-
-      <Hairline className="opacity-60" />
-
-      <section className="py-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {Object.keys(predictionsRecord).length > 0 && (
-          <div>
-            <EditorialEyebrow>Predicted vs actual</EditorialEyebrow>
-            <div className="mt-4">
-              <PredictedVsActual
-                predictions={predictionsRecord}
-                actuals={metricsRecord}
-                hideTitle
-              />
-            </div>
-          </div>
-        )}
-        {Object.keys(benchmarkMap).length > 0 && (
-          <div>
-            <EditorialEyebrow>Vs benchmark</EditorialEyebrow>
-            <div className="mt-4">
-              <BenchmarkComparison
-                eventMetrics={metricsRecord}
-                benchmarks={benchmarkMap}
-              />
-            </div>
-          </div>
-        )}
       </section>
 
       {(metrics.survey.length > 0 || metrics.npsScore != null) && (

@@ -92,7 +92,7 @@ export function PartnerResourceCard({
             disabled
             className="w-full border-border/60 bg-muted/40"
           >
-            Coming Soon
+            Coming soon — ask your partner manager
           </Button>
         )}
       </CardContent>
