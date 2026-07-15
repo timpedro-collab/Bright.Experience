@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { cn } from "@/lib/utils";
 import { DollarSign, Clock, CheckCircle2 } from "lucide-react";
-import { formatUSDFromCents } from "@/lib/currency";
+import { formatMoneyFromPence } from "@/lib/currency";
 
 interface CommissionTrackerProps {
   /** All amounts are integer cents. */
@@ -13,7 +13,7 @@ interface CommissionTrackerProps {
 }
 
 function formatCurrency(cents: number): string {
-  return formatUSDFromCents(cents);
+  return formatMoneyFromPence(cents);
 }
 
 export function CommissionTracker({
@@ -66,7 +66,7 @@ export function CommissionTracker({
                 </div>
               </CardHeader>
               <CardContent>
-                <p className={cn("text-2xl font-bold text-heading", card.accent)}>
+                <p className={cn("text-2xl font-bold text-heading tabular-nums", card.accent)}>
                   {card.value}
                 </p>
               </CardContent>
@@ -81,7 +81,7 @@ export function CommissionTracker({
             <span className="text-sm font-medium text-muted-foreground">
               Payout progress
             </span>
-            <span className="text-sm font-mono text-muted-foreground">
+            <span className="text-sm tabular-nums text-muted-foreground">
               {paidRatio}%
             </span>
           </div>

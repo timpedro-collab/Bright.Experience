@@ -19,7 +19,7 @@
  */
 "use client";
 
-import { useMemo, useTransition } from "react";
+import { useMemo, useOptimistic, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
   Bell,
@@ -115,15 +115,23 @@ export function NotificationList({ notifications }: NotificationListProps) {
   const router = useRouter();
   const [, startTransition] = useTransition();
 
+  // The unread dot clears the instant a row is clicked — the server action
+  // reconciles in the background and React reverts on failure.
+  const [optimisticNotifications, markOptimisticRead] = useOptimistic(
+    notifications,
+    (state: Notification[], id: string) =>
+      state.map((n) => (n.id === id ? { ...n, isRead: true } : n))
+  );
+
   const { actionItems, fyi } = useMemo(() => {
     const a: Notification[] = [];
     const f: Notification[] = [];
-    for (const n of notifications) {
+    for (const n of optimisticNotifications) {
       if (n.actionRequired) a.push(n);
       else f.push(n);
     }
     return { actionItems: a, fyi: f };
-  }, [notifications]);
+  }, [optimisticNotifications]);
 
   const fyiByRecency = useMemo(
     () => groupBy(fyi, (n) => recencyKey(n.createdAt)),
@@ -133,6 +141,7 @@ export function NotificationList({ notifications }: NotificationListProps) {
   function handleClick(notification: Notification) {
     startTransition(async () => {
       if (!notification.isRead) {
+        markOptimisticRead(notification.id);
         await markRead(notification.id);
       }
       if (notification.link) router.push(notification.link);

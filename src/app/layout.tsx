@@ -71,6 +71,13 @@ export default async function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
       <body className="antialiased min-h-screen" suppressHydrationWarning>
+        {/* Keyboard users can jump straight past the chrome to the page body. */}
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-primary-foreground focus:shadow-lg"
+        >
+          Skip to content
+        </a>
         <ThemeProvider>
           {showRail ? (
             <InternalShell role={user!.role}>{children}</InternalShell>

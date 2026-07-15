@@ -1,8 +1,9 @@
 /** Threaded comment display + compose form for an asset. */
 "use client";
 
-import { useState, useTransition, useMemo } from "react";
+import { useState, useTransition, useOptimistic, useMemo } from "react";
 import { MessageCircle, Reply, Trash2, Send } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { addComment, deleteComment } from "@/app/actions/comments";
 import { cn } from "@/lib/utils";
@@ -37,26 +38,52 @@ export function AssetCommentThread({
   const [body, setBody] = useState("");
   const [isPending, startTransition] = useTransition();
 
+  // New comments appear in the thread the moment they're sent; the server
+  // copy replaces them once the action's revalidation lands. A failed send
+  // reverts the entry and restores the drafted text.
+  const [optimisticComments, appendOptimistic] = useOptimistic(
+    comments,
+    (state: Comment[], c: Comment) => [...state, c]
+  );
+
   const rootComments = useMemo(
-    () => comments.filter((c) => !c.parentId),
-    [comments],
+    () => optimisticComments.filter((c) => !c.parentId),
+    [optimisticComments],
   );
   const repliesMap = useMemo(() => {
     const map: Record<string, Comment[]> = {};
-    for (const c of comments) {
+    for (const c of optimisticComments) {
       if (c.parentId) {
         (map[c.parentId] ??= []).push(c);
       }
     }
     return map;
-  }, [comments]);
+  }, [optimisticComments]);
 
   function handleSubmit() {
-    if (!body.trim()) return;
+    const text = body.trim();
+    if (!text) return;
+    const parent = replyTo ?? undefined;
+    // Clear the compose box immediately — the comment is already visible.
+    setBody("");
+    setReplyTo(null);
     startTransition(async () => {
-      await addComment(eventId, assetId, body, replyTo ?? undefined);
-      setBody("");
-      setReplyTo(null);
+      appendOptimistic({
+        id: `optimistic-${Date.now()}`,
+        eventId,
+        assetId,
+        authorId: currentUserId,
+        authorName: "You",
+        body: text,
+        parentId: parent,
+        createdAt: new Date().toISOString(),
+      });
+      const result = await addComment(eventId, assetId, text, parent);
+      if (!result.success) {
+        toast.error(result.error);
+        setBody(text);
+        if (parent) setReplyTo(parent);
+      }
     });
   }
 

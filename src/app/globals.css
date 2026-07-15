@@ -510,6 +510,42 @@ body {
 }
 
 /* ───────────────────────────────────────────────────────────
+   Live dashboard motion — value pulses, feed entrances, status
+   changes. All neutralized by the global reduced-motion block.
+   ─────────────────────────────────────────────────────────── */
+
+/* A metric ticked up: brief brand-tinted scale pulse on the number. */
+@keyframes live-value-pulse {
+	0% { color: var(--bb-brand); transform: scale(1.05); }
+	100% { color: inherit; transform: scale(1); }
+}
+
+.live-value-pulse {
+	display: inline-block;
+	animation: live-value-pulse 0.9s var(--bb-ease-emphasized);
+}
+
+/* A new feed item arrived while watching. */
+@keyframes feed-item-in {
+	from { opacity: 0; transform: translateY(6px); }
+	to { opacity: 1; transform: translateY(0); }
+}
+
+.feed-item-in {
+	animation: feed-item-in 0.45s var(--bb-ease-emphasized) both;
+}
+
+/* A machine changed state: soft expanding ring around the badge. */
+@keyframes status-pulse {
+	0% { box-shadow: 0 0 0 0 hsl(230 93% 53% / 0.45); }
+	100% { box-shadow: 0 0 0 8px transparent; }
+}
+
+.status-pulse {
+	animation: status-pulse 0.9s var(--bb-ease-emphasized) 2;
+}
+
+/* ───────────────────────────────────────────────────────────
    Hairline gradients (used in PageHeader, dividers)
    ─────────────────────────────────────────────────────────── */
 

@@ -1,4 +1,9 @@
-/** Animated live counter card — displays a KPI with count-up animation and optional trend */
+/**
+ * Animated live counter card — displays a KPI with count-up animation,
+ * a brand-tinted pulse when the value ticks up mid-session, and a
+ * "since you opened" delta chip so change is visible without staring
+ * at the number.
+ */
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -26,6 +31,23 @@ export function LiveCounter({
   const [displayValue, setDisplayValue] = useState(0);
   const animationRef = useRef<number | null>(null);
   const startRef = useRef<number>(0);
+
+  // Session baseline: what the metric read when this dashboard was opened.
+  const baselineRef = useRef(value);
+  const sessionDelta = value - baselineRef.current;
+
+  // Pulse the number briefly whenever the value ticks up mid-session.
+  const prevValueRef = useRef(value);
+  const [pulsing, setPulsing] = useState(false);
+  useEffect(() => {
+    if (value > prevValueRef.current) {
+      setPulsing(true);
+      const t = setTimeout(() => setPulsing(false), 950);
+      prevValueRef.current = value;
+      return () => clearTimeout(t);
+    }
+    prevValueRef.current = value;
+  }, [value]);
 
   useEffect(() => {
     const duration = 1200;
@@ -62,10 +84,17 @@ export function LiveCounter({
           {icon}
         </div>
         <p className="text-heading text-3xl font-bold tabular-nums text-foreground">
-          {displayValue.toLocaleString("en-US")}
-          {suffix ? <span className="text-xl font-semibold">{suffix}</span> : null}
+          <span className={cn(pulsing && "live-value-pulse")}>
+            {displayValue.toLocaleString("en-US")}
+            {suffix ? <span className="text-xl font-semibold">{suffix}</span> : null}
+          </span>
         </p>
         <p className="mt-1 text-sm text-muted-foreground">{label}</p>
+        {sessionDelta > 0 && (
+          <p className="mt-1.5 inline-flex items-center rounded-full bg-success/10 px-2 py-0.5 text-[0.65rem] font-semibold tabular-nums text-success">
+            +{sessionDelta.toLocaleString("en-US")} since you opened
+          </p>
+        )}
         {trend !== undefined && (
           <p
             className={cn(

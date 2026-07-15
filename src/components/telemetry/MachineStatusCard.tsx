@@ -1,4 +1,11 @@
-/** Machine instance status card — shows connectivity, firmware, and operational state */
+/**
+ * Machine instance status card — shows connectivity, firmware, and
+ * operational state. When the status changes while the dashboard is
+ * open, the badge pulses so the transition doesn't go unnoticed.
+ */
+"use client";
+
+import { useEffect, useRef, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Wifi, WifiOff } from "lucide-react";
@@ -38,6 +45,18 @@ function getRelativeTime(timestamp: string): string {
 }
 
 export function MachineStatusCard({ machine, isCustomer = false }: MachineStatusCardProps) {
+  // Pulse the badge when the status flips mid-session (not on mount).
+  const prevStatusRef = useRef(machine.status);
+  const [statusPulse, setStatusPulse] = useState(false);
+  useEffect(() => {
+    if (prevStatusRef.current !== machine.status) {
+      prevStatusRef.current = machine.status;
+      setStatusPulse(true);
+      const t = setTimeout(() => setStatusPulse(false), 2000);
+      return () => clearTimeout(t);
+    }
+  }, [machine.status]);
+
   const style = STATUS_STYLES[machine.status] ?? STATUS_STYLES.retired;
   const statusLabel = isCustomer ? style.customerLabel : style.label;
   const title = machine.nickname ?? (isCustomer ? "Activation unit" : machine.serialNumber);
@@ -60,7 +79,15 @@ export function MachineStatusCard({ machine, isCustomer = false }: MachineStatus
               </p>
             )}
           </div>
-          <Badge className={cn("text-xs", style.bg, style.text, "border-0")}>
+          <Badge
+            className={cn(
+              "text-xs",
+              style.bg,
+              style.text,
+              "border-0",
+              statusPulse && "status-pulse"
+            )}
+          >
             {statusLabel}
           </Badge>
         </div>

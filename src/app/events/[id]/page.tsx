@@ -1,8 +1,13 @@
 /**
  * Event overview — the customer's (or internal user's) deep view of a
  * single event. Uses EventPageShell for consistent chrome.
+ *
+ * Streams: the hero shell renders as soon as the event row is loaded;
+ * the heavy content (tasks, assets, approvals, activity, team) resolves
+ * behind a Suspense boundary so first paint isn't gated on eight queries.
  */
 
+import { Suspense } from "react";
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import {
@@ -27,7 +32,7 @@ import {
   KpiCard,
 } from "@/components/cloud";
 import { HealthBadge, StageBadge } from "@/components/ui/StatusBadge";
-import { TaskChecklist } from "@/components/events/TaskChecklist";
+import { CustomerActionSummary } from "@/components/events/CustomerActionSummary";
 import { OverviewNextStep } from "@/components/events/OverviewNextStep";
 import { OverviewSidebar } from "@/components/events/OverviewSidebar";
 import { IntegrationStatus } from "@/components/ui/IntegrationStatus";
@@ -41,12 +46,15 @@ import { getApprovalsByEvent } from "@/lib/queries/approvals";
 import { getUnreadCount } from "@/lib/queries/notifications";
 import { getRecentAuditEntries } from "@/lib/queries/audit";
 import { getTeamForEvent } from "@/lib/queries/team";
+import { getCustomerActionItems } from "@/lib/queries/deadlines";
 import { getUser } from "@/lib/auth";
 import { isInternalRole, canAdvanceEventStage } from "@/lib/roles";
+import { ownerForTask } from "@/lib/ownership";
+import { RemindCustomerButton } from "@/components/events/RemindCustomerButton";
 import { stageLabelFor } from "@/lib/customer-copy";
 import { STAGE_CONFIG } from "@/types";
 import type { Event } from "@/types";
-import { formatDateLong, daysUntilDate, isOverdue } from "@/lib/dates";
+import { formatDateLong, formatDateShort, daysUntilDate, isOverdue } from "@/lib/dates";
 import { resolveEventNextStep } from "@/lib/event-next-step";
 import { canAdvanceStage } from "@/app/actions/stages";
 
@@ -58,63 +66,19 @@ export default async function EventOverviewPage({
   const user = await getUser();
   if (!user) redirect("/login");
   const { id } = await params;
-  const event = await getEventById(id);
+  const [event, unread] = await Promise.all([
+    getEventById(id),
+    getUnreadCount(user.id),
+  ]);
   if (!event) return notFound();
 
   const isInternal = isInternalRole(user.role);
-  const [milestones, tasks, assets, approvals, unread, recentActivity, teamMembers] = await Promise.all([
-    getMilestonesByEvent(id),
-    getTasksByEvent(id),
-    getAssetsByEvent(id),
-    getApprovalsByEvent(id),
-    getUnreadCount(user.id),
-    getRecentAuditEntries(id, 5),
-    getTeamForEvent(id),
-  ]);
-
-  const customerTasks = tasks.filter((t) => t.customerVisible);
-  const pendingCustomerTasks = customerTasks.filter(
-    (t) => t.status !== "complete" && t.status !== "skipped",
-  );
-  const completedCount = customerTasks.filter(
-    (t) => t.status === "complete",
-  ).length;
-
-  const myTasks = isInternal
-    ? tasks.filter(
-        (t) =>
-          t.status !== "complete" &&
-          t.status !== "skipped" &&
-          (t.assignedRole === user.role ||
-            t.assignedTo?.id === user.id),
-      )
-    : pendingCustomerTasks;
   const days = daysUntilDate(event.eventDateStart);
   const stageConfig = STAGE_CONFIG[event.currentStage];
-  const stageLabel = stageLabelFor(event.currentStage, !isInternal);
   // Lifecycle is driven by STAGE, not the calendar — an event is only
   // "wrapped" once it reaches reporting/complete, never because its date passed.
   const delivered =
     event.currentStage === "reporting" || event.currentStage === "complete";
-
-  const nextStep = resolveEventNextStep({
-    event,
-    tasks,
-    assets,
-    approvals,
-    isInternal,
-  });
-
-  const stageGate = isInternal
-    ? await canAdvanceStage(id)
-    : { canAdvance: false, blockers: [] };
-
-  const missedMilestones = milestones.filter(
-    (m) =>
-      m.status !== "complete" &&
-      m.status !== "skipped" &&
-      isOverdue(m.targetDate),
-  ).length;
 
   const venue = event.venueName ?? (isInternal ? "the venue" : "your venue");
   const heroSubtitle = (() => {
@@ -164,6 +128,101 @@ export default async function EventOverviewPage({
         </div>
       }
     >
+      <Suspense fallback={<OverviewContentSkeleton />}>
+        <OverviewContent
+          id={id}
+          event={event}
+          user={user}
+          isInternal={isInternal}
+          days={days}
+          delivered={delivered}
+        />
+      </Suspense>
+    </EventPageShell>
+  );
+}
+
+/**
+ * The heavy half of the overview — everything that needs the seven
+ * content queries. Rendered behind Suspense so the hero streams first.
+ */
+async function OverviewContent({
+  id,
+  event,
+  user,
+  isInternal,
+  days,
+  delivered,
+}: {
+  id: string;
+  event: NonNullable<Awaited<ReturnType<typeof getEventById>>>;
+  user: NonNullable<Awaited<ReturnType<typeof getUser>>>;
+  isInternal: boolean;
+  days: number;
+  delivered: boolean;
+}) {
+  const [milestones, tasks, assets, approvals, recentActivity, teamMembers, customerActionItems] =
+    await Promise.all([
+      getMilestonesByEvent(id),
+      getTasksByEvent(id),
+      getAssetsByEvent(id),
+      getApprovalsByEvent(id),
+      getRecentAuditEntries(id, 5),
+      getTeamForEvent(id),
+      // Same source as CustomerDashboard "Needs you" — tasks + assets + briefings.
+      isInternal ? Promise.resolve([]) : getCustomerActionItems(id),
+    ]);
+
+  const customerTasks = tasks.filter(
+    (t) => t.customerVisible && t.taskType === "customer_action",
+  );
+  const pendingCustomerTasks = customerTasks.filter(
+    (t) => t.status !== "complete" && t.status !== "skipped",
+  );
+  /** Customer KPI must match home "Needs you" (not tasks-only). */
+  const customerNeedsYouCount = isInternal
+    ? pendingCustomerTasks.length
+    : customerActionItems.length;
+  // Internal "Your actions" = work this viewer actually OWNS. A
+  // `customer_action` is the customer's job no matter what internal
+  // `assigned_role` it carries (that field names the internal *chaser*, not
+  // the doer), so it must never appear as the staff member's own to-do.
+  const myTasks = isInternal
+    ? tasks.filter(
+        (t) =>
+          t.status !== "complete" &&
+          t.status !== "skipped" &&
+          ownerForTask(t) !== "customer" &&
+          (t.assignedRole === user.role || t.assignedTo?.id === user.id),
+      )
+    : pendingCustomerTasks;
+
+  // Customer-owned work an internal viewer can only *nudge*, never tick off
+  // from here. Surfaced as a separate "Awaiting the customer" panel.
+  const awaitingCustomer = isInternal ? pendingCustomerTasks : [];
+  const stageConfig = STAGE_CONFIG[event.currentStage];
+  const stageLabel = stageLabelFor(event.currentStage, !isInternal);
+
+  const nextStep = resolveEventNextStep({
+    event,
+    tasks,
+    assets,
+    approvals,
+    isInternal,
+  });
+
+  const stageGate = isInternal
+    ? await canAdvanceStage(id)
+    : { canAdvance: false, blockers: [] };
+
+  const missedMilestones = milestones.filter(
+    (m) =>
+      m.status !== "complete" &&
+      m.status !== "skipped" &&
+      isOverdue(m.targetDate),
+  ).length;
+
+  return (
       <div className="space-y-8 py-6">
         {nextStep && (
           <OverviewNextStep
@@ -185,10 +244,10 @@ export default async function EventOverviewPage({
             hint={event.venueName ?? undefined}
           />
           <KpiCard
-            label={isInternal ? "Open actions" : "Your actions"}
-            value={isInternal ? myTasks.length : pendingCustomerTasks.length}
+            label={isInternal ? "Open actions" : "Needs you"}
+            value={isInternal ? myTasks.length : customerNeedsYouCount}
             icon={ListChecks}
-            hint={isInternal ? "assigned to you" : undefined}
+            hint={isInternal ? "assigned to you" : "tasks, assets & briefings"}
           />
           <KpiCard label="Assets" value={assets.length} icon={Files} />
           <KpiCard
@@ -208,7 +267,7 @@ export default async function EventOverviewPage({
                   <span className="text-overline text-muted-foreground tabular-nums">
                     {isInternal
                       ? `${myTasks.length} open`
-                      : `${completedCount} of ${customerTasks.length} complete`}
+                      : `${customerNeedsYouCount} open`}
                   </span>
                 }
               />
@@ -239,22 +298,70 @@ export default async function EventOverviewPage({
                       ))}
                     </ul>
                   )
-                ) : customerTasks.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">
-                    Nothing for you to do right now. We&apos;ll ping you when
-                    something needs your eyes.
-                  </p>
                 ) : (
-                  <TaskChecklist tasks={customerTasks} viewerRole={user.role} />
+                  // Same source as the "Needs you" KPI above (and the home
+                  // dashboard): tasks + assets + briefings, never tasks-only —
+                  // so the number and the list always agree.
+                  <CustomerActionSummary
+                    eventId={id}
+                    items={customerActionItems}
+                    teaserLimit={6}
+                  />
                 )}
-                <Link
-                  href={`/events/${id}/actions`}
-                  className="mt-4 inline-block text-overline text-[var(--color-bb-cobalt)] underline decoration-from-font underline-offset-4 font-medium"
-                >
-                  {isInternal ? "View all tasks →" : "Open all actions →"}
-                </Link>
+                {isInternal && (
+                  <Link
+                    href={`/events/${id}/actions`}
+                    className="mt-4 inline-block text-overline text-[var(--color-bb-cobalt)] underline decoration-from-font underline-offset-4 font-medium"
+                  >
+                    View all tasks →
+                  </Link>
+                )}
               </div>
             </GlassCard>
+
+            {isInternal && awaitingCustomer.length > 0 && (
+              <GlassCard>
+                <GlassCardHeader
+                  title="Awaiting the customer"
+                  description="Their move, not yours — send a nudge if it's stalling"
+                  action={
+                    <span className="text-overline text-muted-foreground tabular-nums">
+                      {awaitingCustomer.length} open
+                    </span>
+                  }
+                />
+                <div className="p-6">
+                  <ul className="space-y-2">
+                    {awaitingCustomer.map((task) => {
+                      const overdue = isOverdue(task.dueDate);
+                      return (
+                        <li
+                          key={task.id}
+                          className="flex items-center justify-between gap-3 rounded-2xl border border-border/60 px-4 py-3"
+                        >
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium text-foreground truncate">
+                              {task.title}
+                            </p>
+                            {task.dueDate && (
+                              <p
+                                className={`mt-0.5 text-overline tabular-nums ${
+                                  overdue ? "text-destructive" : "text-muted-foreground"
+                                }`}
+                              >
+                                {overdue ? "Overdue · " : "Due "}
+                                {formatDateShort(task.dueDate)}
+                              </p>
+                            )}
+                          </div>
+                          <RemindCustomerButton taskId={task.id} overdue={overdue} />
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              </GlassCard>
+            )}
 
             <GlassCard>
               <GlassCardHeader title="The details" />
@@ -297,7 +404,30 @@ export default async function EventOverviewPage({
           />
         </section>
       </div>
-    </EventPageShell>
+  );
+}
+
+/** Shape-matched shimmer for the streamed overview content. */
+function OverviewContentSkeleton() {
+  return (
+    <div className="space-y-8 py-6">
+      <div className="h-24 rounded-2xl border border-border/40 bg-muted/20 animate-pulse" />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div
+            key={i}
+            className="h-24 rounded-2xl border border-border/40 bg-muted/20 animate-pulse"
+          />
+        ))}
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_22rem] gap-6">
+        <div className="space-y-6">
+          <div className="h-64 rounded-2xl border border-border/40 bg-muted/20 animate-pulse" />
+          <div className="h-40 rounded-2xl border border-border/40 bg-muted/20 animate-pulse" />
+        </div>
+        <div className="h-96 rounded-2xl border border-border/40 bg-muted/20 animate-pulse" />
+      </div>
+    </div>
   );
 }
 

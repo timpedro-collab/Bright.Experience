@@ -83,6 +83,20 @@ export function LiveDashboardClient({
   const [isPolling, setIsPolling] = useState(true);
   const [source, setSource] = useState<string>("local");
 
+  // 1-second tick so "Updated Ns ago" stays honest between polls.
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  const secondsAgo = Math.max(0, Math.floor((now - lastRefresh.getTime()) / 1000));
+  const freshness =
+    secondsAgo < 5
+      ? "Updated just now"
+      : secondsAgo < 60
+        ? `Updated ${secondsAgo}s ago`
+        : `Updated ${Math.floor(secondsAgo / 60)}m ago`;
+
   const fetchData = useCallback(async () => {
     try {
       const res = await fetch(`/api/events/${eventId}/live`, {
@@ -165,10 +179,14 @@ export function LiveDashboardClient({
               </Badge>
             )}
             <span className="text-xs text-muted-foreground tabular-nums">
-              {lastRefresh.toLocaleTimeString()}
+              {freshness}
             </span>
           </div>
         </div>
+        {/* Screen readers hear the totals once per poll, not every tick. */}
+        <p aria-live="polite" className="sr-only">
+          {`Live totals: ${metrics.total_plays} plays, ${metrics.total_leads} leads, ${metrics.total_prizes} prizes won.`}
+        </p>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <LiveCounter
             label="Total plays"

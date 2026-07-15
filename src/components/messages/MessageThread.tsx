@@ -1,7 +1,7 @@
 /** Per-event message thread with chronological messages and compose area */
 "use client";
 
-import { useState, useTransition, useRef, useEffect } from "react";
+import { useState, useTransition, useOptimistic, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Send, Lock, Loader2, Paperclip, FileText, ExternalLink, X } from "lucide-react";
 import { toast } from "sonner";
@@ -44,9 +44,17 @@ export function MessageThread({
   const router = useRouter();
   const bottomRef = useRef<HTMLDivElement>(null);
 
+  // Sent messages appear in the thread instantly; the server copy replaces
+  // them after router.refresh(). A failed send reverts automatically (React
+  // discards the optimistic entry) and the compose box is restored.
+  const [optimisticMessages, appendOptimistic] = useOptimistic(
+    messages,
+    (state: Message[], msg: Message) => [...state, msg]
+  );
+
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages.length]);
+  }, [optimisticMessages.length]);
 
   function getInitials(name?: string) {
     if (!name) return "?";
@@ -66,6 +74,16 @@ export function MessageThread({
     setAttachments([]);
     const selectedTopic = topic;
     startTransition(async () => {
+      appendOptimistic({
+        id: `optimistic-${Date.now()}`,
+        eventId,
+        senderId: currentUserId,
+        senderName: "You",
+        body: text,
+        attachments: atts.map((a) => a.url),
+        isInternal: internalOnly,
+        createdAt: new Date().toISOString(),
+      });
       const result = await sendMessage(eventId, text, internalOnly, atts.length > 0 ? atts : undefined, selectedTopic !== "general" ? selectedTopic : undefined);
       if (!result.success) {
         setBody(text);
@@ -87,7 +105,7 @@ export function MessageThread({
   return (
     <div className="flex flex-col h-[calc(100vh-16rem)]">
       <div className="flex-1 overflow-y-auto space-y-4 pr-2">
-        {messages.length === 0 && (
+        {optimisticMessages.length === 0 && (
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <p className="text-heading text-lg font-bold text-foreground mb-1.5">
               No messages yet
@@ -98,7 +116,7 @@ export function MessageThread({
             </p>
           </div>
         )}
-        {messages.map((msg) => {
+        {optimisticMessages.map((msg) => {
           const isOwn = msg.senderId === currentUserId;
           return (
             <div

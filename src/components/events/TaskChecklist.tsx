@@ -5,11 +5,14 @@
  *
  * Both customers and internal users can mark tasks as complete via
  * `completeTask`. Internal users additionally see a "Skip" option
- * and can start pending tasks. The UI is optimistic — the check
- * toggles instantly while the server action resolves in the background.
+ * and can start pending tasks. The UI is truly optimistic: the item
+ * jumps to its new group instantly via `useOptimistic`, reconciles
+ * when the server action resolves, and reverts (with an error toast)
+ * on failure. Complete/skip toasts carry an Undo that calls
+ * `reopenTask` instead of forcing a confirm-first flow.
  */
 
-import { useTransition } from "react";
+import { useOptimistic, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -29,13 +32,20 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { TaskStatusBadge } from "@/components/ui/StatusBadge";
 import { formatDateShort, isOverdue } from "@/lib/dates";
-import { completeTask, skipTask, startTask } from "@/app/actions/tasks";
+import {
+  completeTask,
+  reopenTask,
+  skipTask,
+  startTask,
+} from "@/app/actions/tasks";
 import { celebrateFromElement, celebrateBig } from "@/lib/celebrate";
 import { useProgressToast } from "@/hooks/useProgressToast";
 import { CelebrationCheck } from "@/components/ui/CelebrationCheck";
 import { AllClearState } from "@/components/ui/AllClearState";
 import { OwnerBadge } from "@/components/ui/OwnerBadge";
+import { ReassignTaskMenu } from "@/components/events/ReassignTaskMenu";
 import { ownerForTask, ownerBadgeForTask } from "@/lib/ownership";
+import { isAdminRole } from "@/lib/roles";
 import { taskInputGate } from "@/lib/task-input";
 
 function priorityAccent(priority: string): string {
@@ -65,6 +75,9 @@ function PriorityChip({ priority }: { priority: string }) {
   );
 }
 
+/** Instant status patch applied while the server action is in flight. */
+type TaskStatusPatch = { id: string; status: Task["status"] };
+
 export function TaskChecklist({
   tasks,
   showInternalTasks = false,
@@ -76,9 +89,24 @@ export function TaskChecklist({
   isInternal?: boolean;
   viewerRole?: UserRole;
 }) {
+  // Optimistic layer: status flips are visible immediately (the item jumps
+  // groups), then reconcile against fresh server data after router.refresh().
+  // If the action fails the transition ends without a refresh and React
+  // reverts to the last confirmed state automatically.
+  const [optimisticTasks, applyStatusPatch] = useOptimistic(
+    tasks,
+    (state: Task[], patch: TaskStatusPatch) =>
+      state.map((t) => (t.id === patch.id ? { ...t, status: patch.status } : t))
+  );
+
+  // Customer view: only their own (customer_action) tasks are actionable here.
+  // A customer-visible *internal* task is context, not the customer's to-do,
+  // so it must never appear in the customer's interactive checklist.
   const visibleTasks = showInternalTasks
-    ? tasks
-    : tasks.filter((t) => t.customerVisible);
+    ? optimisticTasks
+    : optimisticTasks.filter(
+        (t) => t.customerVisible && t.taskType === "customer_action",
+      );
 
   const overdue = visibleTasks.filter(
     (t) =>
@@ -118,6 +146,7 @@ export function TaskChecklist({
           viewerRole={viewerRole}
           openCount={openCount}
           totalTasks={totalTasks}
+          onStatusPatch={applyStatusPatch}
         />
       </div>
     );
@@ -134,6 +163,7 @@ export function TaskChecklist({
           viewerRole={viewerRole}
           openCount={openCount}
           totalTasks={totalTasks}
+          onStatusPatch={applyStatusPatch}
         />
       )}
       {active.length > 0 && (
@@ -145,6 +175,7 @@ export function TaskChecklist({
           viewerRole={viewerRole}
           openCount={openCount}
           totalTasks={totalTasks}
+          onStatusPatch={applyStatusPatch}
         />
       )}
       {completed.length > 0 && (
@@ -156,6 +187,7 @@ export function TaskChecklist({
           viewerRole={viewerRole}
           openCount={openCount}
           totalTasks={totalTasks}
+          onStatusPatch={applyStatusPatch}
         />
       )}
     </div>
@@ -170,6 +202,7 @@ function TaskGroup({
   viewerRole,
   openCount,
   totalTasks,
+  onStatusPatch,
 }: {
   title: string;
   tasks: Task[];
@@ -178,6 +211,7 @@ function TaskGroup({
   viewerRole?: UserRole;
   openCount: number;
   totalTasks: number;
+  onStatusPatch: (patch: TaskStatusPatch) => void;
 }) {
   return (
     <div>
@@ -206,6 +240,7 @@ function TaskGroup({
             viewerRole={viewerRole}
             openCount={openCount}
             totalTasks={totalTasks}
+            onStatusPatch={onStatusPatch}
           />
         ))}
       </div>
@@ -221,6 +256,7 @@ function TaskItem({
   viewerRole,
   openCount,
   totalTasks,
+  onStatusPatch,
 }: {
   task: Task;
   index: number;
@@ -229,6 +265,7 @@ function TaskItem({
   viewerRole?: UserRole;
   openCount: number;
   totalTasks: number;
+  onStatusPatch: (patch: TaskStatusPatch) => void;
 }) {
   const [pending, startTransition] = useTransition();
   const router = useRouter();
@@ -238,6 +275,13 @@ function TaskItem({
   // customer's behalf — the server enforces this and audits it.
   const customerTaskAsInternal =
     isInternal && task.taskType === "customer_action";
+  // Orchestrators (events_lead / admin) can move internal work between teams.
+  const canReassign =
+    isInternal &&
+    !!viewerRole &&
+    isAdminRole(viewerRole) &&
+    task.taskType !== "customer_action" &&
+    !isCompleted;
   const ownerInfo = ownerBadgeForTask(task, viewerRole, isInternal);
   const ownedByViewer = ownerInfo.isYou;
   // Tasks backed by a real input (upload / form / setup) complete when that
@@ -248,9 +292,28 @@ function TaskItem({
     ? `/events/${task.eventId}/${task.targetPath}`
     : undefined;
 
+  // Where an Undo should put the task back: pending if it hadn't been
+  // started, otherwise in_progress.
+  const restoreStatus = task.status === "pending" ? "pending" : "in_progress";
+
+  function undoResolve() {
+    startTransition(async () => {
+      onStatusPatch({ id: task.id, status: restoreStatus });
+      const result = await reopenTask(task.id, restoreStatus);
+      if (!result.success) {
+        toast.error(result.error);
+        return;
+      }
+      router.refresh();
+    });
+  }
+
   function handleComplete(e?: React.MouseEvent) {
     const triggerEl = (e?.currentTarget as HTMLElement) ?? null;
     startTransition(async () => {
+      // Optimistic: the item jumps to Completed immediately; a failed action
+      // ends the transition without a refresh, so React reverts it.
+      onStatusPatch({ id: task.id, status: "complete" });
       const result = await completeTask(task.id, customerTaskAsInternal);
       if (!result.success) {
         toast.error(result.error);
@@ -262,25 +325,32 @@ function TaskItem({
       } else {
         celebrateFromElement(triggerEl);
       }
-      showProgress(doneNow, totalTasks);
+      showProgress(doneNow, totalTasks, {
+        label: "Undo",
+        onClick: undoResolve,
+      });
       router.refresh();
     });
   }
 
   function handleSkip() {
     startTransition(async () => {
+      onStatusPatch({ id: task.id, status: "skipped" });
       const result = await skipTask(task.id);
       if (!result.success) {
         toast.error(result.error);
         return;
       }
-      toast.info("Task skipped");
+      toast.info("Task skipped", {
+        action: { label: "Undo", onClick: undoResolve },
+      });
       router.refresh();
     });
   }
 
   function handleStart() {
     startTransition(async () => {
+      onStatusPatch({ id: task.id, status: "in_progress" });
       const result = await startTask(task.id);
       if (!result.success) {
         toast.error(result.error);
@@ -425,6 +495,12 @@ function TaskItem({
                     <CheckCircle2 size={12} /> Mark done for customer
                   </Button>
                 )}
+                {canReassign && (
+                  <ReassignTaskMenu
+                    taskId={task.id}
+                    currentCategory={task.category}
+                  />
+                )}
                 {isInternal && (
                   <Button
                     variant="ghost"
@@ -490,6 +566,12 @@ function TaskItem({
                     </Button>
                   )}
                 </>
+              )}
+              {canReassign && (
+                <ReassignTaskMenu
+                  taskId={task.id}
+                  currentCategory={task.category}
+                />
               )}
               {isInternal && (
                 <Button

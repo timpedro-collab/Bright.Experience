@@ -43,7 +43,11 @@ export function useProgressToast(label: string) {
   const lastRef = useRef(0);
 
   const showProgress = useCallback(
-    (completed: number, total: number) => {
+    (
+      completed: number,
+      total: number,
+      action?: { label: string; onClick: () => void }
+    ) => {
       if (total <= 0) return;
       const now = Date.now();
       if (now - lastRef.current < 600) return;
@@ -57,8 +61,10 @@ export function useProgressToast(label: string) {
         description: isDone
           ? `All ${total} ${label} complete`
           : `${completed} of ${total} ${label} — ${pct}%`,
-        duration: isDone ? 4000 : 2500,
+        // An Undo needs time to be seen and clicked.
+        duration: isDone ? 4000 : action ? 5000 : 2500,
         icon: isDone ? "🎉" : undefined,
+        action,
       });
     },
     [label]

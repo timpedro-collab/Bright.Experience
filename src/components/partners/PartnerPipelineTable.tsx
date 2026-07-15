@@ -12,7 +12,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { FileText, CalendarCheck } from "lucide-react";
-import { formatUSDFromCents } from "@/lib/currency";
+import { formatMoneyFromPence } from "@/lib/currency";
 
 interface Attribution {
   id: string;
@@ -36,7 +36,7 @@ const STATUS_MAP: Record<string, { label: string; className: string }> = {
 
 /** Commission amounts are integer cents. */
 function formatCurrency(cents: number): string {
-  return formatUSDFromCents(cents);
+  return formatMoneyFromPence(cents);
 }
 
 export function PartnerPipelineTable({ attributions }: PartnerPipelineTableProps) {
@@ -59,7 +59,7 @@ export function PartnerPipelineTable({ attributions }: PartnerPipelineTableProps
           <TableRow className="border-border/60 hover:bg-transparent">
             <TableHead className="text-muted-foreground">Date</TableHead>
             <TableHead className="text-muted-foreground">Type</TableHead>
-            <TableHead className="text-muted-foreground">Commission</TableHead>
+            <TableHead className="text-right text-muted-foreground">Commission</TableHead>
             <TableHead className="text-muted-foreground">Status</TableHead>
           </TableRow>
         </TableHeader>
@@ -87,7 +87,7 @@ export function PartnerPipelineTable({ attributions }: PartnerPipelineTableProps
                     {isQuote ? "Quote" : "Event"}
                   </span>
                 </TableCell>
-                <TableCell className="font-mono text-foreground">
+                <TableCell className="text-right tabular-nums text-foreground">
                   {attr.commissionAmount != null
                     ? formatCurrency(attr.commissionAmount)
                     : "—"}

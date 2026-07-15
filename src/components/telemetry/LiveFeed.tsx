@@ -1,7 +1,7 @@
 /** Scrolling live feed of recent event interactions and captured leads */
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Zap, UserPlus, Gift, MousePointerClick } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -36,6 +36,11 @@ function getRelativeTime(timestamp: string): string {
 export function LiveFeed({ items }: LiveFeedProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  // Items present on first render don't animate — only ones that arrive
+  // while the user is watching slide in (once, on mount; keys are stable
+  // so the animation never re-fires, and reduced-motion users get none).
+  const [initialIds] = useState(() => new Set(items.map((i) => i.id)));
+
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -54,10 +59,14 @@ export function LiveFeed({ items }: LiveFeedProps) {
       )}
       {items.map((item) => {
         const Icon = TYPE_ICONS[item.type] ?? TYPE_ICONS.default;
+        const isNew = !initialIds.has(item.id);
         return (
           <div
             key={item.id}
-            className="flex items-start gap-3 rounded-xl border border-border/60 bg-muted/40 px-4 py-3"
+            className={cn(
+              "flex items-start gap-3 rounded-xl border border-border/60 bg-muted/40 px-4 py-3",
+              isNew && "feed-item-in"
+            )}
           >
             <div
               className={cn(

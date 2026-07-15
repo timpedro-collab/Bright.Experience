@@ -1,9 +1,15 @@
-/** Approve/reject controls for a single approval — with optimistic toasts and confetti */
+/**
+ * Approve/reject controls for a single approval.
+ *
+ * Truly optimistic: the decision registers on screen the instant the button
+ * is pressed (confetti included), while the server action resolves in the
+ * background. On failure the controls come back with an error toast.
+ */
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { CheckCircle2, XCircle, Loader2, MessageSquare } from "lucide-react";
+import { CheckCircle2, XCircle, MessageSquare } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -20,34 +26,22 @@ export function ApprovalActions({
   /** Internal staff recording the decision on the customer's behalf. */
   onBehalf?: boolean;
 }) {
-  const [loading, setLoading] = useState<"approved" | "rejected" | null>(null);
   const [showFeedback, setShowFeedback] = useState(false);
   const [feedback, setFeedback] = useState("");
   const [decided, setDecided] = useState<"approved" | "rejected" | null>(null);
+  const [, startTransition] = useTransition();
   const approveRef = useRef<HTMLButtonElement | null>(null);
   const router = useRouter();
 
-  async function handleDecision(decision: "approved" | "rejected") {
+  function handleDecision(decision: "approved" | "rejected") {
     if (decision === "rejected" && !showFeedback) {
       setShowFeedback(true);
       return;
     }
 
-    setLoading(decision);
-    const result = await decideApproval(
-      approvalId,
-      eventId,
-      decision,
-      feedback || undefined,
-      onBehalf,
-    );
-    setLoading(null);
-    if (!result.success) {
-      toast.error("Couldn't save the decision", {
-        description: result.error,
-      });
-      return;
-    }
+    // Optimistic: the decision (and celebration) lands immediately.
+    // Confetti fires before the re-render removes the button element.
+    if (decision === "approved") celebrateFromElement(approveRef.current);
     setDecided(decision);
     if (decision === "approved") {
       toast.success(onBehalf ? "Recorded on the customer's behalf" : "Approved", {
@@ -55,7 +49,6 @@ export function ApprovalActions({
           ? "Logged against your name in the activity trail."
           : "We'll let the team know straight away.",
       });
-      celebrateFromElement(approveRef.current);
     } else {
       toast.info("Changes requested", {
         description: onBehalf
@@ -63,7 +56,25 @@ export function ApprovalActions({
           : "Your feedback has been shared with the team.",
       });
     }
-    router.refresh();
+
+    startTransition(async () => {
+      const result = await decideApproval(
+        approvalId,
+        eventId,
+        decision,
+        feedback || undefined,
+        onBehalf,
+      );
+      if (!result.success) {
+        // Bring the controls back so the user can retry.
+        setDecided(null);
+        toast.error("Couldn't save the decision", {
+          description: result.error,
+        });
+        return;
+      }
+      router.refresh();
+    });
   }
 
   if (decided) {
@@ -111,28 +122,18 @@ export function ApprovalActions({
         <Button
           ref={approveRef}
           onClick={() => handleDecision("approved")}
-          disabled={loading != null}
           variant="brand"
           className="flex-1"
         >
-          {loading === "approved" ? (
-            <Loader2 size={14} className="animate-spin" />
-          ) : (
-            <CheckCircle2 size={14} />
-          )}
+          <CheckCircle2 size={14} />
           {onBehalf ? "Approve for customer" : "Approve"}
         </Button>
         <Button
           onClick={() => handleDecision("rejected")}
-          disabled={loading != null}
           variant="outline"
           className="flex-1 border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive"
         >
-          {loading === "rejected" ? (
-            <Loader2 size={14} className="animate-spin" />
-          ) : (
-            <XCircle size={14} />
-          )}
+          <XCircle size={14} />
           {showFeedback
             ? "Submit changes"
             : onBehalf

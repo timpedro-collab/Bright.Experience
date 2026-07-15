@@ -307,7 +307,12 @@ export function EditionBody({
   return (
     <>
       {withTopHairline && <Hairline className="opacity-60" />}
-      <div className={cn("py-8", className)} {...props}>
+      {/* id anchors the layout's "Skip to content" link — one body per page. */}
+      <div
+        id="main-content"
+        className={cn("py-8 scroll-mt-6", className)}
+        {...props}
+      >
         {children}
       </div>
       {withBottomHairline && <Hairline className="opacity-60" />}
