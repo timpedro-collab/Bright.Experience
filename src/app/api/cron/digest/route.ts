@@ -174,7 +174,7 @@ export async function GET(request: Request) {
     if (digestItems.length === 0) continue;
 
     const baseUrl =
-      process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3001";
+      process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
     const lines = digestItems
       .slice(0, 8)
       .map((i) => `• ${i.title}${i.body ? ` — ${i.body}` : ""}`)

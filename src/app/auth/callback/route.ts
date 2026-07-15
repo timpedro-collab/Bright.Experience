@@ -12,12 +12,21 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 import { ensureProfile, resolveLandingPath } from "@/lib/auth/bootstrap";
+import {
+  resolveCallbackOrigin,
+  sanitiseNextPath,
+} from "@/lib/auth/safe-redirect";
 
 export async function GET(request: Request) {
-  const { searchParams, origin } = new URL(request.url);
+  const { searchParams, origin: requestOrigin } = new URL(request.url);
   const code = searchParams.get("code");
-  const next = searchParams.get("next") ?? "/";
   const type = searchParams.get("type");
+
+  // Redirects are pinned to NEXT_PUBLIC_SITE_URL (request origin only in
+  // dev/preview), and `next` is restricted to same-site relative paths —
+  // closing the open-redirect seam flagged in STUBS-TO-REPLACE Phase 0.
+  const origin = resolveCallbackOrigin(requestOrigin);
+  const next = sanitiseNextPath(searchParams.get("next"));
 
   if (!code) {
     return NextResponse.redirect(`${origin}/login`);

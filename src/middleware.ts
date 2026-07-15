@@ -22,6 +22,12 @@ const PUBLIC_PREFIXES = [
   "/help",
   "/api/test",
   "/help",
+  // Machine-to-machine endpoints that enforce their own auth and can never
+  // carry a browser session: inbound Cloud webhooks (HMAC signature) and
+  // scheduled crons (CRON_SECRET bearer). Without these the session gate
+  // 307s the caller to /login and the payload is silently dropped.
+  "/api/webhooks",
+  "/api/cron",
 ];
 
 /**

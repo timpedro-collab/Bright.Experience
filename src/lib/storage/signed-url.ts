@@ -21,6 +21,7 @@
  */
 
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { ALLOWED_FILE_TYPES, MAX_FILE_SIZE_MB } from "@/lib/validations/assets";
 
 export type StorageBucket =
   | "event-assets"
@@ -43,21 +44,14 @@ export interface BucketConstraints {
  * because clients send everything from brand decks to MP4s.
  */
 const TEN_MB = 10 * 1024 * 1024;
-const FIFTY_MB = 50 * 1024 * 1024;
 const TWO_HUNDRED_MB = 200 * 1024 * 1024;
 
 export const BUCKET_CONSTRAINTS: Record<StorageBucket, BucketConstraints> = {
+  // Derived from the canonical asset-upload schema so the Zod validation
+  // and the bucket constraint can never drift apart.
   "event-assets": {
-    acceptedMimes: [
-      "image/png",
-      "image/jpeg",
-      "image/webp",
-      "image/svg+xml",
-      "application/pdf",
-      "video/mp4",
-      "video/quicktime",
-    ],
-    maxBytes: FIFTY_MB,
+    acceptedMimes: [...ALLOWED_FILE_TYPES],
+    maxBytes: MAX_FILE_SIZE_MB * 1024 * 1024,
   },
   briefings: {
     acceptedMimes: "*", // brand kits, decks, fonts, anything

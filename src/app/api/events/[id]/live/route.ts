@@ -106,7 +106,10 @@ export async function GET(
     hourlyMap[h] = { plays: 0, leads: 0 };
   }
   for (const row of rawHourly) {
-    const hour = new Date(String(row.timestamp)).getHours();
+    // Bucket in UTC — the SSR live page buckets with getUTCHours(), and the
+    // day window above is UTC-bounded, so a server-local getHours() would
+    // shift the whole curve on any non-UTC deployment.
+    const hour = new Date(String(row.timestamp)).getUTCHours();
     const type = String(row.event_type);
     if (type.includes("play")) hourlyMap[hour].plays++;
     if (type === "lead_captured" || type === "lead") hourlyMap[hour].leads++;

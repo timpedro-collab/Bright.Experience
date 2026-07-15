@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAggregateMetrics } from "@/lib/queries/aggregate-metrics";
 import { getUser } from "@/lib/auth";
+import { isInternalRole } from "@/lib/roles";
 
 export async function GET(request: NextRequest) {
   const user = await getUser();
@@ -14,6 +15,14 @@ export async function GET(request: NextRequest) {
 
   if (!accountId || !startDate || !endDate) {
     return NextResponse.json({ error: "Missing parameters" }, { status: 400 });
+  }
+
+  // Customers may only aggregate their own account — never trust the query
+  // param alone. Internal roles can query any account for portfolio views.
+  if (!isInternalRole(user.role)) {
+    if (!user.accountId || user.accountId !== accountId) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
   }
 
   const data = await getAggregateMetrics(accountId, startDate, endDate);

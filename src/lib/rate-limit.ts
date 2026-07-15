@@ -71,6 +71,24 @@ export const quoteLimiter = createRateLimiter({
   prefix: "quote",
 });
 
+/** Public partner applications — low volume by nature, tight bucket. */
+export const applicationLimiter = createRateLimiter({
+  maxTokens: 5,
+  refillRate: 0.1,
+  prefix: "apply",
+});
+
+/**
+ * Public proposal-page mutations (accept/decline/walkthrough/capability
+ * edits). These take a raw quote id from an unauthenticated page, so the
+ * limiter also blunts id-enumeration probing.
+ */
+export const decisionLimiter = createRateLimiter({
+  maxTokens: 10,
+  refillRate: 0.5,
+  prefix: "decision",
+});
+
 /**
  * Best-effort caller IP for rate-limit keys. Reads the proxy-forwarded
  * headers Vercel/most platforms set. Falls back to "unknown" so a missing

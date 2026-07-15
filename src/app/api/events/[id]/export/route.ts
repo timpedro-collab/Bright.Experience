@@ -35,26 +35,27 @@ export async function GET(
   const format = url.searchParams.get("format") ?? "csv";
   const view = url.searchParams.get("view") ?? "reports";
 
-  // Verify user can access this event
-  const { data: eventAccess } = await supabase
-    .from("events")
-    .select("id, name")
-    .eq("id", id)
+  // Resolve the caller's role + account up front so we can both scope the
+  // event lookup and gate section access against the same source of truth.
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role, account_id")
+    .eq("id", user.id)
     .maybeSingle();
+  const role = profile?.role ?? null;
+
+  // Verify user can access this event. Customers are scoped to their own
+  // account so they can't export another account's event by guessing its id;
+  // production enforces this via RLS, the mock client does not.
+  let eventQuery = supabase.from("events").select("id, name").eq("id", id);
+  if (role && !isInternalRole(role) && profile?.account_id) {
+    eventQuery = eventQuery.eq("account_id", profile.account_id);
+  }
+  const { data: eventAccess } = await eventQuery.maybeSingle();
 
   if (!eventAccess) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
-
-  // Section access is enforced per the same matrix that drives the nav.
-  // Leads + Reports are scoped — Ops/Creative/QA can't export them at all,
-  // and customers can only export a report once it's published.
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .maybeSingle();
-  const role = profile?.role ?? null;
 
   if (view === "leads" && !(role && canViewSection(role, "leads"))) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
@@ -188,11 +189,13 @@ async function fetchExportData(
   sheetName: string;
 }> {
   if (view === "leads") {
+    // Cap export size so a huge event cannot unbounded-scan / OOM the route.
     const { data } = await supabase
       .from("leads")
       .select("contact_name, contact_email, contact_phone, source, captured_at")
       .eq("event_id", eventId)
-      .order("captured_at", { ascending: false });
+      .order("captured_at", { ascending: false })
+      .limit(10_000);
 
     return {
       sheetName: "Leads",
