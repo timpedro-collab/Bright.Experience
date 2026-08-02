@@ -7,6 +7,33 @@ portal now depends on — none of it is dev work. Tick items off as you go; the
 dev-team worklist lives separately in
 [`docs/13-dev-handover-priorities.md`](docs/13-dev-handover-priorities.md).
 
+## Pricing & packaging (from the 2 Aug 2026 ecosystem build — Stage 0)
+
+The platform now carries a three-tier + bespoke pricing model
+(`docs/20-pricing-and-packaging.md`, code in `src/lib/pricing/tiers.ts`).
+Every number ships as an evidence-backed **placeholder** until you sign it off
+— the bands already flow into the pricing surfaces, so these decisions are
+live ones:
+
+- [ ] **Sign off the tier bands** (UK £9.5–13.5k / £16–24k / £28–42k /
+  from £50k; US $18–28k / $32–48k / $55–85k / from $90k; EU €11–15.5k /
+  €18–27k / €31.5–47.5k / from €57.5k). The evidence trail is §1 of docs/20 —
+  Freeman clears $42–45k for a strictly inferior product. Changing any number
+  is a one-line edit in `src/lib/pricing/tiers.ts`.
+- [ ] **Sign off the tier names.** Shipping as Showstopper / Lead Engine /
+  Command / Bespoke. Renaming touches display names only, not code slugs.
+- [ ] **Confirm live telemetry as the top-tier fence.** Your instinct and the
+  anchor logic put the live dashboard in Command (Best); the research model
+  had it one tier lower. Rationale in docs/20 §2 — revisit if Lead Engine
+  deals stall on "we want live visibility."
+- [ ] **Set the standard organizer wholesale discount** (docs/20 §4 proposes
+  rack −20–25%, or fixed wholesale where the organizer sets the sponsor
+  price) and the **agency commission** (proposed 10–15%).
+- [ ] **Set the floor price rule.** Proposed: no channel sells below the
+  bottom of the Showstopper band. Confirm or adjust.
+- [ ] **Run the validation plan** (docs/20 §5): next five US enquiries at the
+  new bands, win/loss "what else was in the budget line," pricing-page A/B.
+
 ## Commercial
 
 - [ ] **Set the real price for the branded landing page upsell.** It ships

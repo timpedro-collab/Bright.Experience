@@ -1,6 +1,11 @@
 # Pricing & Quoting Model
 
-> **Version:** 0.1.0 · **Status:** current · **Last verified:** 2026-07-25.
+> **Version:** 0.2.0 · **Status:** current · **Last verified:** 2026-08-02.
+> **What is sold and at what price is now defined in**
+> [`docs/20-pricing-and-packaging.md`](20-pricing-and-packaging.md) (three-tier
+> + bespoke model, `src/lib/pricing/tiers.ts`). This document remains
+> authoritative for **how a quote moves** — the two-track lifecycle, capability
+> vocabulary, and proposal machinery below are unchanged.
 > The **"As built"** section below is authoritative and mirrors the code. The
 > **"Design rationale"** section that follows it (from "The Problem" onward) is
 > the original strategy essay — kept for context, but its field/status names and

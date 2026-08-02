@@ -4,6 +4,33 @@ All notable changes to the Bright.Experience platform are documented here.
 
 ---
 
+## [Ecosystem build · Stage 0 — pricing & packaging foundation] - 2026-08-02
+
+The commercial spine for the ecosystem build (docs/19 findings + Aug 2 pricing
+research): a three-tier + bespoke model replacing the undervalued single-anchor
+pricing (£12k UK weekend vs Freeman clearing $42–45k/show for an inferior
+product).
+
+- `docs/20-pricing-and-packaging.md` — new: evidence trail, tier table
+  (Showstopper / Lead Engine / Command / Bespoke with UK/US/EU bands), fencing
+  rationale (wrap in every tier; live telemetry as the deliberate Best-tier
+  fence), audience-aware display rules, channel price structure
+  (rack → organizer wholesale → agency terms → floor), validation plan.
+- `src/lib/pricing/tiers.ts` — new code source of truth (mirrors the
+  `capabilities.ts` pattern): tier definitions, capability fences, region
+  bands in minor units, presentation order (Best first), band formatting,
+  add-on eligibility (`isAddOnEligible`). Plus `regions.ts` (ISO country →
+  price region resolver) and full test suites for both.
+- Deliberate deviation from the master plan: no DB migration in this stage.
+  The tier model is code-canonical; `packages.tier` ("standard"/"premium")
+  is untouched until Stage 1 maps package rows onto tier slugs — this keeps
+  existing quotes, provisioning, and the book-now flow working unchanged.
+- `docs/08-pricing-and-quoting-model.md` — superseded pointer: docs/20 owns
+  *what* is sold and at what price; docs/08 still owns *how a quote moves*.
+- `OWNER-TODO.md` — new "Pricing & packaging" section: band sign-off, tier
+  naming, telemetry-fence confirmation, wholesale/agency terms, floor rule,
+  validation plan.
+
 ## [Market & ecosystem deep-dive research] - 2026-08-02
 
 Documentation-only. Six parallel research passes across ~110 organizations
