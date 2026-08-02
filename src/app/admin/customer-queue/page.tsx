@@ -16,7 +16,7 @@ import { ArrowRight, Clock } from "lucide-react";
 
 import { AdminPageShell } from "@/components/brand";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { timeSince } from "@/lib/dates";
+import { TimeAgo } from "@/components/ui/TimeAgo";
 
 import { getUser } from "@/lib/auth";
 import { canViewCommercial } from "@/lib/roles";
@@ -106,7 +106,7 @@ export default async function CustomerQueuePage() {
                       {ageDays(item.anchor)} days
                     </p>
                     <p className="text-overline text-muted-foreground">
-                      Since {timeSince(item.anchor)}
+                      Since <TimeAgo dateStr={item.anchor} />
                     </p>
                   </div>
                   <ArrowRight className="h-4 w-4 text-muted-foreground shrink-0 transition-transform group-hover:translate-x-0.5" />

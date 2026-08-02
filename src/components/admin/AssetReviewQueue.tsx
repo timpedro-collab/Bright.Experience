@@ -28,7 +28,8 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
-import { formatDateShort, timeSince } from "@/lib/dates";
+import { formatDateShort } from "@/lib/dates";
+import { TimeAgo } from "@/components/ui/TimeAgo";
 import { submitAssetReview } from "@/app/actions/asset-review";
 import { requestStudioFixForAsset } from "@/app/actions/studio";
 import { loadAssetReviewDetail } from "@/app/actions/asset-detail";
@@ -160,7 +161,7 @@ function AssetReviewRow({
               {asset.name}
             </h3>
             <span className="text-xs text-muted-foreground shrink-0 whitespace-nowrap">
-              Uploaded {timeSince(asset.updatedAt ?? asset.reviewDecidedAt ?? "")}
+              Uploaded <TimeAgo dateStr={asset.updatedAt ?? asset.reviewDecidedAt ?? ""} />
             </span>
           </div>
           <p className="mt-1 text-xs text-muted-foreground truncate">

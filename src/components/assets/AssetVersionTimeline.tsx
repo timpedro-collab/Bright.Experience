@@ -5,7 +5,8 @@ import * as React from "react";
 import { CheckCircle2, Clock, RotateCcw, FileText } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import { formatDateShort, timeSince } from "@/lib/dates";
+import { formatDateShort } from "@/lib/dates";
+import { TimeAgo } from "@/components/ui/TimeAgo";
 import type { AssetVersion } from "@/types";
 
 const STATUS_META: Record<
@@ -83,7 +84,13 @@ export function AssetVersionTimeline({
               </div>
               <p className="mt-0.5 text-xs text-muted-foreground">
                 {v.uploaderName ? `${v.uploaderName} · ` : ""}
-                {v.createdAt ? `uploaded ${timeSince(v.createdAt)}` : ""}
+                {v.createdAt ? (
+                  <>
+                    uploaded <TimeAgo dateStr={v.createdAt} />
+                  </>
+                ) : (
+                  ""
+                )}
                 {v.reviewDecidedAt
                   ? ` · decided ${formatDateShort(v.reviewDecidedAt)}`
                   : ""}

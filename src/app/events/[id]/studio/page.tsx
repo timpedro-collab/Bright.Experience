@@ -18,7 +18,7 @@ import { getUser } from "@/lib/auth";
 import { isInternalRole, canReviewCreativeAssets } from "@/lib/roles";
 import { canViewSection } from "@/lib/event-access";
 import type { StudioRequest } from "@/types";
-import { timeSince } from "@/lib/dates";
+import { TimeAgo } from "@/components/ui/TimeAgo";
 
 const STATUS_VARIANTS: Record<
   string,
@@ -209,7 +209,7 @@ function RequestRow({
         )}
       </div>
       <span className="text-overline text-muted-foreground shrink-0 whitespace-nowrap">
-        {timeSince(request.createdAt)}
+        <TimeAgo dateStr={request.createdAt} />
       </span>
     </li>
   );

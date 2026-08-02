@@ -27,7 +27,7 @@ import type { StudioRequestWithContext } from "@/lib/queries/studio";
 import { getUnreadCount } from "@/lib/queries/notifications";
 import { getUser } from "@/lib/auth";
 import { canViewCreativeProduct } from "@/lib/roles";
-import { timeSince } from "@/lib/dates";
+import { TimeAgo } from "@/components/ui/TimeAgo";
 
 const STATUS_CONFIG: Record<
   string,
@@ -245,7 +245,7 @@ function RequestRow({
               </>
             )}
             <span aria-hidden>·</span>
-            <span>{timeSince(request.createdAt)}</span>
+            <span><TimeAgo dateStr={request.createdAt} /></span>
           </div>
 
           {request.description && (

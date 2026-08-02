@@ -7,7 +7,7 @@
  * local time, never during quiet hours.
  */
 
-import { useState, useTransition } from "react";
+import { useState, useSyncExternalStore, useTransition } from "react";
 import { toast } from "sonner";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -50,14 +50,30 @@ function hourLabel(h: number): string {
 
 const HOURS = Array.from({ length: 24 }, (_, h) => h);
 
+/** The timezone never changes mid-session, so subscribers never fire. */
+function subscribeNever(): () => void {
+  return () => {};
+}
+function getBrowserTimezone(): string | undefined {
+  return Intl.DateTimeFormat().resolvedOptions().timeZone;
+}
+function getServerTimezone(): string | undefined {
+  return undefined;
+}
+
 const selectClass =
   "w-full bg-card text-foreground px-3 py-2 rounded-md border border-border focus:outline-none focus:ring-2 focus:ring-[var(--color-bb-cobalt)] focus:border-[var(--color-bb-cobalt)] transition text-sm";
 
 export function NotificationTimingForm({ initial }: Props) {
-  const browserTz =
-    typeof Intl !== "undefined"
-      ? Intl.DateTimeFormat().resolvedOptions().timeZone
-      : undefined;
+  // The browser's timezone is only known client-side; reading it during
+  // render makes the server-rendered <option> list differ from the client's
+  // and fails hydration. useSyncExternalStore lets us render `undefined` on
+  // the server and the real timezone on the client without a mismatch.
+  const browserTz = useSyncExternalStore(
+    subscribeNever,
+    getBrowserTimezone,
+    getServerTimezone,
+  );
   const timezones = Array.from(
     new Set([initial.timezone, browserTz, ...TIMEZONES].filter(Boolean)),
   ) as string[];

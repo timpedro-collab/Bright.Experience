@@ -4,6 +4,26 @@ All notable changes to the Bright.Experience platform are documented here.
 
 ---
 
+## [Live audit round 1: hydration fixes] - 2026-08-02
+
+First production audit (139-page crawl as all six personas, Supabase
+advisors, Vercel runtime logs) found one bug class: React #418 hydration
+mismatches on `/notifications`, `/settings/notifications`, and
+`/admin/asset-reviews`.
+
+- Root cause 1: `timeSince()` is wall-clock/timezone dependent, so the
+  server (UTC) and browser render different text. New `TimeAgo` client
+  component (+tests) renders the server label first and recomputes after
+  mount; all twelve render sites swapped.
+- Root cause 2: `NotificationTimingForm` read the browser timezone during
+  render, so the server's `<option>` list differed from the client's.
+  Now resolved in a `useEffect` after mount.
+- Ops: `CRON_SECRET` rotated (plaintext copies of generated secrets now
+  kept in `~/.bright-experience-secrets`, outside the repo, since Vercel
+  stores them as sensitive/unreadable).
+
+---
+
 ## [Marketing display font: Clash Display replaces Fraunces] - 2026-08-01
 
 Founder review called the serif too editorial for the cutting-edge

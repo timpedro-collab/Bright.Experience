@@ -33,7 +33,7 @@ import {
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import { timeSince } from "@/lib/dates";
+import { TimeAgo } from "@/components/ui/TimeAgo";
 import { markRead } from "@/app/actions/notifications";
 import type { Notification } from "@/types";
 
@@ -296,7 +296,7 @@ function NotificationRow({
         </div>
 
         <span className="text-overline text-muted-foreground tabular-nums whitespace-nowrap pt-0.5">
-          {timeSince(notification.createdAt)}
+          <TimeAgo dateStr={notification.createdAt} />
         </span>
       </button>
     </li>

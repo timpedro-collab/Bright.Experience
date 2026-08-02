@@ -31,7 +31,8 @@ import { getUnreadCount } from "@/lib/queries/notifications";
 import { getUser } from "@/lib/auth";
 import { isInternalRole, canRequestApproval } from "@/lib/roles";
 import { canViewSection } from "@/lib/event-access";
-import { formatDateMedium, timeSince } from "@/lib/dates";
+import { formatDateMedium } from "@/lib/dates";
+import { TimeAgo } from "@/components/ui/TimeAgo";
 import type { Approval } from "@/types";
 
 export default async function ApprovalsPage({
@@ -249,7 +250,7 @@ function ApprovalRow({
           )}
 
           <p className="mt-2 text-overline text-muted-foreground">
-            Requested {timeSince(approval.requestedAt)}
+            Requested <TimeAgo dateStr={approval.requestedAt} />
             {approval.decidedAt && (
               <>
                 <span className="opacity-60"> · </span>

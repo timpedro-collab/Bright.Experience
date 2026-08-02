@@ -9,7 +9,7 @@ import Link from "next/link";
 import { ArrowRight, Activity } from "lucide-react";
 
 import { GlassCard, GlassCardHeader } from "@/components/cloud";
-import { timeSince } from "@/lib/dates";
+import { TimeAgo } from "@/components/ui/TimeAgo";
 import type { Notification } from "@/types";
 
 interface RecentActivityProps {
@@ -54,7 +54,7 @@ export function RecentActivity({ items }: RecentActivityProps) {
                 )}
               </span>
               <span className="mt-1 shrink-0 text-xs text-quaternary tabular-nums">
-                {timeSince(item.createdAt)}
+                <TimeAgo dateStr={item.createdAt} />
               </span>
             </>
           );

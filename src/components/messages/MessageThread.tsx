@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { timeSince } from "@/lib/dates";
+import { TimeAgo } from "@/components/ui/TimeAgo";
 import { sendMessage, type MessageTopic } from "@/app/actions/messages";
 import type { Message } from "@/types";
 
@@ -150,7 +150,7 @@ export function MessageThread({
                     </Badge>
                   )}
                   <span className="text-[10px] text-muted-foreground ml-auto">
-                    {timeSince(msg.createdAt)}
+                    <TimeAgo dateStr={msg.createdAt} />
                   </span>
                 </div>
                 <p className="text-sm text-muted-foreground whitespace-pre-wrap">

@@ -8,12 +8,8 @@ import {
   Clock,
 } from "lucide-react";
 
-import {
-  daysUntilDate,
-  formatDateShort,
-  isOverdue,
-  timeSince,
-} from "@/lib/dates";
+import { daysUntilDate, formatDateShort, isOverdue } from "@/lib/dates";
+import { TimeAgo } from "@/components/ui/TimeAgo";
 import { cn } from "@/lib/utils";
 import type { AssignedTaskWithContext } from "@/lib/queries/tasks";
 
@@ -114,7 +110,7 @@ export function TaskRow({
           {completed && task.completedAt && (
             <>
               <span className="opacity-60"> · </span>
-              {timeSince(task.completedAt)}
+              <TimeAgo dateStr={task.completedAt} />
             </>
           )}
         </p>

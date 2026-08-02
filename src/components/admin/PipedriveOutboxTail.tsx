@@ -8,7 +8,7 @@
  */
 
 import { Card, CardContent } from "@/components/ui/card";
-import { timeSince } from "@/lib/dates";
+import { TimeAgo } from "@/components/ui/TimeAgo";
 import { cn } from "@/lib/utils";
 
 import type { OutboxEntry } from "@/app/admin/integrations/pipedrive/page";
@@ -50,7 +50,7 @@ export function PipedriveOutboxTail({ rows }: { rows: OutboxEntry[] }) {
                     </p>
                   </div>
                   <div className="shrink-0 text-right text-xs text-muted-foreground">
-                    {timeSince(row.sentAt ?? row.createdAt)}
+                    <TimeAgo dateStr={row.sentAt ?? row.createdAt} />
                   </div>
                 </li>
               );
