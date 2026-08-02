@@ -4,6 +4,26 @@ All notable changes to the Bright.Experience platform are documented here.
 
 ---
 
+## [Market & ecosystem deep-dive research] - 2026-08-02
+
+Documentation-only. Six parallel research passes across ~110 organizations
+(trade-show organizers, venues/marketplaces, experiential agencies,
+sampling/staffing + digital sampling platforms, direct hire competitors +
+hardware/SaaS analogs, event-tech + reseller-enablement tooling), audited
+comparatively against Bright.Experience's real flows.
+
+- `docs/19-market-ecosystem-research.md` — the synthesis: confirmed
+  whitespace ("measured physical participation" has no incumbent anywhere),
+  seven cross-market patterns, a ten-gap whitespace map, a comparative flow
+  audit per journey, a messaging/story architecture (network story, three
+  role doors, naming), and a 38-item phased build plan with per-item
+  evidence, effort, and delegation tags.
+- `docs/research/2026-08-market/` — raw per-sector evidence (every claim
+  URL-sourced) plus the pre-research internal flow audit baseline.
+- `docs/00-documentation-index.md` — indexed the new doc.
+
+---
+
 ## [Live audit round 1: hydration fixes] - 2026-08-02
 
 First production audit (139-page crawl as all six personas, Supabase

@@ -64,6 +64,7 @@ secondary growth surfaces.
 | [`16-api-and-actions-reference.md`](16-api-and-actions-reference.md) | Route handlers + server-action reference |
 | [`17-feature-reference.md`](17-feature-reference.md) | Role-based feature catalogue → implementation |
 | [`18-design-research.md`](18-design-research.md) | Competitive design/UX teardown → graded homepage + portal proposals |
+| [`19-market-ecosystem-research.md`](19-market-ecosystem-research.md) | Deep-dive market/ecosystem research (~110 orgs) → gap analysis, messaging architecture, phased build plan; raw evidence in [`research/2026-08-market/`](research/2026-08-market/) |
 
 ### Operations runbooks (`docs/ops/`)
 
