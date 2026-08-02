@@ -12,8 +12,9 @@
 - **App:** Next.js 16 on Vercel (RSC-first). `poweredByHeader:false`,
   security headers set in [`next.config.ts`](../../next.config.ts).
 - **Data/Auth/Storage:** Supabase (Postgres 17).
-- **Scheduler:** Vercel Cron (Pro plan; UTC) — 5 jobs in
-  [`vercel.json`](../../vercel.json).
+- **Scheduler:** Vercel Cron (UTC) — 5 jobs in
+  [`vercel.json`](../../vercel.json). Hobby plan caps crons at daily; Pro
+  unlocks the hourly digest/pipedrive schedules.
 - **Email:** Resend. **Errors:** Sentry. **CRM:** Pipedrive.
   **Machines/telemetry:** Bright.Blue Cloud. **Booking:** Cal.com.
 
@@ -85,10 +86,14 @@ authenticates with `Authorization: Bearer $CRON_SECRET` (fails closed).
 | Job | Schedule (UTC) |
 |-----|----------------|
 | `/api/cron/reminders` | `0 9 * * *` |
-| `/api/cron/digest` | `0 * * * *` |
-| `/api/cron/pipedrive` | `0 * * * *` |
+| `/api/cron/digest` | `0 10 * * *` |
+| `/api/cron/pipedrive` | `0 7 * * *` |
 | `/api/cron/reports` | `0 8 * * *` |
 | `/api/cron/purge-leads` | `30 2 * * *` |
+
+> **Hobby-plan note:** Vercel's Hobby tier only allows daily crons, so `digest`
+> and `pipedrive` currently run once a day. On a Pro plan, restore both to
+> `0 * * * *` in `vercel.json` for hourly digests and CRM sync.
 
 ## 6. Smoke test after deploy
 

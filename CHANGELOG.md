@@ -4,6 +4,32 @@ All notable changes to the Bright.Experience platform are documented here.
 
 ---
 
+## [First live deployment — Vercel + hosted Supabase] - 2026-08-01
+
+The app is live at https://bright-experience.vercel.app for integration
+testing (emails, calendar bookings, webhooks).
+
+- Hosted Supabase project `bright-experience` (London) reset to the current
+  schema (all migrations through `20260801000003`) and fully seeded: auth
+  users, catalogue `seed.sql` (applied via the management API), and the
+  programmatic `run-seed.ts` dataset.
+- Vercel project `bright-experience` created with all ten production env
+  vars. `RESEND_API_KEY` and `NEXT_PUBLIC_CALCOM_LINK` are placeholders
+  pending real keys; `CRON_SECRET`, `BRIGHTBLUE_WEBHOOK_SECRET`, and
+  `CALCOM_WEBHOOK_SECRET` are freshly generated secrets.
+- Supabase auth `site_url`/redirect allow-list now point at the Vercel
+  domain; self-signup stays disabled, mirroring `config.toml`.
+- `vercel.json`: digest and Pipedrive crons moved from hourly to daily
+  (`0 10 * * *` / `0 7 * * *`) — the Vercel Hobby plan caps crons at one run
+  per day. Restore hourly on Pro. Runbook updated to match.
+- Smoke-tested live: homepage 200, `/api/health` database check green,
+  seeded events-lead login lands on the dashboard with real data.
+
+Files changed: `vercel.json`, `docs/ops/deployment-runbook.md`,
+`CHANGELOG.md`.
+
+---
+
 ## [World-class design build — homepage + portal] - 2026-08-01
 
 Implementation of the market-research findings in `docs/18-design-research.md`
