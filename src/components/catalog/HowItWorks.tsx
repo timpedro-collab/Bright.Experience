@@ -45,11 +45,11 @@ export function HowItWorks() {
           {STEPS.map(({ icon: Icon, eyebrow, title, description }, i) => (
             <div
               key={eyebrow}
-              className="relative overflow-hidden rounded-[var(--radius-card)] border border-white/[0.06] bg-[hsl(233,56%,11%,0.45)] p-6 backdrop-blur-md"
+              className="relative overflow-hidden rounded-[var(--radius-card)] border border-border bg-card p-6 shadow-[var(--bb-shadow-card)]"
             >
               <span
                 aria-hidden
-                className="absolute right-4 top-4 text-[5rem] font-bold leading-none text-white/[0.04] font-[var(--font-heading)]"
+                className="absolute right-4 top-4 text-[5rem] font-bold leading-none text-foreground/[0.05] font-[var(--font-heading)]"
               >
                 {String(i + 1).padStart(2, "0")}
               </span>

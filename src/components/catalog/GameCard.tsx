@@ -21,10 +21,10 @@ export function GameCard({ game, index = 0 }: GameCardProps) {
     <Link
       href={`/catalog/games/${game.slug}`}
       className={cn(
-        "group relative block overflow-hidden rounded-[var(--radius-card)] border border-white/[0.06]",
-        "bg-[hsl(233,56%,11%,0.55)] backdrop-blur-md",
+        "group relative block overflow-hidden rounded-[var(--radius-card)] border border-border",
+        "bg-card shadow-[var(--bb-shadow-card)]",
         "transition-all duration-300",
-        "hover:border-white/20 hover:-translate-y-1 hover:shadow-[var(--bb-shadow-premium)]",
+        "hover:border-ring/40 hover:-translate-y-1 hover:shadow-[var(--bb-shadow-premium)]",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
         "stagger-item"
       )}
@@ -41,7 +41,7 @@ export function GameCard({ game, index = 0 }: GameCardProps) {
           />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-heading text-5xl font-bold text-white/15">
+            <span className="text-heading text-5xl font-bold text-foreground/10">
               {game.name[0]}
             </span>
           </div>

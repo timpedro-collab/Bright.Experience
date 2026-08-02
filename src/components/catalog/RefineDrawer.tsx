@@ -83,7 +83,7 @@ export function RefineDrawer({
           </ul>
         </div>
 
-        <div className="border-t border-white/[0.06] bg-[hsl(233,56%,8%)] px-6 py-4">
+        <div className="border-t border-border bg-muted/40 px-6 py-4">
           <Button
             variant="brand"
             size="lg"
