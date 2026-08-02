@@ -62,3 +62,22 @@ Requirements:
 | `rls_catalog.sql`                     | `machines`, `games`, `packages`, `case_studies`       |
 | `rls_reports.sql`                     | `event_reports`, `benchmarks`                         |
 | `rls_telemetry.sql`                   | `machine_instances`, `telemetry_events`, `leads`, `event_metrics_snapshot` |
+| `rls_storage_objects.test.sql`        | `storage.objects` (event-assets, briefings, reports, studio-deliverables) |
+| `rls_prospect_sessions.test.sql`      | `prospect_sessions`                                   |
+| `rls_helpers.test.sql`                | `is_internal_user()`, `user_account_id()`, `user_partner_id()` |
+| `profile_bootstrap.test.sql`          | `handle_new_auth_user()` role/account source          |
+| `rls_event_collab.test.sql`           | `milestones`, `briefing_responses`, `comments`, `event_team_members`, `asset_versions`, `asset_annotations`, `hourly_metrics`, `audit_entries` |
+| `rls_account_scoped.test.sql`         | `campaigns`, `campaign_events`, `client_compliance_requirements`, `account_payment_preferences`, `api_keys`, `webhook_subscriptions`, `notification_user_settings` |
+| `rls_internal_and_public.test.sql`    | `event_templates`, `notification_reminders`, `cron_runs` (internal-only) and `locations`, `machine_games`, `studio_pricing`, `recommendations` (deliberately public) |
+
+Coverage is enforced: `node scripts/check-policy-tests.mjs` (run in CI) fails
+when a migration adds a policy to a table no test file mentions. See
+`.policy-coverage-baseline` for the accepted-debt escape hatch.
+
+## Writing assertions that survive seed data
+
+`supabase test db` runs against a database that has the demo seed applied, so
+never assert on an unqualified `count(*)`. Scope every count to the fixture
+rows (`where event_id in (...)`, `where id = '...'`) — an assertion like
+`select is((select count(*) from tasks), 3, ...)` passes on an empty database
+and fails the moment anyone seeds a row.

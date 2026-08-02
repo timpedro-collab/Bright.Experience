@@ -1,5 +1,7 @@
 /** Supabase read queries for the case studies catalog entity */
 import { createClient } from "@/lib/supabase/server";
+import { logQueryError } from "@/lib/observability/log-query-error";
+import { applyPublicationRights } from "@/lib/publication-rights";
 
 /** Fetch all published case studies, newest first. */
 export async function getCaseStudies() {
@@ -7,16 +9,16 @@ export async function getCaseStudies() {
   const { data, error } = await supabase
     .from("case_studies")
     .select(
-      "id, title, slug, client_name, event_type, location, hero_image_url, stats_json, published_at"
+      "id, title, slug, client_name, event_type, location, hero_image_url, stats_json, published_at, publication_rights, anonymised_label, testimonial_author"
     )
     .eq("is_published", true)
     .order("published_at", { ascending: false });
 
   if (error) {
-    console.error("[getCaseStudies] query failed", error);
+    logQueryError("getCaseStudies", error);
     return [];
   }
-  return data ?? [];
+  return applyPublicationRights(data ?? []);
 }
 
 /** Fetch a single published case study by slug. */
@@ -30,8 +32,10 @@ export async function getCaseStudyBySlug(slug: string) {
     .maybeSingle();
 
   if (error) {
-    console.error("[getCaseStudyBySlug] query failed", { slug, error });
+    logQueryError("getCaseStudyBySlug", error, { slug });
     return null;
   }
-  return data;
+  if (!data) return null;
+  const [processed] = applyPublicationRights([data]);
+  return processed ?? null;
 }

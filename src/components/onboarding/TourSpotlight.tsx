@@ -15,6 +15,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, ArrowRight, MousePointerClick } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useModalOverlay } from "@/hooks/useModalOverlay";
 import { useTour } from "./TourProvider";
 import { TourVisualRenderer } from "./tour-visuals";
 
@@ -52,12 +53,28 @@ export function TourSpotlight() {
   } = useTour();
 
   const [rect, setRect] = useState<Rect | null>(null);
-  const cardRef = useRef<HTMLDivElement>(null);
   const targetElRef = useRef<HTMLElement | null>(null);
 
   const active = phase === "touring" && !!currentStep;
   const target = currentStep?.target ?? null;
   const placement = currentStep?.placement ?? "bottom";
+  const hasAction = Boolean(currentStep?.action);
+  const isFirstStep = currentStepIndex === 0;
+
+  // Keyboard parity with the mouse: Escape leaves the tour, arrows step through
+  // it, and focus follows the card so a screen reader announces each step.
+  // Action steps deliberately skip the focus trap — the user has to reach the
+  // highlighted control on the page behind the scrim to complete them.
+  const cardRef = useModalOverlay<HTMLDivElement>({
+    active,
+    onClose: skip,
+    onPrev: isFirstStep ? undefined : prev,
+    onNext: next,
+    trapFocus: !hasAction,
+    lockScroll: false, // the tour scrolls each target into view
+    focusContainer: true,
+    focusKey: currentStepIndex,
+  });
 
   // Resolve + track the target element's rect.
   const measure = useCallback(() => {
@@ -203,13 +220,11 @@ export function TourSpotlight() {
 
     card.style.top = `${top}px`;
     card.style.left = `${left}px`;
-  }, [active, rect, placement, currentStepIndex]);
+  }, [active, rect, placement, currentStepIndex, cardRef]);
 
   if (!active || !currentStep) return null;
 
-  const isFirst = currentStepIndex === 0;
   const isLast = currentStepIndex === totalSteps - 1;
-  const hasAction = Boolean(currentStep.action);
   const halo = rect
     ? {
         top: rect.top - PADDING,
@@ -220,7 +235,9 @@ export function TourSpotlight() {
     : null;
 
   return (
-    <div className="fixed inset-0 z-[10001] pointer-events-none" aria-live="polite">
+    // Focus moves to the card on every step, so the step is announced on
+    // arrival — an aria-live region here would announce it a second time.
+    <div className="fixed inset-0 z-[10001] pointer-events-none">
       {/* Scrim — full backdrop when centred, 4 panels around the target when
           anchored so the element shows through at full brightness. Panels are
           interactive (block stray clicks); the hole is left open for action
@@ -288,7 +305,13 @@ export function TourSpotlight() {
           our top/left on every animation frame. */}
       <div
         ref={cardRef}
-        className="absolute pointer-events-auto w-[360px] max-w-[calc(100vw-32px)]"
+        role="dialog"
+        // Action steps need the page behind the scrim to stay reachable, so
+        // they must not be announced as modal.
+        aria-modal={hasAction ? undefined : true}
+        aria-label={`Product tour, step ${currentStepIndex + 1} of ${totalSteps}`}
+        tabIndex={-1}
+        className="absolute pointer-events-auto w-[360px] max-w-[calc(100vw-32px)] outline-none"
         style={{ top: 0, left: 0 }}
       >
       <AnimatePresence mode="wait">
@@ -311,6 +334,7 @@ export function TourSpotlight() {
               Step {currentStepIndex + 1} of {totalSteps}
             </span>
             <button
+              type="button"
               onClick={skip}
               className="text-[11px] text-white/30 hover:text-white/60 transition-colors"
             >
@@ -321,6 +345,10 @@ export function TourSpotlight() {
           <h2 className="mt-2 text-lg font-bold text-white leading-snug">
             {currentStep.title}
           </h2>
+          <p className="sr-only">
+            Use the left and right arrow keys to move between steps, or press
+            Escape to leave the tour.
+          </p>
           <p className="mt-1.5 text-sm leading-relaxed text-white/55">
             {currentStep.description}
           </p>
@@ -350,7 +378,7 @@ export function TourSpotlight() {
 
           <div className="mt-4 flex items-center justify-between gap-2">
             <div>
-              {!isFirst && (
+              {!isFirstStep && (
                 <Button
                   variant="ghost"
                   size="sm"

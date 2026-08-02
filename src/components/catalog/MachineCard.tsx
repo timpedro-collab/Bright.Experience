@@ -23,10 +23,13 @@ export function MachineCard({ machine, index = 0, featured = false }: MachineCar
     <Link
       href={`/catalog/machines/${machine.slug}`}
       className={cn(
-        "group relative block overflow-hidden rounded-[var(--radius-card)] border border-white/[0.06]",
-        "bg-[hsl(233,56%,11%,0.55)] backdrop-blur-md",
+        // Theme-aware surface — this card renders on the light homepage and
+        // the dark catalog alike, so it must use semantic tokens, never a
+        // hard-coded dark wash (docs/18-design-research.md Part 0).
+        "group relative block overflow-hidden rounded-[var(--radius-card)] border border-border",
+        "bg-card",
         "shadow-[var(--bb-shadow-card)] transition-all duration-300",
-        "hover:border-white/24 hover:-translate-y-1 hover:shadow-[var(--bb-shadow-premium)]",
+        "hover:border-ring/40 hover:-translate-y-1 hover:shadow-[var(--bb-shadow-premium)]",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
         "stagger-item",
         featured && "md:col-span-2"
@@ -49,7 +52,7 @@ export function MachineCard({ machine, index = 0, featured = false }: MachineCar
           />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-heading text-6xl font-bold text-white/15">
+            <span className="text-heading text-6xl font-bold text-foreground/10">
               {machine.name[0]}
             </span>
           </div>
@@ -76,7 +79,7 @@ export function MachineCard({ machine, index = 0, featured = false }: MachineCar
           </div>
           <span
             aria-hidden
-            className="mt-1 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-muted-foreground transition-all group-hover:bg-primary group-hover:border-primary group-hover:text-white"
+            className="mt-1 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-border bg-muted/50 text-muted-foreground transition-all group-hover:bg-primary group-hover:border-primary group-hover:text-white"
           >
             <ArrowRight className="h-3.5 w-3.5" />
           </span>

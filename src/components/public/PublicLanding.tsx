@@ -3,13 +3,14 @@
  * marketing surface combining the bright.blue/events story (pillars, turnkey
  * platform, Cloud) with the portal's catalog (machines, case studies, quiz).
  *
- * Section order follows the sales sequence: claim → trust → jobs → product →
- * proof → capability → process → ask. Copy and numbers come from
- * `src/lib/marketing/claims.ts`.
+ * Section order follows the sales sequence: claim → trust → self-selection
+ * ("Let's plan ___") → jobs → product → proof → capability → process → ask.
+ * Copy and numbers come from `src/lib/marketing/claims.ts`.
  */
 import { PublicSiteChrome } from "@/components/public/PublicSiteChrome";
 import { HeroSection } from "@/components/public/landing/HeroSection";
 import { LogosStrip } from "@/components/catalog/LogosStrip";
+import { LetsPlanSection } from "@/components/public/landing/LetsPlanSection";
 import { PillarsSection } from "@/components/public/landing/PillarsSection";
 import { MachinesShowcase } from "@/components/public/landing/MachinesShowcase";
 import { ProofSection } from "@/components/public/landing/ProofSection";
@@ -31,6 +32,7 @@ export async function PublicLanding() {
     <PublicSiteChrome>
       <HeroSection />
       <LogosStrip overline="Trusted by Leading Brands" logos={CLIENT_LOGOS} />
+      <LetsPlanSection />
       <PillarsSection />
       <MachinesShowcase
         machines={machines.map((m) => ({

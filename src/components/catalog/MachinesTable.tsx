@@ -35,39 +35,38 @@ export function MachinesTable({ machines }: { machines: Machine[] }) {
 
       {showNew && <MachineForm onClose={() => setShowNew(false)} />}
 
-      <div className="border-t border-b border-border/40 overflow-x-auto">
-        <table className="w-full min-w-[640px] text-sm">
-          <thead>
-            <tr className="border-b border-border/40 text-left">
-              <th className="px-4 py-3 text-overline text-muted-foreground font-normal">Name</th>
-              <th className="px-4 py-3 text-overline text-muted-foreground font-normal">Slug</th>
-              <th className="px-4 py-3 text-overline text-muted-foreground font-normal">Tagline</th>
-              <th className="px-4 py-3 text-overline text-muted-foreground font-normal">Status</th>
-              <th className="px-4 py-3 text-overline text-muted-foreground font-normal" />
-            </tr>
-          </thead>
-          <tbody>
-            {machines.map((m) => (
-              editId === m.id ? (
-                <tr key={m.id}>
-                  <td colSpan={5} className="p-2">
-                    <MachineForm machine={m} onClose={() => setEditId(null)} />
-                  </td>
-                </tr>
-              ) : (
-                <MachineRow key={m.id} machine={m} onEdit={() => setEditId(m.id)} />
-              )
-            ))}
-            {machines.length === 0 && (
-              <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
-                  No machines in the catalog yet.
-                </td>
+      {machines.length === 0 ? (
+        <div className="px-4 py-8 text-center text-muted-foreground">
+          No machines in the catalog yet.
+        </div>
+      ) : (
+        <div className="border-t border-b border-border/40 overflow-x-auto">
+          <table className="w-full min-w-[640px] text-sm">
+            <thead>
+              <tr className="border-b border-border/40 text-left">
+                <th className="px-4 py-3 text-overline text-muted-foreground font-normal">Name</th>
+                <th className="px-4 py-3 text-overline text-muted-foreground font-normal">Slug</th>
+                <th className="px-4 py-3 text-overline text-muted-foreground font-normal">Tagline</th>
+                <th className="px-4 py-3 text-overline text-muted-foreground font-normal">Status</th>
+                <th className="px-4 py-3 text-overline text-muted-foreground font-normal" />
               </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {machines.map((m) => (
+                editId === m.id ? (
+                  <tr key={m.id}>
+                    <td colSpan={5} className="p-2">
+                      <MachineForm machine={m} onClose={() => setEditId(null)} />
+                    </td>
+                  </tr>
+                ) : (
+                  <MachineRow key={m.id} machine={m} onEdit={() => setEditId(m.id)} />
+                )
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }

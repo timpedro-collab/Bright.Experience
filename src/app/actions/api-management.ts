@@ -1,25 +1,57 @@
 /** Server actions for API key and webhook subscription management. */
 "use server";
 
+import { randomBytes } from "node:crypto";
+
 import { requireInternalUser } from "@/lib/auth";
 import { isAdminRole } from "@/lib/roles";
+import { isPublicApiEnabled } from "@/lib/integration-flags";
 import { revalidatePath } from "next/cache";
 
-/** Generate a cryptographically random API key string. */
+/** Refusal shared by every action while the programme is switched off. */
+const API_DISABLED =
+  "The public API isn't switched on. Nothing authenticates with a key and no webhook is delivered yet, so issuing credentials would be misleading.";
+
+/**
+ * Mint an API key.
+ *
+ * `randomBytes` because this is a bearer credential: `Math.random()` is a
+ * seeded PRNG whose output is predictable from a handful of observed values, so
+ * one leaked key would expose the rest.
+ *
+ * Shape is `bb_` + four 8-character groups, which keeps `key_prefix` (the first
+ * 11 characters) recognisable in the admin list while the key as a whole carries
+ * roughly 180 bits of entropy.
+ */
 function generateApiKey(): string {
-  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  const segments = [8, 8, 8, 8];
-  return (
-    "bb_" +
-    segments.map((len) =>
-      Array.from({ length: len }, () =>
-        chars.charAt(Math.floor(Math.random() * chars.length))
-      ).join("")
-    ).join("-")
-  );
+  // Crockford-style alphabet: no 0/O/1/I, so a key read aloud survives the trip.
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
+  const groups = 4;
+  const groupLength = 8;
+  const bytes = randomBytes(groups * groupLength);
+
+  const body = Array.from({ length: groups }, (_, group) =>
+    Array.from({ length: groupLength }, (_, i) =>
+      // One byte per character, so the modulo skews slightly towards the first
+      // 28 of the 57 characters. Immaterial against 180 bits.
+      chars.charAt(bytes[group * groupLength + i]! % chars.length)
+    ).join("")
+  ).join("-");
+
+  return `bb_${body}`;
 }
 
-/** Simple hash function for API key storage (SHA-256 via Web Crypto). */
+/**
+ * Mint a webhook signing secret.
+ *
+ * Stored in plain text (unlike an API key) because signature verification needs
+ * the secret itself, so it is deliberately longer and not human-transcribable.
+ */
+function generateWebhookSecret(): string {
+  return `whsec_${randomBytes(32).toString("hex")}`;
+}
+
+/** SHA-256 of a key — only the hash is stored, so a leaked table isn't a leaked key. */
 async function hashKey(key: string): Promise<string> {
   const encoder = new TextEncoder();
   const data = encoder.encode(key);
@@ -38,6 +70,9 @@ export async function createApiKey(data: {
   const { supabase, profile } = await requireInternalUser();
   if (!isAdminRole(profile.role)) {
     return { success: false as const, error: "Forbidden: admin access only" };
+  }
+  if (!isPublicApiEnabled()) {
+    return { success: false as const, error: API_DISABLED };
   }
   const rawKey = generateApiKey();
   const keyHash = await hashKey(rawKey);
@@ -92,7 +127,10 @@ export async function createWebhookSubscription(data: {
   if (!isAdminRole(profile.role)) {
     return { success: false as const, error: "Forbidden: admin access only" };
   }
-  const secret = generateApiKey();
+  if (!isPublicApiEnabled()) {
+    return { success: false as const, error: API_DISABLED };
+  }
+  const secret = generateWebhookSecret();
 
   const { data: webhook, error } = await supabase
     .from("webhook_subscriptions")

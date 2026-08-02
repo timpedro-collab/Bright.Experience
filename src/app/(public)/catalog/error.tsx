@@ -10,6 +10,7 @@
 import Link from "next/link";
 import { useEffect } from "react";
 import { AlertTriangle, RefreshCw } from "lucide-react";
+import * as Sentry from "@sentry/nextjs";
 
 import { Button } from "@/components/ui/button";
 import { Container, Section } from "@/components/ui/section";
@@ -23,8 +24,8 @@ export default function CatalogError({
   reset: () => void;
 }) {
   useEffect(() => {
-    // STUB: send to Sentry / observability once wired (Phase 8)
     console.error("[catalog/error]", error);
+    Sentry.captureException(error);
   }, [error]);
 
   return (

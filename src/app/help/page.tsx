@@ -1,6 +1,5 @@
 /** Searchable FAQ / help center — grouped by category with accordion sections. */
 import Link from "next/link";
-import { HelpCircle, ArrowRight, Search } from "lucide-react";
 
 import {
   EditionShell,

@@ -55,6 +55,8 @@ export interface DispatchContext {
   taskId?: string;
   messageId?: string;
   studioRequestId?: string;
+  /** A sponsorship slot — the anchor for venue-operator routing. */
+  slotId?: string;
   briefingFormType?: string;
   /** The acting user — used to suppress self-notifications. */
   actorId?: string;
@@ -135,6 +137,66 @@ async function fetchInternalsByRoles(
     .from("profiles")
     .select("id, email, name, role")
     .in("role", roles)
+    .eq("is_active", true);
+  return (data ?? []) as ResolvedRecipient[];
+}
+
+/**
+ * The organizer running a show: active users of the partner named on
+ * `events.organizer_partner_id`.
+ *
+ * Organizers are partner-role users, so they sit outside both the internal
+ * team and the buying account. Nothing resolved to them before, which is why
+ * a sponsor enquiry on their own show had nowhere to land.
+ */
+async function fetchShowOrganizer(
+  eventId: string,
+  supabase?: SupabaseLike
+): Promise<ResolvedRecipient[]> {
+  const sb = await client(supabase);
+  const { data: event } = await sb
+    .from("events")
+    .select("organizer_partner_id")
+    .eq("id", eventId)
+    .maybeSingle();
+  if (!event?.organizer_partner_id) return [];
+
+  const { data } = await sb
+    .from("profiles")
+    .select("id, email, name, role")
+    .eq("partner_id", event.organizer_partner_id)
+    .eq("is_active", true);
+  return (data ?? []) as ResolvedRecipient[];
+}
+
+/**
+ * The operator of a venue: active users of the partner that owns it. Resolved
+ * from a sponsorship slot, since that is what an advertiser enquiry names.
+ */
+async function fetchVenueOperator(
+  slotId: string,
+  supabase?: SupabaseLike
+): Promise<ResolvedRecipient[]> {
+  const sb = await client(supabase);
+  const { data: slot } = await sb
+    .from("sponsorship_slots")
+    .select("placements ( venues ( partner_id ) )")
+    .eq("id", slotId)
+    .maybeSingle();
+
+  const placement = Array.isArray(slot?.placements)
+    ? slot?.placements[0]
+    : slot?.placements;
+  const venue = Array.isArray(placement?.venues)
+    ? placement?.venues[0]
+    : placement?.venues;
+  const partnerId = (venue as { partner_id?: string } | null)?.partner_id;
+  if (!partnerId) return [];
+
+  const { data } = await sb
+    .from("profiles")
+    .select("id, email, name, role")
+    .eq("partner_id", partnerId)
     .eq("is_active", true);
   return (data ?? []) as ResolvedRecipient[];
 }
@@ -315,6 +377,51 @@ export async function resolveOwners(
         return fetchInternalsByRoles(["creative_lead", "events_lead"], supabase);
       }
       return profiles;
+    }
+
+    case "show_organizer": {
+      if (!context.eventId) return [];
+      const organizer = await fetchShowOrganizer(
+        String(context.eventId),
+        supabase
+      );
+      // The show's internal owner too: a sponsor enquiry is commercial news,
+      // and an organizer with no portal user yet must not mean silence.
+      const internal = await fetchInternalsByRoles(
+        ["events_lead", "admin"],
+        supabase
+      );
+      const all = [...organizer, ...internal];
+      if (all.length > 0) return all;
+      return [
+        teamInboxFallback("events_lead", DEFAULT_ACCOUNT_MANAGER.email),
+      ];
+    }
+
+    case "venue_operator": {
+      if (!context.slotId) return [];
+      const operators = await fetchVenueOperator(
+        String(context.slotId),
+        supabase
+      );
+      if (operators.length > 0) return operators;
+      // An unclaimed venue still has demand landing on it; route it to us.
+      const internal = await fetchInternalsByRoles(
+        ["events_lead", "admin"],
+        supabase
+      );
+      if (internal.length > 0) return internal;
+      return [
+        teamInboxFallback("events_lead", DEFAULT_ACCOUNT_MANAGER.email),
+      ];
+    }
+
+    case "internal_admins": {
+      const admins = await fetchInternalsByRoles(["admin", "events_lead"], supabase);
+      if (admins.length > 0) return admins;
+      return [
+        teamInboxFallback("admin", DEFAULT_ACCOUNT_MANAGER.email),
+      ];
     }
 
     case "approval_requester": {

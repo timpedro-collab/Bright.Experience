@@ -2,6 +2,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { PAGE_SIZE, paginateQuery, totalPages } from "@/lib/pagination";
 import type { AuditEntry } from "@/types";
+import { logQueryError } from "@/lib/observability/log-query-error";
 
 interface AuditRow extends AuditEntry {
   actorName?: string;
@@ -36,7 +37,10 @@ export async function getAuditEntriesForEvent(
     .order("created_at", { ascending: false });
 
   const { data, error, count } = await paginateQuery(query, page, pageSize);
-  if (error || !data) return { data: [], totalCount: 0, totalPages: 1 };
+  if (error || !data) {
+    logQueryError("getAuditEntriesForEvent", error, { eventId });
+    return { data: [], totalCount: 0, totalPages: 1 };
+  }
 
   const total = count ?? 0;
   return { data: data.map(mapRow), totalCount: total, totalPages: totalPages(total, pageSize) };
@@ -55,7 +59,10 @@ export async function getRecentAuditEntries(
     .order("created_at", { ascending: false })
     .limit(limit);
 
-  if (error || !data) return [];
+  if (error || !data) {
+    logQueryError("getRecentAuditEntries", error, { eventId });
+    return [];
+  }
   return data.map(mapRow);
 }
 

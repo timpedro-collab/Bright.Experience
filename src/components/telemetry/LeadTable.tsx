@@ -14,6 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { formatTimestamp } from "@/lib/dates";
 
 interface Lead {
   id: string;
@@ -32,13 +33,13 @@ interface LeadTableProps {
 type SortField = "contactName" | "contactEmail" | "source" | "capturedAt";
 type SortDir = "asc" | "desc";
 
-function formatDateTime(iso: string): string {
-  return new Date(iso).toLocaleString(undefined, {
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+function TimestampCell({ dateStr }: { dateStr: string }) {
+  const { display, exact } = formatTimestamp(dateStr);
+  return (
+    <span className="tabular-nums" title={exact || undefined}>
+      {display}
+    </span>
+  );
 }
 
 function downloadCSV(leads: Lead[]) {
@@ -120,53 +121,48 @@ export function LeadTable({ leads }: LeadTableProps) {
       </div>
 
       <div className="rounded-[var(--radius-card)] border border-glass-border overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow className="border-border/60 hover:bg-transparent">
-              <SortableHead
-                label="Name"
-                field="contactName"
-                active={sortField}
-                dir={sortDir}
-                onSort={toggleSort}
-              />
-              <SortableHead
-                label="Email"
-                field="contactEmail"
-                active={sortField}
-                dir={sortDir}
-                onSort={toggleSort}
-              />
-              <TableHead className="text-muted-foreground">Phone</TableHead>
-              <TableHead className="text-muted-foreground">Age</TableHead>
-              <SortableHead
-                label="Source"
-                field="source"
-                active={sortField}
-                dir={sortDir}
-                onSort={toggleSort}
-              />
-              <SortableHead
-                label="Captured At"
-                field="capturedAt"
-                active={sortField}
-                dir={sortDir}
-                onSort={toggleSort}
-              />
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {sorted.length === 0 ? (
-              <TableRow>
-                <TableCell
-                  colSpan={6}
-                  className="text-center text-muted-foreground py-8"
-                >
-                  No leads found
-                </TableCell>
+        {sorted.length === 0 ? (
+          <div className="text-center text-muted-foreground py-8">
+            No leads found
+          </div>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow className="border-border/60 hover:bg-transparent">
+                <SortableHead
+                  label="Name"
+                  field="contactName"
+                  active={sortField}
+                  dir={sortDir}
+                  onSort={toggleSort}
+                />
+                <SortableHead
+                  label="Email"
+                  field="contactEmail"
+                  active={sortField}
+                  dir={sortDir}
+                  onSort={toggleSort}
+                />
+                <TableHead className="text-muted-foreground">Phone</TableHead>
+                <TableHead className="text-muted-foreground tabular-nums">Age</TableHead>
+                <SortableHead
+                  label="Source"
+                  field="source"
+                  active={sortField}
+                  dir={sortDir}
+                  onSort={toggleSort}
+                />
+                <SortableHead
+                  label="Captured At"
+                  field="capturedAt"
+                  active={sortField}
+                  dir={sortDir}
+                  onSort={toggleSort}
+                />
               </TableRow>
-            ) : (
-              sorted.map((lead) => (
+            </TableHeader>
+            <TableBody>
+              {sorted.map((lead) => (
                 <TableRow
                   key={lead.id}
                   className="border-border/60 hover:bg-accent"
@@ -186,14 +182,14 @@ export function LeadTable({ leads }: LeadTableProps) {
                   <TableCell className="text-muted-foreground">
                     {lead.source}
                   </TableCell>
-                  <TableCell className="text-muted-foreground tabular-nums">
-                    {formatDateTime(lead.capturedAt)}
+                  <TableCell className="text-muted-foreground">
+                    <TimestampCell dateStr={lead.capturedAt} />
                   </TableCell>
                 </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
+              ))}
+            </TableBody>
+          </Table>
+        )}
       </div>
     </div>
   );
@@ -212,18 +208,28 @@ function SortableHead({
   dir: SortDir;
   onSort: (f: SortField) => void;
 }) {
+  const sorted = active === field;
   return (
     <TableHead
       className={cn(
-        "text-muted-foreground cursor-pointer select-none hover:text-foreground transition-colors",
-        active === field && "text-foreground"
+        "text-muted-foreground select-none transition-colors",
+        sorted && "text-foreground"
       )}
-      onClick={() => onSort(field)}
+      aria-sort={sorted ? (dir === "asc" ? "ascending" : "descending") : "none"}
     >
-      <span className="inline-flex items-center gap-1">
+      <button
+        type="button"
+        onClick={() => onSort(field)}
+        className="inline-flex items-center gap-1 hover:text-foreground transition-colors"
+      >
         {label}
-        <ArrowUpDown size={12} className="opacity-50" />
-      </span>
+        <ArrowUpDown size={12} className="opacity-50" aria-hidden="true" />
+        <span className="sr-only">
+          {sorted
+            ? `sorted ${dir === "asc" ? "ascending" : "descending"}, activate to reverse`
+            : "activate to sort"}
+        </span>
+      </button>
     </TableHead>
   );
 }

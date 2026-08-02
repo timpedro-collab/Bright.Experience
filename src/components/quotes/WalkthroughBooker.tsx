@@ -13,7 +13,6 @@ import { useMemo, useState, useTransition } from "react";
 import { CalendarCheck, Check, Clock } from "lucide-react";
 import { toast } from "sonner";
 
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { bookWalkthrough } from "@/app/actions/quotes";
 
@@ -91,7 +90,7 @@ export function WalkthroughBooker({
       if (result.success) {
         setConfirmed(slotLabel);
         toast.success("Walkthrough booked", {
-          description: `${aeFirstName} will call you at ${slotLabel}.`,
+          description: `${aeFirstName} will meet you on a video call at ${slotLabel}.`,
         });
       } else {
         toast.error("Couldn't book that slot", { description: result.error });
@@ -111,8 +110,9 @@ export function WalkthroughBooker({
               You&apos;re booked for {confirmed}
             </p>
             <p className="mt-0.5 text-sm text-muted-foreground">
-              {aeFirstName} will call you then to walk through your tailored
-              proposal and email the final version straight after.
+              {aeFirstName} will meet you then on a video call to walk through
+              your tailored proposal, and email the final version straight
+              after. Your call link arrives with the calendar invite.
             </p>
             <button
               type="button"
@@ -181,7 +181,7 @@ export function WalkthroughBooker({
       </div>
 
       <p className="mt-3 text-xs text-muted-foreground">
-        15 minutes · no obligation · {aeFirstName} calls you
+        15 minutes · no obligation · video call
       </p>
     </div>
   );

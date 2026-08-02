@@ -23,9 +23,9 @@ import { getLatestEventMetrics } from "@/lib/queries/event-metrics";
 import { getTelemetryByEvent } from "@/lib/queries/telemetry";
 import { getMachineInstancesByEvent } from "@/lib/queries/machine-instances";
 import { getUnreadCount } from "@/lib/queries/notifications";
-import { formatDateMedium } from "@/lib/dates";
 import { deriveLiveStatus, type LiveStatus } from "@/lib/live-status";
 import { hourlyCurveFromTotal } from "@/lib/metrics/drivers";
+import { feedItemFromTelemetry } from "@/lib/metrics/feed-labels";
 import type { UserRole } from "@/types";
 
 function LiveBadge({ status }: { status: LiveStatus }) {
@@ -131,28 +131,14 @@ export default async function LiveDashboardPage({
 
   const liveStatus = deriveLiveStatus(event);
 
-  const feedLabels: Record<string, string> = {
-    play_started: "Game session started",
-    play_completed: "Game completed",
-    lead_captured: "New lead captured",
-    prize_awarded: "Prize dispensed",
-    heartbeat: "Machine check-in",
-    interaction: "Screen interaction",
-    survey_completed: "Survey submitted",
-    linkedin_follow: "LinkedIn follow",
-    qr_scan: "QR code scanned",
-  };
-
-  const initialFeed = telemetry.map((t: Record<string, unknown>) => ({
-    id: String(t.id),
-    type: String(t.event_type ?? "unknown")
-      .replace(/_.*/, "")
-      .replace("captured", "lead"),
-    message: feedLabels[String(t.event_type)] ?? String(t.event_type),
-    timestamp: String(t.timestamp ?? ""),
-  }));
+  // Same mapping the live route uses, so the seed and the first poll don't
+  // relabel the same telemetry row differently.
+  const initialFeed = telemetry.map((t: Record<string, unknown>) =>
+    feedItemFromTelemetry(t)
+  );
 
   const initialMachines = machines.map((m: Record<string, unknown>) => ({
+    id: m.id ? String(m.id) : undefined,
     serial_number: String(m.serial_number ?? ""),
     nickname: m.nickname ? String(m.nickname) : undefined,
     status: String(m.status ?? "available"),
@@ -221,6 +207,17 @@ export default async function LiveDashboardPage({
           total_interactions: Number(latestMetrics?.total_interactions ?? 0),
           total_prizes: Number(latestMetrics?.total_prizes ?? 0),
           avg_dwell_time: Number(latestMetrics?.avg_dwell_time ?? 0),
+          stock_remaining:
+            latestMetrics?.stock_remaining != null
+              ? Number(latestMetrics.stock_remaining)
+              : null,
+          stock_capacity:
+            latestMetrics?.stock_capacity != null
+              ? Number(latestMetrics.stock_capacity)
+              : null,
+          // The pace-based reload estimate needs hourly data; the polling
+          // endpoint computes it on the first refresh after mount.
+          reload_eta_minutes: null,
         }}
         initialHourly={initialHourly}
         initialFeed={initialFeed}

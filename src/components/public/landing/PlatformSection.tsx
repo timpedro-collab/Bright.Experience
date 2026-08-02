@@ -6,8 +6,10 @@
 import Image from "next/image";
 
 import { Container, Section } from "@/components/ui/section";
+import { Reveal } from "@/components/ui/motion";
 import { RidgeArtwork } from "@/components/brand";
 import { LiveShowFloorStats } from "@/components/public/LiveShowFloorStats";
+import { PortalPreview } from "@/components/public/landing/PortalPreview";
 
 const PLATFORM_CAPABILITIES = [
   {
@@ -59,13 +61,55 @@ export function PlatformSection() {
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground mb-3">
             The Turnkey Platform
           </p>
-          <h2 className="text-3xl font-bold text-foreground md:text-4xl text-balance">
+          <h2 className="text-display-serif text-4xl text-foreground md:text-5xl text-balance">
             Everything Behind the Activation, Covered
           </h2>
           <p className="mt-4 text-muted-foreground leading-relaxed">
             From the first idea to the post-event report, the work is done for
             you — so the activation simply shows up and performs.
           </p>
+        </div>
+
+        {/* The portal itself is the best sales asset we have (H7): show the
+            live dashboard a client watches on event day, next to what it
+            means for them. */}
+        <div className="mb-16 grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
+          <Reveal>
+            <p className="text-overline text-[var(--color-bb-cobalt)] mb-3">
+              Your event, live
+            </p>
+            <h3 className="text-heading text-2xl font-bold text-foreground md:text-3xl text-balance">
+              Watch the queue build, play by play
+            </h3>
+            <ul className="mt-6 space-y-4 text-muted-foreground">
+              <li className="flex gap-3">
+                <span aria-hidden className="mt-2 size-1.5 shrink-0 rounded-full bg-[var(--color-bb-cobalt)]" />
+                <span>
+                  <span className="font-medium text-foreground">Live counters</span>{" "}
+                  — plays, leads and prize drops tick up in real time while
+                  your activation runs.
+                </span>
+              </li>
+              <li className="flex gap-3">
+                <span aria-hidden className="mt-2 size-1.5 shrink-0 rounded-full bg-[var(--color-bb-cobalt)]" />
+                <span>
+                  <span className="font-medium text-foreground">A feed of every interaction</span>{" "}
+                  — each play, lead and dispense as it happens, machine by
+                  machine.
+                </span>
+              </li>
+              <li className="flex gap-3">
+                <span aria-hidden className="mt-2 size-1.5 shrink-0 rounded-full bg-[var(--color-bb-cobalt)]" />
+                <span>
+                  <span className="font-medium text-foreground">A board-ready report</span>{" "}
+                  — the full story of the day, in your inbox within 24 hours.
+                </span>
+              </li>
+            </ul>
+          </Reveal>
+          <Reveal delay={0.1} y={28}>
+            <PortalPreview />
+          </Reveal>
         </div>
 
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">

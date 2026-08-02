@@ -31,7 +31,9 @@ export async function GET(request: NextRequest) {
   const internal = isInternalRole(role);
   const partner = isPartnerRole(role);
   const accountId = (profile?.account_id as string | null) ?? null;
-  const pattern = `%${q}%`;
+  // Strip LIKE wildcards: PostgREST has no ESCAPE clause, and a search for `%`
+  // would match every row in the table behind a sequential scan.
+  const pattern = `%${q.replace(/[%_*]/g, "")}%`;
 
   // Customers may only ever find their own account's delivery data; partners
   // have no delivery events at all. Internal roles search everything. This

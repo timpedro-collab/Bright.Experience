@@ -117,6 +117,75 @@ export const internalArchetypes = {
     audience: "internal",
     roleScope: ["creative_lead", "events_lead", "admin"],
   },
+  /**
+   * A sponsor said yes on their private pitch link. Goes to the organizer
+   * running the show — they own the sponsor relationship — with the show's
+   * internal owner copied in.
+   */
+  "sponsor.interest_received": {
+    kind: "sponsor.interest_received",
+    classOf: "action_required",
+    priority: "high",
+    eyebrow: "Action required",
+    subjectTemplate: "{sponsorName} wants the slot on {eventName}",
+    bodyTemplate:
+      "{sponsorName} responded to the pitch for {eventName}. Contact: {contactName} ({contactEmail}). Confirm the slot to hold it for them.",
+    linkTemplate: "/organizers/{organizerSlug}/sponsors",
+    ownerResolver: "show_organizer",
+    reminderCadence: {
+      firstAfterHours: TWENTY_FOUR,
+      intervalHours: TWENTY_FOUR,
+      maxEscalations: 2,
+    },
+    defaults: { inPortal: true, emailMode: "immediate" },
+    // The organizer is a partner role and the show owner is internal, so
+    // neither side of the audience filter may drop the other.
+    audience: "both",
+    roleScope: ["partner_admin", "partner_member", "events_lead", "admin"],
+  },
+  /**
+   * An advertiser asked for an open slot on a venue's public page. The hold is
+   * already placed; the venue operator has to confirm or release it.
+   */
+  "sponsor.slot_requested": {
+    kind: "sponsor.slot_requested",
+    classOf: "action_required",
+    priority: "high",
+    eyebrow: "Action required",
+    subjectTemplate: "{sponsorName} requested a slot at {venueName}",
+    bodyTemplate:
+      "{sponsorName} requested {slotDates} at {venueName}. Contact: {contactName} ({contactEmail}). The slot is on hold until you confirm or release it.",
+    linkTemplate: "/venues/{venueSlug}/sponsorships",
+    ownerResolver: "venue_operator",
+    reminderCadence: {
+      firstAfterHours: TWENTY_FOUR,
+      intervalHours: TWENTY_FOUR,
+      maxEscalations: 2,
+    },
+    defaults: { inPortal: true, emailMode: "immediate" },
+    audience: "both",
+    roleScope: ["partner_admin", "partner_member", "events_lead", "admin"],
+  },
+  /** A new partner applied through the public form and needs a decision. */
+  "partner.application_received": {
+    kind: "partner.application_received",
+    classOf: "action_required",
+    priority: "normal",
+    eyebrow: "Action required",
+    subjectTemplate: "New partner application — {partnerName}",
+    bodyTemplate:
+      "{partnerName} applied as a {partnerType} partner. Contact: {contactName} ({contactEmail}). Review and approve or decline.",
+    linkTemplate: "/admin/partners",
+    ownerResolver: "internal_admins",
+    reminderCadence: {
+      firstAfterHours: FORTY_EIGHT,
+      intervalHours: FORTY_EIGHT,
+      maxEscalations: 2,
+    },
+    defaults: { inPortal: true, emailMode: "immediate" },
+    audience: "internal",
+    roleScope: ["admin", "events_lead"],
+  },
   "studio.status_changed": {
     kind: "studio.status_changed",
     classOf: "fyi",

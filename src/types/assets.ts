@@ -106,9 +106,30 @@ export interface Comment {
   id: string;
   eventId: string;
   assetId?: string;
+  /** Version row the comment was posted against (nullable for legacy rows). */
+  assetVersionId?: string;
+  /** Numeric version label for display ("on v3"). */
+  assetVersionNumber?: number;
   authorId: string;
   authorName?: string;
   body: string;
   parentId?: string;
   createdAt: string;
+}
+
+/** One row in the per-event creative approval audit export. */
+export interface AssetDecisionLogEntry {
+  assetId: string;
+  assetName: string;
+  version: number;
+  versionId: string;
+  uploadedAt: string;
+  uploadedBy?: string;
+  uploaderName?: string;
+  fileName?: string;
+  reviewStatus: AssetReviewStatus;
+  reviewFeedback?: string;
+  reviewDecidedBy?: string;
+  reviewerName?: string;
+  reviewDecidedAt?: string;
 }

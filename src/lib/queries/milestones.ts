@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import type { Milestone } from "@/types";
+import { logQueryError } from "@/lib/observability/log-query-error";
 
 export async function getMilestonesByEvent(
   eventId: string
@@ -11,7 +12,10 @@ export async function getMilestonesByEvent(
     .eq("event_id", eventId)
     .order("sort_order");
 
-  if (error || !data) return [];
+  if (error || !data) {
+    logQueryError("getMilestonesByEvent", error, { eventId });
+    return [];
+  }
 
   return data.map((row) => ({
     id: row.id,

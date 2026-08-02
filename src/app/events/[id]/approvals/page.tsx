@@ -17,13 +17,19 @@ import { EditorialEyebrow, Hairline } from "@/components/brand";
 import { ApprovalStatusBadge } from "@/components/ui/StatusBadge";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ApprovalActions } from "@/components/approvals/ApprovalActions";
+import {
+  RequestApprovalForm,
+  type ProofOption,
+} from "@/components/approvals/RequestApprovalForm";
+import { CollapsibleSection } from "@/components/ui/CollapsibleSection";
 import { AutoRefresh } from "@/components/system/AutoRefresh";
 
 import { getEventById } from "@/lib/queries/events";
 import { getApprovalsByEvent } from "@/lib/queries/approvals";
+import { getAssetsByEvent } from "@/lib/queries/assets";
 import { getUnreadCount } from "@/lib/queries/notifications";
 import { getUser } from "@/lib/auth";
-import { isInternalRole } from "@/lib/roles";
+import { isInternalRole, canRequestApproval } from "@/lib/roles";
 import { canViewSection } from "@/lib/event-access";
 import { formatDateMedium, timeSince } from "@/lib/dates";
 import type { Approval } from "@/types";
@@ -37,14 +43,24 @@ export default async function ApprovalsPage({
   if (!user) redirect("/login");
   const { id } = await params;
   if (!canViewSection(user.role, "approvals")) redirect(`/events/${id}`);
-  const [event, approvals, unread] = await Promise.all([
+  const canRequest = isInternalRole(user.role) && canRequestApproval(user.role);
+  const [event, approvals, unread, assets] = await Promise.all([
     getEventById(id),
     getApprovalsByEvent(id),
     getUnreadCount(user.id),
+    // Only the roles that can post a proof need the asset list to pick from.
+    canRequest ? getAssetsByEvent(id) : Promise.resolve([]),
   ]);
   if (!event) return notFound();
   const isInternal = isInternalRole(user.role);
   const accountName = event.account.name;
+  const proofOptions: ProofOption[] = assets
+    .filter((asset) => asset.filePath)
+    .map((asset) => ({
+      id: asset.id,
+      name: asset.fileName ? `${asset.name} — ${asset.fileName}` : asset.name,
+      path: asset.filePath!,
+    }));
 
   const pending = approvals.filter(
     (a) => a.status === "pending" || a.status === "revision_requested",
@@ -86,6 +102,17 @@ export default async function ApprovalsPage({
         ) : null
       }
     >
+      {canRequest && (
+        <div className="pt-8">
+          <CollapsibleSection
+            title="Send a proof for sign-off"
+            defaultOpen={pending.length === 0}
+          >
+            <RequestApprovalForm eventId={id} proofOptions={proofOptions} />
+          </CollapsibleSection>
+        </div>
+      )}
+
       {approvals.length === 0 ? (
         <EmptyState
           icon={CheckCircle2}
@@ -97,8 +124,8 @@ export default async function ApprovalsPage({
           }
           action={
             isInternal
-              ? { label: "View timeline", href: `/events/${id}/timeline` }
-              : { label: "Back to overview", href: `/events/${id}` }
+              ? { label: "Open Timeline", href: `/events/${id}/timeline` }
+              : { label: "Return to Overview", href: `/events/${id}` }
           }
         />
       ) : (

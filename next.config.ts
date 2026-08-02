@@ -2,16 +2,32 @@
 import type { NextConfig } from "next";
 import { withSentryConfig } from "@sentry/nextjs";
 
-const securityHeaders = [
-  { key: "X-Frame-Options", value: "DENY" },
-  { key: "X-Content-Type-Options", value: "nosniff" },
-  { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-  {
-    key: "Permissions-Policy",
-    value: "camera=(), microphone=(), geolocation=(self)",
-  },
-  { key: "X-DNS-Prefetch-Control", value: "on" },
-];
+import { buildSecurityHeaders } from "./src/lib/security/headers";
+import { isPublicApiEnabled } from "./src/lib/integration-flags";
+
+// The policy is derived, not hard-coded: Supabase and Sentry live on different
+// hosts per environment, and the local stack is plain HTTP on 127.0.0.1.
+const headerOptions = {
+  isDev: process.env.NODE_ENV !== "production",
+  supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
+  sentryDsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
+};
+
+const securityHeaders = buildSecurityHeaders(headerOptions);
+
+// A venue's public advertiser page is the widget venues paste into their own
+// site (`/venues/[slug]/embed` generates that iframe snippet and previews it),
+// so it is the one route that must be frameable. Next merges every matching
+// `headers()` entry and offers no way to *remove* a header a broader rule has
+// set, so the broad rule excludes this path and it gets its own header set.
+const embedSecurityHeaders = buildSecurityHeaders({
+  ...headerOptions,
+  embeddable: true,
+});
+
+const FRAMEABLE_PATH = "/venues/:slug/advertise";
+/** Everything else, so the two header sets never overlap on one response. */
+const NON_FRAMEABLE_PATHS = "/:path((?!venues\\/[^/]+\\/advertise$).*)";
 
 // Allow Next.js Image to optimise from these origins. Add more as needed.
 const remoteImagePatterns: NextConfig["images"] = {
@@ -25,15 +41,69 @@ const remoteImagePatterns: NextConfig["images"] = {
   formats: ["image/avif", "image/webp"],
 };
 
+// `/api/test/*` signs a user in as a named persona using the service role. It is
+// in the middleware's public allowlist, so the only thing standing between it and
+// an unauthenticated session was a `TEST_MODE` env check — one stray environment
+// variable away from an auth bypass.
+//
+// A production build now drops the routes from the routing table entirely. The
+// E2E harness builds in production mode, so it opts back in with a second,
+// separately-named variable: a deployment that inherits `TEST_MODE=1` from a CI
+// config still 404s.
+const testRoutesEnabled =
+  process.env.NODE_ENV !== "production" ||
+  process.env.ALLOW_TEST_AUTH_ROUTES === "1";
+
+const publicApiEnabled = isPublicApiEnabled();
+
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   reactStrictMode: true,
   images: remoteImagePatterns,
+  async rewrites() {
+    // Rewriting to a path with no route makes Next render not-found with a real
+    // 404 status, so the target is unreachable no matter what its handler does.
+    //
+    // These must be `beforeFiles`. A bare array is `afterFiles`, which Next only
+    // consults once the filesystem has been checked — so it can never shadow a
+    // route that exists, which is the entire point here.
+    const disabled: { source: string; destination: string }[] = [];
+
+    if (!testRoutesEnabled) {
+      disabled.push({
+        source: "/api/test/:path*",
+        destination: "/_disabled-route",
+      });
+    }
+
+    // Keys and webhook subscriptions nothing consumes yet — see
+    // `lib/integration-flags.ts`.
+    if (!publicApiEnabled) {
+      disabled.push({ source: "/admin/api", destination: "/_disabled-route" });
+    }
+
+    return { beforeFiles: disabled, afterFiles: [], fallback: [] };
+  },
+  // Allow the dev server's client JS bundles (/_next/*) to load when the app is
+  // opened from a LAN IP on a phone/tablet. Without this, Next.js 16 blocks
+  // cross-origin dev resources so the page renders but never hydrates (dead taps).
+  // Add whatever host you use for on-device testing here.
+  allowedDevOrigins: ["192.168.1.*", "192.168.86.*", "172.16.*", "localhost"],
   async headers() {
     return [
       {
-        source: "/(.*)",
+        source: NON_FRAMEABLE_PATHS,
         headers: securityHeaders,
+      },
+      {
+        source: FRAMEABLE_PATH,
+        headers: embedSecurityHeaders,
+      },
+      {
+        // Capability URL: the link is the credential, so keep it out of search
+        // indexes at the transport layer too, not only via page metadata.
+        source: "/sponsor/:token*",
+        headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" }],
       },
     ];
   },

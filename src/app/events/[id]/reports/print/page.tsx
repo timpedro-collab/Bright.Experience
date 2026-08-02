@@ -3,7 +3,6 @@
  * White background, no navigation chrome, perfect A4 portrait layout.
  */
 import { notFound, redirect } from "next/navigation";
-import Image from "next/image";
 
 import { MetricCard } from "@/components/reports/MetricCard";
 import { PredictedVsActual } from "@/components/reports/PredictedVsActual";

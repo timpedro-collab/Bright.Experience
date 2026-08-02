@@ -1,34 +1,8 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
+import { isPublicPath } from "./lib/auth/public-routes";
 import { isMockMode, MOCK_COOKIE } from "./lib/supabase/mock/flag";
-
-const PUBLIC_PREFIXES = [
-  "/login",
-  "/auth",
-  "/forgot-password",
-  "/catalog",
-  "/resources",
-  "/presentation",
-  "/quiz",
-  "/book",
-  "/proposal",
-  "/p/",
-  "/report",
-  "/partners/join",
-  "/terms",
-  "/privacy",
-  "/how-it-works",
-  "/help",
-  "/api/test",
-  "/help",
-  // Machine-to-machine endpoints that enforce their own auth and can never
-  // carry a browser session: inbound Cloud webhooks (HMAC signature) and
-  // scheduled crons (CRON_SECRET bearer). Without these the session gate
-  // 307s the caller to /login and the payload is silently dropped.
-  "/api/webhooks",
-  "/api/cron",
-];
 
 /**
  * Application-level auth gate. Public routes pass through; everything
@@ -37,21 +11,18 @@ const PUBLIC_PREFIXES = [
  * request) — the DB trigger handles new auth.users rows, the auth
  * callback handles the post-OAuth path, and `getUser()` server-side
  * actions re-check the profile on demand.
+ *
+ * The allowlist itself lives in `lib/auth/public-routes.ts` so it can be
+ * unit-tested.
  */
-/** A venue's public advertiser page: /venues/<slug>/advertise (no auth). */
-const PUBLIC_VENUE_ADVERTISE = /^\/venues\/[^/]+\/advertise$/;
-
 export async function middleware(request: NextRequest) {
   const pathnameEarly = request.nextUrl.pathname;
-  const isPublicEarly =
-    PUBLIC_PREFIXES.some((p) => pathnameEarly.startsWith(p)) ||
-    PUBLIC_VENUE_ADVERTISE.test(pathnameEarly);
-  const isRootEarly = pathnameEarly === "/";
+  const isPublicEarly = isPublicPath(pathnameEarly);
 
   // Standalone mock build: auth is a cookie holding the seeded profile id.
   if (isMockMode()) {
     const uid = request.cookies.get(MOCK_COOKIE)?.value;
-    if (!uid && !isPublicEarly && !isRootEarly) {
+    if (!uid && !isPublicEarly) {
       const url = request.nextUrl.clone();
       url.pathname = "/login";
       url.searchParams.set("redirect", pathnameEarly);
@@ -88,12 +59,7 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const pathname = request.nextUrl.pathname;
-  const isPublicRoute =
-    PUBLIC_PREFIXES.some((prefix) => pathname.startsWith(prefix)) ||
-    PUBLIC_VENUE_ADVERTISE.test(pathname);
-
-  const isRoot = pathname === "/";
-  if (!user && !isPublicRoute && !isRoot) {
+  if (!user && !isPublicPath(pathname)) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     url.searchParams.set("redirect", pathname);

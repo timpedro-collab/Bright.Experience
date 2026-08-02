@@ -31,7 +31,6 @@ describe("event-access matrix", () => {
       "assets",
       "approvals",
       "actions",
-      "deadlines",
       "communications",
       "live",
       "leads",
@@ -44,8 +43,10 @@ describe("event-access matrix", () => {
       "logistics",
     ];
     // Studio is split out below — it's lead-contact-only, so it can't live in
-    // a set shared by both customer roles.
+    // a set shared by both customer roles. `deadlines` is now internal-only —
+    // the customer schedule is folded into the Tasks page.
     const hidden: EventSection[] = [
+      "deadlines",
       "compliance",
       "machine",
       "qa",

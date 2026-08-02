@@ -12,7 +12,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { dispatchNotification } from "@/lib/notifications/dispatch";
-import { autoCompleteTaskByPath } from "@/app/actions/tasks";
+import { autoCompleteTaskByPath } from "@/server/tasks";
 import { writeAudit } from "@/lib/audit";
 import { bumpStreak } from "./streak";
 import {
@@ -20,7 +20,7 @@ import {
   validateUpload,
   type StorageBucket,
 } from "@/lib/storage/signed-url";
-import { scanUpload } from "@/lib/storage/scan";
+import { screenUpload } from "@/lib/storage/scan";
 import {
   buildSpecWarnings,
   imageDimensionsFromBuffer,
@@ -83,14 +83,31 @@ export async function uploadAsset(formData: FormData): Promise<ActionResult> {
     return { success: false, error: check.detail };
   }
 
-  // Malware screen before anything touches storage. No-ops gracefully when
+  // Content screen before anything touches storage: an SVG carrying script is
+  // refused outright, then the malware scan, which no-ops gracefully when
   // FILE_SCAN_URL isn't configured (local/dev/pre-handoff).
   const scanBytes = new Uint8Array(await file.arrayBuffer());
-  const scan = await scanUpload(scanBytes, file.name);
+  const scan = await screenUpload(scanBytes, file.name, file.type);
   if (!scan.ok) {
     return {
       success: false,
       error: scan.detail ?? "This file was flagged by our security scan.",
+    };
+  }
+
+  const { data: existingAsset } = await supabase
+    .from("assets")
+    .select(
+      "version, review_status, required_file_types, required_resolution_min, required_duration_range",
+    )
+    .eq("id", assetId)
+    .single();
+
+  if (existingAsset?.review_status === "approved") {
+    return {
+      success: false,
+      error:
+        "This asset is approved and locked. Ask your Bright.Blue contact to reopen it if something must change.",
     };
   }
 
@@ -113,11 +130,6 @@ export async function uploadAsset(formData: FormData): Promise<ActionResult> {
   }
 
   const warnings: string[] = [];
-  const { data: existingAsset } = await supabase
-    .from("assets")
-    .select("version, required_file_types, required_resolution_min, required_duration_range")
-    .eq("id", assetId)
-    .single();
 
   if (existingAsset?.required_file_types?.length) {
     const accepted = existingAsset.required_file_types as string[];

@@ -11,12 +11,14 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { dispatchNotification } from "@/lib/notifications/dispatch";
-import { autoCompleteTaskByPath, autoCompleteTaskByPathAndTitle } from "@/app/actions/tasks";
+import { autoCompleteTaskByPath, autoCompleteTaskByPathAndTitle } from "@/server/tasks";
 import { validateUpload, storagePathFor, createSignedReadUrl } from "@/lib/storage/signed-url";
-import { scanUpload } from "@/lib/storage/scan";
+import { screenUpload } from "@/lib/storage/scan";
 import { bumpStreak } from "./streak";
+import { sendMessage } from "@/app/actions/messages";
 import { briefingResponseSchema } from "@/lib/validations/briefing";
 import type { ActionResult } from "@/types/actions";
+import { logQueryError } from "@/lib/observability/log-query-error";
 
 /** Save (or submit) a briefing response for an event. */
 export async function saveBriefingResponse(
@@ -57,7 +59,10 @@ export async function saveBriefingResponse(
       { onConflict: "event_id,form_type" }
     );
 
-  if (error) return { success: false, error: `Save failed: ${error.message}` };
+  if (error) {
+    logQueryError("saveBriefingResponse", error, { eventId });
+    return { success: false, error: `Save failed: ${error.message}` };
+  }
 
   if (submit) {
     await supabase.from("audit_entries").insert({
@@ -93,6 +98,30 @@ export async function saveBriefingResponse(
   revalidatePath(`/events/${eventId}/briefing`);
   revalidatePath(`/events/${eventId}/actions`);
   return { success: true, data: undefined };
+}
+
+/**
+ * Once the delivery plan is locked (see `isStageAtOrAfter` in `@/lib/journey`),
+ * the ops team has already planned against the customer's submitted details, so
+ * we don't let a late edit silently overwrite them. Instead the customer files
+ * a change request: this posts a clearly-labelled message to the event thread,
+ * which notifies the relevant internal owners (ops for logistics, studio for
+ * creative) and gives them a place to acknowledge it — no silent surprises.
+ */
+export async function requestBriefingChange(
+  eventId: string,
+  formType: "creative" | "ops",
+  note: string
+): Promise<ActionResult<{ id: string }>> {
+  const trimmed = note.trim();
+  if (!trimmed) {
+    return { success: false, error: "Please describe the change you need." };
+  }
+  const area = formType === "ops" ? "logistics" : "creative";
+  const body = `Change request (${area}):\n\n${trimmed}`;
+  // Customer-visible message so the request lives in the shared thread; sendMessage
+  // dispatches the notification to the internal owners for the topic.
+  return sendMessage(eventId, body, false, undefined, area);
 }
 
 /**
@@ -162,7 +191,10 @@ export async function saveBrandKit(eventId: string, kit: BrandKit): Promise<Acti
       { onConflict: "event_id,form_type" }
     );
 
-  if (error) return { success: false, error: `Save failed: ${error.message}` };
+  if (error) {
+    logQueryError("saveBrandKit", error, { eventId });
+    return { success: false, error: `Save failed: ${error.message}` };
+  }
 
   // Count the brand kit as "done" once they've given us something usable.
   const hasContent =
@@ -209,7 +241,7 @@ export async function uploadBriefingFile(
 
   const buffer = Buffer.from(await file.arrayBuffer());
 
-  const scan = await scanUpload(buffer, file.name);
+  const scan = await screenUpload(buffer, file.name, file.type);
   if (!scan.ok) {
     return { success: false, error: scan.detail ?? "This file was flagged by our security scan." };
   }
@@ -236,7 +268,10 @@ export async function getBriefingFiles(
     .from("briefings")
     .list(prefix.replace(/\/$/, ""), { limit: 50 });
 
-  if (error || !data) return [];
+  if (error || !data) {
+    logQueryError("getBriefingFiles", error, { eventId });
+    return [];
+  }
 
   const files: { name: string; path: string; url: string | null }[] = [];
   for (const item of data) {

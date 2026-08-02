@@ -10,6 +10,8 @@ import { createMockSupabase, type MockSupabase } from "@/test/supabase";
 
 let supabase: MockSupabase;
 const sendProposalIntakeNotification = vi.fn();
+const sendProposalReadyEmail = vi.fn();
+const sendBookingConfirmationEmail = vi.fn();
 const dispatchNotification = vi.fn();
 const recordAttribution = vi.fn();
 const getUser = vi.fn();
@@ -23,6 +25,9 @@ vi.mock("@/lib/auth", () => ({
 vi.mock("@/lib/email", () => ({
   sendProposalIntakeNotification: (...args: unknown[]) =>
     sendProposalIntakeNotification(...args),
+  sendProposalReadyEmail: (...args: unknown[]) => sendProposalReadyEmail(...args),
+  sendBookingConfirmationEmail: (...args: unknown[]) =>
+    sendBookingConfirmationEmail(...args),
 }));
 vi.mock("@/lib/notifications/dispatch", () => ({
   dispatchNotification: (...args: unknown[]) => dispatchNotification(...args),
@@ -32,6 +37,22 @@ vi.mock("@/app/actions/partners", () => ({
 }));
 
 const PKG_UUID = "00000000-0000-4000-8000-000000000099";
+
+/**
+ * Run a block as a specific caller IP. The rate-limit bucket is module-level
+ * state shared by every test in this file, so anything that submits more than
+ * once needs its own address or it starves a later test.
+ */
+async function withClientIp<T>(ip: string, run: () => Promise<T>): Promise<T> {
+  const { headers } = await import("next/headers");
+  const mocked = vi.mocked(headers);
+  mocked.mockResolvedValue(new Headers({ "x-forwarded-for": ip }));
+  try {
+    return await run();
+  } finally {
+    mocked.mockResolvedValue(new Headers());
+  }
+}
 
 /** Convenience: seed the packages table with a bookable row so the
  *  `submitBookNowQuote` server-side re-read passes. */
@@ -64,6 +85,8 @@ function seedBookablePackage(id = PKG_UUID, basePrice = 100_000) {
 beforeEach(() => {
   supabase = createMockSupabase();
   sendProposalIntakeNotification.mockReset().mockResolvedValue(undefined);
+  sendProposalReadyEmail.mockReset().mockResolvedValue(undefined);
+  sendBookingConfirmationEmail.mockReset().mockResolvedValue(undefined);
   dispatchNotification.mockReset();
   recordAttribution.mockReset().mockResolvedValue({ success: true, data: { id: "att" } });
   getUser.mockReset().mockResolvedValue({
@@ -96,6 +119,47 @@ describe("submitBookNowQuote", () => {
       .callsFor("quotes")
       .find((c) => c.method === "insert");
     expect((insertCall!.args[0] as { track: string }).track).toBe("book_now");
+  });
+
+  it("emails the buyer their own confirmation", async () => {
+    // Distinct IP so these extra submissions don't drain the shared bucket.
+    await withClientIp("203.0.113.60", async () => {
+      seedBookablePackage(PKG_UUID, 100_000);
+      supabase.setTableResponse("quotes", { data: { id: "q1" }, error: null });
+      const { submitBookNowQuote } = await import("./quotes");
+      await submitBookNowQuote({
+        packageId: PKG_UUID,
+        contactName: "Casey",
+        contactEmail: "casey@acme.test",
+        companyName: "Acme",
+        eventDateStart: "2026-09-01",
+      });
+    });
+
+    expect(sendBookingConfirmationEmail).toHaveBeenCalledWith(
+      expect.objectContaining({
+        contactEmail: "casey@acme.test",
+        packageName: "Test package",
+        totalAmount: 100_000,
+        receiptUrl: expect.stringContaining("/book/confirmation/q1"),
+      })
+    );
+  });
+
+  it("still records the booking when the confirmation email fails", async () => {
+    const result = await withClientIp("203.0.113.61", async () => {
+      seedBookablePackage(PKG_UUID, 100_000);
+      supabase.setTableResponse("quotes", { data: { id: "q1" }, error: null });
+      sendBookingConfirmationEmail.mockRejectedValue(new Error("smtp down"));
+      const { submitBookNowQuote } = await import("./quotes");
+      return submitBookNowQuote({
+        packageId: PKG_UUID,
+        contactName: "Casey",
+        contactEmail: "casey@acme.test",
+      });
+    });
+
+    expect(result.success).toBe(true);
   });
 
   it("rejects a non-bookable / missing package", async () => {
@@ -335,6 +399,93 @@ describe("prepareProposal", () => {
     expect(row.status).toBe("proposal_sent");
   });
 
+  it("emails the customer the proposal link once the status flips", async () => {
+    supabase.setTableResponse("quote_line_items", { data: null, error: null });
+    supabase.setTableResponse("quotes", {
+      data: {
+        contact_name: "Aisha Khan",
+        contact_email: "aisha@samsung.example",
+        company_name: "Samsung",
+        event_type: "activation",
+        walkthrough_url: null,
+      },
+      error: null,
+    });
+    const { prepareProposal } = await import("./quotes");
+    const result = await prepareProposal("q1", {
+      lineItems: [{ label: "Hardware", amount: 1 }],
+    });
+    expect(result.success).toBe(true);
+    expect(sendProposalReadyEmail).toHaveBeenCalledTimes(1);
+    const arg = sendProposalReadyEmail.mock.calls[0][0] as {
+      contactEmail: string;
+      proposalUrl: string;
+    };
+    expect(arg.contactEmail).toBe("aisha@samsung.example");
+    expect(arg.proposalUrl).toContain("/proposal/q1");
+  });
+
+  it("confirms the booked call in the email when a walkthrough is scheduled", async () => {
+    supabase.setTableResponse("quote_line_items", { data: null, error: null });
+    supabase.setTableResponse("quotes", {
+      data: {
+        contact_name: "Aisha Khan",
+        contact_email: "aisha@samsung.example",
+        company_name: "Samsung",
+        event_type: "activation",
+        walkthrough_url: null,
+        walkthrough_scheduled_at: "2026-07-02T13:00:00Z",
+        walkthrough_slot_label: "Thu 2 Jul · 2:00 PM",
+      },
+      error: null,
+    });
+    const { prepareProposal } = await import("./quotes");
+    const result = await prepareProposal("q1", {
+      lineItems: [{ label: "Hardware", amount: 1 }],
+    });
+    expect(result.success).toBe(true);
+    const arg = sendProposalReadyEmail.mock.calls[0][0] as {
+      scheduledSlotLabel?: string | null;
+    };
+    expect(arg.scheduledSlotLabel).toBe("Thu 2 Jul · 2:00 PM");
+  });
+
+  it("invites the customer to book when no walkthrough is scheduled", async () => {
+    supabase.setTableResponse("quote_line_items", { data: null, error: null });
+    supabase.setTableResponse("quotes", {
+      data: {
+        contact_name: "Aisha Khan",
+        contact_email: "aisha@samsung.example",
+        company_name: "Samsung",
+        event_type: "activation",
+        walkthrough_url: null,
+        walkthrough_scheduled_at: null,
+        walkthrough_slot_label: null,
+      },
+      error: null,
+    });
+    const { prepareProposal } = await import("./quotes");
+    const result = await prepareProposal("q1", {
+      lineItems: [{ label: "Hardware", amount: 1 }],
+    });
+    expect(result.success).toBe(true);
+    const arg = sendProposalReadyEmail.mock.calls[0][0] as {
+      scheduledSlotLabel?: string | null;
+    };
+    expect(arg.scheduledSlotLabel).toBeNull();
+  });
+
+  it("does not email when the quote has no contact email", async () => {
+    supabase.setTableResponse("quote_line_items", { data: null, error: null });
+    supabase.setTableResponse("quotes", { data: null, error: null });
+    const { prepareProposal } = await import("./quotes");
+    const result = await prepareProposal("q1", {
+      lineItems: [{ label: "Hardware", amount: 1 }],
+    });
+    expect(result.success).toBe(true);
+    expect(sendProposalReadyEmail).not.toHaveBeenCalled();
+  });
+
   it("rejects a caller without commercial access", async () => {
     getUser.mockResolvedValue({
       id: "cust",
@@ -353,6 +504,7 @@ describe("prepareProposal", () => {
     });
     expect(result.success).toBe(false);
     expect(supabase.callsFor("quotes").find((c) => c.method === "update")).toBeUndefined();
+    expect(sendProposalReadyEmail).not.toHaveBeenCalled();
   });
 
   it("returns failure on line-item insert error", async () => {

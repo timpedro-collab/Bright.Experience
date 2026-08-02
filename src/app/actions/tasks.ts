@@ -10,7 +10,6 @@
  */
 
 import { createClient } from "@/lib/supabase/server";
-import { getServiceRoleClient } from "@/lib/supabase/service-role";
 import { revalidatePath } from "next/cache";
 import { dispatchNotification } from "@/lib/notifications/dispatch";
 import { isInternalRole, isAdminRole } from "@/lib/roles";
@@ -453,78 +452,58 @@ export async function reassignTask(
 }
 
 /**
- * Auto-complete all open tasks whose `target_path` matches, using the
- * service-role client so it works from any server action context.
+ * Snooze an internal task until a future timestamp — hides it from focus
+ * and inbox queues until the snooze expires. Internal roles only.
  */
-export async function autoCompleteTaskByPath(
-  eventId: string,
-  targetPath: string
-): Promise<void> {
-  const admin = getServiceRoleClient();
-  const now = new Date().toISOString();
+export async function snoozeTask(
+  taskId: string,
+  until: string,
+): Promise<ActionResult<{ snoozedUntil: string }>> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { success: false, error: "Not authenticated" };
 
-  const { data: tasks } = await admin
+  const actorRole = await getActorRole(supabase, user.id);
+  if (!actorRole || !isInternalRole(actorRole)) {
+    return { success: false, error: "Only the Bright.Blue team can snooze tasks." };
+  }
+
+  const untilDate = new Date(until);
+  if (Number.isNaN(untilDate.getTime())) {
+    return { success: false, error: "Invalid snooze time." };
+  }
+  if (untilDate.getTime() <= Date.now()) {
+    return { success: false, error: "Snooze time must be in the future." };
+  }
+
+  const snoozedUntil = untilDate.toISOString();
+
+  const { data: task, error } = await supabase
     .from("tasks")
-    .select("id")
-    .eq("event_id", eventId)
-    .eq("target_path", targetPath)
-    .not("status", "in", '("complete","skipped")');
+    .update({ snoozed_until: snoozedUntil })
+    .eq("id", taskId)
+    .eq("task_type", "internal_action")
+    .not("status", "in", '("complete","skipped")')
+    .select("id, event_id, title")
+    .single();
 
-  if (!tasks || tasks.length === 0) return;
+  if (error || !task) {
+    return { success: false, error: "Could not snooze that task." };
+  }
 
-  await admin
-    .from("tasks")
-    .update({ status: "complete", completed_at: now })
-    .in(
-      "id",
-      tasks.map((t: { id: string }) => t.id)
-    );
+  await supabase.from("audit_entries").insert({
+    event_id: task.event_id,
+    actor_id: user.id,
+    action: "task_snoozed",
+    entity_type: "task",
+    entity_id: taskId,
+    metadata: { title: task.title, snoozedUntil, actorRole },
+  });
 
-  revalidatePath(`/events/${eventId}/actions`);
-  revalidatePath(`/events/${eventId}`);
+  revalidatePath(`/events/${task.event_id}/actions`);
   revalidatePath("/inbox");
   revalidatePath("/");
-}
-
-/**
- * Auto-complete open tasks matching a `target_path` AND a title keyword.
- *
- * Some paths host more than one task (e.g. `assets` carries both "Upload
- * primary brand logo" and "Upload brand guidelines document"), so a plain
- * path match would over-complete. The keyword scopes it to the right one.
- */
-export async function autoCompleteTaskByPathAndTitle(
-  eventId: string,
-  targetPath: string,
-  titleKeywords: string[]
-): Promise<void> {
-  const admin = getServiceRoleClient();
-  const now = new Date().toISOString();
-
-  const orFilter = titleKeywords
-    .map((kw) => `title.ilike.%${kw}%`)
-    .join(",");
-
-  const { data: tasks } = await admin
-    .from("tasks")
-    .select("id")
-    .eq("event_id", eventId)
-    .eq("target_path", targetPath)
-    .or(orFilter)
-    .not("status", "in", '("complete","skipped")');
-
-  if (!tasks || tasks.length === 0) return;
-
-  await admin
-    .from("tasks")
-    .update({ status: "complete", completed_at: now })
-    .in(
-      "id",
-      tasks.map((t: { id: string }) => t.id)
-    );
-
-  revalidatePath(`/events/${eventId}/actions`);
-  revalidatePath(`/events/${eventId}`);
-  revalidatePath("/inbox");
-  revalidatePath("/");
+  return { success: true, data: { snoozedUntil } };
 }

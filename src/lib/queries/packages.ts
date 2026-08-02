@@ -1,5 +1,6 @@
 /** Supabase read queries for the packages catalog entity. */
 import { createClient } from "@/lib/supabase/server";
+import { logQueryError } from "@/lib/observability/log-query-error";
 
 /** Fetch all bookable packages, including the parent machine name. */
 export async function getPackages() {
@@ -15,26 +16,11 @@ export async function getPackages() {
     .order("base_price");
 
   if (error) {
-    console.error("[getPackages] query failed", error);
+    logQueryError("getPackages", error);
     return [];
   }
   return data ?? [];
 }
-
-/** Fetch bookable packages scoped to a specific machine. */
-export async function getPackagesByMachine(machineId: string) {
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("packages")
-    .select("id, name, slug, tier, base_price, duration_days, features_json, is_bookable")
-    .eq("machine_id", machineId)
-    .eq("is_bookable", true)
-    .order("base_price");
-
-  if (error || !data) return [];
-  return data;
-}
-
 /** Fetch a single package by slug with its addons. */
 export async function getPackageBySlug(slug: string) {
   const supabase = await createClient();
@@ -49,6 +35,9 @@ export async function getPackageBySlug(slug: string) {
     .eq("slug", slug)
     .single();
 
-  if (error || !data) return null;
+  if (error || !data) {
+    logQueryError("getPackageBySlug", error, { slug });
+    return null;
+  }
   return data;
 }

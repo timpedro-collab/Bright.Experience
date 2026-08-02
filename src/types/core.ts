@@ -73,7 +73,16 @@ export interface Event {
   collectionDate?: string;
   currentStage: Stage;
   healthStatus: HealthStatus;
+  /** True when an internal user flagged this event by hand. */
+  healthOverride?: boolean;
+  /** Why it was flagged — internal-only, never shown to the customer. */
+  healthReason?: string;
   templateId?: string;
+  /**
+   * Set when this event is a show run by an organizer partner. Grants that
+   * partner's users read access to the show and control of its sponsor slots.
+   */
+  organizerPartnerId?: string;
   /** Pipedrive deal ID this event is linked to, if any. */
   pipedriveDealId?: string;
   /** When the Pipedrive link was first established. */

@@ -4,6 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { brandFontVariables } from "@/lib/fonts";
 import { checkRequiredEnv } from "@/lib/env";
 import { ThemeProvider, themeInitScript } from "@/components/theme/ThemeProvider";
+import { MotionProvider } from "@/components/theme/MotionProvider";
 import { getUser } from "@/lib/auth";
 import { isInternalRole } from "@/lib/roles";
 import { InternalShell } from "@/components/layout/InternalShell";
@@ -78,14 +79,16 @@ export default async function RootLayout({
         >
           Skip to content
         </a>
-        <ThemeProvider>
-          {showRail ? (
-            <InternalShell role={user!.role}>{children}</InternalShell>
-          ) : (
-            children
-          )}
-          <Toaster />
-        </ThemeProvider>
+        <MotionProvider>
+          <ThemeProvider>
+            {showRail ? (
+              <InternalShell role={user!.role}>{children}</InternalShell>
+            ) : (
+              children
+            )}
+            <Toaster />
+          </ThemeProvider>
+        </MotionProvider>
       </body>
     </html>
   );

@@ -1,7 +1,7 @@
 /** Zod schemas for QA checklist item validation */
 import { z } from "zod";
 
-export const qaItemStatusSchema = z.enum([
+const qaItemStatusSchema = z.enum([
   "pending",
   "passed",
   "failed",
@@ -9,7 +9,7 @@ export const qaItemStatusSchema = z.enum([
   "na",
 ]);
 
-export const qaCategorySchema = z.enum([
+const qaCategorySchema = z.enum([
   "machine",
   "game_logic",
   "ux_ui",

@@ -26,6 +26,9 @@ export {
   PortalPageShell,
   partnerTabs,
   venueTabs,
+  venueRoleLabel,
+  organizerTabs,
+  organizerRoleLabel,
 } from "./portal-page-shell";
 export { PortalTabNav, type PortalTab } from "./PortalTabNav";
 export {

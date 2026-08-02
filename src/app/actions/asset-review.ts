@@ -25,14 +25,17 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
+import { uuidLike } from "@/lib/validations/id";
+
 import { createClient } from "@/lib/supabase/server";
+import { writeAudit } from "@/lib/audit";
 import { dispatchNotification } from "@/lib/notifications/dispatch";
-import { canReviewCreativeAssets } from "@/lib/roles";
+import { canReviewCreativeAssets, isInternalRole } from "@/lib/roles";
 import { enqueueAssetReviewDecision } from "@/lib/pipedrive/triggers";
 import type { UserRole } from "@/types";
 
 const submitReviewSchema = z.object({
-  assetId: z.string().uuid(),
+  assetId: uuidLike("Invalid asset"),
   decision: z.enum(["approved", "revision_requested"]),
   feedback: z.string().max(2000).optional(),
 });
@@ -168,6 +171,101 @@ export async function submitAssetReview(input: unknown) {
     decision,
     feedback
   );
+
+  revalidatePath(`/events/${existing.event_id}/assets`);
+  revalidatePath("/admin/asset-reviews");
+  revalidatePath(`/events/${existing.event_id}`);
+  revalidatePath("/");
+  return { success: true as const };
+}
+
+const reopenSchema = z.object({
+  assetId: uuidLike("Invalid asset"),
+  reason: z.string().trim().min(1).max(2000),
+});
+
+/**
+ * Unlock an approved asset so the customer can upload a new revision.
+ * Internal-only — records the reopen reason on the asset row and in audit.
+ */
+export async function reopenAsset(input: unknown) {
+  const parsed = reopenSchema.safeParse(input);
+  if (!parsed.success) {
+    return { success: false as const, error: "A reason is required to reopen an approved asset." };
+  }
+  const { assetId, reason } = parsed.data;
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { success: false as const, error: "Not authenticated" };
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+  const role = profile?.role as UserRole | undefined;
+  if (!role || !isInternalRole(role)) {
+    return { success: false as const, error: "Only Bright.Blue staff can reopen approved assets." };
+  }
+
+  const { data: existing } = await supabase
+    .from("assets")
+    .select("event_id, name, review_status")
+    .eq("id", assetId)
+    .single();
+  if (!existing) {
+    return { success: false as const, error: "Asset not found" };
+  }
+  if (existing.review_status !== "approved") {
+    return {
+      success: false as const,
+      error: "Only approved assets can be reopened.",
+    };
+  }
+
+  const now = new Date().toISOString();
+  const { error: updateError } = await supabase
+    .from("assets")
+    .update({
+      review_status: "revision_requested",
+      status: "rejected",
+      review_feedback: reason,
+      review_decided_by: user.id,
+      review_decided_at: now,
+    })
+    .eq("id", assetId);
+  if (updateError) {
+    return { success: false as const, error: "Could not reopen asset. Please try again." };
+  }
+
+  await writeAudit({
+    eventId: existing.event_id,
+    actorId: user.id,
+    action: "asset_reopened",
+    entityType: "asset",
+    entityId: assetId,
+    metadata: { reason },
+  });
+
+  const { data: eventRow } = await supabase
+    .from("events")
+    .select("name")
+    .eq("id", existing.event_id)
+    .single();
+
+  await dispatchNotification("asset.revision_requested", {
+    eventId: existing.event_id,
+    assetId,
+    actorId: user.id,
+    assetName: existing.name,
+    eventName: eventRow?.name ?? "your event",
+    feedback: reason,
+    entityType: "asset",
+    entityId: assetId,
+  });
 
   revalidatePath(`/events/${existing.event_id}/assets`);
   revalidatePath("/admin/asset-reviews");

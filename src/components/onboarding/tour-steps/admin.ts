@@ -1,4 +1,23 @@
-import type { TourConfig } from "./types";
+import { isPublicApiEnabled } from "@/lib/integration-flags";
+
+import type { TourConfig, TourStep } from "./types";
+
+/**
+ * The keys-and-integrations stop only exists when the public API does — the
+ * nav item it spotlights is hidden otherwise, and a tour pointing at nothing
+ * reads as a broken product on someone's first five minutes.
+ */
+const apiStep: TourStep[] = isPublicApiEnabled()
+  ? [
+      {
+        target: "nav:/admin/api",
+        placement: "right",
+        title: "Keys & integrations",
+        description:
+          "API keys and third-party integrations (like Pipedrive) — the platform's plumbing, all in one place.",
+      },
+    ]
+  : [];
 
 export const adminTour: TourConfig = {
   welcomeTitle: "Welcome to the control room.",
@@ -30,13 +49,7 @@ export const adminTour: TourConfig = {
       description:
         "Invite users, assign roles, and activate or deactivate accounts. You decide who sees what across the platform.",
     },
-    {
-      target: "nav:/admin/api",
-      placement: "right",
-      title: "Keys & integrations",
-      description:
-        "API keys and third-party integrations (like Pipedrive) — the platform's plumbing, all in one place.",
-    },
+    ...apiStep,
     {
       target: "command-palette",
       placement: "bottom",

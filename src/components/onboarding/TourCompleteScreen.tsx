@@ -4,11 +4,17 @@ import { useEffect } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { useModalOverlay } from "@/hooks/useModalOverlay";
 import { useTour } from "./TourProvider";
 import { completeOnboarding } from "@/app/actions/onboarding";
 
 export function TourCompleteScreen() {
   const { phase, config, finish } = useTour();
+
+  const overlayRef = useModalOverlay<HTMLDivElement>({
+    active: phase === "celebration" && !!config,
+    onClose: finish,
+  });
 
   useEffect(() => {
     if (phase !== "celebration") return;
@@ -28,7 +34,12 @@ export function TourCompleteScreen() {
 
   return (
     <motion.div
-      className="theme-dark fixed inset-0 z-[10000] flex items-center justify-center text-foreground"
+      ref={overlayRef}
+      role="dialog"
+      aria-modal="true"
+      aria-label={config.celebrationTitle}
+      tabIndex={-1}
+      className="theme-dark fixed inset-0 z-[10000] flex items-center justify-center text-foreground outline-none"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -43,6 +54,7 @@ export function TourCompleteScreen() {
       >
         <motion.svg
           viewBox="0 0 80 80"
+          aria-hidden="true"
           className="size-20 mb-8"
           initial="hidden"
           animate="visible"

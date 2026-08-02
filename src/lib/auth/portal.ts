@@ -1,6 +1,6 @@
 /**
  * Portal-scoped authorization guards for the partner-operated surfaces
- * (venue + reseller portals).
+ * (venue, reseller, and organizer portals).
  *
  * Unlike {@link requireInternalUser}, these surfaces are run by partner
  * users who live *outside* the internal org. A venue operator must be able
@@ -110,8 +110,37 @@ export async function requireVenueManagerForPlacement(
 }
 
 /**
- * Resolve the venue that owns a slot (via its placement), then authorize.
- * Used by the reserve-slot action, which only carries a slot id.
+ * Authorize management of a show run by an organizer partner. Allows internal
+ * staff, or a partner user belonging to the event's `organizer_partner_id`.
+ */
+export async function requireOrganizerForShow(
+  eventId: string,
+): Promise<{ supabase: SupabaseClient }> {
+  const ctx = await resolveCaller();
+  if (ctx.isInternal) return { supabase: ctx.supabase };
+
+  if (isPartnerRole(ctx.role)) {
+    const { data: event } = await ctx.supabase
+      .from("events")
+      .select("organizer_partner_id")
+      .eq("id", eventId)
+      .maybeSingle();
+    if (
+      event?.organizer_partner_id &&
+      (await isMemberOfPartner(ctx.supabase, event.organizer_partner_id, ctx.userId))
+    ) {
+      return { supabase: ctx.supabase };
+    }
+  }
+
+  throw new Error("Forbidden: organizer access only");
+}
+
+/**
+ * Authorize a write against a sponsorship slot, whichever scope it uses.
+ * Venue slots resolve through their placement; show slots resolve through the
+ * event's organizer. Used by the reserve/pitch actions, which only carry a
+ * slot id.
  */
 export async function requireVenueManagerForSlot(
   slotId: string,
@@ -119,10 +148,12 @@ export async function requireVenueManagerForSlot(
   const supabase = await createClient();
   const { data: slot } = await supabase
     .from("sponsorship_slots")
-    .select("placement_id")
+    .select("placement_id, event_id")
     .eq("id", slotId)
     .maybeSingle();
-  if (!slot?.placement_id) throw new Error("Slot not found");
+  if (!slot) throw new Error("Slot not found");
+  if (slot.event_id) return requireOrganizerForShow(slot.event_id);
+  if (!slot.placement_id) throw new Error("Slot not found");
   return requireVenueManagerForPlacement(slot.placement_id);
 }
 

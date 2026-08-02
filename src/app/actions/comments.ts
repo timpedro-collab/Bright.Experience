@@ -29,6 +29,23 @@ export async function addComment(
   const trimmed = body.trim();
   if (!trimmed) return { success: false, error: "Comment body is required" };
 
+  const { data: assetRow } = await supabase
+    .from("assets")
+    .select("version")
+    .eq("id", assetId)
+    .maybeSingle();
+
+  let assetVersionId: string | null = null;
+  if (assetRow?.version != null) {
+    const { data: versionRow } = await supabase
+      .from("asset_versions")
+      .select("id")
+      .eq("asset_id", assetId)
+      .eq("version", assetRow.version)
+      .maybeSingle();
+    assetVersionId = (versionRow?.id as string | undefined) ?? null;
+  }
+
   const { data, error } = await supabase
     .from("comments")
     .insert({
@@ -37,6 +54,7 @@ export async function addComment(
       author_id: user.id,
       body: trimmed,
       parent_id: parentId ?? null,
+      asset_version_id: assetVersionId,
     })
     .select("id")
     .single();

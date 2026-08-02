@@ -1,5 +1,6 @@
 /** Supabase read queries for campaign entities. */
 import { createClient } from "@/lib/supabase/server";
+import { logQueryError } from "@/lib/observability/log-query-error";
 
 /** Fetch campaigns for an account, or all campaigns for internal users. */
 export async function getCampaigns(accountId?: string) {
@@ -18,7 +19,10 @@ export async function getCampaigns(accountId?: string) {
   }
 
   const { data, error } = await query;
-  if (error || !data) return [];
+  if (error || !data) {
+    logQueryError("getCampaigns", error, { accountId });
+    return [];
+  }
   return data;
 }
 
@@ -35,7 +39,10 @@ export async function getCampaignById(id: string) {
     .eq("id", id)
     .single();
 
-  if (error || !data) return null;
+  if (error || !data) {
+    logQueryError("getCampaignById", error, { id });
+    return null;
+  }
   return data;
 }
 
@@ -47,26 +54,12 @@ export async function getCampaignEventCount(campaignId: string): Promise<number>
     .select("id", { count: "exact", head: true })
     .eq("campaign_id", campaignId);
 
-  if (error) return 0;
+  if (error) {
+    logQueryError("getCampaignEventCount", error, { campaignId });
+    return 0;
+  }
   return count ?? 0;
 }
-
-/** Fetch all events linked to a campaign, ordered by sort_order. */
-export async function getCampaignEvents(campaignId: string) {
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("campaign_events")
-    .select(
-      `id, event_id, sort_order, created_at,
-       events ( id, name, event_type, venue_name, event_date_start, event_date_end, current_stage, health_status )`
-    )
-    .eq("campaign_id", campaignId)
-    .order("sort_order", { ascending: true });
-
-  if (error || !data) return [];
-  return data;
-}
-
 /** Fetch campaigns that a specific event belongs to. */
 export async function getCampaignsForEvent(eventId: string) {
   const supabase = await createClient();
@@ -78,6 +71,9 @@ export async function getCampaignsForEvent(eventId: string) {
     )
     .eq("event_id", eventId);
 
-  if (error || !data) return [];
+  if (error || !data) {
+    logQueryError("getCampaignsForEvent", error, { eventId });
+    return [];
+  }
   return data;
 }

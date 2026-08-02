@@ -58,6 +58,25 @@ const PKG_PLAY_5DAY = "c3c3c3c3-c3c3-4c3c-8c3c-c3c3c3c3c3c3";
 const ASSET_WRAP = "a1f00000-0000-4000-8000-000000000003"; // Machine Wrap Artwork
 const ASSET_BANNER = "a1f00000-0000-4000-8000-000000000009"; // Game Page Banner
 
+// ── Organizer demo: one show producer running a multi-machine conference ───
+// Informa-style: several units at one show doing different jobs, sponsor
+// inventory sold against them, and no access to the leads those units capture.
+const PARTNER_INFORMA = "e5e5e5e5-e5e5-4e5e-8e5e-e5e5e5e5e5e5";
+const P_NADIA = "b5b5b5b5-b5b5-4b5b-8b5b-b5b5b5b5b5b5"; // Informa Tech shows admin
+const ACC_INFORMA = "ad000000-0000-4000-8000-000000000007";
+const EVT_TECH_LIVE = "e7777777-7777-7777-7777-777777777777";
+// A second edition, still being set up, so the portfolio and fleet views have
+// more than one show in them and the "needs setting up" path is real.
+const EVT_TECH_NORTH = "e7777777-7777-7777-7777-777777777778";
+const MI_SHOW = (n: number) =>
+  `e7000000-0000-4000-8000-0000000000${String(n).padStart(2, "0")}`;
+const SLOT_SHOW = (n: number) =>
+  `b2000000-0000-4000-8000-0000000002${String(n).padStart(2, "0")}`;
+const ASSET_SHOW_WRAP = "a7000000-0000-4000-8000-000000000001";
+const ASSET_SHOW_SCREEN = "a7000000-0000-4000-8000-000000000002";
+const ASSET_NORTH_WRAP = "a7000000-0000-4000-8000-000000000003";
+const ASSET_NORTH_SCREEN = "a7000000-0000-4000-8000-000000000004";
+
 // Partner-portal personas (added so you can log in as a partner/venue contact).
 const P_MAYA = "66666666-6666-6666-6666-666666666666"; // Northern Events admin
 const P_AARON = "77777777-7777-7777-7777-777777777777"; // ExCeL London venue admin
@@ -235,6 +254,7 @@ export const EXTRA_TABLES: Record<string, MockRow[]> = {
     { id: P_OLIVIA, name: "Olivia Reed", email: "olivia@southern-activations.com", role: "partner_admin", account_id: null, has_completed_onboarding: true },
     { id: P_DANIEL, name: "Daniel Cole", email: "daniel@westfield-stratford.com", role: "partner_admin", account_id: null, has_completed_onboarding: true },
     { id: P_PRIYA, name: "Priya Shah", email: "priya@necgroup.co.uk", role: "partner_admin", account_id: null, has_completed_onboarding: true },
+    { id: P_NADIA, name: "Nadia Okafor", email: "nadia@informatech.events", role: "partner_admin", account_id: null, has_completed_onboarding: true },
   ],
 
   partner_users: [
@@ -243,6 +263,104 @@ export const EXTRA_TABLES: Record<string, MockRow[]> = {
     { id: "d0000000-0000-4000-8000-000000000003", partner_id: PARTNER_SOUTHERN, profile_id: P_OLIVIA, role: "admin", created_at: "2026-02-18T10:05:00Z" },
     { id: "d0000000-0000-4000-8000-000000000004", partner_id: PARTNER_WESTFIELD, profile_id: P_DANIEL, role: "admin", created_at: "2026-03-02T10:05:00Z" },
     { id: "d0000000-0000-4000-8000-000000000005", partner_id: PARTNER_NEC, profile_id: P_PRIYA, role: "admin", created_at: "2026-03-12T10:05:00Z" },
+    { id: "d0000000-0000-4000-8000-000000000006", partner_id: PARTNER_INFORMA, profile_id: P_NADIA, role: "admin", created_at: "2026-04-08T10:05:00Z" },
+  ],
+
+  // The show producer themselves, plus the delivery account their show runs
+  // under. `type: "organizer"` is what routes Nadia to /organizers/:slug.
+  partners: [
+    { id: PARTNER_INFORMA, name: "Informa Tech Shows", slug: "informa-tech-shows", type: "organizer", contact_name: "Nadia Okafor", contact_email: "nadia@informatech.events", brand_color: "#1E47F0", partner_code: "BB-INFRM001", status: "active", onboarded_at: "2026-04-08T10:00:00Z" },
+  ],
+
+  accounts: [
+    { id: ACC_INFORMA, name: "Informa Tech Shows", slug: "informa-tech-shows" },
+  ],
+
+  // A live three-day conference with five units doing four different jobs.
+  events: [
+    {
+      id: EVT_TECH_LIVE,
+      account_id: ACC_INFORMA,
+      organizer_partner_id: PARTNER_INFORMA,
+      name: "Tech Live London 2026",
+      event_type: "activation",
+      package_type: "custom",
+      machine_type: "Bright.Play",
+      venue_name: "ExCeL London",
+      venue_address: "One Western Gateway, Royal Victoria Dock, London E16 1XL",
+      event_date_start: "2026-06-17",
+      event_date_end: "2026-06-19",
+      setup_date: "2026-06-16",
+      collection_date: "2026-06-20",
+      current_stage: "event_live",
+      health_status: "green",
+      created_by: P_SARAH,
+      created_at: "2026-04-10T10:00:00Z",
+    },
+    {
+      id: EVT_TECH_NORTH,
+      account_id: ACC_INFORMA,
+      organizer_partner_id: PARTNER_INFORMA,
+      name: "Tech Live North 2026",
+      event_type: "activation",
+      package_type: "custom",
+      machine_type: "Bright.Play",
+      venue_name: "Manchester Central",
+      venue_address: "Petersfield, Manchester M2 3GX",
+      event_date_start: "2026-11-04",
+      event_date_end: "2026-11-05",
+      setup_date: "2026-11-03",
+      collection_date: "2026-11-06",
+      current_stage: "confirmed",
+      health_status: "green",
+      created_by: P_SARAH,
+      created_at: "2026-06-20T10:00:00Z",
+    },
+  ],
+
+  // Five units, each with the zone the organizer named and the job it's there
+  // to do. BV-SHOW04 is deliberately stale so the fleet board's "needs
+  // attention" path has something real to show.
+  machine_instances: [
+    { id: MI_SHOW(1), machine_type_id: "a3a3a3a3-a3a3-4a3a-8a3a-a3a3a3a3a3a3", serial_number: "BV-SHOW01", nickname: "Registration North", current_event_id: EVT_TECH_LIVE, zone: "Registration", mission: "welcome_gift", status: "deployed", last_heartbeat: "2026-06-18T13:58:00Z", firmware_version: "3.1.0" },
+    { id: MI_SHOW(2), machine_type_id: "a3a3a3a3-a3a3-4a3a-8a3a-a3a3a3a3a3a3", serial_number: "BV-SHOW02", nickname: "Registration South", current_event_id: EVT_TECH_LIVE, zone: "Registration", mission: "welcome_gift", status: "deployed", last_heartbeat: "2026-06-18T13:59:00Z", firmware_version: "3.1.0" },
+    { id: MI_SHOW(3), machine_type_id: "a3a3a3a3-a3a3-4a3a-8a3a-a3a3a3a3a3a3", serial_number: "BV-SHOW03", nickname: "Hall 3 Sponsor Stand", current_event_id: EVT_TECH_LIVE, zone: "Hall 3", mission: "sponsor_activation", status: "deployed", last_heartbeat: "2026-06-18T13:57:00Z", firmware_version: "3.1.0" },
+    { id: MI_SHOW(4), machine_type_id: "a3a3a3a3-a3a3-4a3a-8a3a-a3a3a3a3a3a3", serial_number: "BV-SHOW04", nickname: "Hall 5 Sponsor Stand", current_event_id: EVT_TECH_LIVE, zone: "Hall 5", mission: "sponsor_activation", status: "deployed", last_heartbeat: "2026-06-18T09:12:00Z", firmware_version: "3.1.0" },
+    { id: MI_SHOW(5), machine_type_id: "a2a2a2a2-a2a2-4a2a-8a2a-a2a2a2a2a2a2", serial_number: "BV-SHOW05", nickname: "Rebooking Desk", current_event_id: EVT_TECH_LIVE, zone: "Rebooking desk", mission: "rebook_reward", status: "deployed", last_heartbeat: "2026-06-18T13:56:00Z", firmware_version: "2.3.1" },
+    // The November edition: allocated but not yet placed. One unit has a zone
+    // and no job, the other has neither — the state the deployment form exists
+    // to clear.
+    { id: MI_SHOW(6), machine_type_id: "a3a3a3a3-a3a3-4a3a-8a3a-a3a3a3a3a3a3", serial_number: "BV-SHOW06", nickname: "Manchester unit 1", current_event_id: EVT_TECH_NORTH, zone: "Registration", mission: null, status: "deployed", last_heartbeat: null, firmware_version: "3.1.0" },
+    { id: MI_SHOW(7), machine_type_id: "a3a3a3a3-a3a3-4a3a-8a3a-a3a3a3a3a3a3", serial_number: "BV-SHOW07", nickname: "Manchester unit 2", current_event_id: EVT_TECH_NORTH, zone: null, mission: null, status: "deployed", last_heartbeat: null, firmware_version: "3.1.0" },
+    // The third November unit is fully prepared and already sold, so the
+    // readiness checklist has a finished example beside the two with gaps.
+    { id: MI_SHOW(8), machine_type_id: "a2a2a2a2-a2a2-4a2a-8a2a-a2a2a2a2a2a2", serial_number: "BV-SHOW08", nickname: "Hall A Sponsor Stand", current_event_id: EVT_TECH_NORTH, zone: "Hall A", mission: "sponsor_activation", status: "deployed", last_heartbeat: null, firmware_version: "3.1.0" },
+  ],
+
+  // Creative the organizer can attach to a sponsor slot.
+  assets: [
+    { id: ASSET_SHOW_WRAP, event_id: EVT_TECH_LIVE, name: "Sponsor wrap — Hall 3", description: "Machine wrap artwork supplied by the Hall 3 sponsor.", asset_type: "wrap", required_format: "PDF (CMYK)", file_url: "/catalog/case-studies/costa-matcha/01-machine-hero.png", file_name: "hall3-sponsor-wrap.pdf", file_size: 2280400, version: 1, status: "accepted", review_status: "approved", customer_visible: true, revision_count: 0, created_at: "2026-05-28T09:00:00Z" },
+    { id: ASSET_SHOW_SCREEN, event_id: EVT_TECH_LIVE, name: "Sponsor attract screen", description: "Idle-screen loop for sponsored units.", asset_type: "imagery", required_format: "PNG 1080x1920", file_url: "/catalog/case-studies/costa-matcha/02-winner-qr-scan.png", file_name: "sponsor-attract-loop.png", file_size: 640200, version: 1, status: "uploaded", review_status: "pending_review", customer_visible: true, revision_count: 0, created_at: "2026-06-02T09:00:00Z" },
+    // November: one sponsor's artwork approved, one still waiting on the
+    // reviewer — the two creative states the readiness checklist reports.
+    { id: ASSET_NORTH_WRAP, event_id: EVT_TECH_NORTH, name: "Sponsor wrap — Hall A", description: "Machine wrap artwork supplied by the Hall A sponsor.", asset_type: "wrap", required_format: "PDF (CMYK)", file_url: "/catalog/case-studies/costa-matcha/01-machine-hero.png", file_name: "halla-sponsor-wrap.pdf", file_size: 1980400, version: 1, status: "accepted", review_status: "approved", customer_visible: true, revision_count: 0, due_date: "2026-10-16", created_at: "2026-07-02T09:00:00Z" },
+    { id: ASSET_NORTH_SCREEN, event_id: EVT_TECH_NORTH, name: "Attract screen — Hall A", description: "Idle-screen loop for the Hall A sponsor unit.", asset_type: "imagery", required_format: "PNG 1080x1920", file_url: "/catalog/case-studies/costa-matcha/02-winner-qr-scan.png", file_name: "halla-attract-loop.png", file_size: 610200, version: 1, status: "uploaded", review_status: "pending_review", customer_visible: true, revision_count: 0, due_date: "2026-10-16", created_at: "2026-07-10T09:00:00Z" },
+  ],
+
+  // Show-wide default plus one machine-scoped override, so the fleet config
+  // tabs have something to resolve.
+  game_configurations: [
+    { id: "ae000000-0000-4000-8000-000000000001", event_id: EVT_TECH_LIVE, machine_instance_id: null, game_id: "b3b3b3b3-b3b3-4b3b-8b3b-b3b3b3b3b3b3", prize_mode: "guaranteed", prizes_json: [{ name: "Show tote bag", quantity: 800 }], form_fields_json: [{ label: "Work email", type: "email", required: true }], leaderboard_enabled: false, capture_method: "badge_scan", retention_days: 60, branded_landing: true, status: "submitted", created_at: "2026-05-20T09:00:00Z", updated_at: "2026-06-01T09:00:00Z" },
+    { id: "ae000000-0000-4000-8000-000000000002", event_id: EVT_TECH_LIVE, machine_instance_id: MI_SHOW(3), game_id: "b4b4b4b4-b4b4-4b4b-8b4b-b4b4b4b4b4b4", prize_mode: "score_based", prizes_json: [{ name: "Sponsor prize bundle", quantity: 120 }], form_fields_json: [{ label: "Work email", type: "email", required: true }, { label: "Job title", type: "text", required: false }], leaderboard_enabled: true, capture_method: "both", retention_days: 60, branded_landing: true, status: "submitted", created_at: "2026-05-28T09:00:00Z", updated_at: "2026-06-02T09:00:00Z" },
+    // November's show-wide default, already through QA — the readiness state an
+    // organizer is working towards on the other two units.
+    { id: "ae000000-0000-4000-8000-000000000003", event_id: EVT_TECH_NORTH, machine_instance_id: null, game_id: "b3b3b3b3-b3b3-4b3b-8b3b-b3b3b3b3b3b3", prize_mode: "guaranteed", prizes_json: [{ name: "Show tote bag", quantity: 600 }], form_fields_json: [{ label: "Work email", type: "email", required: true }], leaderboard_enabled: false, capture_method: "badge_scan", retention_days: 60, branded_landing: true, status: "tested", created_at: "2026-07-06T09:00:00Z", updated_at: "2026-07-14T09:00:00Z" },
+  ],
+
+  // Stock for the November show, so the readiness checklist can report what is
+  // loaded rather than guessing.
+  product_configurations: [
+    { id: "9d000001-0000-4000-8000-000000000009", event_id: EVT_TECH_NORTH, machine_instance_id: null, products_json: [{ name: "Show tote bag", sku: "TL-TOTE", slot: 1, stockRatio: 100 }], total_units: 1800, samples_received_at: null, samples_tested: false, machine_config_json: [], notes: "Split evenly across the three units on arrival.", created_at: "2026-07-06T09:00:00Z", updated_at: "2026-07-14T09:00:00Z" },
   ],
 
   studio_pricing: [
@@ -305,6 +423,37 @@ export const EXTRA_TABLES: Record<string, MockRow[]> = {
     { id: "b2000000-0000-4000-8000-000000000004", placement_id: PL_WESTFIELD_SUMMER, sponsor_account_id: ACC_SAMSUNG, start_date: "2026-08-03", end_date: "2026-08-10", price: 4200000, status: "reserved", creative_asset_ids: [], game_config_json: { game: "Photo Booth Pro", prize_pool: "Galaxy accessories" }, created_at: "2026-06-08T09:00:00Z", updated_at: "2026-06-15T09:00:00Z" },
     { id: "b2000000-0000-4000-8000-000000000005", placement_id: PL_WESTFIELD_SUMMER, sponsor_account_id: null, start_date: "2026-08-12", end_date: "2026-08-19", price: 3600000, status: "available", creative_asset_ids: [], game_config_json: {}, created_at: "2026-06-08T09:00:00Z", updated_at: "2026-06-08T09:00:00Z" },
     { id: "b2000000-0000-4000-8000-000000000006", placement_id: PL_NEC_AUTUMN, sponsor_account_id: null, start_date: "2026-10-12", end_date: "2026-10-18", price: 5000000, status: "available", creative_asset_ids: [], game_config_json: {}, created_at: "2026-06-12T11:05:00Z", updated_at: "2026-06-12T11:05:00Z" },
+    // ── Tech Live London: inventory scoped to the show's own machines rather
+    // than a venue placement. One sold with a live pitch link, one sold with
+    // creative attached, one still open.
+    { id: SLOT_SHOW(1), placement_id: null, event_id: EVT_TECH_LIVE, machine_instance_id: MI_SHOW(3), sponsor_account_id: null, sponsor_name: "Vitality", start_date: "2026-06-17", end_date: "2026-06-19", price: 1800000, status: "active", creative_asset_ids: [ASSET_SHOW_WRAP], game_config_json: {}, pitch_token: "9f2c41e8-77b4-4a1d-9d0e-3c6b21af5510", pitch_token_expires_at: "2026-07-18T09:00:00Z", created_at: "2026-05-02T09:00:00Z", updated_at: "2026-06-02T09:00:00Z" },
+    { id: SLOT_SHOW(2), placement_id: null, event_id: EVT_TECH_LIVE, machine_instance_id: MI_SHOW(4), sponsor_account_id: null, sponsor_name: "EE", start_date: "2026-06-17", end_date: "2026-06-19", price: 1600000, status: "active", creative_asset_ids: [], game_config_json: {}, pitch_token: null, pitch_token_expires_at: null, created_at: "2026-05-02T09:00:00Z", updated_at: "2026-06-02T09:00:00Z" },
+    { id: SLOT_SHOW(3), placement_id: null, event_id: EVT_TECH_LIVE, machine_instance_id: MI_SHOW(5), sponsor_account_id: null, sponsor_name: null, start_date: "2026-06-17", end_date: "2026-06-19", price: 1200000, status: "available", creative_asset_ids: [], game_config_json: {}, pitch_token: null, pitch_token_expires_at: null, created_at: "2026-05-02T09:00:00Z", updated_at: "2026-05-02T09:00:00Z" },
+    // ── Tech Live North: inventory being sold months before the doors open,
+    // which is what the pitch page's pre-show sales kit exists for. One
+    // reserved with artwork in, one still on the table.
+    { id: SLOT_SHOW(4), placement_id: null, event_id: EVT_TECH_NORTH, machine_instance_id: MI_SHOW(8), sponsor_account_id: null, sponsor_name: "Salesforce", start_date: "2026-11-04", end_date: "2026-11-05", price: 1500000, status: "reserved", creative_asset_ids: [ASSET_NORTH_WRAP], game_config_json: {}, pitch_token: "5b7d92a4-13ce-4f60-8a72-6d1e04bc9f83", pitch_token_expires_at: "2026-08-31T09:00:00Z", created_at: "2026-07-02T09:00:00Z", updated_at: "2026-07-14T09:00:00Z" },
+    { id: SLOT_SHOW(5), placement_id: null, event_id: EVT_TECH_NORTH, machine_instance_id: MI_SHOW(6), sponsor_account_id: null, sponsor_name: null, start_date: "2026-11-04", end_date: "2026-11-05", price: 1400000, status: "available", creative_asset_ids: [], game_config_json: {}, pitch_token: "c41f6802-9ab5-4d3e-91c7-2f80ae5b7d16", pitch_token_expires_at: "2026-08-31T09:00:00Z", created_at: "2026-07-02T09:00:00Z", updated_at: "2026-07-02T09:00:00Z" },
+  ],
+
+  // Today's activity across the show floor. Volumes differ per zone on
+  // purpose: registration is busiest, Hall 5 went quiet this morning.
+  telemetry_events: [
+    { machine_instance_id: MI_SHOW(1), event_id: EVT_TECH_LIVE, event_type: "play_started", payload_json: { session: "t1" }, timestamp: "2026-06-18T09:40:00Z" },
+    { machine_instance_id: MI_SHOW(1), event_id: EVT_TECH_LIVE, event_type: "lead_captured", payload_json: { session: "t1", source: "badge_scan" }, timestamp: "2026-06-18T09:41:00Z" },
+    { machine_instance_id: MI_SHOW(1), event_id: EVT_TECH_LIVE, event_type: "prize_awarded", payload_json: { session: "t1", prize: "Show tote bag" }, timestamp: "2026-06-18T09:42:00Z" },
+    { machine_instance_id: MI_SHOW(1), event_id: EVT_TECH_LIVE, event_type: "play_started", payload_json: { session: "t2" }, timestamp: "2026-06-18T11:15:00Z" },
+    { machine_instance_id: MI_SHOW(1), event_id: EVT_TECH_LIVE, event_type: "lead_captured", payload_json: { session: "t2", source: "badge_scan" }, timestamp: "2026-06-18T11:16:00Z" },
+    { machine_instance_id: MI_SHOW(2), event_id: EVT_TECH_LIVE, event_type: "play_started", payload_json: { session: "t3" }, timestamp: "2026-06-18T10:05:00Z" },
+    { machine_instance_id: MI_SHOW(2), event_id: EVT_TECH_LIVE, event_type: "lead_captured", payload_json: { session: "t3", source: "badge_scan" }, timestamp: "2026-06-18T10:06:00Z" },
+    { machine_instance_id: MI_SHOW(2), event_id: EVT_TECH_LIVE, event_type: "capture_duplicate_blocked", payload_json: { match: "badge_id" }, timestamp: "2026-06-18T10:22:00Z" },
+    { machine_instance_id: MI_SHOW(3), event_id: EVT_TECH_LIVE, event_type: "play_started", payload_json: { session: "t4" }, timestamp: "2026-06-18T12:30:00Z" },
+    { machine_instance_id: MI_SHOW(3), event_id: EVT_TECH_LIVE, event_type: "play_completed", payload_json: { session: "t4", score: 780 }, timestamp: "2026-06-18T12:31:00Z" },
+    { machine_instance_id: MI_SHOW(3), event_id: EVT_TECH_LIVE, event_type: "lead_captured", payload_json: { session: "t4", source: "form" }, timestamp: "2026-06-18T12:32:00Z" },
+    { machine_instance_id: MI_SHOW(3), event_id: EVT_TECH_LIVE, event_type: "capture_rejected_domain", payload_json: { domain: "gmail.com" }, timestamp: "2026-06-18T12:44:00Z" },
+    { machine_instance_id: MI_SHOW(4), event_id: EVT_TECH_LIVE, event_type: "play_started", payload_json: { session: "t5" }, timestamp: "2026-06-18T08:55:00Z" },
+    { machine_instance_id: MI_SHOW(5), event_id: EVT_TECH_LIVE, event_type: "play_started", payload_json: { session: "t6" }, timestamp: "2026-06-18T13:20:00Z" },
+    { machine_instance_id: MI_SHOW(5), event_id: EVT_TECH_LIVE, event_type: "lead_captured", payload_json: { session: "t6", source: "badge_scan" }, timestamp: "2026-06-18T13:21:00Z" },
   ],
 
   venue_packages: [
@@ -341,8 +490,8 @@ export const EXTRA_TABLES: Record<string, MockRow[]> = {
   ],
 
   comments: [
-    { id: CMT_BANNER, event_id: EVT_COKE_SUMMER, asset_id: ASSET_BANNER, author_id: P_EMMA, body: "Love the energy here. Can we nudge the logo up ~40px so it clears the safe area on the portrait screen?", parent_id: null, created_at: "2026-06-16T10:15:00Z" },
-    { id: "cc000000-0000-4000-8000-000000000002", event_id: EVT_COKE_SUMMER, asset_id: ASSET_BANNER, author_id: P_JAMES, body: "Good spot — updated version uploaded with the logo lifted and recoloured to the 2026 red.", parent_id: CMT_BANNER, created_at: "2026-06-17T08:40:00Z" },
+    { id: CMT_BANNER, event_id: EVT_COKE_SUMMER, asset_id: ASSET_BANNER, author_id: P_EMMA, body: "Love the energy here. Can we nudge the logo up ~40px so it clears the safe area on the portrait screen?", parent_id: null, asset_version_id: "af111111-1111-1111-1111-111111111111", created_at: "2026-06-16T10:15:00Z" },
+    { id: "cc000000-0000-4000-8000-000000000002", event_id: EVT_COKE_SUMMER, asset_id: ASSET_BANNER, author_id: P_JAMES, body: "Good spot — updated version uploaded with the logo lifted and recoloured to the 2026 red.", parent_id: CMT_BANNER, asset_version_id: "af222222-2222-2222-2222-222222222222", created_at: "2026-06-17T08:40:00Z" },
     { id: "cc000000-0000-4000-8000-000000000003", event_id: EVT_COKE_SUMMER, asset_id: ASSET_WRAP, author_id: P_EMMA, body: "Wrap proof looks great. One thing — the bleed on the left panel is 2mm short for the Pro cabinet.", parent_id: null, created_at: "2026-06-15T14:05:00Z" },
     { id: "cc000000-0000-4000-8000-000000000004", event_id: EVT_COKE_SUMMER, asset_id: null, author_id: P_SARAH, body: "Team — client confirmed the on-site contact and final headcount. We're clear to lock logistics.", parent_id: null, created_at: "2026-06-18T09:30:00Z" },
     { id: "cc000000-0000-4000-8000-000000000005", event_id: EVT_SAMSUNG_LAUNCH, author_id: P_SARAH, asset_id: null, body: "Proofs are in the approvals tab for sign-off. Flagging the insurance cert is still outstanding.", parent_id: null, created_at: "2026-06-14T16:20:00Z" },
@@ -352,7 +501,7 @@ export const EXTRA_TABLES: Record<string, MockRow[]> = {
     { id: "ab000000-0000-4000-8000-000000000001", event_id: EVT_COKE_SUMMER, sender_id: P_JAMES, body: "Hi team — really excited to get this one moving. When do you need the final artwork by?", attachments: [], is_internal: false, topic: "general", created_at: "2026-06-12T09:10:00Z" },
     { id: "ab000000-0000-4000-8000-000000000002", event_id: EVT_COKE_SUMMER, sender_id: P_SARAH, body: "Welcome aboard! We'll need final approved assets by 1 July to stay ahead of the build. I've added the checklist to your portal.", attachments: [], is_internal: false, topic: "general", created_at: "2026-06-12T09:25:00Z" },
     { id: "ab000000-0000-4000-8000-000000000003", event_id: EVT_COKE_SUMMER, sender_id: P_EMMA, body: "James — left a couple of notes on the game banner. Quick tweak and we're good to approve.", attachments: [], is_internal: false, topic: "creative", created_at: "2026-06-16T10:20:00Z" },
-    { id: "ab000000-0000-4000-8000-000000000004", event_id: EVT_COKE_SUMMER, sender_id: P_TOM, body: "Vans booked for the 14th, two ambassadors confirmed. Will share the run sheet once the wrap is signed off.", attachments: [], is_internal: true, topic: "logistics", created_at: "2026-06-17T11:00:00Z" },
+    { id: "ab000000-0000-4000-8000-000000000004", event_id: EVT_COKE_SUMMER, sender_id: P_TOM, body: "Vans booked for the 14th, two on-site crew confirmed. Will share the run sheet once the wrap is signed off.", attachments: [], is_internal: true, topic: "logistics", created_at: "2026-06-17T11:00:00Z" },
     { id: "ab000000-0000-4000-8000-000000000005", event_id: EVT_SAMSUNG_LAUNCH, sender_id: P_SARAH, body: "Proofs uploaded to the approvals tab. We're blocked on the insurance certificate before we can confirm the build slot.", attachments: [], is_internal: false, topic: "compliance", created_at: "2026-06-14T16:25:00Z" },
     { id: "ab000000-0000-4000-8000-000000000006", event_id: EVT_SAMSUNG_LAUNCH, sender_id: P_TOM, body: "Internal: chasing the broker on the $5M cert. Holding the loading bay slot in the meantime.", attachments: [], is_internal: true, topic: "logistics", created_at: "2026-06-15T09:05:00Z" },
   ],
@@ -364,7 +513,13 @@ export const EXTRA_TABLES: Record<string, MockRow[]> = {
     { id: "ad000000-0000-4000-8000-000000000004", user_id: P_SARAH, event_id: EVT_SAMSUNG_LAUNCH, type: "compliance", title: "Compliance item overdue", body: "Insurance certificate for Samsung Galaxy Launch is still outstanding.", is_read: false, link: "/events/" + EVT_SAMSUNG_LAUNCH, created_at: "2026-06-15T08:00:00Z", kind: "compliance_overdue", priority: "high", entity_type: "event", entity_id: EVT_SAMSUNG_LAUNCH, action_required: true },
     { id: "ad000000-0000-4000-8000-000000000005", user_id: P_SARAH, event_id: EVT_COKE_SUMMER, type: "message", title: "New message from James Chen", body: "Question about the final artwork deadline.", is_read: true, link: "/events/" + EVT_COKE_SUMMER, created_at: "2026-06-12T09:11:00Z", kind: "message_received", priority: "normal", entity_type: "event", entity_id: EVT_COKE_SUMMER, action_required: false },
     { id: "ad000000-0000-4000-8000-000000000006", user_id: P_JAMES, event_id: EVT_COKE_SUMMER, type: "task", title: "Action needed: confirm prize details", body: "Confirm prize details and quantities to keep your Summer Festival on track.", is_read: false, link: "/events/" + EVT_COKE_SUMMER, created_at: "2026-06-16T07:00:00Z", kind: "task_assigned", priority: "high", entity_type: "event", entity_id: EVT_COKE_SUMMER, action_required: true },
-    { id: "ad000000-0000-4000-8000-000000000007", user_id: P_JAMES, event_id: EVT_COKE_SUMMER, type: "approval", title: "Creative ready to approve", body: "Your Idle Screen Advert proof is ready for sign-off.", is_read: true, link: "/events/" + EVT_COKE_SUMMER + "/approvals", created_at: "2026-06-13T15:00:00Z", kind: "approval_requested", priority: "normal", entity_type: "event", entity_id: EVT_COKE_SUMMER, action_required: false },
+    // An approval request IS actionable — it belongs in "Over to you", not
+    // the informational "Recent activity" feed (R1 split).
+    { id: "ad000000-0000-4000-8000-000000000007", user_id: P_JAMES, event_id: EVT_COKE_SUMMER, type: "approval", title: "Creative ready to approve", body: "Your Idle Screen Advert proof is ready for sign-off.", is_read: true, link: "/events/" + EVT_COKE_SUMMER + "/approvals", created_at: "2026-06-13T15:00:00Z", kind: "approval_requested", priority: "normal", entity_type: "event", entity_id: EVT_COKE_SUMMER, action_required: true },
+    // Informational rows for the customer's "Recent activity" feed — things
+    // that happened without needing James.
+    { id: "ad000000-0000-4000-8000-000000000009", user_id: P_JAMES, event_id: EVT_COKE_SUMMER, type: "stage", title: "Your game build has started", body: "The creative team picked up the Summer Festival build this morning.", is_read: true, link: "/events/" + EVT_COKE_SUMMER, created_at: "2026-06-16T09:20:00Z", kind: "stage_advanced", priority: "normal", entity_type: "event", entity_id: EVT_COKE_SUMMER, action_required: false },
+    { id: "ad000000-0000-4000-8000-00000000000a", user_id: P_JAMES, event_id: EVT_COKE_SUMMER, type: "team", title: "Sarah Mitchell joined your event team", body: "Sarah is your operations lead for the Summer Festival.", is_read: true, link: "/events/" + EVT_COKE_SUMMER, created_at: "2026-06-15T10:00:00Z", kind: "team_member_added", priority: "low", entity_type: "event", entity_id: EVT_COKE_SUMMER, action_required: false },
     { id: "ad000000-0000-4000-8000-000000000008", user_id: P_TOM, event_id: EVT_COKE_SUMMER, type: "logistics", title: "Logistics ready to schedule", body: "Wrap sign-off pending — run sheet can be finalised once approved.", is_read: false, link: "/events/" + EVT_COKE_SUMMER, created_at: "2026-06-17T11:05:00Z", kind: "logistics_update", priority: "normal", entity_type: "event", entity_id: EVT_COKE_SUMMER, action_required: false },
   ],
 

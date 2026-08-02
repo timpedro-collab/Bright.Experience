@@ -64,6 +64,11 @@ const REL: Record<string, RelSpec> = {
   "placements:venues": { localKey: "venue_id", foreignTable: "venues", foreignKey: "id", toMany: false },
   "sponsorship_slots:placements": { localKey: "placement_id", foreignTable: "placements", foreignKey: "id", toMany: false },
   "sponsorship_slots:venues": { localKey: "venue_id", foreignTable: "venues", foreignKey: "id", toMany: false },
+  // Show-scoped slots (organizer inventory) hang off an event + machine
+  // rather than a venue placement.
+  "sponsorship_slots:machine_instances": { localKey: "machine_instance_id", foreignTable: "machine_instances", foreignKey: "id", toMany: false },
+  "sponsorship_slots:events": { localKey: "event_id", foreignTable: "events", foreignKey: "id", toMany: false },
+  "events:machine_instances": { localKey: "id", foreignTable: "machine_instances", foreignKey: "current_event_id", toMany: true },
   "event_team_members:profiles": { localKey: "profile_id", foreignTable: "profiles", foreignKey: "id", toMany: false },
   "machine_instances:machines": { localKey: "machine_type_id", foreignTable: "machines", foreignKey: "id", toMany: false },
 };

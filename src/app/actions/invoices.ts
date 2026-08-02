@@ -16,6 +16,7 @@ import { revalidatePath } from "next/cache";
 import { getUser } from "@/lib/auth";
 import { canViewCommercial } from "@/lib/roles";
 import type { ActionResult } from "@/types/actions";
+import { logQueryError } from "@/lib/observability/log-query-error";
 
 /** Guard: resolve the current user and require a commercial role. */
 async function requireInternal(): Promise<
@@ -80,18 +81,6 @@ function mapInvoice(row: Record<string, unknown>): Invoice {
   };
 }
 
-/** Fetch all invoices for an event. */
-export async function getInvoicesByEvent(eventId: string): Promise<Invoice[]> {
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("invoices")
-    .select("*, events(name), accounts(name)")
-    .eq("event_id", eventId)
-    .order("created_at", { ascending: false });
-  if (error || !data) return [];
-  return data.map((row) => mapInvoice(row as Record<string, unknown>));
-}
-
 /** Fetch all outstanding invoices across all events (for the finance dashboard). */
 export async function getOutstandingInvoices(): Promise<Invoice[]> {
   const guard = await requireInternal();
@@ -102,7 +91,10 @@ export async function getOutstandingInvoices(): Promise<Invoice[]> {
     .select("*, events(name), accounts(name)")
     .in("status", ["issued", "overdue"])
     .order("due_at", { ascending: true });
-  if (error || !data) return [];
+  if (error || !data) {
+    logQueryError("getOutstandingInvoices", error);
+    return [];
+  }
   return data.map((row) => mapInvoice(row as Record<string, unknown>));
 }
 
@@ -147,7 +139,10 @@ export async function createInvoice(
     .select("id")
     .single();
 
-  if (error) return { success: false, error: `Failed to create invoice: ${error.message}` };
+  if (error) {
+    logQueryError("createInvoice", error);
+    return { success: false, error: `Failed to create invoice: ${error.message}` };
+  }
 
   revalidatePath(`/events/${eventId}`);
   revalidatePath("/admin/invoices");
@@ -181,7 +176,10 @@ export async function updateInvoiceStatus(
     .select("event_id")
     .single();
 
-  if (error) return { success: false, error: `Failed to update: ${error.message}` };
+  if (error) {
+    logQueryError("updateInvoiceStatus", error, { invoiceId });
+    return { success: false, error: `Failed to update: ${error.message}` };
+  }
 
   revalidatePath(`/events/${invoice.event_id}`);
   revalidatePath("/admin/invoices");
@@ -200,6 +198,9 @@ export async function transitionOverdueInvoices(): Promise<{ count: number }> {
     .lt("due_at", now)
     .select("id");
 
-  if (error) return { count: 0 };
+  if (error) {
+    logQueryError("transitionOverdueInvoices", error);
+    return { count: 0 };
+  }
   return { count: data?.length ?? 0 };
 }

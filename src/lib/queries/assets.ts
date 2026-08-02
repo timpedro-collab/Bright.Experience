@@ -4,9 +4,11 @@ import { PAGE_SIZE, paginateQuery, totalPages } from "@/lib/pagination";
 import type {
   Asset,
   AssetAnnotation,
+  AssetDecisionLogEntry,
   AssetReviewStatus,
   AssetVersion,
 } from "@/types";
+import { logQueryError } from "@/lib/observability/log-query-error";
 
 function mapAsset(row: Record<string, unknown>): Asset {
   return {
@@ -88,7 +90,10 @@ export async function getAssetsByEvent(eventId: string): Promise<Asset[]> {
     .eq("event_id", eventId)
     .order("created_at");
 
-  if (error || !data) return [];
+  if (error || !data) {
+    logQueryError("getAssetsByEvent", error, { eventId });
+    return [];
+  }
   const assets = data.map((row) => mapAsset(row as Record<string, unknown>));
   return attachSignedUrls(supabase, assets);
 }
@@ -119,7 +124,10 @@ export async function getAssetsPendingReviewPaginated(
     .order("updated_at", { ascending: true });
 
   const { data, error, count } = await paginateQuery(query, page, pageSize);
-  if (error || !data) return { data: [], totalCount: 0, totalPages: 1 };
+  if (error || !data) {
+    logQueryError("getAssetsPendingReviewPaginated", error);
+    return { data: [], totalCount: 0, totalPages: 1 };
+  }
 
   const enriched = data.map((row) => {
     const r = row as Record<string, unknown>;
@@ -154,7 +162,10 @@ export async function getAssetVersions(
     .eq("asset_id", assetId)
     .order("version", { ascending: false });
 
-  if (error || !data) return [];
+  if (error || !data) {
+    logQueryError("getAssetVersions", error, { assetId });
+    return [];
+  }
 
   const versions: AssetVersion[] = data.map((row) => {
     const r = row as Record<string, unknown>;
@@ -211,7 +222,10 @@ export async function getAssetAnnotations(
     .eq("asset_id", assetId)
     .order("created_at", { ascending: true });
 
-  if (error || !data) return [];
+  if (error || !data) {
+    logQueryError("getAssetAnnotations", error, { assetId });
+    return [];
+  }
 
   return data.map((row) => {
     const r = row as Record<string, unknown>;
@@ -251,7 +265,10 @@ export async function getAnnotationsByAssets(
     .in("asset_id", assetIds)
     .order("created_at", { ascending: true });
 
-  if (error || !data) return {};
+  if (error || !data) {
+    logQueryError("getAnnotationsByAssets", error);
+    return {};
+  }
 
   const byAsset: Record<string, AssetAnnotation[]> = {};
   for (const row of data) {
@@ -278,16 +295,61 @@ export async function getAnnotationsByAssets(
   return byAsset;
 }
 
-export async function getAssetById(assetId: string): Promise<Asset | null> {
+/**
+ * Full creative approval audit trail for an event — every retained version
+ * row across all assets, newest activity first. Used by the CSV export route.
+ */
+export async function getAssetDecisionLog(
+  eventId: string,
+): Promise<AssetDecisionLogEntry[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
-    .from("assets")
-    .select("*")
-    .eq("id", assetId)
-    .single();
-  if (error || !data) return null;
-  const [withUrl] = await attachSignedUrls(supabase, [
-    mapAsset(data as Record<string, unknown>),
-  ]);
-  return withUrl;
+    .from("asset_versions")
+    .select(
+      `
+      id,
+      asset_id,
+      version,
+      file_name,
+      review_status,
+      review_feedback,
+      review_decided_by,
+      review_decided_at,
+      created_at,
+      uploaded_by,
+      asset:assets!asset_versions_asset_id_fkey(name),
+      uploader:profiles!asset_versions_uploaded_by_fkey(name),
+      reviewer:profiles!asset_versions_review_decided_by_fkey(name)
+    `,
+    )
+    .eq("event_id", eventId)
+    .order("created_at", { ascending: false });
+
+  if (error || !data) {
+    logQueryError("getAssetDecisionLog", error, { eventId });
+    return [];
+  }
+
+  return data.map((row) => {
+    const r = row as Record<string, unknown>;
+    const asset = r.asset as { name?: string } | null;
+    const uploader = r.uploader as { name?: string } | null;
+    const reviewer = r.reviewer as { name?: string } | null;
+    return {
+      assetId: String(r.asset_id),
+      assetName: asset?.name ?? "Unknown asset",
+      version: Number(r.version ?? 1),
+      versionId: String(r.id),
+      uploadedAt: String(r.created_at ?? ""),
+      uploadedBy: (r.uploaded_by as string | null) ?? undefined,
+      uploaderName: uploader?.name ?? undefined,
+      fileName: (r.file_name as string | null) ?? undefined,
+      reviewStatus:
+        (r.review_status as AssetReviewStatus | null) ?? "pending_review",
+      reviewFeedback: (r.review_feedback as string | null) ?? undefined,
+      reviewDecidedBy: (r.review_decided_by as string | null) ?? undefined,
+      reviewerName: reviewer?.name ?? undefined,
+      reviewDecidedAt: (r.review_decided_at as string | null) ?? undefined,
+    };
+  });
 }

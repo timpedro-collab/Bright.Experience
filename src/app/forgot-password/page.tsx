@@ -24,10 +24,7 @@ export default function ForgotPasswordPage() {
     setLoading(true);
     setError(null);
 
-    const result = await requestPasswordReset(
-      email,
-      `${window.location.origin}/auth/reset-password`,
-    );
+    const result = await requestPasswordReset(email);
 
     if (!result.success) {
       setError(result.error);

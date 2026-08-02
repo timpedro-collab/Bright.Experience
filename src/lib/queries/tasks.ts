@@ -1,5 +1,17 @@
 import { createClient } from "@/lib/supabase/server";
 import type { Task, UserRole } from "@/types";
+import { logQueryError } from "@/lib/observability/log-query-error";
+import { anyOf, quoteFilterValue } from "@/lib/queries/filters";
+
+/** Exclude tasks snoozed into the future from internal queue surfaces. */
+function applyActiveSnoozeFilter<T extends { or: (filter: string) => T }>(
+  query: T,
+): T {
+  const now = new Date().toISOString();
+  return query.or(
+    anyOf("snoozed_until.is.null", `snoozed_until.lte.${quoteFilterValue(now)}`),
+  );
+}
 
 /**
  * Count open tasks per event for a given viewer in a single round-trip.
@@ -36,8 +48,13 @@ export async function getOpenTaskCountsForUser(
     ? query.eq("assigned_to", userId).eq("task_type", "internal_action")
     : query.eq("customer_visible", true).eq("task_type", "customer_action");
 
+  if (isInternal) query = applyActiveSnoozeFilter(query);
+
   const { data, error } = await query;
-  if (error || !data) return {};
+  if (error || !data) {
+    logQueryError("getOpenTaskCountsForUser", error, { userId });
+    return {};
+  }
 
   const counts: Record<string, number> = {};
   for (const row of data) {
@@ -61,7 +78,10 @@ export async function getTaskProgressByEvent(
     .select("event_id, status")
     .in("event_id", eventIds);
 
-  if (error || !data) return {};
+  if (error || !data) {
+    logQueryError("getTaskProgressByEvent", error);
+    return {};
+  }
 
   const progress: Record<string, { completed: number; total: number }> = {};
   for (const row of data as { event_id: string; status: string }[]) {
@@ -105,18 +125,24 @@ export async function getTasksAssignedToUser(
     .eq("task_type", "internal_action")
     .order("due_date", { ascending: true, nullsFirst: false });
 
+  query = applyActiveSnoozeFilter(query);
+
   if (options.includeCompletedSince) {
     // Pull pending/in_progress/blocked plus anything completed since the cut-off.
     // We do this as a single fetch with a server-side OR to keep it efficient.
     query = query.or(
-      `status.in.(pending,in_progress,blocked),and(status.eq.complete,completed_at.gte.${options.includeCompletedSince})`
+      "status.in.(pending,in_progress,blocked)," +
+        `and(status.eq.complete,completed_at.gte.${quoteFilterValue(options.includeCompletedSince)})`
     );
   } else {
     query = query.not("status", "in", '("complete","skipped")');
   }
 
   const { data, error } = await query;
-  if (error || !data) return [];
+  if (error || !data) {
+    logQueryError("getTasksAssignedToUser", error, { userId });
+    return [];
+  }
 
   return data.map((row) => {
     const r = row as Record<string, unknown>;
@@ -148,6 +174,7 @@ export async function getTasksAssignedToUser(
       targetPath: (r.target_path as string | null) ?? undefined,
       dueDate: (r.due_date as string | null) ?? undefined,
       completedAt: (r.completed_at as string | null) ?? undefined,
+      snoozedUntil: (r.snoozed_until as string | null) ?? undefined,
       isBlocking: Boolean(r.is_blocking),
       customerVisible: Boolean(r.customer_visible),
       sortOrder: (r.sort_order as number) ?? 0,
@@ -187,7 +214,7 @@ export async function getTasksByRole(
 ): Promise<TaskGroupByEvent[]> {
   const supabase = await createClient();
 
-  const { data, error } = await supabase
+  let query = supabase
     .from("tasks")
     .select(
       "*, events!inner(id, name, account_id, event_date_start, health_status, current_stage, accounts(name))"
@@ -195,10 +222,22 @@ export async function getTasksByRole(
     .eq("task_type", "internal_action")
     .not("status", "in", '("complete","skipped")')
     .not("events.current_stage", "in", '("complete")')
-    .or(`assigned_role.eq.${role},assigned_to.eq.${userId}`)
+    .or(
+      anyOf(
+        `assigned_role.eq.${quoteFilterValue(role)}`,
+        `assigned_to.eq.${quoteFilterValue(userId)}`
+      )
+    )
     .order("due_date", { ascending: true, nullsFirst: false });
 
-  if (error || !data) return [];
+  query = applyActiveSnoozeFilter(query);
+
+  const { data, error } = await query;
+
+  if (error || !data) {
+    logQueryError("getTasksByRole", error, { userId });
+    return [];
+  }
 
   const groupMap = new Map<string, TaskGroupByEvent>();
 
@@ -249,6 +288,7 @@ export async function getTasksByRole(
       targetPath: (r.target_path as string | null) ?? undefined,
       dueDate: (r.due_date as string | null) ?? undefined,
       completedAt: (r.completed_at as string | null) ?? undefined,
+      snoozedUntil: (r.snoozed_until as string | null) ?? undefined,
       isBlocking: Boolean(r.is_blocking),
       customerVisible: Boolean(r.customer_visible),
       sortOrder: (r.sort_order as number) ?? 0,
@@ -271,7 +311,10 @@ export async function getTasksByEvent(eventId: string): Promise<Task[]> {
     .eq("event_id", eventId)
     .order("sort_order");
 
-  if (error || !data) return [];
+  if (error || !data) {
+    logQueryError("getTasksByEvent", error, { eventId });
+    return [];
+  }
 
   return data.map((row) => {
     const assigned = row.assigned as Record<string, unknown> | null;
@@ -299,6 +342,7 @@ export async function getTasksByEvent(eventId: string): Promise<Task[]> {
       targetPath: row.target_path ?? undefined,
       dueDate: row.due_date ?? undefined,
       completedAt: row.completed_at ?? undefined,
+      snoozedUntil: row.snoozed_until ?? undefined,
       isBlocking: row.is_blocking,
       customerVisible: row.customer_visible,
       sortOrder: row.sort_order,

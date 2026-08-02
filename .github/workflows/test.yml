@@ -1,10 +1,13 @@
 name: Test
 
+# Runs on the long-lived branches and on every PR into them. `main` alone was
+# wrong while all the work happens on `frontend-mock-data`: the suite hadn't
+# run on a single commit of the branch it was meant to be protecting.
 on:
   push:
-    branches: [main]
+    branches: [main, frontend-mock-data]
   pull_request:
-    branches: [main]
+    branches: [main, frontend-mock-data]
 
 jobs:
   lint-typecheck-unit:
@@ -19,7 +22,10 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npm run typecheck
-      - run: npm test
+      # Coverage, not a bare `vitest run` — the thresholds in vitest.config.ts
+      # only bite when the coverage reporter is on, so `npm test` let the
+      # numbers drift for months without CI noticing.
+      - run: npm run test:coverage
       - run: npm run build
         env:
           # Build-time env stubs so Next.js can compile without secrets.
@@ -34,11 +40,10 @@ jobs:
           path: coverage/
           retention-days: 7
 
-  rls:
-    name: RLS policy tests (pgTAP)
+  database:
+    name: RLS policies (pgTAP) + Postgres integration
     runs-on: ubuntu-latest
     needs: lint-typecheck-unit
-    if: github.event_name == 'pull_request'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -49,10 +54,19 @@ jobs:
         with:
           version: latest
       - run: npm ci
+      # Cheap and dependency-free, so it runs before anything is booted:
+      # fails when a migration adds an RLS policy with no pgTAP cover.
+      - name: Check every RLS policy has a pgTAP test
+        run: node scripts/check-policy-tests.mjs
       - name: Start local Supabase
         run: supabase start
-      - name: Run pgTAP tests
+      - name: Run pgTAP policy tests
         run: npm run test:rls
+      # The integration suite runs the hottest query functions against real
+      # Postgres. It is the only thing in CI that would catch a query the mock
+      # Supabase client tolerates but PostgREST rejects.
+      - name: Run Postgres integration tests
+        run: npm run test:integration
       - name: Stop Supabase
         if: always()
         run: supabase stop

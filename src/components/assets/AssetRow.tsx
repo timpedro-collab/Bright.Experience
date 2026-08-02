@@ -246,21 +246,26 @@ export function AssetRow({ asset, comments = [], commentCount = 0, annotations =
             </div>
           )}
 
-          {needsAction &&
-            (canUpload ? (
-              <AssetUploadZone
-                asset={asset}
-                machineSlug={machineSlug}
-                asCreative={isInternal}
-              />
-            ) : isInternal ? (
-              <p className="mt-3 inline-flex items-center gap-1.5 text-overline text-muted-foreground">
-                <Clock className="size-3" />
-                {asset.reviewStatus === "revision_requested"
-                  ? "Waiting on customer to re-upload"
-                  : "Waiting on customer to upload"}
-              </p>
-            ) : null)}
+          {needsAction && canUpload ? (
+            <AssetUploadZone
+              asset={asset}
+              machineSlug={machineSlug}
+              asCreative={isInternal}
+            />
+          ) : asset.reviewStatus === "approved" && canUpload ? (
+            <AssetUploadZone
+              asset={asset}
+              machineSlug={machineSlug}
+              asCreative={isInternal}
+            />
+          ) : isInternal ? (
+            <p className="mt-3 inline-flex items-center gap-1.5 text-overline text-muted-foreground">
+              <Clock className="size-3" />
+              {asset.reviewStatus === "revision_requested"
+                ? "Waiting on customer to re-upload"
+                : "Waiting on customer to upload"}
+            </p>
+          ) : null}
         </div>
 
         <div className="flex md:flex-col md:justify-end md:items-end gap-2">
@@ -280,6 +285,7 @@ export function AssetRow({ asset, comments = [], commentCount = 0, annotations =
           assetId={asset.id}
           eventId={asset.eventId}
           currentUserId={currentUserId}
+          currentVersion={asset.version}
         />
       )}
     </li>

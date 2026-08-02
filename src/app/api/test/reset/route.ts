@@ -1,7 +1,8 @@
 /**
  * Test-only DB reset endpoint — returns a known-good state for E2E runs.
  *
- * Gated behind `TEST_MODE=1` so it can never activate in production.
+ * Gated behind `TEST_MODE=1`, and dropped from production builds altogether by
+ * the `/api/test/:path*` rewrite in next.config.ts.
  * The Playwright data fixture (`e2e/fixtures/data.ts`) calls this in
  * `beforeEach` to make specs independent of execution order.
  *

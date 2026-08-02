@@ -86,7 +86,7 @@ Every event progresses through a defined sequence of stages. Each stage has:
 
 ## Stage 4: Build & Configuration
 **Trigger:** All approvals complete
-**Owner:** QA/Config Lead + Developer
+**Owner:** QA Lead + Admin
 **Customer sees:** "Configuration in progress" status, expected completion date
 
 ### Tasks

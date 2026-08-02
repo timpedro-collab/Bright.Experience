@@ -67,9 +67,11 @@ export default async function PartnerClientsPage({ params }: ClientsPageProps) {
       {clients.length === 0 ? (
         <EmptyState
           icon={Users}
-          title="No clients yet"
-          description="Companies who book through your partner link will appear here, grouped by relationship."
+          title="Your clients"
+          description="Every company that books through your referral link appears here, grouped by relationship. No one has booked through your link yet."
+          action={{ label: "Share Referral Link", href: `/partners/${slug}/dashboard` }}
           size="sm"
+          tone="flat"
         />
       ) : (
         <div className="space-y-5">

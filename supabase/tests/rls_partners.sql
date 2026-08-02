@@ -25,10 +25,18 @@ update partners set status = 'inactive' where id = '00000000-0000-4000-8000-0000
 
 select plan(5);
 
--- (1) Internal sees all partners
+-- Every assertion below is scoped to the two fixture partners: the suite runs
+-- against a database carrying the demo seed, whose partners are active and so
+-- legitimately visible through the public directory policy.
+
+-- (1) Internal is not filtered — sees the inactive fixture partner too
 select _rls_test_as('00000000-0000-4000-8000-000000000011');
 select is(
-  (select count(*)::int from partners),
+  (select count(*)::int from partners
+    where id in (
+      '00000000-0000-4000-8000-0000000000b1',
+      '00000000-0000-4000-8000-0000000000b2'
+    )),
   2,
   'internal user sees every partner'
 );
@@ -36,7 +44,11 @@ select is(
 -- (2) Northern admin sees only Northern
 select _rls_test_as('00000000-0000-4000-8000-000000000030');
 select is(
-  (select array_agg(id order by id)::uuid[] from partners),
+  (select array_agg(id order by id)::uuid[] from partners
+    where id in (
+      '00000000-0000-4000-8000-0000000000b1',
+      '00000000-0000-4000-8000-0000000000b2'
+    )),
   array['00000000-0000-4000-8000-0000000000b1'::uuid],
   'partner_admin sees only their own partner'
 );
@@ -44,7 +56,11 @@ select is(
 -- (3) Northern member sees only Northern
 select _rls_test_as('00000000-0000-4000-8000-000000000031');
 select is(
-  (select array_agg(id order by id)::uuid[] from partners),
+  (select array_agg(id order by id)::uuid[] from partners
+    where id in (
+      '00000000-0000-4000-8000-0000000000b1',
+      '00000000-0000-4000-8000-0000000000b2'
+    )),
   array['00000000-0000-4000-8000-0000000000b1'::uuid],
   'partner_member sees only their own partner'
 );

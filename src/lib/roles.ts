@@ -22,7 +22,7 @@ export function isAdminRole(role: UserRole): boolean {
  * roles (creative, ops, QA) complete their own work but do not advance the
  * stage — orchestration stays with the Events Lead / Admin.
  */
-export const STAGE_ADVANCE_ROLES: UserRole[] = ["events_lead", "admin"];
+const STAGE_ADVANCE_ROLES: UserRole[] = ["events_lead", "admin"];
 
 export function canAdvanceEventStage(role: UserRole): boolean {
   return STAGE_ADVANCE_ROLES.includes(role);
@@ -37,7 +37,7 @@ export function canAdvanceEventStage(role: UserRole): boolean {
  * break-glass role, but the orchestrator (events_lead) and
  * the specialist lanes (operations_lead, qa_lead) cannot action creative.
  */
-export const CREATIVE_REVIEW_ROLES: UserRole[] = ["creative_lead", "admin"];
+const CREATIVE_REVIEW_ROLES: UserRole[] = ["creative_lead", "admin"];
 
 export function canReviewCreativeAssets(role: UserRole): boolean {
   return CREATIVE_REVIEW_ROLES.includes(role);
@@ -48,7 +48,7 @@ export function canReviewCreativeAssets(role: UserRole): boolean {
  * Events Lead for read-only oversight (they orchestrate the event and need
  * to see where creative sign-off sits, but cannot decide it).
  */
-export const CREATIVE_QUEUE_VIEW_ROLES: UserRole[] = [
+const CREATIVE_QUEUE_VIEW_ROLES: UserRole[] = [
   ...CREATIVE_REVIEW_ROLES,
   "events_lead",
 ];
@@ -64,13 +64,22 @@ export function canViewCreativeQueue(role: UserRole): boolean {
  * produced the deliverable, plus admin. Ops and QA never touch
  * sign-off.
  */
-export const ON_BEHALF_APPROVAL_ROLES: UserRole[] = [
+const ON_BEHALF_APPROVAL_ROLES: UserRole[] = [
   "events_lead",
   "creative_lead",
   "admin",
 ];
 
 export function canRecordApprovalOnBehalf(role: UserRole): boolean {
+  return ON_BEHALF_APPROVAL_ROLES.includes(role);
+}
+
+/**
+ * Who may ASK the customer for sign-off — i.e. post a proof. The same
+ * customer-facing set: opening an approval starts a conversation with the
+ * client, so Ops and QA stay out of it.
+ */
+export function canRequestApproval(role: UserRole): boolean {
   return ON_BEHALF_APPROVAL_ROLES.includes(role);
 }
 
@@ -88,7 +97,7 @@ export function canRecordApprovalOnBehalf(role: UserRole): boolean {
  * success queue, task templates, campaigns, benchmarks, recommendations,
  * and partner management. Owned by the Events Lead (account manager) + Admin.
  */
-export const COMMERCIAL_ROLES: UserRole[] = ["events_lead", "admin"];
+const COMMERCIAL_ROLES: UserRole[] = ["events_lead", "admin"];
 
 export function canViewCommercial(role: UserRole): boolean {
   return COMMERCIAL_ROLES.includes(role);
@@ -99,7 +108,7 @@ export function canViewCommercial(role: UserRole): boolean {
  * studies, packages, placements) and the Bright.Studio orders page. Owned
  * by Creative, with the Events Lead for oversight + Admin.
  */
-export const CREATIVE_PRODUCT_ROLES: UserRole[] = [
+const CREATIVE_PRODUCT_ROLES: UserRole[] = [
   "creative_lead",
   "events_lead",
   "admin",
@@ -113,7 +122,7 @@ export function canViewCreativeProduct(role: UserRole): boolean {
  * Locations (venues / delivery addresses) — logistics-adjacent. Owned by
  * Ops, with the Events Lead + Admin.
  */
-export const LOCATIONS_ROLES: UserRole[] = [
+const LOCATIONS_ROLES: UserRole[] = [
   "operations_lead",
   "events_lead",
   "admin",
@@ -128,7 +137,7 @@ export function canViewLocations(role: UserRole): boolean {
  * reserved for internal staff and the client's lead contact
  * (`customer_admin`) — junior invited customer users cannot raise orders.
  */
-export const STUDIO_ORDER_ROLES: UserRole[] = [...INTERNAL_ROLES, "customer_admin"];
+const STUDIO_ORDER_ROLES: UserRole[] = [...INTERNAL_ROLES, "customer_admin"];
 
 export function canOrderStudioWork(role: UserRole): boolean {
   return STUDIO_ORDER_ROLES.includes(role);
@@ -141,7 +150,7 @@ export function canOrderStudioWork(role: UserRole): boolean {
  * still data-scoped (partner-slug match), but these helpers let us reason
  * about the role class consistently.
  */
-export const PARTNER_ROLES: UserRole[] = ["partner_member", "partner_admin"];
+const PARTNER_ROLES: UserRole[] = ["partner_member", "partner_admin"];
 
 export function isPartnerRole(role: UserRole): boolean {
   return PARTNER_ROLES.includes(role);

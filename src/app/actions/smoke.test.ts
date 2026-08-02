@@ -272,7 +272,7 @@ describe("partners action — applyAsPartner", () => {
       name: "Burst Events",
       contactName: "Burst",
       contactEmail: "burst@burstevents.com",
-      type: "agency",
+      type: "agency" as const,
     };
     const results = [];
     for (let i = 0; i < 6; i++) {

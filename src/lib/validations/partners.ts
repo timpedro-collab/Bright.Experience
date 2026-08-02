@@ -6,16 +6,23 @@ import { uuidLike } from "./id";
 export const MAX_NOTES_LENGTH = 5000;
 
 /**
- * Input for `applyAsPartner` (public onboarding wizard). The wizard offers
- * "referral" alongside the `PartnerType` union values ("reseller" | "venue" |
- * "agency"), so `type` stays a permissive non-empty string rather than a
- * strict enum.
+ * The three tiers anyone can apply for. Venue and organizer partners are set
+ * up internally — they get tooling (slot inventory, show management) that a
+ * self-service applicant must not be able to grant themselves by posting a
+ * different `type`.
  */
+const PUBLIC_PARTNER_TYPES = ["referral", "reseller", "agency"] as const;
+
+export type PublicPartnerType = (typeof PUBLIC_PARTNER_TYPES)[number];
+
+/** Input for `applyAsPartner` (public onboarding wizard). */
 export const partnerApplicationSchema = z.object({
   name: z.string().min(1, "Name is required"),
   contactName: z.string().min(1, "Contact name is required"),
   contactEmail: z.string().email("Valid email is required"),
-  type: z.string().min(1, "Partnership type is required"),
+  type: z.enum(PUBLIC_PARTNER_TYPES, {
+    message: "Choose referral, reseller, or agency",
+  }),
   companyName: z.string().optional(),
   website: z.string().optional(),
   industry: z.string().optional(),

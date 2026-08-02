@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatMoneyFromPence } from "@/lib/currency";
 import type { PartnerDeal } from "@/lib/queries/partner-attributions";
 
-interface ActionItem {
+interface QueueItem {
   id: string;
   icon: typeof Clock;
   title: string;
@@ -29,46 +29,48 @@ export function PartnerActionQueue({
   );
   const approved = deals.filter((d) => d.status === "approved");
 
-  const items: ActionItem[] = [
-    ...openQuotes.map((d) => ({
-      id: d.id,
-      icon: Clock,
-      title: `Follow up with ${d.clientName}`,
-      detail: d.valueCents
-        ? `Proposal out for ${formatMoneyFromPence(d.valueCents)} — awaiting their decision.`
-        : "Proposal sent — awaiting their decision.",
-    })),
-    ...approved.map((d) => ({
-      id: `${d.id}-payout`,
-      icon: Wallet,
-      title: `${d.clientName} commission approved`,
-      detail: d.commissionCents
-        ? `${formatMoneyFromPence(d.commissionCents)} confirmed and scheduled for your next payout.`
-        : "Confirmed and scheduled for your next payout.",
-    })),
-  ];
+  // Real to-dos the partner must act on (chase a decision).
+  const actions: QueueItem[] = openQuotes.map((d) => ({
+    id: d.id,
+    icon: Clock,
+    title: `Follow up with ${d.clientName}`,
+    detail: d.valueCents
+      ? `Proposal out for ${formatMoneyFromPence(d.valueCents)} — awaiting their decision.`
+      : "Proposal sent — awaiting their decision.",
+  }));
+
+  // Good-news FYIs — nothing to do, just worth knowing. Kept separate so a
+  // "commission approved" update never inflates the "needs you" count.
+  const updates: QueueItem[] = approved.map((d) => ({
+    id: `${d.id}-payout`,
+    icon: Wallet,
+    title: `${d.clientName} commission approved`,
+    detail: d.commissionCents
+      ? `${formatMoneyFromPence(d.commissionCents)} confirmed and scheduled for your next payout.`
+      : "Confirmed and scheduled for your next payout.",
+  }));
 
   return (
     <Card>
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center justify-between">
           <span>Needs your attention</span>
-          {items.length > 0 && (
+          {actions.length > 0 && (
             <span className="rounded-full bg-[var(--color-bb-cobalt)] px-2 py-0.5 text-xs font-semibold text-white">
-              {items.length}
+              {actions.length}
             </span>
           )}
         </CardTitle>
       </CardHeader>
       <CardContent>
-        {items.length === 0 ? (
+        {actions.length === 0 ? (
           <div className="flex items-center gap-3 py-2 text-sm text-muted-foreground">
             <CheckCircle2 className="h-5 w-5 text-success" />
             You&apos;re all caught up — nothing needs chasing right now.
           </div>
         ) : (
           <ul className="space-y-2.5">
-            {items.map((item) => {
+            {actions.map((item) => {
               const Icon = item.icon;
               return (
                 <li
@@ -82,13 +84,14 @@ export function PartnerActionQueue({
                     <p className="text-sm font-medium text-foreground">
                       {item.title}
                     </p>
-                    <p className="text-xs text-muted-foreground">{item.detail}</p>
+                    <p className="text-xs text-tertiary">{item.detail}</p>
                   </div>
                 </li>
               );
             })}
           </ul>
         )}
+
         {openQuotes.length > 0 && (
           <Link
             href={quotesHref}
@@ -96,6 +99,34 @@ export function PartnerActionQueue({
           >
             Manage your quote pipeline <ArrowRight className="h-3 w-3" />
           </Link>
+        )}
+
+        {updates.length > 0 && (
+          <div className="mt-5 border-t border-border/50 pt-4">
+            <p className="mb-2.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Just so you know
+            </p>
+            <ul className="space-y-2.5">
+              {updates.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <li key={item.id} className="flex items-start gap-3">
+                    <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-success/10 text-success">
+                      <Icon className="h-3.5 w-3.5" />
+                    </span>
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-foreground">
+                        {item.title}
+                      </p>
+                      <p className="text-xs text-tertiary">
+                        {item.detail}
+                      </p>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
         )}
       </CardContent>
     </Card>

@@ -1,10 +1,12 @@
 /** Zod schemas for quoting engine validation */
 import { z } from "zod";
 
+import { uuidLike } from "./id";
+
 export const bookNowSchema = z.object({
-  packageId: z.string().uuid("Package selection is required"),
-  machineId: z.string().uuid().optional(),
-  gameId: z.string().uuid().optional(),
+  packageId: uuidLike("Package selection is required"),
+  machineId: uuidLike("Invalid machine").optional(),
+  gameId: uuidLike("Invalid game").optional(),
   eventType: z.string().optional(),
   venueName: z.string().optional(),
   locationPostcode: z.string().optional(),
@@ -30,8 +32,8 @@ export const proposalIntakeSchema = z.object({
   durationDays: z.number().int().positive().optional(),
   footfallEstimate: z.number().int().positive().optional(),
   objective: z.string().optional(),
-  machineId: z.string().uuid().optional(),
-  gameId: z.string().uuid().optional(),
+  machineId: uuidLike("Invalid machine").optional(),
+  gameId: uuidLike("Invalid game").optional(),
   creativeNeeds: z.string().optional(),
   engagementScope: z.string().optional(),
   specialRequirements: z.string().optional(),

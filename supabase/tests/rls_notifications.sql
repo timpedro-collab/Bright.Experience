@@ -42,10 +42,15 @@ select is(
   'cross-account customer cannot see foreign notification'
 );
 
--- Internal user sees all three
+-- Internal user sees all three, including the ones addressed to other people.
+-- Scoped to the fixture rows so the assertion holds alongside demo seed data.
 select _rls_test_as('00000000-0000-4000-8000-000000000011');
 select is(
-  (select count(*)::int from notifications),
+  (select count(*)::int from notifications where id in (
+    '00000000-0000-4000-8000-0000000000c1',
+    '00000000-0000-4000-8000-0000000000c2',
+    '00000000-0000-4000-8000-0000000000c3'
+  )),
   3,
   'internal user sees every notification'
 );

@@ -57,7 +57,7 @@ export function ReportCard() {
         </div>
 
         <div className="p-4 space-y-0 divide-y divide-white/5">
-          {METRICS.slice(0, visibleMetrics).map((m, i) => (
+          {METRICS.slice(0, visibleMetrics).map((m) => (
             <motion.div
               key={m.label}
               className="flex items-center justify-between py-3 first:pt-0 last:pb-0"

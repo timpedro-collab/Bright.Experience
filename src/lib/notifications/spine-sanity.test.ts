@@ -34,6 +34,9 @@ const OWNER_RESOLVERS: ReadonlySet<string> = new Set([
   "asset_uploader",
   "asset_comment_participants",
   "approval_requester",
+  "show_organizer",
+  "venue_operator",
+  "internal_admins",
 ]);
 
 function richContext(): Record<string, string | number> {

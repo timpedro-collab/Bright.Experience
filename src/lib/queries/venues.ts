@@ -1,5 +1,6 @@
 /** Supabase read queries for venue entities. */
 import { createClient } from "@/lib/supabase/server";
+import { logQueryError } from "@/lib/observability/log-query-error";
 
 /** Fetch all active venues ordered by name (internal use). */
 export async function getVenues() {
@@ -13,7 +14,10 @@ export async function getVenues() {
     )
     .order("name", { ascending: true });
 
-  if (error || !data) return [];
+  if (error || !data) {
+    logQueryError("getVenues", error);
+    return [];
+  }
   return data;
 }
 
@@ -30,7 +34,10 @@ export async function getVenueBySlug(slug: string) {
     .eq("slug", slug)
     .single();
 
-  if (error || !data) return null;
+  if (error || !data) {
+    logQueryError("getVenueBySlug", error, { slug });
+    return null;
+  }
   return data;
 }
 
@@ -47,6 +54,9 @@ export async function getVenuesByPartner(partnerId: string) {
     .eq("partner_id", partnerId)
     .order("name", { ascending: true });
 
-  if (error || !data) return [];
+  if (error || !data) {
+    logQueryError("getVenuesByPartner", error, { partnerId });
+    return [];
+  }
   return data;
 }

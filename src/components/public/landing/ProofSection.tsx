@@ -9,6 +9,8 @@ import { ArrowRight, Quote } from "lucide-react";
 
 import { Container, Section } from "@/components/ui/section";
 import { Button } from "@/components/ui/button";
+import { Reveal } from "@/components/ui/motion";
+import { StatCountUp } from "@/components/ui/StatCountUp";
 import { CaseStudyCard } from "@/components/catalog/CaseStudyCard";
 import {
   TRUST_STATS,
@@ -33,7 +35,7 @@ export function ProofSection({ caseStudies }: { caseStudies: ProofCaseStudy[] })
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div className="max-w-2xl">
             <p className="text-overline text-muted-foreground mb-2">The proof</p>
-            <h2 className="text-heading text-3xl font-bold text-foreground md:text-4xl">
+            <h2 className="text-display-serif text-4xl text-foreground md:text-5xl">
               Real activations, real numbers
             </h2>
             <p className="mt-2 text-muted-foreground">
@@ -56,21 +58,25 @@ export function ProofSection({ caseStudies }: { caseStudies: ProofCaseStudy[] })
           </div>
         )}
 
-        {/* Hard-number trust tiles */}
-        <div className="mt-12 grid grid-cols-1 gap-px overflow-hidden rounded-[var(--radius-card)] border border-white/[0.06] bg-white/[0.04] md:grid-cols-3">
-          {TRUST_STATS.map((stat) => (
-            <div
-              key={stat.label}
-              className="bg-[hsl(233,50%,9%)] px-6 py-10 text-center"
-            >
-              <p className="text-heading text-5xl font-bold text-white tabular-nums md:text-6xl">
-                {stat.value}
+        {/* Hard numbers, bare on the page (On Board pattern): no card, no
+            border — the number is huge and everything around it stays quiet,
+            so nothing competes with the figure. Counts up once on scroll. */}
+        <div className="mt-16 grid grid-cols-1 gap-12 md:mt-20 md:grid-cols-3 md:gap-8">
+          {TRUST_STATS.map((stat, i) => (
+            <Reveal key={stat.label} delay={i * 0.1} className="text-center">
+              <p className="text-heading text-7xl font-bold leading-none tracking-tight text-foreground tabular-nums md:text-8xl">
+                <StatCountUp
+                  raw={stat.value}
+                  prefixClassName="block text-[0.22em] font-semibold uppercase tracking-[0.18em] text-muted-foreground mb-2"
+                />
               </p>
-              <p className="mt-2 text-sm text-white/60">{stat.label}</p>
-            </div>
+              <p className="mx-auto mt-3 max-w-[16rem] text-sm leading-snug text-muted-foreground">
+                {stat.label}
+              </p>
+            </Reveal>
           ))}
         </div>
-        <p className="mt-4 text-center text-xs text-muted-foreground">
+        <p className="mt-10 text-center text-xs text-muted-foreground">
           {TRUST_CAPTION}
         </p>
 

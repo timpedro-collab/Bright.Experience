@@ -1,6 +1,6 @@
 /** Sponsorship slot management — slots grouped by placement. */
 import { redirect } from "next/navigation";
-import { PortalPageShell, venueTabs } from "@/components/brand";
+import { PortalPageShell, venueTabs, venueRoleLabel } from "@/components/brand";
 import { getUser } from "@/lib/auth";
 import { getPartnerForUser } from "@/lib/queries/partners";
 import { getVenueBySlug } from "@/lib/queries/venues";
@@ -93,6 +93,7 @@ export default async function SponsorshipsPage({ params }: Props) {
   return (
     <PortalPageShell
       user={user}
+      roleLabel={venueRoleLabel(user.role)}
       unreadCount={unread}
       scope={venue.name}
       section="Sponsorships"

@@ -4,7 +4,7 @@
 import { requireInternalUser } from "@/lib/auth";
 import { canViewCommercial } from "@/lib/roles";
 import { getServiceRoleClient } from "@/lib/supabase/service-role";
-import { getPostShowReport } from "@/lib/brightblue/client";
+import { generateEventReportInternal } from "@/server/reports";
 import { revalidatePath } from "next/cache";
 
 /**
@@ -20,144 +20,6 @@ import { revalidatePath } from "next/cache";
 export async function generateEventReport(eventId: string) {
   const { supabase } = await requireInternalUser();
   return generateEventReportInternal(eventId, supabase);
-}
-
-/**
- * Service-role variant — used by the reports cron where there is no
- * authenticated user in the request context.
- */
-export async function generateEventReportSystem(eventId: string) {
-  const supabase = getServiceRoleClient();
-  return generateEventReportInternal(eventId, supabase);
-}
-
-/** Shared implementation for both authenticated and system-level report generation. */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function generateEventReportInternal(eventId: string, supabase: any) {
-  const { data: event, error: eventErr } = await supabase
-    .from("events")
-    .select("id, name, event_type, machine_type, account_id")
-    .eq("id", eventId)
-    .single();
-
-  if (eventErr || !event) {
-    return { success: false as const, error: "Event not found" };
-  }
-
-  const { data: snapshots } = await supabase
-    .from("event_metrics_snapshot")
-    .select("*")
-    .eq("event_id", eventId)
-    .order("snapshot_date");
-
-  let totalPlays = snapshots?.reduce((s: number, r: Record<string, unknown>) => s + ((r.total_plays as number) ?? 0), 0) ?? 0;
-  let totalInteractions = snapshots?.reduce((s: number, r: Record<string, unknown>) => s + ((r.total_interactions as number) ?? 0), 0) ?? 0;
-  let totalLeads = snapshots?.reduce((s: number, r: Record<string, unknown>) => s + ((r.total_leads as number) ?? 0), 0) ?? 0;
-  let totalPrizes = snapshots?.reduce((s: number, r: Record<string, unknown>) => s + ((r.total_prizes as number) ?? 0), 0) ?? 0;
-
-  const dwellValues = snapshots
-    ?.map((r: Record<string, unknown>) => Number(r.avg_dwell_time))
-    .filter((v: number) => !Number.isNaN(v) && v > 0) ?? [];
-  let avgDwellTime =
-    dwellValues.length > 0
-      ? dwellValues.reduce((a: number, b: number) => a + b, 0) / dwellValues.length
-      : null;
-
-  // Resilience: if the live webhook never delivered metrics, pull the final
-  // post-show report straight from Bright.Blue Cloud and persist a snapshot so
-  // the report (and benchmarks) aren't empty. No-ops when Cloud isn't configured.
-  if (totalPlays + totalInteractions + totalLeads + totalPrizes === 0) {
-    const cloud = await getPostShowReport(eventId);
-    if (cloud) {
-      totalPlays = cloud.total_plays ?? 0;
-      totalInteractions = cloud.total_interactions ?? 0;
-      totalLeads = cloud.total_leads ?? 0;
-      totalPrizes = cloud.total_prizes ?? 0;
-      avgDwellTime = cloud.avg_dwell_time ?? avgDwellTime;
-
-      await supabase.from("event_metrics_snapshot").upsert(
-        {
-          event_id: eventId,
-          snapshot_date: new Date().toISOString().slice(0, 10),
-          total_plays: totalPlays,
-          total_interactions: totalInteractions,
-          total_leads: totalLeads,
-          total_prizes: totalPrizes,
-          avg_dwell_time: avgDwellTime ?? 0,
-          is_final: true,
-        },
-        { onConflict: "event_id,snapshot_date" },
-      );
-    }
-  }
-
-  const metricsJson: Record<string, unknown> = {
-    totalPlays,
-    totalInteractions,
-    totalLeads,
-    totalPrizes,
-    avgDwellTime,
-    snapshotCount: snapshots?.length ?? 0,
-  };
-
-  let predictionsJson: Record<string, unknown> = {};
-  let comparisonJson: Record<string, unknown> = {};
-
-  const { data: quote } = await supabase
-    .from("quotes")
-    .select("outcome_estimates_json, estimated_interactions, estimated_leads, estimated_impressions")
-    .eq("event_id", eventId)
-    .limit(1)
-    .maybeSingle();
-
-  if (quote) {
-    const estimates = (quote.outcome_estimates_json ?? {}) as Record<string, unknown>;
-    const estInteractions = (quote.estimated_interactions ?? estimates.interactions ?? null) as number | null;
-    const estLeads = (quote.estimated_leads ?? estimates.leads ?? null) as number | null;
-
-    predictionsJson = {
-      estimatedInteractions: estInteractions,
-      estimatedLeads: estLeads,
-      estimatedImpressions: quote.estimated_impressions ?? estimates.impressions ?? null,
-      raw: estimates,
-    };
-
-    comparisonJson = {
-      interactions: {
-        predicted: estInteractions,
-        actual: totalInteractions,
-        delta: estInteractions != null ? totalInteractions - estInteractions : null,
-      },
-      leads: {
-        predicted: estLeads,
-        actual: totalLeads,
-        delta: estLeads != null ? totalLeads - estLeads : null,
-      },
-    };
-  }
-
-  const { data: report, error: insertErr } = await supabase
-    .from("event_reports")
-    .insert({
-      event_id: eventId,
-      report_type: "post_event",
-      title: `Post-Event Report — ${event.name}`,
-      metrics_json: metricsJson,
-      predictions_json: predictionsJson,
-      comparison_json: comparisonJson,
-      highlights_json: [],
-      is_published: false,
-    })
-    .select("id")
-    .single();
-
-  if (insertErr || !report) {
-    return { success: false as const, error: "Failed to generate report" };
-  }
-
-  revalidatePath(`/events/${eventId}/reports`);
-  revalidatePath("/admin/reports");
-  return { success: true as const, data: { id: report.id } };
 }
 
 /** Publish a report: makes it publicly accessible via a generated share token. */
@@ -282,6 +144,9 @@ export async function updateBenchmarks() {
       const avg = vals.reduce((a, b) => a + b, 0) / vals.length;
       rows.push({
         event_type: eventType,
+        // Aggregated across every tier the snapshots came from; the curated
+        // tier-specific rows in the seed sit alongside this one.
+        location_tier: null,
         machine_type: machineType || null,
         game_type: null,
         metric_name: metricName,
@@ -295,7 +160,9 @@ export async function updateBenchmarks() {
 
   const { error: upsertErr } = await supabase
     .from("benchmarks")
-    .upsert(rows, { onConflict: "event_type,machine_type,game_type,metric_name" });
+    .upsert(rows, {
+      onConflict: "event_type,location_tier,machine_type,game_type,metric_name",
+    });
 
   if (upsertErr) {
     return { success: false as const, error: upsertErr.message };

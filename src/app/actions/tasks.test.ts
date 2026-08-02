@@ -268,3 +268,62 @@ describe("reassignTask", () => {
     expect(audit.action).toBe("task_reassigned");
   });
 });
+
+describe("snoozeTask", () => {
+  const TASK_ID = "d6666666-6666-6666-6666-666666666666";
+  const future = new Date(Date.now() + 86_400_000).toISOString();
+
+  it("rejects an unauthenticated caller", async () => {
+    supabase.setUser(null);
+    const { snoozeTask } = await import("./tasks");
+    expect(await snoozeTask(TASK_ID, future)).toMatchObject({
+      success: false,
+      error: expect.stringMatching(/authenticated/i),
+    });
+  });
+
+  it("rejects a non-internal caller", async () => {
+    supabase.setUser({ id: "u-cust" });
+    supabase.setTableResponse("profiles", {
+      data: { role: "customer_admin" },
+      error: null,
+    });
+    const { snoozeTask } = await import("./tasks");
+    expect(await snoozeTask(TASK_ID, future)).toMatchObject({
+      success: false,
+      error: expect.stringMatching(/Bright\.Blue team/i),
+    });
+  });
+
+  it("snoozes an internal task until the given timestamp", async () => {
+    supabase.setUser({ id: "u-lead" });
+    supabase.setTableResponse("profiles", {
+      data: { role: "events_lead" },
+      error: null,
+    });
+    supabase.setTableResponse("tasks", {
+      data: {
+        id: TASK_ID,
+        event_id: "evt-1",
+        title: "Configure game logic",
+      },
+      error: null,
+    });
+    supabase.setTableResponse("audit_entries", { data: null, error: null });
+
+    const { snoozeTask } = await import("./tasks");
+    const result = await snoozeTask(TASK_ID, future);
+    expect(result).toEqual({
+      success: true,
+      data: { snoozedUntil: new Date(future).toISOString() },
+    });
+
+    const updateCall = supabase
+      .callsFor("tasks")
+      .find((c) => c.method === "update");
+    expect(updateCall).toBeDefined();
+    expect((updateCall!.args[0] as Record<string, unknown>).snoozed_until).toBe(
+      new Date(future).toISOString(),
+    );
+  });
+});

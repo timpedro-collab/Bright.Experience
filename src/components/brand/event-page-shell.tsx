@@ -62,11 +62,17 @@ interface EventPageShellProps {
   children: React.ReactNode;
 }
 
-/** Map the display section label to the URL slug for active-tab matching. */
+/**
+ * Map the display section label to the URL slug for active-tab matching.
+ * Must cover every `section=` label passed by an event sub-page, otherwise the
+ * active tab silently falls back to a slugified label (which breaks for
+ * multi-word labels like "Quality assurance").
+ */
 const SECTION_TO_SLUG: Record<string, string> = {
   Overview: "",
   Timeline: "timeline",
   Actions: "actions",
+  Deadlines: "deadlines",
   Messages: "communications",
   Briefing: "briefing",
   Assets: "assets",
@@ -74,6 +80,10 @@ const SECTION_TO_SLUG: Record<string, string> = {
   "Bright.Studio": "studio",
   "Quality assurance": "qa",
   Logistics: "logistics",
+  Configuration: "configuration",
+  Compliance: "compliance",
+  Machine: "machine",
+  Activity: "activity",
   Live: "live",
   Leads: "leads",
   Reports: "reports",
@@ -142,6 +152,7 @@ export async function EventPageShell({
         eventId={event.id}
         currentSection={currentSection}
         viewerRole={effectiveRole}
+        currentStage={event.currentStage}
         sectionStatus={sectionStatus}
       />
       <EditionBody>{children}</EditionBody>

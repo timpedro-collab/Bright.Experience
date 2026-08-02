@@ -6,19 +6,7 @@
  * passes it in as serializable props.
  */
 import Link from "next/link";
-import {
-  CalendarClock,
-  ListChecks,
-  GitBranch,
-  Users,
-} from "lucide-react";
 
-import {
-  KpiGrid,
-  KpiCard,
-  GlassCard,
-  GlassCardHeader,
-} from "@/components/cloud";
 import {
   EditionShell,
   EditionChrome,
@@ -30,21 +18,20 @@ import { UserMenu } from "@/components/layout/UserMenu";
 import { CommandPalette } from "@/components/layout/CommandPalette";
 import { TourShell } from "@/components/onboarding/TourShell";
 import { StreakIndicator } from "@/components/dashboard/StreakIndicator";
-import { CustomerActionSummary } from "@/components/events/CustomerActionSummary";
+import { CustomerEventBody } from "@/components/events/CustomerEventBody";
 import { CustomerHoldingState } from "@/components/home/CustomerHoldingState";
-import { HomeNextStep } from "@/components/home/HomeNextStep";
-import { TeamColumn } from "@/components/home/TeamColumn";
-import { ProgressColumn } from "@/components/home/ProgressColumn";
 import { OtherEventsRail } from "@/components/home/OtherEventsRail";
-import {
-  timeUntil,
-  healthLabel,
-  firstName,
-} from "@/components/home/home-helpers";
+import { RecentActivity } from "@/components/home/RecentActivity";
+import { healthLabel, firstName } from "@/components/home/home-helpers";
 
-import { STAGE_CONFIG } from "@/types";
-import type { Event, EventTeamMember, Stage, User } from "@/types";
-import { stageLabelFor, healthLabelFor } from "@/lib/customer-copy";
+import type {
+  Event,
+  EventTeamMember,
+  Milestone,
+  Notification,
+  User,
+} from "@/types";
+import { customerStatusLine, healthLabelFor } from "@/lib/customer-copy";
 import type { NextStep } from "@/lib/event-next-step";
 import type { getCustomerActionItems } from "@/lib/queries/deadlines";
 import type { getPendingQuotesForCustomer } from "@/lib/queries/quotes";
@@ -62,9 +49,16 @@ interface CustomerDashboardProps {
   totalPages: number;
   page: number;
   pendingQuotes: Awaited<ReturnType<typeof getPendingQuotesForCustomer>>;
-  /** Single blocking next action for the featured event (customer home hero CTA). */
+  /** Resolved single next step for the featured event — powers OverToYou. */
   nextStep?: NextStep | null;
-  nextStepDueHint?: string | null;
+  /** Milestones for the featured event — drives the journey steps + next-up. */
+  featuredMilestones?: Milestone[];
+  /**
+   * Non-actionable recent notifications — the "things that happened" half of
+   * the Needs-you / Recent-activity split (R1). Actionable items live in
+   * OverToYou; these are informational only.
+   */
+  recentActivity?: Notification[];
 }
 
 export function CustomerDashboard({
@@ -81,7 +75,8 @@ export function CustomerDashboard({
   page,
   pendingQuotes,
   nextStep = null,
-  nextStepDueHint = null,
+  featuredMilestones = [],
+  recentActivity = [],
 }: CustomerDashboardProps) {
   return (
     <TourShell role={user.role} autoStart={false}>
@@ -113,13 +108,7 @@ export function CustomerDashboard({
               seed={featured.id}
               eyebrow={`Welcome back, ${firstName(user.name)}`}
               title={`${featured.name} is taking shape.`}
-              subtitle={(() => {
-                const stageLabel = stageLabelFor(featured.currentStage as Stage, true);
-                const t = timeUntil(featured);
-                if (t === "Live now") return `Live now at ${featured.venueName ?? "your venue"}.`;
-                if (t === "Wrapped") return `Wrapped. Reports are landing in your inbox.`;
-                return `Currently at ${stageLabel}. Event in ${t}.`;
-              })()}
+              subtitle={customerStatusLine(featured)}
               rightSlot={
                 <>
                   <StreakIndicator streak={streak} />
@@ -138,67 +127,23 @@ export function CustomerDashboard({
               }
             />
 
-            <div className="space-y-8 py-6" data-tour="featured-event">
-              {nextStep && (
-                <HomeNextStep nextStep={nextStep} dueHint={nextStepDueHint} />
-              )}
+            {/* One calm body, identical to the event overview — action block,
+                journey steps, team, and quiet disclosures. The overview-only
+                "The numbers" disclosure is omitted here (no extra fetches). */}
+            <div data-tour="featured-event">
+              <CustomerEventBody
+                eventId={featured.id}
+                event={featured}
+                milestones={featuredMilestones}
+                items={customerActions}
+                nextStep={nextStep}
+                teamMembers={featuredTeam}
+              />
+            </div>
 
-              <KpiGrid>
-                <KpiCard
-                  label="Time to event"
-                  value={timeUntil(featured)}
-                  icon={CalendarClock}
-                  hint={featured.venueName ?? undefined}
-                />
-                <KpiCard
-                  label="Needs you"
-                  value={customerActions.length}
-                  icon={ListChecks}
-                  hint={customerActions.length === 0 ? "all clear" : "open items"}
-                />
-                <KpiCard
-                  label="Stage"
-                  value={`${(STAGE_CONFIG[featured.currentStage as Stage]?.order ?? 0) + 1}/10`}
-                  icon={GitBranch}
-                  hint={stageLabelFor(featured.currentStage as Stage, true)}
-                />
-                <KpiCard
-                  label="Your team"
-                  value={featuredTeam.filter((m) => m.status === "approved").length + 1}
-                  icon={Users}
-                  hint="on this event"
-                />
-              </KpiGrid>
-
-              {/* The star: what the customer owes, full-width and first. */}
-              <GlassCard data-tour="waiting-on-you">
-                <GlassCardHeader
-                  title="What's needed from you"
-                  description={
-                    customerActions.length === 0
-                      ? "Nothing right now — we'll let you know the moment something needs you."
-                      : "Complete these to keep your activation on track"
-                  }
-                />
-                <div className="p-6">
-                  <CustomerActionSummary eventId={featured.id} items={customerActions} teaserLimit={6} />
-                </div>
-              </GlassCard>
-
-              {/* Secondary context, demoted to a calm two-up row. */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <GlassCard>
-                  <GlassCardHeader title="Progress" />
-                  <ProgressColumn event={featured} />
-                </GlassCard>
-
-                <GlassCard>
-                  <GlassCardHeader title="From your team" />
-                  <div className="p-6">
-                    <TeamColumn eventId={featured.id} members={featuredTeam} hideEyebrow />
-                  </div>
-                </GlassCard>
-              </div>
+            {/* "Things that happened" — quiet, below everything actionable. */}
+            <div className="pb-6">
+              <RecentActivity items={recentActivity} />
             </div>
 
             {others.length > 0 && (

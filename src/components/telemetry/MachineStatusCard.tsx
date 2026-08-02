@@ -10,9 +10,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Wifi, WifiOff } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useStableStatus } from "@/hooks/useStableStatus";
 
 interface MachineStatusCardProps {
   machine: {
+    id?: string;
     serialNumber: string;
     nickname?: string;
     status: string;
@@ -21,6 +23,9 @@ interface MachineStatusCardProps {
   };
   /** Customers see friendly labels and no hardware serial/firmware detail. */
   isCustomer?: boolean;
+  /** When set, the card filters the live feed to this machine. */
+  onSelect?: () => void;
+  isSelected?: boolean;
 }
 
 const STATUS_STYLES: Record<
@@ -44,7 +49,12 @@ function getRelativeTime(timestamp: string): string {
   return `${Math.floor(hours / 24)}d ago`;
 }
 
-export function MachineStatusCard({ machine, isCustomer = false }: MachineStatusCardProps) {
+export function MachineStatusCard({
+  machine,
+  isCustomer = false,
+  onSelect,
+  isSelected = false,
+}: MachineStatusCardProps) {
   // Pulse the badge when the status flips mid-session (not on mount).
   const prevStatusRef = useRef(machine.status);
   const [statusPulse, setStatusPulse] = useState(false);
@@ -60,13 +70,22 @@ export function MachineStatusCard({ machine, isCustomer = false }: MachineStatus
   const style = STATUS_STYLES[machine.status] ?? STATUS_STYLES.retired;
   const statusLabel = isCustomer ? style.customerLabel : style.label;
   const title = machine.nickname ?? (isCustomer ? "Activation unit" : machine.serialNumber);
-  const isOnline =
+  const rawOnline = Boolean(
     machine.lastHeartbeat &&
-    // eslint-disable-next-line react-hooks/purity -- heartbeat freshness is a transient UI signal that re-renders on parent revalidation; not a derived hook dependency
-    Date.now() - new Date(machine.lastHeartbeat).getTime() < 5 * 60 * 1000;
+      // eslint-disable-next-line react-hooks/purity -- heartbeat freshness is a transient UI signal that re-renders on parent revalidation; not a derived hook dependency
+      Date.now() - new Date(machine.lastHeartbeat).getTime() < 5 * 60 * 1000
+  );
+  // Heartbeat threshold can jitter at the 5-minute boundary — debounce colours only.
+  const isOnline = useStableStatus(rawOnline);
 
-  return (
-    <Card className="border-glass-border bg-surface-glass backdrop-blur-sm">
+  const card = (
+    <Card
+      className={cn(
+        "border-glass-border bg-surface-glass backdrop-blur-sm",
+        onSelect && "transition-colors hover:bg-foreground/[0.03]",
+        isSelected && "ring-2 ring-brand/40"
+      )}
+    >
       <CardContent className="p-5">
         <div className="flex items-start justify-between mb-3">
           <div className="min-w-0">
@@ -114,4 +133,19 @@ export function MachineStatusCard({ machine, isCustomer = false }: MachineStatus
       </CardContent>
     </Card>
   );
+
+  if (onSelect) {
+    return (
+      <button
+        type="button"
+        onClick={onSelect}
+        aria-pressed={isSelected}
+        className="w-full rounded-xl text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      >
+        {card}
+      </button>
+    );
+  }
+
+  return card;
 }

@@ -1,7 +1,6 @@
 /** Server actions for venue and runway management. */
 "use server";
 
-import { requireInternalUser } from "@/lib/auth";
 import {
   requireVenueManager,
   requireVenueManagerForPlacement,
@@ -13,57 +12,17 @@ import {
   createPlacementSchema,
   createSponsorshipSlotSchema,
   createVenuePackageSchema,
-  createVenueSchema,
   deleteSlotSchema,
   releaseSlotSchema,
   requestVenueSlotSchema,
   reserveSlotSchema,
   updatePlacementStatusSchema,
   updateSlotSchema,
-  updateVenueSchema,
 } from "@/lib/validations/venues";
+import { dispatchNotification } from "@/lib/notifications/dispatch";
+import { firstRelated } from "@/lib/queries/embed";
+import { applicationLimiter, getClientIp } from "@/lib/rate-limit";
 import { revalidatePath } from "next/cache";
-
-/** Create a new venue record. */
-export async function createVenue(data: {
-  name: string;
-  partnerId?: string;
-  address?: string;
-  postcode?: string;
-  venueType?: string;
-  capacity?: number;
-}) {
-  const parsed = createVenueSchema.safeParse(data);
-  if (!parsed.success) {
-    return { success: false as const, error: parsed.error.issues[0]?.message ?? "Invalid input" };
-  }
-
-  const { supabase } = await requireInternalUser();
-
-  const slug = data.name
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "");
-
-  const { data: venue, error } = await supabase
-    .from("venues")
-    .insert({
-      name: data.name,
-      slug,
-      partner_id: data.partnerId ?? null,
-      address: data.address ?? null,
-      postcode: data.postcode ?? null,
-      venue_type: data.venueType ?? null,
-      capacity: data.capacity ?? null,
-    })
-    .select("id, slug")
-    .single();
-
-  if (error) return { success: false as const, error: "Failed to create venue" };
-
-  revalidatePath("/venues");
-  return { success: true as const, data: { id: venue.id, slug: venue.slug } };
-}
 
 /** Create a new venue event package. `price` is whole dollars from the form; stored as integer cents. */
 export async function createVenuePackage(data: {
@@ -100,46 +59,6 @@ export async function createVenuePackage(data: {
 
   revalidatePath("/venues");
   return { success: true as const, data: { id: pkg.id } };
-}
-
-/** Update an existing venue. */
-export async function updateVenue(
-  id: string,
-  data: {
-    name?: string;
-    address?: string;
-    postcode?: string;
-    venueType?: string;
-    capacity?: number;
-    isActive?: boolean;
-    contactInfoJson?: Record<string, unknown>;
-  }
-) {
-  const parsed = updateVenueSchema.safeParse({ id, ...data });
-  if (!parsed.success) {
-    return { success: false as const, error: parsed.error.issues[0]?.message ?? "Invalid input" };
-  }
-
-  const { supabase } = await requireVenueManager(id);
-
-  const updates: Record<string, unknown> = {};
-  if (data.name !== undefined) updates.name = data.name;
-  if (data.address !== undefined) updates.address = data.address;
-  if (data.postcode !== undefined) updates.postcode = data.postcode;
-  if (data.venueType !== undefined) updates.venue_type = data.venueType;
-  if (data.capacity !== undefined) updates.capacity = data.capacity;
-  if (data.isActive !== undefined) updates.is_active = data.isActive;
-  if (data.contactInfoJson !== undefined) updates.contact_info_json = data.contactInfoJson;
-
-  const { error } = await supabase
-    .from("venues")
-    .update(updates)
-    .eq("id", id);
-
-  if (error) return { success: false as const, error: "Failed to update venue" };
-
-  revalidatePath("/venues");
-  return { success: true as const, data: { id } };
 }
 
 /** Create a new placement at a venue. */
@@ -414,6 +333,15 @@ export async function requestVenueSlot(
     return { success: false as const, error: "Company and email are required" };
   }
 
+  // Unauthenticated write that also takes a raw slot id, so throttle before
+  // doing any work to blunt both spam and id enumeration.
+  if (!(await applicationLimiter(await getClientIp()))) {
+    return {
+      success: false as const,
+      error: "Too many requests from this connection. Please try again shortly.",
+    };
+  }
+
   const parsed = requestVenueSlotSchema.safeParse({ slotId, ...enquiry });
   if (!parsed.success) {
     return { success: false as const, error: parsed.error.issues[0]?.message ?? "Invalid input" };
@@ -424,7 +352,10 @@ export async function requestVenueSlot(
 
   const { data: existing } = await supabase
     .from("sponsorship_slots")
-    .select("game_config_json, status")
+    .select(
+      `game_config_json, status, start_date, end_date,
+       placements ( venues ( name, slug ) )`
+    )
     .eq("id", slotId)
     .maybeSingle();
 
@@ -453,6 +384,26 @@ export async function requestVenueSlot(
     .eq("status", "available");
 
   if (error) return { success: false as const, error: "Couldn't send your request. Please try again." };
+
+  // The hold is worthless if nobody is told about it: before this, an
+  // advertiser enquiry sat in `game_config_json` waiting to be noticed.
+  const placement = firstRelated(existing.placements);
+  const venue = firstRelated(placement?.venues);
+  try {
+    await dispatchNotification("sponsor.slot_requested", {
+      slotId,
+      sponsorName: enquiry.company.trim(),
+      contactName: enquiry.contactName?.trim() || enquiry.company.trim(),
+      contactEmail: enquiry.email.trim(),
+      venueName: (venue?.name as string) ?? "your venue",
+      venueSlug: (venue?.slug as string) ?? "",
+      slotDates: `${existing.start_date} → ${existing.end_date}`,
+      entityType: "sponsorship_slot",
+      entityId: slotId,
+    });
+  } catch (notifyError) {
+    console.error("[requestVenueSlot] notification failed", notifyError);
+  }
 
   revalidatePath("/venues");
   return { success: true as const, data: { id: slotId } };

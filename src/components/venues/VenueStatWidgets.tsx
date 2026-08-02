@@ -1,45 +1,10 @@
-/** Compact stat component used in venue dashboard KPI bars. */
+/** Venue detail card — labelled rows of venue metadata. */
 import React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-const COMPACT_TONES: Record<
-  "default" | "success" | "warning" | "info",
-  string
-> = {
-  default: "text-foreground",
-  success: "text-success",
-  warning: "text-warning",
-  info: "text-info",
-};
-
-/** Single inline KPI stat with icon, label, and coloured value. */
-export function CompactStat({
-  icon: Icon,
-  label,
-  value,
-  tone = "default",
-}: {
-  icon: React.ElementType;
-  label: string;
-  value: number;
-  tone?: "default" | "success" | "warning" | "info";
-}) {
-  return (
-    <div className="flex items-center gap-3">
-      <Icon size={16} className="text-muted-foreground" />
-      <div>
-        <p className="text-overline text-muted-foreground leading-none">{label}</p>
-        <p className={`mt-1 text-xl font-semibold tabular-nums leading-none ${COMPACT_TONES[tone]}`}>
-          {value}
-        </p>
-      </div>
-    </div>
-  );
-}
-
 /** Labelled detail row with icon — used in venue detail cards. */
-export function DetailRow({
+function DetailRow({
   icon: Icon,
   label,
   value,

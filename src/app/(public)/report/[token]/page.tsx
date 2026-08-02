@@ -21,6 +21,8 @@ import {
   DigitalFollowThroughCard,
 } from "@/components/reports/EngagementReport";
 import { ReportHighlights } from "@/components/reports/ReportHighlights";
+import { CaptureQualityCard } from "@/components/reports/CaptureQualityCard";
+import { RetentionNotice } from "@/components/reports/RetentionNotice";
 import {
   normaliseHighlights,
   normaliseMetrics,
@@ -150,6 +152,12 @@ export default async function PublicReportPage({ params }: Props) {
           </div>
         )}
 
+        {metrics.captureQuality && (
+          <div className="mb-8 max-w-xl">
+            <CaptureQualityCard counts={metrics.captureQuality} />
+          </div>
+        )}
+
         {highlights.length > 0 && (
           <div className="mb-8">
             <ReportHighlights highlights={highlights} />
@@ -157,6 +165,10 @@ export default async function PublicReportPage({ params }: Props) {
         )}
 
         <footer className="mt-12 pt-6 border-t border-glass-border/10 text-center">
+          {/* Public surface has no config access; states the standard window. */}
+          <div className="mb-3">
+            <RetentionNotice />
+          </div>
           <p className="text-xs text-muted-foreground">
             &copy; {new Date().getFullYear()} Bright.Blue Events. All rights
             reserved.

@@ -1,7 +1,73 @@
 # Pricing & Quoting Model
-## Solving the Standard vs. Variable Pricing Problem
+
+> **Version:** 0.1.0 · **Status:** current · **Last verified:** 2026-07-25.
+> The **"As built"** section below is authoritative and mirrors the code. The
+> **"Design rationale"** section that follows it (from "The Problem" onward) is
+> the original strategy essay — kept for context, but its field/status names and
+> ASCII mockups are illustrative, **not** the current schema. When in doubt,
+> trust "As built" and the cited source files.
+
+## As built (authoritative)
+
+### Two tracks — [`QuoteTrack`](../src/types/quotes.ts)
+`book_now | proposal`. Both produce a `Quote` row.
+
+- **`book_now`** — public `/book` flow (`configure → checkout → confirmation/:id`).
+  Standard package + selected capabilities; a total is shown.
+- **`proposal`** — public `/proposal` intake wizard (fed by the `/quiz` match).
+  No price shown at intake; internal team prepares the proposal.
+
+### Quote lifecycle — [`QuoteStatus`](../src/types/quotes.ts)
+`draft → submitted → proposal_sent → accepted | declined | expired`
+(see the lifecycle diagram in [`docs/15`](15-system-architecture.md#4-quote--proposal--walkthrough--provisioning-lifecycle)).
+There is **no** `preparing`/`delivered` status — the older essay below predates
+this vocabulary.
+
+### Capability vocabulary — [`src/lib/capabilities.ts`](../src/lib/capabilities.ts)
+The single source of truth for what a customer can buy. **Thirteen capabilities:
+four always-on** (`tap-to-play`, `branded-wrap`, `engagement-dashboard`,
+`turnkey` — never priced separately) **+ nine tailorable** (pre-selected 3–5 by
+quiz signals, editable in the refine drawer; each has a `defaultPricePence`,
+overridable per package on `package_addons`). Customers see the `outcome` line,
+never the slug. `branded-landing-page` is the newest tailorable
+(price `Decision required` — see [`OWNER-TODO.md`](../OWNER-TODO.md)).
+
+### Quiz → intake handoff
+The `/quiz` collects `QuizSignals` (objective, event type, audience, industry),
+which pre-select tailorable capabilities and carry into the proposal intake
+wizard (`IntakeWizard`), echoed back to the customer on the confirmation card.
+
+### Pricing surfaces
+- **Line items** — `QuoteLineItem[]` (label, amount, category, sortOrder) build
+  the itemised total (`totalAmount`).
+- **Indicative price band** — [`src/lib/proposals/price-band.ts`](../src/lib/proposals/price-band.ts)
+  computes a rounded low/high band shown **before** the exact price is revealed,
+  so the customer has expectation-setting without a hard number.
+- **Reveal gate** — on `/proposal/:id`, the exact price is hidden until
+  `walkthrough_completed_at` is set **or** the quote is accepted. The walkthrough
+  is a video call booked via Cal.com (or the built-in preset slot picker when
+  Cal.com is unconfigured).
+
+### Decision, provisioning, attribution
+- **Decision** — customer accepts/declines on the proposal page
+  (rate-limited via `decisionLimiter`).
+- **Provisioning** — acceptance runs [`provisioning.ts`](../src/app/actions/provisioning.ts),
+  creating an `Event` at stage `confirmed` with milestones/tasks.
+- **Partner attribution** — quotes carry reseller attribution; see
+  [`src/lib/queries/partner-attributions.ts`](../src/lib/queries/partner-attributions.ts).
+- **Location tiers** — postcode → `LocationTier` lookup (`locations` table,
+  `admin/locations`) informs internal pricing; the multiplier bands in the essay
+  below are illustrative.
+
+### Known commercial gaps
+- `branded-landing-page` price is unset (`Decision required`).
+- Currency-unit inconsistency across the codebase (pence vs. cents vs. integer
+  units in different fields) — a documented ambiguity, not yet reconciled.
+- Invoicing is display-only by design (see `HANDOFF.md`).
 
 ---
+
+## Design rationale (original strategy essay — illustrative, not schema)
 
 ## The Problem
 
@@ -154,7 +220,7 @@ The proposal lands in the same portal — not as a PDF attachment in an email.
 │  │                                           £XXX      │ │
 │  ├─────────────────────────────────────────────────────┤ │
 │  │ Staffing (optional add-on)                          │ │
-│  │ 1 brand ambassador × 3 days                        │ │
+│  │ 1 on-site support crew × 3 days                     │ │
 │  │                                         £X,XXX      │ │
 │  ├─────────────────────────────────────────────────────┤ │
 │  │                                                     │ │

@@ -12,6 +12,7 @@ import { MilestoneTimeline } from "@/components/timeline/MilestoneTimeline";
 import { StageProgressBar } from "@/components/events/StageProgressBar";
 import { AdvanceStageButton } from "@/components/events/AdvanceStageButton";
 import { StageTransitions } from "@/components/timeline/StageTransitions";
+import { EventJourney } from "@/components/events/EventJourney";
 
 import { getEventById } from "@/lib/queries/events";
 import { getMilestonesByEvent } from "@/lib/queries/milestones";
@@ -24,6 +25,7 @@ import { isInternalRole, canAdvanceEventStage } from "@/lib/roles";
 import { canViewSection } from "@/lib/event-access";
 import { canAdvanceStage } from "@/app/actions/stages";
 import { stageLabelFor, stageDescriptionFor } from "@/lib/customer-copy";
+import { phaseForStage } from "@/lib/journey";
 import { STAGE_CONFIG } from "@/types";
 import { isOverdue } from "@/lib/dates";
 
@@ -65,6 +67,7 @@ export default async function TimelinePage({
   ).length;
   const stageConfig = STAGE_CONFIG[event.currentStage];
   const stageLabel = stageLabelFor(event.currentStage, !isInternal);
+  const journeyPhase = phaseForStage(event.currentStage);
 
   return (
     <EventPageShell
@@ -74,11 +77,28 @@ export default async function TimelinePage({
       section="Timeline"
       eyebrow={`${event.account.name} · Delivery plan`}
       title="The timeline."
-      subtitle={`Currently in ${stageLabel}.`}
+      subtitle={isInternal ? `Currently in ${stageLabel}.` : `${stageLabel}.`}
       isInternal={isInternal}
       viewerRole={user.role}
       heroRight={isInternal ? <HealthBadge status={event.healthStatus} /> : undefined}
     >
+      {!isInternal && (
+        <section className="pt-10">
+          <EditorialEyebrow>Your journey</EditorialEyebrow>
+          <p className="mt-2 max-w-[58ch] text-sm text-muted-foreground">
+            The four phases of your event — your steps and ours, at a glance.
+          </p>
+          <div className="mt-6">
+            <EventJourney
+              eventId={id}
+              currentStage={event.currentStage}
+              milestones={milestones}
+              variant="vertical"
+            />
+          </div>
+        </section>
+      )}
+
       <section className="py-10 grid grid-cols-1 md:grid-cols-[1fr_auto] gap-8 items-start">
         <div>
           <EditorialEyebrow accent>Right now</EditorialEyebrow>
@@ -104,12 +124,15 @@ export default async function TimelinePage({
         <div className="flex gap-8 md:gap-6 md:flex-col md:items-end md:text-right">
           <div>
             <p className="text-display text-foreground text-[clamp(2.25rem,5vw,3.25rem)] leading-none tabular-nums">
-              {stageConfig.order + 1}
+              {isInternal ? stageConfig.order + 1 : journeyPhase.index + 1}
               <span className="text-muted-foreground text-xl font-normal">
-                {" / "}10
+                {" / "}
+                {isInternal ? 10 : journeyPhase.total}
               </span>
             </p>
-            <p className="text-overline text-muted-foreground mt-1">Stage</p>
+            <p className="text-overline text-muted-foreground mt-1">
+              {isInternal ? "Stage" : "Phase"}
+            </p>
           </div>
           <div>
             <p className="text-display text-foreground text-[clamp(2.25rem,5vw,3.25rem)] leading-none tabular-nums">

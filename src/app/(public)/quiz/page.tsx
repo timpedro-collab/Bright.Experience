@@ -9,6 +9,7 @@ import type { Metadata } from "next";
 
 import { Container, Section } from "@/components/ui/section";
 import { RecommendationQuiz } from "@/components/catalog/quiz/RecommendationQuiz";
+import { isQuizEventType } from "@/components/catalog/quiz/quiz-data";
 import { getMachines } from "@/lib/queries/machines";
 import { RidgeArtwork, EditorialEyebrow } from "@/components/brand";
 
@@ -18,7 +19,17 @@ export const metadata: Metadata = {
     "Tell us about your moment and we'll suggest the Bright.Blue activation that fits.",
 };
 
-export default async function QuizPage() {
+interface QuizPageProps {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}
+
+export default async function QuizPage({ searchParams }: QuizPageProps) {
+  const params = await searchParams;
+  // "Let's plan ___" homepage links pre-seed the first answer via ?type=,
+  // so a visitor who self-selected arrives at question two.
+  const rawType = typeof params.type === "string" ? params.type : undefined;
+  const initialEventType =
+    rawType && isQuizEventType(rawType) ? rawType : undefined;
   const machines = await getMachines();
 
   return (
@@ -65,7 +76,10 @@ export default async function QuizPage() {
 
       <Section className="pt-0">
         <Container size="sm">
-          <RecommendationQuiz machines={machines} />
+          <RecommendationQuiz
+            machines={machines}
+            initialEventType={initialEventType}
+          />
         </Container>
       </Section>
     </>

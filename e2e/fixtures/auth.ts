@@ -12,11 +12,11 @@
 import { test as base, expect } from "@playwright/test";
 
 export type Persona =
-  | "internal_admin"
   | "internal_events_lead"
   | "internal_creative_lead"
-  | "customer_admin"
-  | "customer_user";
+  | "internal_operations_lead"
+  | "internal_qa_lead"
+  | "customer_admin";
 
 export const test = base.extend<{
   loginAs: (persona: Persona) => Promise<void>;

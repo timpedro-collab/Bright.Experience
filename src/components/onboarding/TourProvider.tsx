@@ -1,10 +1,18 @@
 "use client";
 
+/**
+ * TourProvider — phase and step state for the product tour.
+ *
+ * Keyboard handling deliberately lives with the overlays that render each
+ * phase (see `useModalOverlay`), not here: a global listener fired alongside
+ * the card's own one, so a single Arrow press advanced two steps and Enter on
+ * the Back button both clicked it and moved forward.
+ */
+
 import {
   createContext,
   useCallback,
   useContext,
-  useEffect,
   useMemo,
   useState,
   type ReactNode,
@@ -77,24 +85,6 @@ export function TourProvider({ children }: { children: ReactNode }) {
     setRole(null);
     setStepIndex(0);
   }, [role]);
-
-  useEffect(() => {
-    if (phase !== "touring") return;
-    function handleKey(e: KeyboardEvent) {
-      if (e.key === "ArrowRight" || e.key === "Enter") {
-        e.preventDefault();
-        next();
-      } else if (e.key === "ArrowLeft") {
-        e.preventDefault();
-        prev();
-      } else if (e.key === "Escape") {
-        e.preventDefault();
-        skip();
-      }
-    }
-    window.addEventListener("keydown", handleKey);
-    return () => window.removeEventListener("keydown", handleKey);
-  }, [phase, next, prev, skip]);
 
   const value = useMemo<TourContextValue>(
     () => ({

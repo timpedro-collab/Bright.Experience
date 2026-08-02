@@ -21,6 +21,8 @@ describe("marketing claims", () => {
 
   it("keeps every trust-band tile a hard number, not an adjective", () => {
     expect(TRUST_STATS).toHaveLength(3);
+    expect(TRUST_STATS[1].value).toBe("Up to 40%");
+    expect(TRUST_STATS[1].label).toMatch(/more leads captured/);
     for (const stat of TRUST_STATS) {
       expect(stat.value).toMatch(/\d/);
       expect(stat.label.length).toBeGreaterThan(0);

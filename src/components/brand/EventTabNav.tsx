@@ -1,15 +1,19 @@
-/** Horizontal tab bar for event section navigation. */
+/** Event section navigation — a stage-aware phase bar for customers, clustered pills for internal. */
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
+import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { UserRole } from "@/types";
+import type { Stage, UserRole } from "@/types";
 import {
   SECTION_META,
-  visibleSectionsForRole,
   customerNavGroups,
+  internalNavGroups,
+  CUSTOMER_PHASES,
   type EventSection,
 } from "@/lib/event-access";
+import { phaseForStage } from "@/lib/journey";
 import type { SectionStatus, SectionStatusMap } from "@/lib/queries/event-section-status";
 import { isInternalRole } from "@/lib/roles";
 
@@ -18,6 +22,8 @@ interface EventTabNavProps {
   currentSection: string;
   /** Viewer's role — the single signal that decides which tabs appear. */
   viewerRole: UserRole;
+  /** The event's current lifecycle stage — drives customer phase-awareness. */
+  currentStage: Stage;
   /** Per-section completion tone for customers (green/amber/red dots). */
   sectionStatus?: SectionStatusMap;
 }
@@ -38,11 +44,12 @@ export function EventTabNav({
   eventId,
   currentSection,
   viewerRole,
+  currentStage,
   sectionStatus,
 }: EventTabNavProps) {
   const internal = isInternalRole(viewerRole);
 
-  function tabLink(section: EventSection) {
+  function tabLink(section: EventSection, opts?: { upcoming?: boolean }) {
     const { label, route } = SECTION_META[section];
     const href = route === "" ? `/events/${eventId}` : `/events/${eventId}/${route}`;
     const isActive = currentSection === route;
@@ -53,12 +60,15 @@ export function EventTabNav({
         key={section}
         href={href}
         data-tour={route ? `tab-${route}` : "tab-overview"}
+        title={opts?.upcoming ? "Opens as your event progresses" : undefined}
         className={cn(
           "inline-flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
           isActive
             ? "bg-primary text-primary-foreground shadow-sm"
-            : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
+            : opts?.upcoming
+              ? "text-muted-foreground/60 hover:bg-muted/40 hover:text-foreground"
+              : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
         )}
         aria-current={isActive ? "page" : undefined}
       >
@@ -83,43 +93,143 @@ export function EventTabNav({
     );
   }
 
-  // Internal roles keep the flat, dense tab row — they're power users.
+  // Internal roles keep the dense tab set, but clustered into labelled groups
+  // that WRAP rather than scroll — the whole console is always visible.
   if (internal) {
-    const sections = visibleSectionsForRole(viewerRole);
+    const { anchor, clusters } = internalNavGroups(viewerRole);
     return (
       <nav
-        className="overflow-x-auto -mx-[var(--edition-px,1.5rem)]"
+        className="-mx-[var(--edition-px,1.5rem)] px-[var(--edition-px,1.5rem)] py-1"
         aria-label="Event sections"
       >
-        <div className="flex min-w-max items-center gap-1 px-[var(--edition-px,1.5rem)] py-1">
-          {sections.map((section) => tabLink(section))}
+        <div className="flex flex-wrap items-center gap-x-1 gap-y-2">
+          {anchor && tabLink(anchor)}
+          {clusters.map((cluster) => (
+            <div key={cluster.label} className="flex items-center gap-1">
+              <span
+                className="ml-2 shrink-0 border-l border-border/60 pl-3 text-[0.625rem] font-semibold uppercase tracking-[0.12em] text-muted-foreground/70"
+                aria-hidden
+              >
+                {cluster.label}
+              </span>
+              {cluster.sections.map((section) => tabLink(section))}
+            </div>
+          ))}
         </div>
       </nav>
     );
   }
 
-  // Customers get a calmer, phase-grouped row: a standalone Overview anchor,
-  // then the four lifecycle phases clustered behind quiet phase labels.
+  return (
+    <CustomerPhaseNav
+      currentSection={currentSection}
+      currentStage={currentStage}
+      viewerRole={viewerRole}
+      tabLink={tabLink}
+    />
+  );
+}
+
+/**
+ * The customer nav: four phase chips that always fit (no horizontal scroll),
+ * with the current stage's phase expanded to its section tabs by default.
+ * Tapping any phase expands it; phases beyond the current stage read as quiet
+ * "upcoming" so customers can see what's ahead without being overwhelmed.
+ */
+function CustomerPhaseNav({
+  currentSection,
+  currentStage,
+  viewerRole,
+  tabLink,
+}: {
+  currentSection: string;
+  currentStage: Stage;
+  viewerRole: UserRole;
+  tabLink: (section: EventSection, opts?: { upcoming?: boolean }) => React.ReactNode;
+}) {
   const { anchor, phases } = customerNavGroups(viewerRole);
+  const currentPhaseIndex = phaseForStage(currentStage).index;
+
+  const phaseLifecycleIndex = (phaseId: string) =>
+    CUSTOMER_PHASES.findIndex((p) => p.id === phaseId);
+
+  // Which phase owns the active section? Default the open phase to that, else
+  // to the phase the event is currently in.
+  const activePhase = phases.find((p) =>
+    p.sections.some((s) => SECTION_META[s].route === currentSection),
+  );
+  const currentPhase = phases.find(
+    (p) => phaseLifecycleIndex(p.id) === currentPhaseIndex,
+  );
+  const defaultOpen = activePhase?.id ?? currentPhase?.id ?? phases[0]?.id ?? "";
+  const [open, setOpen] = useState<string>(defaultOpen);
+
+  const openPhase = phases.find((p) => p.id === open) ?? phases[0];
+  const openLifecycleIndex = openPhase ? phaseLifecycleIndex(openPhase.id) : 0;
+  const openIsUpcoming = openLifecycleIndex > currentPhaseIndex;
+
   return (
     <nav
-      className="overflow-x-auto -mx-[var(--edition-px,1.5rem)]"
+      className="-mx-[var(--edition-px,1.5rem)] px-[var(--edition-px,1.5rem)] py-1"
       aria-label="Event sections"
     >
-      <div className="flex min-w-max items-center gap-2 px-[var(--edition-px,1.5rem)] py-1">
+      <div className="flex flex-wrap items-center gap-2">
         {anchor && tabLink(anchor)}
-        {phases.map((phase) => (
-          <div key={phase.id} className="flex items-center gap-1">
-            <span
-              className="ml-2 shrink-0 border-l border-border/60 pl-3 text-[0.625rem] font-semibold uppercase tracking-[0.12em] text-muted-foreground/70"
-              aria-hidden
+        <span className="mx-1 hidden h-5 w-px bg-border/60 sm:block" aria-hidden />
+        {phases.map((phase) => {
+          const lifecycleIndex = phaseLifecycleIndex(phase.id);
+          const state =
+            lifecycleIndex < currentPhaseIndex
+              ? "done"
+              : lifecycleIndex === currentPhaseIndex
+                ? "current"
+                : "upcoming";
+          const isOpen = phase.id === openPhase?.id;
+          return (
+            <button
+              key={phase.id}
+              type="button"
+              onClick={() => setOpen(phase.id)}
+              aria-expanded={isOpen}
+              className={cn(
+                "inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-sm font-medium transition-colors",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                isOpen
+                  ? "border-transparent bg-muted text-foreground"
+                  : "border-border/60 text-muted-foreground hover:bg-muted/50 hover:text-foreground",
+                state === "current" && !isOpen && "border-[var(--color-bb-cobalt)]/40",
+              )}
             >
+              {state === "done" && (
+                <Check size={12} className="text-success" aria-hidden />
+              )}
+              {state === "current" && (
+                <span
+                  className="size-1.5 rounded-full bg-[var(--color-bb-cobalt)]"
+                  aria-hidden
+                />
+              )}
               {phase.label}
-            </span>
-            {phase.sections.map((section) => tabLink(section))}
-          </div>
-        ))}
+              <span className="text-[0.65rem] text-muted-foreground/70 tabular-nums">
+                {phase.sections.length}
+              </span>
+            </button>
+          );
+        })}
       </div>
+
+      {openPhase && (
+        <div className="mt-2 flex flex-wrap items-center gap-1.5 border-t border-border/40 pt-2">
+          {openIsUpcoming && (
+            <span className="mr-1 text-[0.65rem] font-medium uppercase tracking-[0.1em] text-muted-foreground/70">
+              Coming up
+            </span>
+          )}
+          {openPhase.sections.map((section) =>
+            tabLink(section, { upcoming: openIsUpcoming }),
+          )}
+        </div>
+      )}
     </nav>
   );
 }

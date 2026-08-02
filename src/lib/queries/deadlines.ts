@@ -16,6 +16,13 @@ export interface DeadlineItem {
   urgency: DeadlineUrgency;
   owner: DeadlineOwner;
   status: string;
+  /** Event sub-page suffix this item targets (tasks only). */
+  targetPath?: string;
+  /**
+   * Individual items folded beneath an umbrella task (e.g. the asset slots
+   * grouped under "Upload brand assets"). Present only on umbrella rows.
+   */
+  children?: DeadlineItem[];
 }
 
 function urgencyFor(dueDate: string): DeadlineUrgency {
@@ -28,6 +35,17 @@ function urgencyFor(dueDate: string): DeadlineUrgency {
   return "on_track";
 }
 
+/** Worst-first ordering so an umbrella inherits its most urgent child. */
+const URGENCY_RANK: Record<DeadlineUrgency, number> = {
+  on_track: 0,
+  due_soon: 1,
+  overdue: 2,
+};
+
+function worstUrgency(a: DeadlineUrgency, b: DeadlineUrgency): DeadlineUrgency {
+  return URGENCY_RANK[a] >= URGENCY_RANK[b] ? a : b;
+}
+
 export async function getDeadlinesByEvent(eventId: string): Promise<DeadlineItem[]> {
   const supabase = await createClient();
   const items: DeadlineItem[] = [];
@@ -35,7 +53,7 @@ export async function getDeadlinesByEvent(eventId: string): Promise<DeadlineItem
   const [{ data: tasks }, { data: assets }, { data: milestones }] = await Promise.all([
     supabase
       .from("tasks")
-      .select("id, title, due_date, status, task_type, category")
+      .select("id, title, due_date, status, task_type, category, target_path")
       .eq("event_id", eventId)
       .not("due_date", "is", null)
       .not("status", "in", '("complete","skipped")'),
@@ -63,6 +81,7 @@ export async function getDeadlinesByEvent(eventId: string): Promise<DeadlineItem
       urgency: urgencyFor(t.due_date),
       owner: ownerForTaskRow(t.task_type, t.category),
       status: t.status,
+      targetPath: (t.target_path as string | null) ?? undefined,
     });
   }
 
@@ -96,7 +115,39 @@ export async function getDeadlinesByEvent(eventId: string): Promise<DeadlineItem
   }
 
   items.sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
-  return items;
+  return groupDeadlineAssets(items);
+}
+
+/**
+ * Fold individual asset deadlines beneath the open customer task that targets
+ * the assets section (the "Upload brand assets" umbrella). The umbrella
+ * inherits its most urgent child so a single calm row replaces a wall of
+ * per-file badges. Items without an umbrella stay standalone.
+ *
+ * Pure — exported for unit testing.
+ */
+export function groupDeadlineAssets(items: DeadlineItem[]): DeadlineItem[] {
+  const umbrella = items.find(
+    (i) => i.entityType === "task" && i.targetPath === "assets",
+  );
+  const assets = items.filter((i) => i.entityType === "asset");
+  if (!umbrella || assets.length === 0) return items;
+
+  const inheritedUrgency = assets.reduce(
+    (acc, a) => worstUrgency(acc, a.urgency),
+    umbrella.urgency,
+  );
+
+  const grouped: DeadlineItem[] = [];
+  for (const i of items) {
+    if (i.entityType === "asset") continue;
+    if (i.id === umbrella.id) {
+      grouped.push({ ...umbrella, urgency: inheritedUrgency, children: assets });
+    } else {
+      grouped.push(i);
+    }
+  }
+  return grouped;
 }
 
 export interface CustomerActionItem {
@@ -108,6 +159,8 @@ export interface CustomerActionItem {
   urgency?: DeadlineUrgency;
   /** Event sub-page suffix where this item is actioned (tasks only). */
   targetPath?: string;
+  /** Individual asset slots folded beneath an umbrella "upload" task. */
+  children?: CustomerActionItem[];
 }
 
 /** Everything the customer currently owes — pending assets, incomplete briefings, overdue tasks. */
@@ -127,8 +180,10 @@ export async function getCustomerActionItems(eventId: string): Promise<CustomerA
       .select("id, name, due_date, status, review_status")
       .eq("event_id", eventId)
       .eq("customer_visible", true)
-      .in("status", ["required"])
-      .or("review_status.eq.revision_requested"),
+      // Still owed by the customer: an unfilled required slot OR a slot the
+      // reviewer bounced back. These must be OR'd — chaining `.in().or()`
+      // AND's them, which silently hid every required asset (see C1).
+      .or("status.eq.required,review_status.eq.revision_requested"),
     supabase
       .from("briefing_responses")
       .select("event_id, form_type, is_submitted")
@@ -176,5 +231,43 @@ export async function getCustomerActionItems(eventId: string): Promise<CustomerA
     return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
   });
 
-  return items;
+  return groupCustomerActionAssets(items);
+}
+
+/**
+ * Fold individual asset uploads beneath the open "Upload brand assets" task so
+ * the customer sees one obligation ("Upload brand assets · 5 files") rather
+ * than the umbrella task AND every slot counted separately. This keeps the
+ * "Needs you" number honest and identical across home, overview, and tasks.
+ * Items without an umbrella stay standalone.
+ *
+ * Pure — exported for unit testing.
+ */
+export function groupCustomerActionAssets(
+  items: CustomerActionItem[],
+): CustomerActionItem[] {
+  const umbrella = items.find(
+    (i) => i.entityType === "task" && i.targetPath === "assets",
+  );
+  const assets = items.filter((i) => i.entityType === "asset");
+  if (!umbrella || assets.length === 0) return items;
+
+  const inheritedUrgency = assets.reduce<DeadlineUrgency | undefined>(
+    (acc, a) => {
+      if (!a.urgency) return acc;
+      return acc ? worstUrgency(acc, a.urgency) : a.urgency;
+    },
+    umbrella.urgency,
+  );
+
+  const grouped: CustomerActionItem[] = [];
+  for (const i of items) {
+    if (i.entityType === "asset") continue;
+    if (i.id === umbrella.id) {
+      grouped.push({ ...umbrella, urgency: inheritedUrgency, children: assets });
+    } else {
+      grouped.push(i);
+    }
+  }
+  return grouped;
 }

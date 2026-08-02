@@ -16,6 +16,12 @@ vi.mock("@/app/actions/asset-review", () => ({
   submitAssetReview: vi.fn(),
 }));
 
+// Expanding a row lazy-loads version history and annotations. Without this the
+// component reaches a real Supabase client and the suite depends on the network.
+vi.mock("@/app/actions/asset-detail", () => ({
+  loadAssetReviewDetail: vi.fn(async () => ({ versions: [], annotations: [] })),
+}));
+
 const queueAsset = (extra: Record<string, unknown> = {}) => ({
   ...makeAsset({
     name: "hero.png",

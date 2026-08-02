@@ -9,10 +9,10 @@
 
 const FEATURE_LABELS: Record<string, string> = {
   setup_and_takedown: "Setup & takedown",
-  onsite_brand_ambassador: "On-site brand ambassador",
+  onsite_support: "On-site support",
   real_time_dashboard: "Real-time dashboard",
   next_day_report: "Next-day report",
-  two_ambassadors: "Two brand ambassadors",
+  two_support_crew: "Two on-site support crew",
   branded_wrap: "Branded machine wrap",
   post_event_report: "Post-event report",
   full_creative_production: "Full creative production",

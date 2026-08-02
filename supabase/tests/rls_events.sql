@@ -36,10 +36,14 @@ select is(
   'customer from other account cannot see Acme event'
 );
 
--- (4) Internal user sees both events
+-- (4) Internal user sees both events. Scoped to the two fixture accounts so the
+-- assertion holds on a database that also carries demo seed data.
 select _rls_test_as('00000000-0000-4000-8000-000000000011');
 select is(
-  (select count(*)::int from events),
+  (select count(*)::int from events where account_id in (
+    '00000000-0000-4000-8000-0000000000a1',
+    '00000000-0000-4000-8000-0000000000a2'
+  )),
   2,
   'internal user sees every event'
 );

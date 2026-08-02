@@ -12,6 +12,7 @@ import { Card } from "@/components/ui/card";
 import { Hairline } from "@/components/brand";
 import { formatGBP } from "@/lib/roi";
 import { formatNumberUS, formatMoneyFromPence } from "@/lib/currency";
+import { formatPriceBand } from "@/lib/proposals/price-band";
 import {
   ALWAYS_ON_OUTCOMES,
   type ProposalDocument,
@@ -213,8 +214,8 @@ export function ProposalDocumentView({
                 <li key={a.slug} className="flex items-start gap-3">
                   <Check size={16} className="mt-0.5 shrink-0 text-success" />
                   <span className="text-sm">
-                    <span className="font-medium text-foreground">{a.outcome}</span>
-                    <span className="text-muted-foreground"> — because {a.reason}.</span>
+                    <span className="font-medium text-foreground">{a.outcome}.</span>{" "}
+                    <span className="text-muted-foreground">{a.reason}</span>
                   </span>
                 </li>
               ))}
@@ -336,10 +337,19 @@ export function ProposalDocumentView({
             <h2 className="mt-4 text-heading text-2xl font-bold text-foreground">
               Let&apos;s walk you through it
             </h2>
+            {doc.investment.indicativeBand && (
+              <p className="mx-auto mt-4 max-w-[52ch] text-base text-foreground">
+                Activations like this typically run{" "}
+                <span className="font-semibold tabular-nums text-primary">
+                  {formatPriceBand(doc.investment.indicativeBand)}
+                </span>
+                .
+              </p>
+            )}
             <p className="mx-auto mt-3 max-w-[52ch] text-sm text-muted-foreground leading-relaxed">
-              We like to talk through the detail and final investment on a quick
-              15-minute call — so we can tailor it to you and answer anything
-              before you decide. Pick a time that suits.
+              We confirm your exact figure on a quick 15-minute video call, so
+              we can tailor the detail to you and answer any questions before
+              you decide. Pick a time that suits.
             </p>
             <a
               href={walkthroughUrl}

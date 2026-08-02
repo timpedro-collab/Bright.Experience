@@ -109,6 +109,11 @@
 	   - Heading  → Nunito Bold (rounded humanist sans, 700)
 	   - Body     → DM Sans Regular (geometric sans, 400)
 	   - Overline → DM Sans Medium (500, used uppercase + tracked)
+	   - Serif    → Fraunces variable (editorial display serif, OFL).
+	                PUBLIC MARKETING SURFACES ONLY — hero h1, section
+	                h2, pull-quotes, at weight 380–420 (Momentum
+	                pattern: the size does the work, the weight stays
+	                light). Never in the portal.
 	   - Mono     → kept as a system fallback for code blocks /
 	                tabular numerals only; brand surfaces should
 	                prefer the overline token. */
@@ -116,6 +121,7 @@
 	--font-body: var(--font-bright-body), system-ui, sans-serif;
 	--font-sans: var(--font-bright-body), system-ui, sans-serif;
 	--font-overline: var(--font-bright-overline), system-ui, sans-serif;
+	--font-display-serif: var(--font-bright-display-serif), Georgia, serif;
 	--font-mono: ui-monospace, SFMono-Regular, "SF Mono", Consolas, monospace;
 
 	/* ── Radius ── */
@@ -172,13 +178,22 @@
 	--bb-ease-enter: cubic-bezier(0.0, 0.0, 0.2, 1);
 	--bb-ease-exit: cubic-bezier(0.4, 0, 1, 1);
 	--bb-ease-standard: cubic-bezier(0.2, 0.8, 0.2, 1);
+	/* expressive = hero/section reveals; sheet = drawers/dialogs; symmetric = bidirectional/scrubbed motion only */
+	--bb-ease-expressive: cubic-bezier(0.16, 1, 0.3, 1);
+	--bb-ease-sheet: cubic-bezier(0.32, 0.72, 0, 1);
+	--bb-ease-symmetric: cubic-bezier(0.45, 0.05, 0.55, 0.95);
 
-	/* Motion durations */
+	/* Motion durations — one element per page may use --bb-duration-hero */
 	--bb-duration-micro: 100ms;
 	--bb-duration-fast: 150ms;
 	--bb-duration-base: 200ms;
 	--bb-duration-slow: 300ms;
 	--bb-duration-page: 380ms;
+	--bb-duration-reveal: 600ms;
+	--bb-duration-hero: 900ms;
+	--bb-stagger-tight: 20ms;
+	--bb-stagger-base: 40ms;
+	--bb-stagger-word: 30ms;
 }
 
 /* ───────────────────────────────────────────────────────────
@@ -302,6 +317,18 @@ body {
 	font-variant-numeric: tabular-nums;
 }
 
+/* Four-step text ramp (Linear pattern): foreground > muted-foreground > tertiary > quaternary.
+   Lets a dense row carry title / subtitle / metadata / timestamp without competition. */
+.text-tertiary { color: hsl(215, 16%, 57%); }
+.text-quaternary { color: hsl(215, 16%, 68%); }
+.theme-dark .text-tertiary { color: hsl(215, 14%, 58%); }
+.theme-dark .text-quaternary { color: hsl(215, 10%, 44%); }
+
+/* Per-size tracking: small UI text needs tighter tracking to read crisp (Linear ships these exact values). */
+.text-ui-15 { font-size: 0.9375rem; letter-spacing: -0.011em; }
+.text-ui-14 { font-size: 0.875rem;  letter-spacing: -0.013em; }
+.text-ui-13 { font-size: 0.8125rem; letter-spacing: -0.01em; }
+
 .text-display {
 	font-family: var(--font-heading);
 	font-weight: 700;
@@ -309,9 +336,25 @@ body {
 	line-height: 1.05;
 }
 
+/* Editorial display serif — public marketing surfaces ONLY (hero h1,
+   section h2, pull-quotes). Light weight + tight leading is the whole
+   effect (Momentum's serif-at-400 pattern); never bold it, never use it
+   in the portal. Fraunces is a variable font, so weight 400 renders its
+   true drawn weight. */
+.text-display-serif {
+	font-family: var(--font-display-serif);
+	font-weight: 400;
+	letter-spacing: -0.01em;
+	line-height: 1.12;
+}
+
 .text-balance {
 	text-wrap: balance;
 }
+
+/* Mask edge fades (Vercel pattern) — zero-JS scroll affordances. Creates a stacking context; don't wrap huge scroll regions. */
+.bb-fade-x { mask-image: linear-gradient(90deg, transparent, #000 16px, #000 calc(100% - 16px), transparent); }
+.bb-fade-b { mask-image: linear-gradient(#000 50%, transparent 95%); }
 
 /* ───────────────────────────────────────────────────────────
    Ridge colour utility — sets the ink colour for RidgeArtwork
@@ -457,6 +500,58 @@ body {
 	.bb-logo-marquee {
 		animation: none;
 	}
+}
+
+/* ───────────────────────────────────────────────────────────
+   Case-study tile staged reveal (On Board Experiential pattern,
+   docs/18-design-research.md H1). One visual system, two triggers:
+   `:hover` on desktop, `.is-inview` (via useInViewClass) on mobile
+   portrait — identical CSS, no duplicated styling. The 500ms delay
+   on the giant background name is the whole trick: it reads as a
+   second thought arriving, not one blunt transition. The global
+   reduced-motion block collapses all of it to instant states.
+   ─────────────────────────────────────────────────────────── */
+
+.cs-tile .cs-overlay {
+	position: absolute;
+	inset: 0;
+	transform: translateX(-101%);
+	transition: transform 750ms var(--bb-ease-standard);
+}
+
+.cs-tile:hover .cs-overlay,
+.cs-tile:focus-visible .cs-overlay,
+.cs-tile.is-inview .cs-overlay {
+	transform: translateX(0);
+}
+
+/* Foreground of the overlay (stat, title, CTA) trails the wash slightly. */
+.cs-tile .cs-overlay-info {
+	opacity: 0;
+	transform: translateX(-20px);
+	transition:
+		transform 600ms var(--bb-ease-standard) 120ms,
+		opacity 450ms var(--bb-ease-enter) 120ms;
+}
+
+.cs-tile:hover .cs-overlay-info,
+.cs-tile:focus-visible .cs-overlay-info,
+.cs-tile.is-inview .cs-overlay-info {
+	opacity: 1;
+	transform: translateX(0);
+}
+
+/* Giant duplicated client name fades up last, on the signature delay. */
+.cs-tile .cs-overlay-name {
+	opacity: 0;
+	transition: opacity 750ms var(--bb-ease-enter);
+}
+
+.cs-tile:hover .cs-overlay-name,
+.cs-tile:focus-visible .cs-overlay-name,
+.cs-tile.is-inview .cs-overlay-name {
+	opacity: 1;
+	transition-delay: 500ms;
 }
 
 /* ───────────────────────────────────────────────────────────
@@ -620,6 +715,15 @@ body {
    ─────────────────────────────────────────────────────────── */
 
 @media (prefers-reduced-motion: reduce) {
+	/* Zero the duration tokens so any rule referencing them collapses to instant
+	   state change (Stripe pattern). The * blanket below stays as the safety net
+	   for literal durations and third-party CSS. */
+	:root {
+		--bb-duration-micro: 0ms; --bb-duration-fast: 0ms; --bb-duration-base: 0ms;
+		--bb-duration-slow: 0ms; --bb-duration-page: 0ms;
+		--bb-duration-reveal: 0ms; --bb-duration-hero: 0ms;
+	}
+
 	*, *::before, *::after {
 		animation-duration: 0.01ms !important;
 		animation-iteration-count: 1 !important;

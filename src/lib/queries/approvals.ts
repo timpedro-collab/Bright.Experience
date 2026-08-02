@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createSignedReadUrl } from "@/lib/storage/signed-url";
 import type { Approval } from "@/types";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { logQueryError } from "@/lib/observability/log-query-error";
 
 /**
  * Resolve a stored `preview_url` into something the browser can open.
@@ -35,7 +36,10 @@ export async function getApprovalsByEvent(
     .eq("event_id", eventId)
     .order("requested_at", { ascending: false });
 
-  if (error || !data) return [];
+  if (error || !data) {
+    logQueryError("getApprovalsByEvent", error, { eventId });
+    return [];
+  }
 
   return Promise.all(
     data.map(async (row) => ({

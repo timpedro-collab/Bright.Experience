@@ -20,6 +20,8 @@ export interface GeneratedLead {
   custom_fields_json: { age: number; age_band: string; interest: string };
   source: string;
   captured_at: string;
+  /** GDPR consent ticked at capture — same instant as the capture itself. */
+  consented_at: string | null;
 }
 
 export interface GenerateLeadsOptions {
@@ -217,6 +219,9 @@ export function generateLeads(opts: GenerateLeadsOptions): GeneratedLead[] {
       custom_fields_json: { age, age_band: band, interest },
       source,
       captured_at: date.toISOString(),
+      // Consent is a capture precondition when the checkbox is required, so
+      // every stored lead consented at the moment of capture.
+      consented_at: date.toISOString(),
     });
   }
 

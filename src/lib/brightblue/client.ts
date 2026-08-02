@@ -18,6 +18,8 @@
  * credentials are missing so the app degrades to local DB data only.
  */
 
+import type { EventConfigPayload } from "./config-payload";
+
 export interface BrightBlueConfig {
   apiUrl: string;
   apiKey: string;
@@ -114,6 +116,34 @@ export async function getPostShowReport(
   return apiFetch<PostShowReport>(`/events/${eventId}/report`);
 }
 
+/* ──────────────── Event Config Push ──────────────── */
+
+/**
+ * Push a submitted event configuration (game + capture-quality rules) to the
+ * machine stack so activations are configured before the doors open.
+ *
+ * Fire-and-forget from the portal's perspective: a Cloud outage must never
+ * block the customer's submit. Returns true when Cloud acknowledged the
+ * config, false when unconfigured or rejected (both logged).
+ */
+export async function pushEventConfig(
+  payload: EventConfigPayload
+): Promise<boolean> {
+  if (!getConfig()) {
+    // INTEGRATION: Bright.Blue Cloud — not yet connected. The config stays in
+    // the portal DB and can be re-pushed once credentials are set.
+    console.warn(
+      `[brightblue:api] config push skipped for ${payload.event_id} — BRIGHTBLUE_API_URL/KEY not configured`
+    );
+    return false;
+  }
+  const res = await apiFetch<{ received: boolean }>(
+    `/events/${payload.event_id}/config`,
+    { method: "PUT", body: JSON.stringify(payload) }
+  );
+  return res != null;
+}
+
 /* ──────────────── Machine Validation ──────────────── */
 
 export interface MachineInfo {
@@ -121,11 +151,4 @@ export interface MachineInfo {
   model: string;
   firmware_version: string;
   status: string;
-}
-
-/** Validate a machine serial against the Cloud registry. */
-export async function validateMachineSerial(
-  serial: string
-): Promise<MachineInfo | null> {
-  return apiFetch<MachineInfo>(`/machines/${encodeURIComponent(serial)}`);
 }

@@ -1,30 +1,34 @@
 "use server";
 
+/**
+ * Server actions for scheduled event exports.
+ *
+ * The payload builder itself lives in `src/server/exports.ts` — it reads lead
+ * PII with the service role and must never be reachable as an RPC endpoint.
+ */
+
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requireInternalUser } from "@/lib/auth";
 import { getUser } from "@/lib/auth";
 import { isInternalRole } from "@/lib/roles";
 import { getServiceRoleClient } from "@/lib/supabase/service-role";
-import { toCsv } from "@/lib/exports/csv";
-import { buildWorkbook } from "@/lib/exports/excel";
+import { buildExportData } from "@/server/exports";
+import type {
+  ExportField,
+  ExportFormat,
+  ExportFrequency,
+  ScheduledExport,
+} from "@/lib/exports/types";
 
-export type ExportFrequency = "daily" | "weekly" | "end_of_event" | "on_demand";
-export type ExportFormat = "csv" | "excel" | "pdf";
-export type ExportField = "leads" | "scores" | "metrics" | "custom_fields";
-
-export interface ScheduledExport {
-  id: string;
-  eventId: string;
-  frequency: ExportFrequency;
-  format: ExportFormat;
-  includeFields: ExportField[];
-  recipients: string[];
-  isActive: boolean;
-  lastSentAt: string | null;
-  nextSendAt: string | null;
-  createdAt: string;
-}
+// Straight from the source module — see the note in `invites.ts`: a local
+// `export type { X }` in a "use server" file throws on module evaluation.
+export type {
+  ExportField,
+  ExportFormat,
+  ExportFrequency,
+  ScheduledExport,
+} from "@/lib/exports/types";
 
 function mapExport(row: Record<string, unknown>): ScheduledExport {
   return {
@@ -133,139 +137,24 @@ export async function deleteScheduledExport(
   return { success: true };
 }
 
-/** Build export data for a given event and fields. */
-export async function buildExportData(
-  eventId: string,
-  includeFields: ExportField[],
-  format: ExportFormat
-): Promise<{ filename: string; data: Buffer | string }> {
-  const supabase = getServiceRoleClient();
-
-  const { data: event } = await supabase
-    .from("events")
-    .select("name")
-    .eq("id", eventId)
-    .single();
-  const eventName = (event?.name as string) ?? "Event";
-  const dateSuffix = new Date().toISOString().slice(0, 10);
-
-  const sheets: { name: string; columns: { header: string; key: string; width?: number }[]; rows: Record<string, unknown>[] }[] = [];
-
-  if (includeFields.includes("leads")) {
-    const { data: leads } = await supabase
-      .from("leads")
-      .select("contact_name, contact_email, contact_phone, source, captured_at")
-      .eq("event_id", eventId)
-      .order("captured_at");
-    const rows = (leads ?? []) as Record<string, unknown>[];
-    sheets.push({
-      name: "Leads",
-      columns: [
-        { header: "Name", key: "contact_name", width: 24 },
-        { header: "Email", key: "contact_email", width: 28 },
-        { header: "Phone", key: "contact_phone", width: 16 },
-        { header: "Source", key: "source", width: 16 },
-        { header: "Captured At", key: "captured_at", width: 20 },
-      ],
-      rows,
-    });
-  }
-
-  if (includeFields.includes("scores")) {
-    // There's no dedicated scores table — game plays land in telemetry. Pull
-    // completed plays and flatten the score/level out of the payload.
-    const { data: plays } = await supabase
-      .from("telemetry_events")
-      .select("payload_json, timestamp")
-      .eq("event_id", eventId)
-      .eq("event_type", "play_completed")
-      .order("timestamp", { ascending: false });
-    const rows = ((plays ?? []) as Record<string, unknown>[]).map((p) => {
-      const payload = (p.payload_json as Record<string, unknown>) ?? {};
-      return {
-        player_name: payload.player_name ?? payload.player ?? "—",
-        score: payload.score ?? "",
-        level_reached: payload.level_reached ?? payload.level ?? "",
-        created_at: p.timestamp,
-      };
-    });
-    sheets.push({
-      name: "Game Scores",
-      columns: [
-        { header: "Player", key: "player_name", width: 22 },
-        { header: "Score", key: "score", width: 12 },
-        { header: "Level", key: "level_reached", width: 12 },
-        { header: "Played At", key: "created_at", width: 20 },
-      ],
-      rows,
-    });
-  }
-
-  if (includeFields.includes("metrics")) {
-    const { data: snapshots } = await supabase
-      .from("event_metrics_snapshot")
-      .select("*")
-      .eq("event_id", eventId)
-      .order("snapshot_date");
-    const rows = (snapshots ?? []) as Record<string, unknown>[];
-    sheets.push({
-      name: "Metrics",
-      columns: [
-        { header: "Date", key: "snapshot_date", width: 14 },
-        { header: "Plays", key: "total_plays", width: 12 },
-        { header: "Interactions", key: "total_interactions", width: 14 },
-        { header: "Leads", key: "total_leads", width: 12 },
-        { header: "Prizes", key: "total_prizes", width: 12 },
-        { header: "Avg Dwell Time", key: "avg_dwell_time", width: 16 },
-      ],
-      rows,
-    });
-  }
-
-  if (includeFields.includes("custom_fields")) {
-    const { data: leads } = await supabase
-      .from("leads")
-      .select("contact_name, contact_email, custom_fields_json")
-      .eq("event_id", eventId)
-      .order("captured_at");
-    const raw = (leads ?? []) as Record<string, unknown>[];
-    const rows = raw.map((r) => ({
-      name: r.contact_name,
-      email: r.contact_email,
-      ...((r.custom_fields_json as Record<string, unknown>) ?? {}),
-    }));
-    if (rows.length > 0) {
-      const allKeys = [...new Set(rows.flatMap(Object.keys))];
-      sheets.push({
-        name: "Custom Fields",
-        columns: allKeys.map((k) => ({ header: k, key: k, width: 18 })),
-        rows,
-      });
-    }
-  }
-
-  if (sheets.length === 0) {
-    sheets.push({
-      name: "Export",
-      columns: [{ header: "Note", key: "note" }],
-      rows: [{ note: "No data available for selected fields." }],
-    });
-  }
-
-  if (format === "excel") {
-    const buf = await buildWorkbook(`${eventName} Export`, sheets);
-    return { filename: `${eventName}-${dateSuffix}.xlsx`, data: buf };
-  }
-
-  const allRows = sheets.flatMap((s) => s.rows);
-  const csv = toCsv(allRows);
-  return { filename: `${eventName}-${dateSuffix}.csv`, data: csv };
-}
-
-/** Execute an export and upload to storage, returning a signed URL. */
+/**
+ * Execute an export and upload to storage, returning a signed URL.
+ *
+ * Authorises twice: internal role, then read access to the export's event
+ * through the RLS-scoped client. Without the second check any internal user
+ * could dump the leads of an event they have no relationship with — and before
+ * either check existed, so could an anonymous caller.
+ */
 export async function executeExportNow(
   exportId: string
 ): Promise<{ success: boolean; url?: string; error?: string }> {
+  let scoped;
+  try {
+    ({ supabase: scoped } = await requireInternalUser());
+  } catch {
+    return { success: false, error: "Only internal staff can run exports." };
+  }
+
   const supabase = getServiceRoleClient();
   const { data: exp } = await supabase
     .from("scheduled_exports")
@@ -277,12 +166,24 @@ export async function executeExportNow(
 
   const row = exp as Record<string, unknown>;
   const eventId = row.event_id as string;
+
+  const { data: reachable } = await scoped
+    .from("events")
+    .select("id")
+    .eq("id", eventId)
+    .maybeSingle();
+  if (!reachable) {
+    return { success: false, error: "You don't have access to this event." };
+  }
+
   const includeFields = (row.include_fields ?? []) as ExportField[];
   const format = row.format as ExportFormat;
 
   const { filename, data } = await buildExportData(eventId, includeFields, format);
 
-  const storagePath = `exports/${eventId}/${filename}`;
+  // Leading segment must be the event id: the storage policies scope reads by
+  // the owning event (20260728000001_storage_tenant_scoping.sql).
+  const storagePath = `${eventId}/exports/${filename}`;
   const bucket = "reports";
   const fileData = typeof data === "string" ? new TextEncoder().encode(data) : data;
 

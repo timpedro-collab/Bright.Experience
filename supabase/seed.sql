@@ -3,7 +3,7 @@
 -- ============================================================
 -- This seed gives every UI surface real data to render against:
 --   - 3 customer accounts and 5 personas (1 customer, 4 internal)
---   - 5 events spanning every lifecycle stage
+--   - 6 events spanning every lifecycle stage
 --   - Catalog of 4 machines, 6 games, 5 packages, 9 add-ons, 4 case
 --     studies
 --   - 8 UK locations covering tiers 1-4
@@ -48,7 +48,13 @@ on conflict (id) do nothing;
 -- Catalogue mirrors the Bright.Blue events brochure. Slugs for the three
 -- dispensing portals are intentionally kept stable (they wire the quiz,
 -- packages and creative asset slots); only the display names changed.
-insert into machines (id, name, slug, tagline, description, hero_image_url, gallery_urls, capacity_label, mechanisms, dispenses, features, best_for, video_url, is_active, sort_order) values
+--
+-- INDICATIVE SPECS: footprint_mm / weight_kg / power_spec / connectivity /
+-- clearance_notes are placeholders in the shape a venue asks for, not
+-- measured figures from the hardware team. Every surface that shows them says
+-- so. Replace with the manufacturer's data before an organizer sends a spec
+-- sheet to a venue (see OWNER-TODO.md).
+insert into machines (id, name, slug, tagline, description, hero_image_url, gallery_urls, capacity_label, mechanisms, dispenses, features, best_for, footprint_mm, weight_kg, power_spec, connectivity, clearance_notes, video_url, is_active, sort_order) values
   ('a2a2a2a2-a2a2-4a2a-8a2a-a2a2a2a2a2a2', 'Europa Experience Portal', 'experience-portal',
     'The signature portal that turns footfall into opted-in leads',
     'Our flagship Experience Portal and the machine behind the majority of Bright.Blue activations. A fully branded 55" portrait touchscreen wrapped in a custom shell, with built-in lead capture, the complete Bright.Blue game engine, and four dispense mechanisms — belts, pushers, spirals and a lift — so it can hand out anything from a token gift to full-size product. Compact enough for retail, powerful enough for a stadium concourse.',
@@ -59,6 +65,10 @@ insert into machines (id, name, slug, tagline, description, hero_image_url, gall
     '["Token gifts","Soft drinks","Cosmetics","Chocolate bars","Alcohol","Stationery","Tech","Accessories","Toys","Socks"]'::jsonb,
     '[]'::jsonb,
     '["Trade shows & conferences","Retail & shopping-centre sampling","Festival and event concourses","Product launches that hand out full-size product","High-volume lead capture in busy spaces"]'::jsonb,
+    'W 890 × D 1000 × H 1940 mm', 320,
+    '230V AC, 13A dedicated socket. No extension leads.',
+    '4G dual-SIM, with Wi-Fi or wired ethernet as a fallback.',
+    '600 mm clear at the front to open the service door, 100 mm at the rear for ventilation.',
     null, true, 1),
   ('a1a1a1a1-a1a1-4a1a-8a1a-a1a1a1a1a1a1', 'Blinx Experience Portal', 'experience-portal-compact',
     'Premium gifting that runs itself — no staff required',
@@ -70,6 +80,10 @@ insert into machines (id, name, slug, tagline, description, hero_image_url, gall
     '["Merchandise","Jewellery","Watches","Alcohol","Equipment","Product bundles","Tech","Toys","Accessories","Apparel"]'::jsonb,
     '[]'::jsonb,
     '["Luxury and flagship retail","Hotel and venue lobbies","High-value prize reveals & VIP gifting","Limited-edition product drops"]'::jsonb,
+    'W 900 × D 800 × H 1900 mm', 240,
+    '230V AC, 13A dedicated socket. No extension leads.',
+    '4G dual-SIM, with Wi-Fi or wired ethernet as a fallback.',
+    '600 mm clear at the front to open the locker doors, 100 mm at the rear for ventilation.',
     null, true, 2),
   ('a3a3a3a3-a3a3-4a3a-8a3a-a3a3a3a3a3a3', 'Hyperion Experience Portal', 'experience-portal-xl',
     'The showpiece that pulls a queue across the hall',
@@ -81,6 +95,10 @@ insert into machines (id, name, slug, tagline, description, hero_image_url, gall
     '["Gift boxes","Cosmetics","Accessories","Apparel","Alcohol","Bundles","Toys","Tech","Food & drink","Merchandise"]'::jsonb,
     '[]'::jsonb,
     '["Trade-show hero stands","Multi-day exhibitions & conferences","Stadium and arena concourses","High-volume sampling that can''t run dry"]'::jsonb,
+    'W 1800 × D 1000 × H 1990 mm', 520,
+    '230V AC, 16A dedicated socket. No extension leads.',
+    '4G dual-SIM, with Wi-Fi or wired ethernet as a fallback.',
+    '800 mm clear at the front for restocking, 100 mm at the rear for ventilation. Check the lifting route: this unit does not fit a standard passenger lift.',
     null, true, 3),
   ('a4a4a4a4-a4a4-4a4a-8a4a-a4a4a4a4a4a4', 'Callisto Experience Portal', 'callisto-experience-portal',
     'Frozen sampling that stops traffic',
@@ -92,6 +110,10 @@ insert into machines (id, name, slug, tagline, description, hero_image_url, gall
     '["Ice cream & lollies","Mini sorbet cups","Mini gelato cups","Alcoholic ice pops","Frozen cocktails","Ice cream sandwiches"]'::jsonb,
     '[]'::jsonb,
     '["Summer festivals & outdoor events","Shopping-centre sampling","FMCG ice cream & dessert launches","Hospitality & premium bar activations"]'::jsonb,
+    'W 900 × D 1000 × H 1940 mm', 380,
+    '230V AC, 16A dedicated socket, powered continuously — the freezer must stay on overnight.',
+    '4G dual-SIM, with Wi-Fi or wired ethernet as a fallback.',
+    '600 mm clear at the front, 150 mm at the rear and sides for the compressor. Cannot be boxed into set or shell scheme.',
     null, true, 4),
   ('a5a5a5a5-a5a5-4a5a-8a5a-a5a5a5a5a5a5', 'Experience Kiosks', 'experience-kiosks',
     'Screens that capture and convert',
@@ -103,6 +125,10 @@ insert into machines (id, name, slug, tagline, description, hero_image_url, gall
     '[]'::jsonb,
     '["Gamified experiences","Lead & data capture","Visitor sign-ups","Showcase information"]'::jsonb,
     '["Conference & expo registration","Info points and wayfinding","Tight retail counters & pop-ups","A data-capture add-on beside a larger unit"]'::jsonb,
+    'W 500 × D 500 × H 1600 mm (freestanding)', 45,
+    '230V AC, standard 13A socket.',
+    '4G dual-SIM, with Wi-Fi or wired ethernet as a fallback.',
+    '400 mm clear at the front for the attendee, no rear clearance needed.',
     null, true, 5)
 on conflict (id) do nothing;
 
@@ -213,7 +239,7 @@ insert into package_addons (package_id, name, description, price, category, capa
 -- hero_image_url to that path (here AND in the mock dataset.ts). Until then
 -- the CaseStudyCard renders a branded tile from the client's logo.
 -- ============================================================
-insert into case_studies (id, title, slug, client_name, event_type, location, description, hero_image_url, gallery_urls, stats_json, testimonial_quote, testimonial_author, is_published, published_at) values
+insert into case_studies (id, title, slug, client_name, event_type, location, description, hero_image_url, gallery_urls, stats_json, testimonial_quote, testimonial_author, publication_rights, anonymised_label, is_published, published_at) values
   ('d1d1d1d1-d1d1-4d1d-8d1d-d1d1d1d1d1d1', 'Costa Coffee — Catch-A-Matcha', 'costa-coffee-catch-a-matcha',
     'Costa Coffee', 'experiential', '10 UK city centres',
     'Costa Coffee wanted to launch their new Iced Matcha range with a moment people would actually remember. Bright.Blue designed "Catch-A-Matcha" — a reflex-based touchscreen game housed inside a giant, fully branded matcha-cup Experience Portal. Sited in a high-footfall city centre directly outside a Costa store, passers-by tapped iced matchas as they popped up on screen; score high enough and you win, then scan a QR code to claim a free Iced Matcha from the nearest store or pick exclusive merch — the "Matchilda" plush and Crochet Cosie. Over five consecutive weekends the unit toured ten UK city centres, drawing queues around the block, sampling thousands of drinks, and turning every play into a fully consented opt-in.',
@@ -221,39 +247,45 @@ insert into case_studies (id, title, slug, client_name, event_type, location, de
     '["/catalog/case-studies/costa-matcha/08-matcha-merch-sign.png","/catalog/case-studies/costa-matcha/06-full-setup-queue.png","/catalog/case-studies/costa-matcha/09-aerial-queue.png","/catalog/case-studies/costa-matcha/05-tap-to-start.png","/catalog/case-studies/costa-matcha/01-girl-tapping-screen.png","/catalog/case-studies/costa-matcha/02-winner-qr-scan.png","/catalog/case-studies/costa-matcha/03-prize-selection.png","/catalog/case-studies/costa-matcha/10-sampling-moment.png","/catalog/case-studies/costa-matcha/04-winners-matchilda.png"]'::jsonb,
     '{"gamePlays":3270,"brandImpressions":200000,"marketingOptIns":1980,"consentRatePct":100}'::jsonb,
     'The giant cup stopped people in their tracks and the game gave them a reason to stay. We launched the range, sampled thousands of drinks, and walked away with a fully opted-in database to prove it.', 'Brand Experience Team, Costa Coffee',
+    'anonymised', 'A global coffee chain',
     true, '2026-03-30T10:00:00Z'),
   ('d2d2d2d2-d2d2-4d2d-8d2d-d2d2d2d2d2d2', 'BIBA Conference: a stand that stood out on a busy floor', 'biba-conference',
     'BIBA', 'exhibition', 'Manchester',
     'A branded Experience Portal on the exhibition floor at the BIBA Conference — a memorable, on-brand draw amongst hundreds of stands that turned footfall into conversations and clean opt-in data.',
     null, '[]'::jsonb,
-    '{"plays":910,"leads":845,"avgDwellSec":25}'::jsonb,
+    '{}'::jsonb, -- stats intentionally empty until real activation figures are supplied
     'It gave delegates a reason to stop, and gave our team a natural way to start a conversation.', 'Events Team, BIBA',
+    'named', null,
     true, '2026-03-20T10:00:00Z'),
   ('d3d3d3d3-d3d3-4d3d-8d3d-d3d3d3d3d3d3', 'Pelion drew the crowd at a connectivity expo', 'pelion-expo',
     'Pelion', 'exhibition', 'London',
     'A custom Experience Portal on Pelion''s expo stand — an interactive moment that cut through a noisy hall and captured quality leads without the hard sell.',
     null, '[]'::jsonb,
-    '{"plays":540,"leads":480,"avgDwellSec":27}'::jsonb,
+    '{}'::jsonb, -- stats intentionally empty until real activation figures are supplied
     'A simple, brilliant way to make our stand the one people remembered.', 'Marketing Team, Pelion',
+    'named', null,
     true, '2026-03-12T10:00:00Z'),
   ('d5d5d5d5-d5d5-4d5d-8d5d-d5d5d5d5d5d5', 'How Storyblok made their DMEXCO booth a magnet', 'storyblok-dmexco',
     'Storyblok', 'exhibition', 'Cologne',
     'An interactive Experience Portal on the Storyblok stand at DMEXCO — a fun, branded moment that doubled as automatic, high-quality data capture.',
     null, '[]'::jsonb,
-    '{"plays":720,"leads":685,"avgDwellSec":31}'::jsonb,
+    '{}'::jsonb, -- stats intentionally empty until real activation figures are supplied
     'Bright.Blue brought our DMEXCO booth to life. The interactive machine became a magnet for attendees, giving us both a fun experience and high-quality data — automatically.', 'Ioana Grapa, Head of Global Events, Storyblok',
+    'named', null,
     true, '2026-03-05T10:00:00Z'),
   ('d6d6d6d6-d6d6-4d6d-8d6d-d6d6d6d6d6d6', 'Adyen''s event gifting that ran itself', 'adyen-event-gifting',
     'Adyen', 'corporate', 'London',
     'A fully customised, unattended Experience Portal vending branded gifts across an Adyen business event — delivery, setup, and restocking all handled by Bright.Blue.',
     null, '[]'::jsonb,
-    '{"giftsVended":600,"interactions":810,"satisfactionPct":97}'::jsonb,
+    '{}'::jsonb, -- stats intentionally empty until real activation figures are supplied
     'We vended gifts from their unattended machine and saw fantastic attendee engagement. The team handled everything from delivery and setup to restocking — it let me focus on the event itself.', 'Brigitte Brown, Senior Event Marketing Manager, Adyen',
+    'named', null,
     true, '2026-03-18T10:00:00Z'),
   ('d4d4d4d4-d4d4-4d4d-8d4d-d4d4d4d4d4d4', 'Internal draft (do not publish)', 'draft-do-not-publish',
     null, 'activation', null,
     'Draft case study, used to test the publishing flow.',
     null, '[]'::jsonb, '{}'::jsonb, null, null,
+    'named', null,
     false, null)
 on conflict (id) do nothing;
 
@@ -279,7 +311,11 @@ insert into events (id, account_id, name, event_type, package_type, machine_type
   ('e2222222-2222-2222-2222-222222222222', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'Samsung Galaxy Launch Experience', 'activation', 'custom', 'Bright.Play', 'Westfield London', 'Ariel Way, London W12 7GF', '2026-05-20', '2026-05-22', null, null, 'approvals', 'amber', '11111111-1111-1111-1111-111111111111', '2026-02-15T09:00:00Z'),
   ('e3333333-3333-3333-3333-333333333333', 'cccccccc-cccc-cccc-cccc-cccccccccccc', 'Guinness Six Nations Fan Zone', 'sampling', 'standard', 'Bright.Vend', 'Twickenham Stadium', 'Whitton Rd, Twickenham TW2 7BA', '2026-06-10', null, null, null, 'kickoff_complete', 'green', '11111111-1111-1111-1111-111111111111', '2026-03-20T11:00:00Z'),
   ('e4444444-4444-4444-4444-444444444444', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'Coca-Cola Notting Hill Carnival', 'vending', 'premium', 'Bright.Vend Pro', 'Notting Hill Carnival', 'Notting Hill, London W11', '2026-08-14', '2026-08-16', '2026-08-13', '2026-08-17', 'confirmed', 'amber', '11111111-1111-1111-1111-111111111111', '2026-04-01T10:00:00Z'),
-  ('e5555555-5555-5555-5555-555555555555', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'Samsung Unpacked Pop-Up', 'activation', 'premium', 'Bright.Play', 'Battersea Power Station', 'Circus Rd W, London SW11 8DD', '2026-04-10', '2026-04-12', null, null, 'qa_readiness', 'red', '11111111-1111-1111-1111-111111111111', '2026-01-10T08:00:00Z')
+  ('e5555555-5555-5555-5555-555555555555', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'Samsung Unpacked Pop-Up', 'activation', 'premium', 'Bright.Play', 'Battersea Power Station', 'Circus Rd W, London SW11 8DD', '2026-04-10', '2026-04-12', null, null, 'qa_readiness', 'red', '11111111-1111-1111-1111-111111111111', '2026-01-10T08:00:00Z'),
+  -- Completed Coca-Cola tour. run-seed.ts refines this row (and hangs the
+  -- telemetry, leads and report off it); it exists here because the assets and
+  -- partner attribution below reference it, and this file has to load first.
+  ('e6666666-6666-6666-6666-666666666666', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'Coca-Cola Spring Sampling Tour', 'sampling', 'premium', 'Bright.Vend Pro', 'Manchester Piccadilly Gardens', 'Manchester M1 1RG', '2026-03-20', '2026-03-22', null, null, 'complete', 'green', '11111111-1111-1111-1111-111111111111', '2026-01-05T09:00:00Z')
 on conflict (id) do nothing;
 
 -- ============================================================
@@ -389,7 +425,7 @@ insert into venues (id, partner_id, name, slug, address, postcode, location_tier
   ('f0f0f0f0-f0f0-4f0f-8f0f-f0f0f0f0f0f0', 'e0e0e0e0-e0e0-4e0e-8e0e-e0e0e0e0e0e0', 'Manchester Pop-Up', 'manchester-pop-up', 'Spinningfields, M3 3JE', 'M3 3JE', 'tier_2', 1500, 'shopping_centre', true),
   ('f1f1f1f1-f1f1-4f1f-8f1f-f1f1f1f1f1f1', 'e1e1e1e1-e1e1-4e1e-8e1e-e1e1e1e1e1e1', 'Kings Cross Hall',  'kings-cross-hall',   'York Way, N1C 4AT',     'N1C 4AT', 'tier_1', 4000, 'other',        true),
   ('f2f2f2f2-f2f2-4f2f-8f2f-f2f2f2f2f2f2', 'e3e3e3e3-e3e3-4e3e-8e3e-e3e3e3e3e3e3', 'Westfield Stratford', 'westfield-stratford', 'Montfichet Rd, E20 1EJ', 'E20 1EJ', 'tier_1', 5000, 'shopping_centre',   true),
-  ('f3f3f3f3-f3f3-4f3f-8f3f-f3f3f3f3f3f3', 'e4e4e4e4-e4e4-4e4e-8e4e-e4e4e4e4e4e4', 'NEC Birmingham',      'nec-birmingham',      'North Ave, B40 1NT',     'B40 1NT', 'tier_1', 6000, 'exhibition_centre', true)
+  ('f3f3f3f3-f3f3-4f3f-8f3f-f3f3f3f3f3f3', 'e4e4e4e4-e4e4-4e4e-8e4e-e4e4e4e4e4e4', 'NEC Birmingham',      'nec-birmingham',      'North Ave, B40 1NT',     'B40 1NT', 'tier_1', 6000, 'convention_centre', true)
 on conflict (id) do nothing;
 
 -- ============================================================
@@ -407,6 +443,8 @@ on conflict (id) do nothing;
 insert into benchmarks (event_type, location_tier, machine_type, metric_name, avg_value, median_value, p25_value, p75_value, sample_size) values
   ('activation',  'tier_1', 'Bright.Play',     'plays_per_day',      275,  270,  250,  300, 28),
   ('activation',  'tier_2', 'Bright.Play',     'plays_per_day',      205,  200,  175,  235, 19),
+  ('activation',  'tier_1', 'Bright.Play',     'leads_per_day',      212,  208,  185,  240, 28),
+  ('activation',  'tier_2', 'Bright.Play',     'leads_per_day',      154,  150,  128,  180, 19),
   ('sampling',    'tier_1', 'Bright.Vend Pro', 'samples_per_day',    270,  265,  245,  295, 22),
   ('sampling',    'tier_2', 'Bright.Vend Pro', 'samples_per_day',    200,  195,  170,  230, 17);
 
@@ -424,10 +462,10 @@ insert into telemetry_events (machine_instance_id, event_id, event_type, payload
 -- ============================================================
 -- LEADS (live demo for evt-2)
 -- ============================================================
-insert into leads (event_id, machine_instance_id, contact_name, contact_email, custom_fields_json, source, captured_at) values
-  ('e2222222-2222-2222-2222-222222222222', '1c1c1c1c-1c1c-4c1c-8c1c-1c1c1c1c1c1c', 'Casey Morgan', 'casey.morgan@example.com', '{"interest":"galaxy"}'::jsonb, 'game', now() - interval '28 minutes'),
-  ('e2222222-2222-2222-2222-222222222222', '1c1c1c1c-1c1c-4c1c-8c1c-1c1c1c1c1c1c', 'Reece Ellis',  'reece.ellis@example.com',  '{"interest":"trade"}'::jsonb, 'game', now() - interval '12 minutes'),
-  ('e1111111-1111-1111-1111-111111111111', '1a1a1a1a-1a1a-4a1a-8a1a-1a1a1a1a1a1a', 'Olivia Hart',  'olivia.hart@example.com',  '{}'::jsonb, 'game', now() - interval '6 hours');
+insert into leads (event_id, machine_instance_id, contact_name, contact_email, custom_fields_json, source, captured_at, consented_at) values
+  ('e2222222-2222-2222-2222-222222222222', '1c1c1c1c-1c1c-4c1c-8c1c-1c1c1c1c1c1c', 'Casey Morgan', 'casey.morgan@example.com', '{"interest":"galaxy"}'::jsonb, 'game', now() - interval '28 minutes', now() - interval '28 minutes'),
+  ('e2222222-2222-2222-2222-222222222222', '1c1c1c1c-1c1c-4c1c-8c1c-1c1c1c1c1c1c', 'Reece Ellis',  'reece.ellis@example.com',  '{"interest":"trade"}'::jsonb, 'game', now() - interval '12 minutes', now() - interval '12 minutes'),
+  ('e1111111-1111-1111-1111-111111111111', '1a1a1a1a-1a1a-4a1a-8a1a-1a1a1a1a1a1a', 'Olivia Hart',  'olivia.hart@example.com',  '{}'::jsonb, 'game', now() - interval '6 hours', now() - interval '6 hours');
 
 -- ============================================================
 -- QUOTES + LINE ITEMS (one of each track)

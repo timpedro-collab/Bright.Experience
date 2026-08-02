@@ -10,6 +10,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import type { Stage } from "@/types";
+import { logQueryError } from "@/lib/observability/log-query-error";
 
 export interface StageTransition {
   id: string;
@@ -34,7 +35,10 @@ export async function getStageTransitions(
     .eq("action", "stage_advanced")
     .order("created_at", { ascending: true });
 
-  if (error || !data) return [];
+  if (error || !data) {
+    logQueryError("getStageTransitions", error, { eventId });
+    return [];
+  }
 
   return data
     .map((row: Record<string, unknown>): StageTransition | null => {

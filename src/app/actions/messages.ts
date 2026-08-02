@@ -13,7 +13,7 @@ import { revalidatePath } from "next/cache";
 import { dispatchNotification } from "@/lib/notifications/dispatch";
 import { sendMessageSchema } from "@/lib/validations/messages";
 import { validateUpload, storagePathFor, createSignedReadUrl } from "@/lib/storage/signed-url";
-import { scanUpload } from "@/lib/storage/scan";
+import { screenUpload } from "@/lib/storage/scan";
 import type { ActionResult } from "@/types/actions";
 
 export type MessageTopic = "general" | "creative" | "logistics" | "compliance" | "configuration" | "finance";
@@ -110,7 +110,7 @@ export async function uploadMessageAttachment(
 
   const buffer = Buffer.from(await file.arrayBuffer());
 
-  const scan = await scanUpload(buffer, file.name);
+  const scan = await screenUpload(buffer, file.name, file.type);
   if (!scan.ok) {
     return { success: false, error: scan.detail ?? "This file was flagged by our security scan." };
   }

@@ -3,7 +3,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Lock, CheckCircle2, Sparkles } from "lucide-react";
+import { CheckCircle2, Sparkles } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/client";
 import { BrandLockup } from "@/components/ui/brand-mark";

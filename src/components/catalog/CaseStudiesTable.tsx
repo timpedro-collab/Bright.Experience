@@ -35,40 +35,39 @@ export function CaseStudiesTable({ studies }: { studies: CaseStudy[] }) {
 
       {showNew && <CaseStudyForm onClose={() => setShowNew(false)} />}
 
-      <div className="border-t border-b border-border/40 overflow-x-auto">
-        <table className="w-full min-w-[640px] text-sm">
-          <thead>
-            <tr className="border-b border-border/40 text-left">
-              <th className="px-4 py-3 text-overline text-muted-foreground font-normal">Title</th>
-              <th className="px-4 py-3 text-overline text-muted-foreground font-normal">Client</th>
-              <th className="px-4 py-3 text-overline text-muted-foreground font-normal">Type</th>
-              <th className="px-4 py-3 text-overline text-muted-foreground font-normal">Location</th>
-              <th className="px-4 py-3 text-overline text-muted-foreground font-normal">Status</th>
-              <th className="px-4 py-3 text-overline text-muted-foreground font-normal" />
-            </tr>
-          </thead>
-          <tbody>
-            {studies.map((s) =>
-              editId === s.id ? (
-                <tr key={s.id}>
-                  <td colSpan={6} className="p-2">
-                    <CaseStudyForm study={s} onClose={() => setEditId(null)} />
-                  </td>
-                </tr>
-              ) : (
-                <CaseStudyRow key={s.id} study={s} onEdit={() => setEditId(s.id)} />
-              ),
-            )}
-            {studies.length === 0 && (
-              <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
-                  No case studies yet.
-                </td>
+      {studies.length === 0 ? (
+        <div className="px-4 py-8 text-center text-muted-foreground">
+          No case studies yet.
+        </div>
+      ) : (
+        <div className="border-t border-b border-border/40 overflow-x-auto">
+          <table className="w-full min-w-[640px] text-sm">
+            <thead>
+              <tr className="border-b border-border/40 text-left">
+                <th className="px-4 py-3 text-overline text-muted-foreground font-normal">Title</th>
+                <th className="px-4 py-3 text-overline text-muted-foreground font-normal">Client</th>
+                <th className="px-4 py-3 text-overline text-muted-foreground font-normal">Type</th>
+                <th className="px-4 py-3 text-overline text-muted-foreground font-normal">Location</th>
+                <th className="px-4 py-3 text-overline text-muted-foreground font-normal">Status</th>
+                <th className="px-4 py-3 text-overline text-muted-foreground font-normal" />
               </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {studies.map((s) =>
+                editId === s.id ? (
+                  <tr key={s.id}>
+                    <td colSpan={6} className="p-2">
+                      <CaseStudyForm study={s} onClose={() => setEditId(null)} />
+                    </td>
+                  </tr>
+                ) : (
+                  <CaseStudyRow key={s.id} study={s} onEdit={() => setEditId(s.id)} />
+                ),
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }

@@ -61,7 +61,7 @@ const XLSX_RESOURCES: Record<string, { title: string; filename: string; sheets: 
           { attribute: "Customisation", detail: "Full wrap, custom game skins, prize logic" },
           { attribute: "Data capture", detail: "Email, phone, custom fields, consent" },
           { attribute: "Telemetry", detail: "Live plays, leads, dwell, heat by hour" },
-          { attribute: "Staffing", detail: "Self-serve or brand-ambassador assisted" },
+          { attribute: "Staffing", detail: "Self-serve or with Bright.Blue on-site support" },
           { attribute: "Connectivity", detail: "4G + Wi-Fi failover" },
         ],
       },

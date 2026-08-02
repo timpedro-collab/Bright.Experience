@@ -34,6 +34,7 @@ import { requestStudioFixForAsset } from "@/app/actions/studio";
 import { loadAssetReviewDetail } from "@/app/actions/asset-detail";
 import { MachinePreview } from "@/components/assets/MachinePreview";
 import { AssetVersionTimeline } from "@/components/assets/AssetVersionTimeline";
+import { VersionCompareDialog } from "@/components/assets/VersionCompareDialog";
 import { AnnotatablePreview } from "@/components/assets/AnnotatablePreview";
 import { slotForAsset } from "@/lib/asset-requirements/machine-placements";
 import type { Asset, AssetAnnotation, AssetVersion } from "@/types";
@@ -227,7 +228,13 @@ function AssetReviewRow({
                 {versions === null ? (
                   <p className="text-xs text-muted-foreground">Loading…</p>
                 ) : (
-                  <AssetVersionTimeline versions={versions} />
+                  <div className="space-y-3">
+                    <AssetVersionTimeline versions={versions} />
+                    <VersionCompareDialog
+                      versions={versions}
+                      assetName={asset.name}
+                    />
+                  </div>
                 )}
               </div>
             </div>

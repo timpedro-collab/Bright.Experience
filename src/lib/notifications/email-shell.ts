@@ -62,14 +62,6 @@ export interface EmailShellPayload {
   showSignOff?: boolean;
 }
 
-function eyebrowTone(eyebrow: string): { bg: string; fg: string } {
-  const upper = eyebrow.toLowerCase();
-  if (upper.includes("action")) return { bg: "#FEF3C7", fg: "#B45309" };
-  if (upper.includes("reminder")) return { bg: "#FEE2E2", fg: "#B91C1C" };
-  if (upper.includes("final")) return { bg: "#FEE2E2", fg: "#B91C1C" };
-  return { bg: "#E0E7FF", fg: "#1F3FA8" };
-}
-
 /**
  * Escape user-supplied strings before they land in the HTML body. Keeps
  * notes/feedback from accidentally injecting markup when a customer
@@ -85,7 +77,6 @@ export function escapeHtml(value: string): string {
 }
 
 export function renderNotificationEmail(payload: EmailShellPayload): string {
-  const tone = eyebrowTone(payload.eyebrow);
   const ae = DEFAULT_ACCOUNT_MANAGER;
   const baseUrl =
     process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
@@ -163,10 +154,3 @@ export function renderNotificationEmail(payload: EmailShellPayload): string {
     </div>
   `;
 }
-
-/**
- * Eyebrow chip with explicit colours — exposed for unit tests / Storybook
- * if those land later. Kept here so the rendering and the colour rules
- * never drift.
- */
-export const eyebrowToneFor = eyebrowTone;

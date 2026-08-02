@@ -28,6 +28,7 @@ const DEMO_ACCOUNTS: Array<{ email: string; label: string; role: string }> = [
   { email: "dan@brightblue.co.uk", label: "Dan Barnes", role: "Ops" },
   { email: "maya@northern.events", label: "Maya Patel", role: "Reseller Partner" },
   { email: "aaron@excel.london", label: "Aaron Howe", role: "Venue · ExCeL London" },
+  { email: "nadia@informatech.events", label: "Nadia Okafor", role: "Organizer · Tech Live London" },
 ];
 
 export default function LoginPage() {

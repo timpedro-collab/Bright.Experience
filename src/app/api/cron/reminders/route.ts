@@ -20,6 +20,7 @@ import { NextResponse } from "next/server";
 
 import { getServiceRoleClient } from "@/lib/supabase/service-role";
 import { requireCron } from "@/lib/cron-auth";
+import { recordCronRun } from "@/lib/cron/heartbeat";
 import {
   runStaleReminders,
   nudgeTimeDriven,
@@ -52,6 +53,14 @@ export async function GET(request: Request) {
   const complianceExpiry = await warnExpiringCompliance(supabase);
   const timeDriven = await nudgeTimeDriven(supabase);
   const deadlineEscalation = await escalateOverdueDeadlines(supabase);
+
+  await recordCronRun(supabase, "reminders", "ok", {
+    reminders,
+    timeDriven,
+    deadlineEscalation,
+    invoiceOverdue,
+    complianceExpiry,
+  });
 
   return NextResponse.json({
     ok: true,

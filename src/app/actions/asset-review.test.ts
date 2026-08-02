@@ -21,6 +21,10 @@ vi.mock("@/lib/notifications/dispatch", () => ({
 vi.mock("@/lib/pipedrive/triggers", () => ({
   enqueueAssetReviewDecision: (...args: unknown[]) => enqueueAssetReviewDecision(...args),
 }));
+vi.mock("@/lib/audit", () => ({
+  writeAudit: vi.fn(),
+}));
+vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 
 beforeEach(() => {
   supabase = createMockSupabase();
@@ -167,6 +171,92 @@ describe("submitAssetReview — happy path", () => {
       "hero.png",
       "revision_requested",
       "Bump the wordmark size by 10%"
+    );
+  });
+});
+
+describe("reopenAsset — validation", () => {
+  it("rejects an empty reason", async () => {
+    const { reopenAsset } = await import("./asset-review");
+    const result = await reopenAsset({
+      assetId: validAssetId,
+      reason: "   ",
+    });
+    expect(result.success).toBe(false);
+  });
+});
+
+describe("reopenAsset — auth", () => {
+  it("rejects unauthenticated callers", async () => {
+    supabase.setUser(null);
+    const { reopenAsset } = await import("./asset-review");
+    const result = await reopenAsset({
+      assetId: validAssetId,
+      reason: "Client needs a colour tweak",
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects customers", async () => {
+    supabase.setUser({ id: "u1" });
+    supabase.setTableResponse("profiles", {
+      data: { role: "customer_admin" },
+      error: null,
+    });
+    const { reopenAsset } = await import("./asset-review");
+    const result = await reopenAsset({
+      assetId: validAssetId,
+      reason: "Need to change the logo",
+    });
+    expect(result.success).toBe(false);
+    if (!result.success) expect(result.error).toMatch(/Bright\.Blue staff/);
+  });
+
+  it("rejects when the asset is not approved", async () => {
+    supabase.setUser({ id: "u1" });
+    supabase.setTableResponse("profiles", {
+      data: { role: "creative_lead" },
+      error: null,
+    });
+    supabase.setTableResponse("assets", {
+      data: { event_id: "evt-1", name: "hero.png", review_status: "pending_review" },
+      error: null,
+    });
+    const { reopenAsset } = await import("./asset-review");
+    const result = await reopenAsset({
+      assetId: validAssetId,
+      reason: "Change requested",
+    });
+    expect(result.success).toBe(false);
+    if (!result.success) expect(result.error).toMatch(/Only approved/);
+  });
+});
+
+describe("reopenAsset — happy path", () => {
+  beforeEach(() => {
+    supabase.setUser({ id: "u-internal" });
+    supabase.setTableResponse("profiles", {
+      data: { role: "operations_lead" },
+      error: null,
+    });
+    supabase.setTableResponse("assets", {
+      data: { event_id: "evt-1", name: "hero.png", review_status: "approved" },
+      error: null,
+    });
+  });
+
+  it("unlocks an approved asset and notifies the customer", async () => {
+    const { reopenAsset } = await import("./asset-review");
+    const result = await reopenAsset({
+      assetId: validAssetId,
+      reason: "Client spotted a typo after sign-off",
+    });
+    expect(result.success).toBe(true);
+    expect(dispatchNotification).toHaveBeenCalledWith(
+      "asset.revision_requested",
+      expect.objectContaining({
+        feedback: "Client spotted a typo after sign-off",
+      }),
     );
   });
 });

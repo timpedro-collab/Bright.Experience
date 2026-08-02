@@ -5,12 +5,13 @@ A new engineer's quickstart to the test suite. Follow these conventions and CI w
 ## TL;DR
 
 ```bash
-npm test              # run all unit + integration tests once
-npm run test:watch    # watch mode (re-runs affected tests on save)
-npm run test:ui       # pretty Vitest UI in the browser
-npm run test:coverage # coverage report (HTML in coverage/)
-npm run test:rls      # pgTAP RLS tests against local Supabase
-npm run test:e2e      # Playwright browser tests
+npm test                 # unit tests, hermetic (mocked Supabase)
+npm run test:watch       # watch mode (re-runs affected tests on save)
+npm run test:ui          # pretty Vitest UI in the browser
+npm run test:coverage    # coverage report (HTML in coverage/)
+npm run test:integration # real queries against local Postgres (needs db:local)
+npm run test:rls         # pgTAP RLS tests against local Supabase
+npm run test:e2e         # Playwright browser tests
 ```
 
 ## What we test (and don't)
@@ -19,6 +20,7 @@ npm run test:e2e      # Playwright browser tests
 |---|---|---|---|
 | Pure functions | Vitest | 90%+ | `src/lib/**/*.test.ts` next to source |
 | Module integration | Vitest + mocked Supabase | 75%+ | `src/lib/**/*.test.ts` |
+| Query shape against real Postgres | Vitest + local Supabase | the hot read path | `src/**/*.integration.test.ts` |
 | Server actions | Vitest + mocked Supabase + spied dispatcher | 70%+ branches | `src/app/actions/**/*.test.ts` |
 | Components | Vitest + @testing-library/react | critical UI only | `src/components/**/*.test.tsx` |
 | RLS policies | pgTAP via Supabase CLI | every sensitive table | `supabase/tests/*.sql` |
@@ -161,6 +163,55 @@ rollback;
 
 Run `npm run test:rls` to confirm.
 
+The suite runs against your local database, which also carries the demo seed, so
+fixtures and assertions have to be scoped:
+
+- Give fixture rows `rls-` prefixed slugs, codes and other unique values.
+  `supabase/tests/_fixtures.psql` follows this; a bare `northern` or
+  `BB-NORTH001` collides with a seeded row and the whole file aborts.
+- Never assert on a whole-table count. `select count(*) from venues` counts the
+  demo data too. Scope every assertion to the fixture ids or slugs it created,
+  and let the policy — not an empty table — be the thing under test.
+
+### A new query against real Postgres
+
+The unit suite drives Supabase through `createMockSupabase()`, a chainable
+recorder. It cannot tell you that a `select()` names a column that doesn't
+exist, that an embed is ambiguous because two foreign keys connect the tables,
+that an `upsert`'s `on_conflict` has no matching unique index, or that an
+`rpc()` was never migrated. Every one of those shipped to `main` at some point.
+
+`src/lib/queries/hot-queries.integration.test.ts` runs the hot read path against
+local Postgres under real RLS. Add a case when you add a query a page depends
+on:
+
+```ts
+[
+  "getWidgetsByEvent",
+  async () => (await import("./widgets")).getWidgetsByEvent(fixtures.eventId),
+],
+```
+
+The assertion is uniform — the call resolves and nothing reached
+`logQueryError`, i.e. PostgREST accepted the request. Row-shape assertions stay
+in the unit suite.
+
+```bash
+npm run db:local          # start Postgres, apply migrations, seed in three steps
+npm run test:integration  # skips with a warning if the stack isn't up
+```
+
+Seeding is ordered: `seed-users.ts` (auth users) → `seed.sql` (catalogue,
+events, the canonical asset checklist) → `run-seed.ts` (the lived-in demo layer
+built on top). `seed.sql` cannot run during `supabase db reset` because it
+references auth users created out of band, so `scripts/apply-seed-sql.sh`
+applies it in between and skips if the catalogue is already there. To re-seed,
+use `npm run db:reset` rather than re-running the parts.
+
+Personas (`internal`, `customer`) sign in with real passwords from
+`supabase/seed-users.ts`, so RLS applies exactly as in production. The harness
+lives in `src/test/integration/harness.ts`.
+
 ### A new E2E journey
 
 Only add E2E when:
@@ -171,27 +222,64 @@ Otherwise prefer unit/integration tests — they're cheaper and more focused.
 
 ## CI gates
 
-| Gate | When | Failure means |
-|---|---|---|
-| `lint` | every push | Pre-existing — non-blocking for now |
-| `typecheck` | every push | TypeScript errors — must pass |
-| `npm test` | every push | Any test failure or coverage below threshold — must pass |
-| `test:rls` | PRs to main | RLS regression — must pass |
-| `test:e2e` | PRs to main + nightly | Smoke regression — must pass before merge |
+Verified against [`.github/workflows/test.yml`](../.github/workflows/test.yml)
+and [`.github/workflows/e2e.yml`](../.github/workflows/e2e.yml) (2026-07-31).
 
-Branch protection on `main` enforces all of the above (except `lint`).
+**Job `lint-typecheck-unit`** (push + PR to `main` and `frontend-mock-data`)
+runs these steps in order — each is blocking, a failure fails the job:
+
+| Step | Notes |
+|---|---|
+| `npm run lint` | **Blocking** — runs before typecheck/test in the same job |
+| `npm run typecheck` | `tsc --noEmit` |
+| `npm run test:coverage` | Vitest **with the coverage gate on** — below a threshold fails the build |
+| `npm run build` | Production build with stub env; must compile |
+
+**Job `database`** (same triggers): checks that every RLS policy has a pgTAP
+test (`node scripts/check-policy-tests.mjs`), then spins up local Supabase via
+the CLI and runs `npm run test:rls` (pgTAP) followed by
+`npm run test:integration` (hot queries against real Postgres). Requires the
+Supabase CLI/Docker in the runner.
+
+**E2E** (`e2e.yml`, separate workflow): Playwright on PRs + nightly 02:00 UTC;
+builds and starts a production server with `TEST_MODE=1`.
 
 ## Coverage thresholds
 
-Enforced in `vitest.config.ts`:
+Defined in `vitest.config.ts` and enforced by `npm run test:coverage`, which is
+what CI runs. Measured 2026-07-31:
 
-| Path | Lines | Branches |
-|---|---|---|
-| `src/lib/**/*.ts` | 85% | 80% |
-| `src/app/actions/**/*.ts` | 70% | 65% |
-| Global | 65% | 60% |
+| Path | Lines | Branches | Functions |
+|---|---|---|---|
+| `src/lib/**/*.ts` | 50% | 42% | 53% |
+| `src/app/actions/**/*.ts` | 41% | 34% | 36% |
+| Global | 30% | 24% | 24% |
 
-If you drop coverage below these, CI fails. Either write the missing tests or argue for moving the threshold in your PR.
+These are **ratchets, not targets**. They previously read 85 / 70 / 65 — numbers
+the suite had never met — and CI ran `npm test` without the coverage reporter,
+so nothing enforced them. They now sit just under measured coverage, which means
+the build fails the moment a change makes coverage worse. Raise them as tests
+land; never lower one to make a build pass.
+
+## Every RLS policy needs a pgTAP test
+
+`scripts/check-policy-tests.mjs` parses every `create policy` in
+`supabase/migrations/` and fails when the table it targets isn't mentioned by
+any file under `supabase/tests/`. Run it locally before pushing a migration
+that touches RLS:
+
+```bash
+node scripts/check-policy-tests.mjs
+```
+
+Matching is by table name, not filename — one test file often covers a domain
+(`rls_telemetry.sql` covers four tables). If you genuinely cannot test a policy
+yet, add the table to `supabase/tests/.policy-coverage-baseline` and expect to
+justify it in review; the list is empty today.
+
+One gotcha when writing the test: `supabase test db` runs against a **seeded**
+database, so never assert on an unqualified `count(*)`. Scope every assertion to
+your fixture rows (`where id in (...)`).
 
 ## Pre-commit hook
 

@@ -17,7 +17,7 @@
  */
 import localFont from "next/font/local";
 
-export const brightHeadings = localFont({
+const brightHeadings = localFont({
   src: "./bright-headings.ttf",
   variable: "--font-bright-headings",
   display: "swap",
@@ -27,7 +27,7 @@ export const brightHeadings = localFont({
   fallback: ["Nunito", "system-ui", "sans-serif"],
 });
 
-export const brightBody = localFont({
+const brightBody = localFont({
   src: "./bright-body.ttf",
   variable: "--font-bright-body",
   display: "swap",
@@ -37,7 +37,7 @@ export const brightBody = localFont({
   fallback: ["DM Sans", "system-ui", "sans-serif"],
 });
 
-export const brightOverline = localFont({
+const brightOverline = localFont({
   src: "./bright-overline.ttf",
   variable: "--font-bright-overline",
   display: "swap",
@@ -47,8 +47,27 @@ export const brightOverline = localFont({
   fallback: ["DM Sans", "system-ui", "sans-serif"],
 });
 
+/**
+ * Editorial display serif — Fraunces (variable: wght 100–900 + optical size),
+ * SIL Open Font License. Used ONLY on public marketing surfaces (hero h1,
+ * section h2, pull-quotes) per docs/18-design-research.md H5 — the portal
+ * stays entirely on Nunito/DM Sans. Momentum's serif-at-weight-400 pattern:
+ * the size does the work, the weight stays light. Not preloaded — it must
+ * not cost the logged-in portal anything.
+ */
+const brightDisplaySerif = localFont({
+  src: "./bright-display-serif.ttf",
+  variable: "--font-bright-display-serif",
+  display: "swap",
+  weight: "100 900",
+  style: "normal",
+  preload: false,
+  fallback: ["Georgia", "Times New Roman", "serif"],
+});
+
 export const brandFontVariables = [
   brightHeadings.variable,
   brightBody.variable,
   brightOverline.variable,
+  brightDisplaySerif.variable,
 ].join(" ");

@@ -11,7 +11,7 @@ import { createMockSupabase, type MockSupabase } from "@/test/supabase";
 
 let supabase: MockSupabase;
 const getUser = vi.fn();
-const inviteCustomerUserSystem = vi.fn();
+const inviteCustomerUserInternal = vi.fn();
 const dispatchNotification = vi.fn();
 
 vi.mock("@/lib/supabase/server", () => ({
@@ -21,9 +21,9 @@ vi.mock("@/lib/auth", () => ({
   getUser: (...args: unknown[]) => getUser(...args),
   requireInternalUser: vi.fn(),
 }));
-vi.mock("@/app/actions/invites", () => ({
-  inviteCustomerUserSystem: (...args: unknown[]) =>
-    inviteCustomerUserSystem(...args),
+vi.mock("@/server/invites", () => ({
+  inviteCustomerUserInternal: (...args: unknown[]) =>
+    inviteCustomerUserInternal(...args),
 }));
 vi.mock("@/lib/notifications/dispatch", () => ({
   dispatchNotification: (...args: unknown[]) => dispatchNotification(...args),
@@ -46,7 +46,7 @@ const LEAD = {
 beforeEach(() => {
   supabase = createMockSupabase();
   getUser.mockReset().mockResolvedValue(LEAD);
-  inviteCustomerUserSystem.mockReset().mockResolvedValue({ success: true });
+  inviteCustomerUserInternal.mockReset().mockResolvedValue({ success: true });
   dispatchNotification.mockReset().mockResolvedValue(undefined);
 });
 
@@ -61,7 +61,7 @@ describe("inviteTeammate", () => {
       status: "invited",
       domain: "cocacola.com",
     });
-    expect(inviteCustomerUserSystem).toHaveBeenCalledWith(
+    expect(inviteCustomerUserInternal).toHaveBeenCalledWith(
       "colleague@cocacola.com",
       "acc1",
       "customer_user",
@@ -81,7 +81,7 @@ describe("inviteTeammate", () => {
     const { inviteTeammate } = await import("./team");
     await inviteTeammate("agency@external-partner.com");
 
-    expect(inviteCustomerUserSystem).not.toHaveBeenCalled();
+    expect(inviteCustomerUserInternal).not.toHaveBeenCalled();
     // It took the approval branch (which resolves the account's latest event).
     expect(supabase.callsFor("events").length).toBeGreaterThan(0);
   });
@@ -96,7 +96,7 @@ describe("inviteTeammate", () => {
     const { inviteTeammate } = await import("./team");
     await inviteTeammate("colleague@cocacola.com", true);
 
-    expect(inviteCustomerUserSystem).not.toHaveBeenCalled();
+    expect(inviteCustomerUserInternal).not.toHaveBeenCalled();
     expect(supabase.callsFor("events").length).toBeGreaterThan(0);
   });
 
@@ -106,7 +106,7 @@ describe("inviteTeammate", () => {
     const result = await inviteTeammate("colleague@cocacola.com");
 
     expect(result.success).toBe(false);
-    expect(inviteCustomerUserSystem).not.toHaveBeenCalled();
+    expect(inviteCustomerUserInternal).not.toHaveBeenCalled();
   });
 
   it("rejects an invalid email", async () => {
@@ -114,7 +114,7 @@ describe("inviteTeammate", () => {
     const result = await inviteTeammate("not-an-email");
 
     expect(result.success).toBe(false);
-    expect(inviteCustomerUserSystem).not.toHaveBeenCalled();
+    expect(inviteCustomerUserInternal).not.toHaveBeenCalled();
   });
 
   it("rejects someone who already has a portal login", async () => {
@@ -123,6 +123,6 @@ describe("inviteTeammate", () => {
     const result = await inviteTeammate("colleague@cocacola.com");
 
     expect(result.success).toBe(false);
-    expect(inviteCustomerUserSystem).not.toHaveBeenCalled();
+    expect(inviteCustomerUserInternal).not.toHaveBeenCalled();
   });
 });

@@ -26,24 +26,3 @@ export async function toggleUserActive(
   if (error) return { success: false, error: error.message };
   return { success: true, data: undefined };
 }
-
-/** Update an account's name. Admin-only. */
-export async function updateAccountName(
-  accountId: string,
-  name: string,
-): Promise<ActionResult> {
-  const { profile } = await requireInternalUser();
-  if (!isAdminRole(profile.role)) {
-    return { success: false, error: "Forbidden: admin access only" };
-  }
-  if (!name.trim()) return { success: false, error: "Name is required" };
-
-  const supabase = await createClient();
-  const { error } = await supabase
-    .from("accounts")
-    .update({ name: name.trim() })
-    .eq("id", accountId);
-
-  if (error) return { success: false, error: error.message };
-  return { success: true, data: undefined };
-}

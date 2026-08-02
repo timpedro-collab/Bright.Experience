@@ -8,7 +8,10 @@
  */
 "use server";
 
+import { headers } from "next/headers";
+
 import { createClient } from "@/lib/supabase/server";
+import { resolveCallbackOrigin } from "@/lib/auth/safe-redirect";
 import { authLimiter, getClientIp } from "@/lib/rate-limit";
 
 type AuthResult = { success: true } | { success: false; error: string };
@@ -21,7 +24,7 @@ export async function signInWithPassword(
   password: string,
 ): Promise<AuthResult> {
   const ip = await getClientIp();
-  if (!authLimiter(`${ip}:${email.toLowerCase()}`)) {
+  if (!(await authLimiter(`${ip}:${email.toLowerCase()}`))) {
     return { success: false, error: RATE_LIMITED };
   }
 
@@ -31,18 +34,28 @@ export async function signInWithPassword(
   return { success: true };
 }
 
-export async function requestPasswordReset(
-  email: string,
-  redirectTo: string,
-): Promise<AuthResult> {
+/**
+ * Send a password-reset email.
+ *
+ * The reset link's origin is derived server-side. It used to be an argument, and
+ * the caller passed `window.location.origin` — a value an attacker controls, so
+ * a crafted request could point a genuine reset link at their own host and
+ * collect the recovery token when the victim clicked it.
+ */
+export async function requestPasswordReset(email: string): Promise<AuthResult> {
   const ip = await getClientIp();
-  if (!authLimiter(`${ip}:${email.toLowerCase()}`)) {
+  if (!(await authLimiter(`${ip}:${email.toLowerCase()}`))) {
     return { success: false, error: RATE_LIMITED };
   }
 
+  // resolveCallbackOrigin pins to NEXT_PUBLIC_SITE_URL when configured, and only
+  // falls back to the request's own origin in dev/preview where it is not.
+  const requestOrigin = (await headers()).get("origin") ?? "";
+  const origin = resolveCallbackOrigin(requestOrigin);
+
   const supabase = await createClient();
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo,
+    redirectTo: `${origin}/auth/reset-password`,
   });
   if (error) return { success: false, error: error.message };
   return { success: true };

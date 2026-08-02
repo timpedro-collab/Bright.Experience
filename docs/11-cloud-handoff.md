@@ -46,8 +46,7 @@ Migrations create all five buckets and their `storage.objects` RLS policies, but
 
 ### A4. Vercel deployment + cron
 - Set all env vars (A5). Vercel Cron is a Pro-plan feature; schedules are UTC.
-- `vercel.json` defines 3 crons: `/api/cron/reminders` (daily 09:00), `/api/cron/digest` (daily 17:00), `/api/cron/pipedrive` (hourly).
-- **Action:** `/api/cron/reports` exists (`src/app/api/cron/reports/route.ts`) and is `CRON_SECRET`-authed but is **not scheduled in `vercel.json`** — add a schedule or it will never run.
+- `vercel.json` defines **5 crons** (UTC): `/api/cron/reminders` (`0 9 * * *`, daily 09:00), `/api/cron/digest` (`0 * * * *`, hourly — sends each recipient at their preferred local hour), `/api/cron/pipedrive` (`0 * * * *`, hourly), `/api/cron/reports` (`0 8 * * *`, daily 08:00), and `/api/cron/purge-leads` (`30 2 * * *`, daily 02:30).
 - Ensure `next/image` remote hosts in `next.config.ts` match your real storage/CDN domains.
 - Add a `SENTRY_AUTH_TOKEN` (Vercel Sentry integration) for source-map upload.
 
@@ -161,9 +160,9 @@ flowchart TD
 
 ### Domain 9 — Telemetry / Live Event
 - **`machine_instances`** (`telemetry_tables`) — serial-tracked physical units. `current_placement_id` FK added in `20260713000002` (E6).
-- **`telemetry_events`** (`telemetry_tables`) — raw machine event stream (play/lead/heartbeat/error).
-- **`leads`** (`telemetry_tables`) — captured leads.
-- **`event_metrics_snapshot`** (`telemetry_tables`) — daily aggregates, `UNIQUE(event_id, snapshot_date)`, `is_final` added.
+- **`telemetry_events`** (`telemetry_tables`) — raw machine event stream (play/lead/heartbeat/error). `external_event_id` + unique index added in `20260731000000` — the idempotency key the `telemetry.batch` upsert conflicts on, so a Cloud redelivery stops double-counting plays (keys built in `src/lib/webhooks/telemetry-idempotency.ts`).
+- **`leads`** (`telemetry_tables`) — captured leads. `consented_at` added in `20260724000000` (GDPR consent timestamp, stamped by the `lead.captured` webhook; leads are hard-deleted by the `/api/cron/purge-leads` retention cron).
+- **`event_metrics_snapshot`** (`telemetry_tables`) — daily aggregates, `UNIQUE(event_id, snapshot_date)`, `is_final` added. `stock_remaining` / `stock_capacity` added in `20260724000002` (recomputed on each `telemetry.batch` ingest; drives the live-dashboard stock tile and the `machine.stock_low` notification).
 - **`hourly_metrics`** (`schema_fixes`) — hour-of-day breakdown (written by the `report.ready` webhook).
 
 ### Domain 10 — Reporting
@@ -197,7 +196,7 @@ flowchart TD
 - **`client_compliance_requirements`** (`compliance_vault`) — per-account default compliance profile, `UNIQUE(account_id, document_type)`. *(No `updated_at` trigger.)*
 
 ### Domain 16 — Machine / Game Configuration
-- **`game_configurations`** (`game_product_config`) — per-event game setup (prizes/form fields/params), `UNIQUE(event_id)`. *(No `updated_at` trigger.)*
+- **`game_configurations`** (`game_product_config`) — per-event game setup (prizes/form fields/params), `UNIQUE(event_id)`. *(No `updated_at` trigger.)* `capture_rules_json` (business-email enforcement, blocklist, dedupe, consent — see `src/lib/capture-rules.ts`), `retention_days` (1–730, default 60), and `branded_landing` added in `20260724000000`. Submitting the config pushes an `EventConfigPayload` to Cloud (`docs/10-integrations.md` §1b).
 - **`product_configurations`** (`game_product_config`) — per-event product/sampling + `machine_config_json` (lanes/vend). `UNIQUE(event_id)`. *(No `updated_at` trigger.)*
 
 ### Domain 17 — Audit
@@ -280,7 +279,7 @@ These are the roadmap items that depend on cloud infrastructure or backend syste
 - **Acceptance.** The quiz->proposal->booking funnel is queryable end-to-end.
 
 ### D5. Notification craft (roadmap #10) — **partially deferred**
-- Timezone/quiet-hours on the digest (`src/app/api/cron/digest/route.ts` fixed 17:00 UTC) and Resend bounce/delivery webhooks. The cron/code changes are buildable now; the Resend webhook registration is cloud setup.
+- Quiet-hours refinements on the digest and Resend bounce/delivery webhooks. The digest cron (`src/app/api/cron/digest/route.ts`) already ticks hourly and sends each recipient at their preferred local hour; remaining work is optional quiet-hours polish. The Resend webhook registration is cloud setup.
 
 ### D6. Reserved-but-unbuilt
 - `studio-deliverables` bucket + `createSignedUploadUrl` helper exist with **no caller** — the future Bright.Studio delivery hand-back feature.

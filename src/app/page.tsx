@@ -22,7 +22,10 @@ import { redirect } from "next/navigation";
 import { getEventsPaginated, type EventFilters } from "@/lib/queries/events";
 import { getInternalQueueCounts } from "@/lib/queries/admin-queues";
 import { getEventPortfolioStats } from "@/lib/queries/portfolio";
-import { getUnreadCount } from "@/lib/queries/notifications";
+import {
+  getUnreadCount,
+  getRecentActivityForUser,
+} from "@/lib/queries/notifications";
 import {
   getOpenTaskCountsForUser,
   getTasksByRole,
@@ -31,6 +34,7 @@ import {
 } from "@/lib/queries/tasks";
 import { getTeamForEvent } from "@/lib/queries/team";
 import { getCustomerActionItems } from "@/lib/queries/deadlines";
+import { getMilestonesByEvent } from "@/lib/queries/milestones";
 import { getPendingQuotesForCustomer, getUpcomingWalkthroughs } from "@/lib/queries/quotes";
 import { getAssetsByEvent } from "@/lib/queries/assets";
 import { getApprovalsByEvent } from "@/lib/queries/approvals";
@@ -59,12 +63,16 @@ export default async function HomePage({ searchParams }: HomePageProps) {
   }
   if (!user.hasCompletedOnboarding) redirect("/welcome");
 
-  // Partner & venue users don't have a customer/internal home — send them
-  // straight to their own portal. Venue-type partners land on their venue
-  // runway; resellers/agencies land on the partner dashboard.
+  // Partner, venue & organizer users don't have a customer/internal home —
+  // send them straight to their own portal. Venue-type partners land on their
+  // venue runway, organizers on their shows, resellers/agencies on the
+  // partner dashboard.
   if (isPartnerRole(user.role)) {
     const partner = await getPartnerForUser(user.id);
     if (partner) {
+      if (partner.type === "organizer") {
+        redirect(`/organizers/${partner.slug}/shows`);
+      }
       if (partner.type === "venue") {
         const venues = await getVenuesByPartner(partner.id);
         if (venues[0]?.slug) redirect(`/venues/${venues[0].slug}/dashboard`);
@@ -98,7 +106,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
 
   // Featured-event-specific data only fetched if there's something to feature.
   const eventIds = events.map((e) => e.id);
-  const [taskCounts, featuredTeam, taskProgress, customerActions, featuredTasks, featuredAssets, featuredApprovals] =
+  const [taskCounts, featuredTeam, taskProgress, customerActions, featuredTasks, featuredAssets, featuredApprovals, featuredMilestones] =
     await Promise.all([
       getOpenTaskCountsForUser(user.id, isInternal, eventIds),
       featured ? getTeamForEvent(featured.id) : Promise.resolve([]),
@@ -107,6 +115,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
       featured && !isInternal ? getTasksByEvent(featured.id) : Promise.resolve([]),
       featured && !isInternal ? getAssetsByEvent(featured.id) : Promise.resolve([]),
       featured && !isInternal ? getApprovalsByEvent(featured.id) : Promise.resolve([]),
+      featured && !isInternal ? getMilestonesByEvent(featured.id) : Promise.resolve([]),
     ]);
 
   const featuredNextStep =
@@ -118,13 +127,6 @@ export default async function HomePage({ searchParams }: HomePageProps) {
           approvals: featuredApprovals,
           isInternal: false,
         })
-      : null;
-
-  const dueRaw = customerActions.find((a) => a.dueDate)?.dueDate ?? null;
-  const nextStepDueHint = dueRaw
-    ? `Due ${dueRaw} — delay here can slip creative and install windows.`
-    : customerActions.length > 0
-      ? "Complete this before the next stage gate — delays here push creative and install."
       : null;
 
   const totalPages =
@@ -178,9 +180,11 @@ export default async function HomePage({ searchParams }: HomePageProps) {
 
   // A logged-in customer with no event isn't dumped to the public funnel —
   // we show their in-flight proposal (if any) or a warm in-portal discovery.
-  const pendingQuotes = !featured
-    ? await getPendingQuotesForCustomer(user.email)
-    : [];
+  const [pendingQuotes, recentActivity] = await Promise.all([
+    !featured ? getPendingQuotesForCustomer(user.email) : Promise.resolve([]),
+    // "Things that happened" for the home's Needs-you / Recent-activity split.
+    featured ? getRecentActivityForUser(user.id) : Promise.resolve([]),
+  ]);
 
   // Customer mode → Featured event editorial spread.
   return (
@@ -198,7 +202,8 @@ export default async function HomePage({ searchParams }: HomePageProps) {
       page={page}
       pendingQuotes={pendingQuotes}
       nextStep={featuredNextStep}
-      nextStepDueHint={nextStepDueHint}
+      featuredMilestones={featuredMilestones}
+      recentActivity={recentActivity}
     />
   );
 }

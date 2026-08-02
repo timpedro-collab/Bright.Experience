@@ -38,6 +38,8 @@ interface PipelineBoardProps {
   owners: string[];
   /** Whether this viewer's role may advance the pipeline stage by dragging. */
   canManageStage?: boolean;
+  /** Seed the health dropdown from URL preset params. */
+  initialHealth?: HealthStatus | "all";
 }
 
 /** The stage immediately after `stage`, or null at the end of the pipeline. */
@@ -50,11 +52,14 @@ export function PipelineBoard({
   events,
   owners,
   canManageStage = false,
+  initialHealth = "all",
 }: PipelineBoardProps) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [search, setSearch] = useState("");
-  const [healthFilter, setHealthFilter] = useState<HealthStatus | "all">("all");
+  const [healthFilter, setHealthFilter] = useState<HealthStatus | "all">(
+    initialHealth,
+  );
   const [ownerFilter, setOwnerFilter] = useState<string>("all");
 
   // Drag-to-advance: only the dragged event's immediate next stage is a
@@ -121,6 +126,7 @@ export function PipelineBoard({
           />
         </div>
         <select
+          aria-label="Filter by health"
           value={healthFilter}
           onChange={(e) => setHealthFilter(e.target.value as HealthStatus | "all")}
           className="rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground"
@@ -130,6 +136,7 @@ export function PipelineBoard({
           ))}
         </select>
         <select
+          aria-label="Filter by owner"
           value={ownerFilter}
           onChange={(e) => setOwnerFilter(e.target.value)}
           className="rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground"

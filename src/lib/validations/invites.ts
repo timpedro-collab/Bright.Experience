@@ -9,5 +9,5 @@ export const inviteCustomerUserSchema = z.object({
   role: z.enum(["customer_admin", "customer_user"]),
 });
 
-/** Input for `inviteCustomerUserSystem` — same shape as the gated variant. */
+/** Input for `inviteCustomerUserInternal` — same shape as the gated variant. */
 export const inviteCustomerUserSystemSchema = inviteCustomerUserSchema;

@@ -13,7 +13,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { getServiceRoleClient } from "@/lib/supabase/service-role";
 import { revalidatePath } from "next/cache";
-import { autoCompleteTaskByPath } from "@/app/actions/tasks";
+import { autoCompleteTaskByPath } from "@/server/tasks";
 import type { ActionResult } from "@/types/actions";
 
 export interface OnsiteContact {

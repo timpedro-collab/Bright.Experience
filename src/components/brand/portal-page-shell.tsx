@@ -53,6 +53,8 @@ interface PortalPageShellProps {
   backLabel?: string;
   /** Optional breadcrumb override. */
   breadcrumbs?: EditionBreadcrumb[];
+  /** Override the user-menu role label (venue portal passes "Venue admin"). */
+  roleLabel?: string;
   children: React.ReactNode;
 }
 
@@ -69,6 +71,7 @@ export function PortalPageShell({
   backHref,
   backLabel = "Back to dashboard",
   breadcrumbs,
+  roleLabel,
   children,
 }: PortalPageShellProps) {
   const crumbs: EditionBreadcrumb[] =
@@ -94,7 +97,7 @@ export function PortalPageShell({
             </Link>
             <NotificationBell unreadCount={unreadCount} />
             <span className="hidden md:block h-6 w-px bg-border" aria-hidden />
-            <UserMenu user={user} />
+            <UserMenu user={user} roleLabel={roleLabel} />
           </>
         }
       />
@@ -141,6 +144,14 @@ export function partnerTabs(slug: string, viewerRole: UserRole): PortalTab[] {
   return tabs;
 }
 
+/**
+ * User-menu role label for a venue operator. Venues are modelled as
+ * `partner_*` roles, so this maps them to venue-facing language.
+ */
+export function venueRoleLabel(role: UserRole): string {
+  return isPartnerAdmin(role) ? "Venue admin" : "Venue";
+}
+
 /** Venue portal tab set for a given slug. */
 export function venueTabs(slug: string): PortalTab[] {
   return [
@@ -149,5 +160,22 @@ export function venueTabs(slug: string): PortalTab[] {
     { label: "Sponsorships", href: `/venues/${slug}/sponsorships` },
     { label: "Packages", href: `/venues/${slug}/packages` },
     { label: "Embed", href: `/venues/${slug}/embed` },
+  ];
+}
+
+/**
+ * User-menu role label for a show organizer. Organizers are modelled as
+ * `partner_*` roles, so this maps them to show-facing language.
+ */
+export function organizerRoleLabel(role: UserRole): string {
+  return isPartnerAdmin(role) ? "Show organizer" : "Show team";
+}
+
+/** Organizer portal tab set for a given slug. */
+export function organizerTabs(slug: string): PortalTab[] {
+  return [
+    { label: "Shows", href: `/organizers/${slug}/shows` },
+    { label: "Fleet", href: `/organizers/${slug}/fleet` },
+    { label: "Sponsors", href: `/organizers/${slug}/sponsors` },
   ];
 }

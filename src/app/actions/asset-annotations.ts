@@ -9,14 +9,16 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
+import { uuidLike } from "@/lib/validations/id";
+
 import { createClient } from "@/lib/supabase/server";
 import { isInternal } from "@/lib/notifications/roles";
 import type { ActionResult } from "@/types/actions";
 
 const addSchema = z.object({
-  assetId: z.string().uuid(),
-  eventId: z.string().uuid(),
-  assetVersionId: z.string().uuid().optional(),
+  assetId: uuidLike("Invalid asset"),
+  eventId: uuidLike("Invalid event"),
+  assetVersionId: uuidLike("Invalid asset version").optional(),
   x: z.number().min(0).max(100),
   y: z.number().min(0).max(100),
   w: z.number().min(0).max(100).default(0),

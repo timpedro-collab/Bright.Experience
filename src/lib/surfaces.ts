@@ -16,11 +16,6 @@
  */
 export const SURFACE_CARD =
   "rounded-[var(--radius-glass)] border border-border bg-card shadow-sm";
-
-/** Slightly inset / secondary surface (rows, wells, nested panels). */
-export const SURFACE_INSET =
-  "rounded-2xl border border-border bg-muted/50";
-
 /** Pill-shaped nav / filter chrome. */
 export const SURFACE_PILL =
   "rounded-full border border-border bg-card shadow-sm";
@@ -28,9 +23,3 @@ export const SURFACE_PILL =
 /** Section header strip inside a card. */
 export const SURFACE_SECTION_HEADER =
   "border-b border-border bg-muted/40";
-
-export const TEXT_MUTED = "text-muted-foreground";
-export const TEXT_STRONG = "text-foreground";
-export const TEXT_FAINT = "text-muted-foreground/70";
-
-export const HAIRLINE = "border-border";

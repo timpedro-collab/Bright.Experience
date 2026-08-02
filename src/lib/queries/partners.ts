@@ -1,6 +1,7 @@
 /** Supabase read queries for partner entities. */
 import { createClient } from "@/lib/supabase/server";
 import { PAGE_SIZE, paginateQuery, totalPages } from "@/lib/pagination";
+import { logQueryError } from "@/lib/observability/log-query-error";
 
 /** Fetch all partners, ordered by name (internal use). */
 export async function getPartners() {
@@ -15,7 +16,10 @@ export async function getPartners() {
     )
     .order("name", { ascending: true });
 
-  if (error || !data) return [];
+  if (error || !data) {
+    logQueryError("getPartners", error);
+    return [];
+  }
   return data;
 }
 
@@ -37,27 +41,14 @@ export async function getPartnersPaginated(
     .order("name", { ascending: true });
 
   const { data, error, count } = await paginateQuery(query, page, pageSize);
-  if (error || !data) return { data: [], totalCount: 0, totalPages: 1 };
+  if (error || !data) {
+    logQueryError("getPartnersPaginated", error);
+    return { data: [], totalCount: 0, totalPages: 1 };
+  }
 
   const total = count ?? 0;
   return { data, totalCount: total, totalPages: totalPages(total, pageSize) };
 }
-
-/** Fetch a single partner by slug with its users. */
-export async function getPartnerBySlug(slug: string) {
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("partners")
-    .select(
-      `*, partner_users ( id, profile_id, role, created_at )`
-    )
-    .eq("slug", slug)
-    .single();
-
-  if (error || !data) return null;
-  return data;
-}
-
 /**
  * Look up a partner by its unique partner code.
  *
@@ -77,7 +68,10 @@ export async function getPartnerByCode(code: string) {
     .eq("status", "active")
     .maybeSingle();
 
-  if (error || !data) return null;
+  if (error || !data) {
+    logQueryError("getPartnerByCode", error);
+    return null;
+  }
   return data;
 }
 
@@ -105,7 +99,10 @@ export async function getPartnerForUser(profileId: string): Promise<PartnerForUs
     .eq("profile_id", profileId)
     .single();
 
-  if (error || !data) return null;
+  if (error || !data) {
+    logQueryError("getPartnerForUser", error, { profileId });
+    return null;
+  }
 
   const p = data.partners as unknown as Record<string, unknown> | Record<string, unknown>[] | null;
   const partner = Array.isArray(p) ? p[0] : p;

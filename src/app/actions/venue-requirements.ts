@@ -8,10 +8,10 @@ import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import type { ActionResult } from "@/types/actions";
 import {
-  REQUIREMENT_TYPE_LABELS,
   type VenueRequirementType,
   type VenueRequirement,
 } from "@/types/venue-requirements";
+import { logQueryError } from "@/lib/observability/log-query-error";
 
 function mapRequirement(row: Record<string, unknown>): VenueRequirement {
   return {
@@ -34,7 +34,10 @@ export async function getVenueRequirements(eventId: string): Promise<VenueRequir
     .select("*")
     .eq("event_id", eventId)
     .order("created_at");
-  if (error || !data) return [];
+  if (error || !data) {
+    logQueryError("getVenueRequirements", error, { eventId });
+    return [];
+  }
   return data.map((row) => mapRequirement(row as Record<string, unknown>));
 }
 
@@ -59,7 +62,10 @@ export async function addVenueRequirement(
     .select("id")
     .single();
 
-  if (error) return { success: false, error: `Failed to add requirement: ${error.message}` };
+  if (error) {
+    logQueryError("addVenueRequirement", error, { eventId });
+    return { success: false, error: `Failed to add requirement: ${error.message}` };
+  }
   revalidatePath(`/events/${eventId}/logistics`);
   revalidatePath(`/events/${eventId}`);
   return { success: true, data: { id: data.id } };
@@ -75,7 +81,10 @@ export async function toggleVenueRequirement(
     .from("venue_requirements")
     .update({ is_met: isMet, updated_at: new Date().toISOString() })
     .eq("id", requirementId);
-  if (error) return { success: false, error: `Update failed: ${error.message}` };
+  if (error) {
+    logQueryError("toggleVenueRequirement", error, { requirementId });
+    return { success: false, error: `Update failed: ${error.message}` };
+  }
   revalidatePath(`/events/${eventId}/logistics`);
   revalidatePath(`/events/${eventId}`);
   return { success: true, data: undefined };

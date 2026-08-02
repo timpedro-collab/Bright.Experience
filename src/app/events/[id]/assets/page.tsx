@@ -121,8 +121,8 @@ export default async function AssetsPage({
           }
           action={
             isInternal
-              ? { label: "View timeline", href: `/events/${id}/timeline` }
-              : { label: "Back to overview", href: `/events/${id}` }
+              ? { label: "Open Timeline", href: `/events/${id}/timeline` }
+              : { label: "Return to Overview", href: `/events/${id}` }
           }
         />
       ) : (

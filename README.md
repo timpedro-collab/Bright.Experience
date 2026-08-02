@@ -53,7 +53,7 @@ flowchart TD
 | **Database** | Supabase (Postgres with Row-Level Security) |
 | **Auth** | Supabase Auth (email/password, invites, session management) |
 | **Storage** | Supabase Storage (private buckets, signed URLs) |
-| **Real-time** | Supabase Realtime + polling for live dashboards |
+| **Live updates** | Polling (20s `AutoRefresh`) fed by inbound Cloud webhooks — Supabase Realtime is not used today (see `docs/11-cloud-handoff.md` D1) |
 | **Email** | Resend (transactional + digest notifications) |
 | **Telemetry** | Bright.Blue Cloud (live API poll + inbound webhooks) |
 | **CRM** | Pipedrive (outbound write-back) |
@@ -69,9 +69,13 @@ flowchart TD
 
 - Node.js 20+ (22 recommended — enforced via the `engines` field in `package.json`)
 - npm 9+
-- A Supabase project (free tier works for development)
+- Docker Desktop (for the local Supabase stack) or a hosted Supabase project
 
-### Setup
+### Setup — local Postgres (recommended)
+
+This is the runtime that behaves like production: real auth, real RLS, real
+PostgREST, real constraints. Use it for anything touching security, policies, or
+a new query shape.
 
 ```bash
 git clone <repo-url>
@@ -79,19 +83,39 @@ cd Bright.Experience
 
 npm install
 
-# Copy environment file and fill in your values
-cp .env.example .env.local
+npm run db:local    # start Supabase in Docker, apply migrations, seed users + data
+npm run dev:local   # dev server wired to that stack, mock mode off
+```
 
-# Push database schema to Supabase
+Both scripts pull the anon and service-role keys straight out of the Supabase
+CLI, so a restarted stack keeps working without editing `.env.local`. Related
+commands:
+
+```bash
+npm run db:reset          # wipe and re-seed when the data drifts
+npm run db:stop           # stop the containers
+npm run test:rls          # pgTAP policy suite against the local stack
+npm run test:integration  # hot read path, run as real personas
+```
+
+### Setup — hosted Supabase
+
+```bash
+npm install
+cp .env.example .env.local   # fill in your project URL and keys
 npx supabase db push
-
-# Seed demo data (optional)
 npx tsx supabase/seed-users.ts
 npx tsx supabase/run-seed.ts
-
-# Start development server
 npm run dev
 ```
+
+### Setup — mock mode (no database)
+
+`npm run dev` with `NEXT_PUBLIC_MOCK_MODE=1` (already set in `.env.development`)
+runs the whole app against the in-memory dataset in `src/lib/supabase/mock/`.
+Ideal for UI work and demos, but it accepts any password and bypasses RLS
+entirely, so it proves nothing about whether the real database will accept a
+query. Production builds ignore the flag and log a security error.
 
 Open [http://localhost:3000](http://localhost:3000) to view the app.
 
@@ -110,12 +134,17 @@ Day-1 CTO notes: [`HANDOFF.md`](./HANDOFF.md).
 | `BRIGHTBLUE_WEBHOOK_SECRET` | Recommended | HMAC verify on inbound telemetry webhooks | Inbound telemetry rejected (503) |
 | `NEXT_PUBLIC_SENTRY_DSN` | Recommended | Error reporting (prod) | Sentry disabled |
 | `CRON_SECRET` | Optional | Bearer auth on `/api/cron/*` | Cron routes 401 |
+| `NEXT_PUBLIC_CALCOM_LINK` | Optional | Cal.com event-type path for the inline walkthrough booker | Built-in preset slot picker renders instead |
+| `CALCOM_WEBHOOK_SECRET` | Optional | HMAC verify on inbound Cal.com booking webhooks | Cal.com webhooks rejected (503) |
 | `PIPEDRIVE_API_TOKEN` | Optional | CRM write-back | No-op (or falls back to DB config) |
 | `FROM_EMAIL` / `STUDIO_TEAM_EMAIL` / `SALES_TEAM_EMAIL` | Optional | Email addresses | Defaults to `@brightblue.co.uk` |
 | `BOOKING_AUTO_PROVISION` | Optional | Set `"true"` (production only) to auto-create accounts/events/invites on public booking | Bookings recorded, provisioning skipped |
 | `FILE_SCAN_URL` / `FILE_SCAN_TOKEN` | Optional | Malware scan on uploads (`src/lib/storage/scan.ts`) | Scan skipped — uploads pass unscanned |
+| `NEXT_PUBLIC_MOCK_MODE` | Optional | Set `"1"` to run entirely against the in-memory mock dataset (`src/lib/supabase/mock/`) — no Supabase project needed. Set in `.env.development`; ignored (with a logged error) in production builds | Falls back to a live Supabase project (the four Required vars) |
 
-See `.env.example` for the full list with setup instructions.
+See `.env.example` for the full list with setup instructions, and
+[`SETUP.md`](./SETUP.md) for three step-by-step setup paths (mock demo, local
+Supabase, hosted Supabase).
 
 ## Architecture Principles
 
@@ -257,32 +286,54 @@ Stage advancement is gated by blocking tasks/milestones (`canAdvanceStage` in [`
 
 | Command | Description |
 |---------|-------------|
-| `npm run dev` | Start development server (port 3000) |
+| `npm run dev` | Start development server (port 3000, mock mode) |
+| `npm run dev:local` | Development server wired to the local Postgres stack |
+| `npm run db:local` | Start local Supabase, apply migrations, seed users + data |
+| `npm run db:reset` | Wipe and re-seed the local database |
+| `npm run db:stop` | Stop the local Supabase containers |
 | `npm run build` | Production build |
 | `npm run start` | Start production server |
 | `npm run lint` | Run ESLint |
 | `npm run typecheck` | Type-check (`tsc --noEmit`) |
-| `npm test` | Unit + integration tests (Vitest) |
+| `npm test` | Unit tests (Vitest, mocked Supabase) |
 | `npm run test:watch` | Vitest watch mode |
 | `npm run test:coverage` | Coverage report |
+| `npm run test:integration` | Hot read path against local Postgres as real personas |
 | `npm run test:rls` | pgTAP RLS tests (Docker / Supabase CLI) |
 | `npm run test:e2e` | Playwright end-to-end tests |
 
 ## Documentation
 
-See the `docs/` directory (and [`HANDOFF.md`](./HANDOFF.md) for Day-1 CTO notes):
+Start at the index — [`docs/00-documentation-index.md`](./docs/00-documentation-index.md) —
+which routes you by role (stakeholder, engineer, CTO, operator, product owner)
+and lists every document. Highlights:
 
+**Onboarding:** [`SETUP.md`](./SETUP.md) (setup paths) ·
+[`HANDOFF.md`](./HANDOFF.md) (Day-1 CTO) · [`CONTRIBUTING.md`](./CONTRIBUTING.md)
+
+**Product & design (`docs/`):**
 - **01 Product Definition** — what the platform is, who it serves, success criteria
 - **02 Event Lifecycle** — the 10-stage delivery pipeline with health tracking
-- **03 Roles & Permissions** — access control matrix
+- **03 Roles & Permissions** — access control matrix (mirrors `src/lib/roles.ts`)
 - **04 Data Model** — entity relationships and field definitions
 - **05 Information Architecture** — route map and navigation
 - **06 Build Roadmap** — phased delivery plan
 - **07 Platform Vision** — catalog, quoting, partners, venues
-- **08 Pricing & Quoting Model** — two-track quoting strategy
+- **08 Pricing & Quoting Model** — the implemented two-track + capability model
 - **09 Design System** — the Cloud language reference and banned patterns
+- **12 UX Simplification Audit** — role-by-role UX audit (resolved)
+
+**Architecture, integrations & reference:**
 - **10 Integrations** — webhooks, crons, external systems
 - **11 Cloud Handoff** — authoritative schema + Cloud integration notes
+- **13 Dev Handover Priorities** — prioritised worklist + security checklist
+- **14 Codebase Map** — directory taxonomy, tooling, inventories
+- **15 System Architecture** — diagrams and data flows
+- **16 API & Actions Reference** — route handlers + server actions
+- **17 Feature Reference** — role-based feature catalogue
+
+**Operations:** [`docs/ops/`](./docs/ops/README.md) — deployment, integration
+activation, monitoring/security/DR, maintenance/troubleshooting.
 
 ## Production Checklist
 

@@ -87,7 +87,7 @@ const EXPERIENTIAL_EVENT_TYPES = new Set([
 ]);
 
 /** Map an event-type answer to the reach track that drives the branch. */
-export function trackForEventType(eventType: string | null | undefined): ReachTrack {
+function trackForEventType(eventType: string | null | undefined): ReachTrack {
   return eventType && EXPERIENTIAL_EVENT_TYPES.has(eventType)
     ? "experiential"
     : "tradeshow";
@@ -367,6 +367,16 @@ const TIMELINE_STEP: QuizStep = {
  * ---------------------------------------------------------------------- */
 
 export type QuizAnswers = Record<string, string[]>;
+
+/**
+ * True when a value is a valid `event-type` quiz option. Used to validate
+ * URL-seeded answers (e.g. `/quiz?type=festival` from the homepage
+ * "Let's plan ___" links) before trusting them as a first answer.
+ */
+export function isQuizEventType(value: string | null | undefined): boolean {
+  if (!value) return false;
+  return EVENT_TYPE_STEP.options?.some((o) => o.value === value) ?? false;
+}
 
 /**
  * The ordered list of steps to show, given the answers so far. Until an event

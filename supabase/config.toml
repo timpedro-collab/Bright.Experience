@@ -168,7 +168,13 @@ enable_refresh_token_rotation = true
 # Requires enable_refresh_token_rotation = true.
 refresh_token_reuse_interval = 10
 # Allow/disallow new user signups to your project.
-enable_signup = true
+# OFF by design: every user arrives through an admin invite
+# (src/app/actions/invites.ts, src/app/actions/organizer-admin.ts) and nothing in
+# the app calls signUp(). Leaving self-signup on let anyone create an account in
+# a tenant they had no relationship with. Admin invite and createUser are
+# unaffected by this flag, so seeding and invites still work.
+# Mirror this setting in the hosted project: Auth -> Providers -> Email.
+enable_signup = false
 # Allow/disallow anonymous sign-ins to your project.
 enable_anonymous_sign_ins = false
 # Allow/disallow testing manual linking of accounts
@@ -202,7 +208,12 @@ web3 = 30
 # secret = ""
 
 [auth.email]
-# Allow/disallow new user signups via email to your project.
+# This flag is the email PROVIDER switch (GOTRUE_EXTERNAL_EMAIL_ENABLED), not a
+# signup-only one: turning it off disables email/password sign-in as well, which
+# is every login this product has. Self-signup is already blocked by the
+# top-level [auth] enable_signup = false (GOTRUE_DISABLE_SIGNUP), so leave this
+# on. In the hosted project the equivalent is Auth -> Providers -> Email, which
+# must stay enabled.
 enable_signup = true
 # If enabled, a user will be required to confirm any email change on both the old, and new email
 # addresses. If disabled, only the new email is required to confirm.
@@ -279,6 +290,13 @@ message_service_sid = ""
 auth_token = "env(SUPABASE_AUTH_SMS_TWILIO_AUTH_TOKEN)"
 
 # Multi-factor-authentication is available to Supabase Pro plan.
+#
+# Deliberately off. Turning `enroll_enabled`/`verify_enabled` on here is the
+# smaller half of the job: the app also needs an enrolment screen (QR + TOTP
+# secret), a challenge screen on sign-in, and an AAL2 check in the auth gate.
+# Until that ships, the settings UI must not claim 2FA exists — a security
+# control users believe they have but don't is worse than an honest gap.
+# See docs/13-dev-handover-priorities.md → Authentication & session.
 [auth.mfa]
 # Control how many MFA factors can be enrolled at once per user.
 max_enrolled_factors = 10

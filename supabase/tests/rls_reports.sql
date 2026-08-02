@@ -47,10 +47,14 @@ select is(
   'customer cannot see other-account reports'
 );
 
--- (4) Anon can see the published shared report
+-- (4) Anon can see the published shared report. Every assertion from here down
+-- is scoped to the fixture rows so it holds alongside demo seed data.
 select _rls_test_anon();
 select is(
-  (select array_agg(id order by id)::uuid[] from event_reports),
+  (select array_agg(id order by id)::uuid[] from event_reports where event_id in (
+    '00000000-0000-4000-8000-0000000000e1',
+    '00000000-0000-4000-8000-0000000000e2'
+  )),
   array['00000000-0000-4000-8000-0000000000db'::uuid],
   'anon sees only published shared reports'
 );
@@ -58,7 +62,10 @@ select is(
 -- (5) Internal sees all reports
 select _rls_test_as('00000000-0000-4000-8000-000000000011');
 select is(
-  (select count(*)::int from event_reports),
+  (select count(*)::int from event_reports where event_id in (
+    '00000000-0000-4000-8000-0000000000e1',
+    '00000000-0000-4000-8000-0000000000e2'
+  )),
   3,
   'internal sees every report'
 );
@@ -66,7 +73,7 @@ select is(
 -- (6) Anon reads benchmarks
 select _rls_test_anon();
 select is(
-  (select count(*)::int from benchmarks),
+  (select count(*)::int from benchmarks where id = '00000000-0000-4000-8000-0000000000dd'),
   1,
   'anon reads benchmarks for the acquisition funnel'
 );

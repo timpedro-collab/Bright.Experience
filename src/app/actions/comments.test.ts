@@ -53,9 +53,16 @@ describe("addComment", () => {
 
   it("inserts, audits, and notifies on the happy path", async () => {
     supabase.setUser({ id: "u1" });
+    supabase.queueTableResponses("assets", [
+      { data: { name: "Logo", version: 3 }, error: null },
+      { data: { name: "Logo" }, error: null },
+    ]);
+    supabase.setTableResponse("asset_versions", {
+      data: { id: "ver-3" },
+      error: null,
+    });
     supabase.setTableResponse("comments", { data: { id: "c1" }, error: null });
     supabase.setTableResponse("profiles", { data: { name: "Alex" }, error: null });
-    supabase.setTableResponse("assets", { data: { name: "Logo" }, error: null });
 
     const { addComment } = await import("./comments");
     const result = await addComment(EVENT_ID, ASSET_ID, "Looks great");
@@ -66,6 +73,9 @@ describe("addComment", () => {
       "comment.new",
       expect.objectContaining({ eventId: EVENT_ID, assetId: ASSET_ID }),
     );
+
+    const insertCall = supabase.callsFor("comments").find((c) => c.method === "insert");
+    expect(insertCall?.args[0]).toMatchObject({ asset_version_id: "ver-3" });
   });
 
   it("returns an error when the insert fails", async () => {

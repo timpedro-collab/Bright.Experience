@@ -24,6 +24,7 @@ import {
 import { cn } from "@/lib/utils";
 import { formatDateShort, isOverdue, daysUntilDate } from "@/lib/dates";
 import type { FocusItem, FocusKind, FocusTone } from "@/lib/queries/home-focus";
+import { SnoozeTaskControl } from "@/components/home/SnoozeTaskControl";
 
 const KIND_ICON: Record<FocusKind, React.ElementType> = {
   blocked_event: AlertOctagon,
@@ -75,41 +76,47 @@ export function NeedsYouNow({ items }: { items: FocusItem[] }) {
 
 function FocusRow({ item }: { item: FocusItem }) {
   const Icon = KIND_ICON[item.kind];
+  const showSnooze = item.kind === "task" && item.taskId;
+
   return (
-    <Link
-      href={item.href}
-      className={cn(
-        "group flex items-center gap-4 px-5 py-4 transition-colors",
-        "hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset",
-      )}
-    >
-      <span
+    <div className="group flex items-center gap-4 px-5 py-4 transition-colors hover:bg-muted/40">
+      <Link
+        href={item.href}
         className={cn(
-          "flex size-10 shrink-0 items-center justify-center rounded-xl border",
-          TONE_ICON_WRAP[item.tone],
+          "flex min-w-0 flex-1 items-center gap-4",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset",
         )}
-        aria-hidden
       >
-        <Icon className="size-[18px]" />
-      </span>
+        <span
+          className={cn(
+            "flex size-10 shrink-0 items-center justify-center rounded-xl border",
+            TONE_ICON_WRAP[item.tone],
+          )}
+          aria-hidden
+        >
+          <Icon className="size-[18px]" />
+        </span>
 
-      <span className="min-w-0 flex-1">
-        <span className="block truncate text-sm font-semibold text-foreground">
-          {item.title}
+        <span className="min-w-0 flex-1">
+          <span className="block truncate text-sm font-semibold text-foreground">
+            {item.title}
+          </span>
+          <span className="block truncate text-xs text-muted-foreground">
+            {item.reason}
+          </span>
         </span>
-        <span className="block truncate text-xs text-muted-foreground">
-          {item.reason}
-        </span>
-      </span>
 
-      <span className="flex shrink-0 items-center gap-3">
-        <DueChip dueDate={item.dueDate} />
-        <span className="hidden items-center gap-1 text-xs font-medium text-primary sm:inline-flex">
-          {item.cta}
-          <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
+        <span className="flex shrink-0 items-center gap-3">
+          <DueChip dueDate={item.dueDate} />
+          <span className="hidden items-center gap-1 text-xs font-medium text-primary sm:inline-flex">
+            {item.cta}
+            <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
+          </span>
         </span>
-      </span>
-    </Link>
+      </Link>
+
+      {showSnooze ? <SnoozeTaskControl taskId={item.taskId!} /> : null}
+    </div>
   );
 }
 

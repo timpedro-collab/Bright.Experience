@@ -91,7 +91,10 @@ const CUSTOMER_SECTIONS: EventSection[] = [
   "assets",
   "approvals",
   "actions",
-  "deadlines",
+  // `deadlines` is intentionally omitted for customers — their schedule is
+  // folded into the Tasks page (a "by due date" view) so they have one place
+  // for "what's on my plate", not two competing lists. Internal roles keep the
+  // dedicated Deadlines page (see ROLE_SECTIONS / FULL_ACCESS_ROLES).
   "communications",
   "live",
   "leads",
@@ -189,7 +192,7 @@ export interface CustomerPhase {
 
 export const CUSTOMER_PHASES: CustomerPhase[] = [
   { id: "create", label: "Create", sections: ["briefing", "assets", "configuration", "approvals", "studio"] },
-  { id: "prepare", label: "Prepare", sections: ["actions", "deadlines", "timeline"] },
+  { id: "prepare", label: "Prepare", sections: ["actions", "timeline"] },
   { id: "event-day", label: "Event day", sections: ["logistics", "communications", "live"] },
   { id: "results", label: "Results", sections: ["leads", "reports"] },
 ];
@@ -209,4 +212,53 @@ export function customerNavGroups(role: UserRole): {
     sections: p.sections.filter((s) => visible.has(s)),
   })).filter((p) => p.sections.length > 0);
   return { anchor, phases };
+}
+
+/**
+ * Internal power-user nav clustering.
+ *
+ * The full-access roles see up to 19 sections; a flat pill row scrolls off
+ * the edge of the screen and hides half the console. We cluster the sections
+ * into four labelled groups so an internal user can scan by concern —
+ * Deliver (creative pipeline), Ops (physical build), Data (live + results),
+ * and Manage (coordination) — and the bar wraps instead of scrolling.
+ */
+export interface InternalNavCluster {
+  label: string;
+  sections: EventSection[];
+}
+
+const INTERNAL_NAV_CLUSTERS: InternalNavCluster[] = [
+  { label: "Deliver", sections: ["briefing", "assets", "approvals", "studio", "configuration"] },
+  { label: "Ops", sections: ["logistics", "machine", "compliance", "qa"] },
+  { label: "Data", sections: ["live", "leads", "reports", "campaign"] },
+  { label: "Manage", sections: ["actions", "deadlines", "communications", "timeline", "activity"] },
+];
+
+/**
+ * Group an internal role's visible sections into the labelled clusters above,
+ * in canonical order. Overview is returned separately as the anchor tab; any
+ * visible section not named in a cluster is appended to a trailing "More"
+ * group so nothing silently disappears from the nav.
+ */
+export function internalNavGroups(role: UserRole): {
+  anchor: EventSection | null;
+  clusters: InternalNavCluster[];
+} {
+  const visible = visibleSectionsForRole(role);
+  const visibleSet = new Set(visible);
+  const anchor = visibleSet.has("overview") ? "overview" : null;
+
+  const clustered = new Set<EventSection>(["overview"]);
+  const clusters: InternalNavCluster[] = [];
+  for (const cluster of INTERNAL_NAV_CLUSTERS) {
+    const sections = cluster.sections.filter((s) => visibleSet.has(s));
+    sections.forEach((s) => clustered.add(s));
+    if (sections.length > 0) clusters.push({ label: cluster.label, sections });
+  }
+
+  const leftovers = visible.filter((s) => !clustered.has(s));
+  if (leftovers.length > 0) clusters.push({ label: "More", sections: leftovers });
+
+  return { anchor, clusters };
 }

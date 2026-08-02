@@ -31,6 +31,8 @@ import { getUnreadCount } from "@/lib/queries/notifications";
 import { getUser } from "@/lib/auth";
 import { isInternalRole } from "@/lib/roles";
 import { canViewSection } from "@/lib/event-access";
+import { isStageAtOrAfter } from "@/lib/journey";
+import { RequestChangePanel } from "@/components/briefing/RequestChangePanel";
 import type { LogisticsEntry } from "@/types";
 
 const TYPE_META: Record<string, { label: string; icon: React.ElementType }> = {
@@ -80,6 +82,12 @@ export default async function LogisticsPage({
   const isInternal = isInternalRole(user.role);
   if (!event) return notFound();
 
+  // Once logistics are confirmed the ops team has planned against these
+  // details, so customers can no longer edit them directly — changes go
+  // through a request instead of silently overwriting the plan.
+  const planLocked = isStageAtOrAfter(event.currentStage, "logistics_confirmed");
+  const customerCanEdit = !isInternal && !planLocked;
+
   // The customer's ops/venue briefing lives on the (creative-gated) briefing
   // page, so Operations never sees it. Surface it read-only here — the
   // logistics lane Operations actually works in.
@@ -104,23 +112,26 @@ export default async function LogisticsPage({
         <DeliveryWindowsCard
           eventId={id}
           windows={deliveryWindows}
-          canEdit={!isInternal}
+          canEdit={customerCanEdit}
         />
         <VenueAccessCard
           eventId={id}
           access={venueAccess}
-          canEdit={!isInternal}
+          canEdit={customerCanEdit}
         />
         <OnsiteContactCard
           eventId={id}
           contact={onsiteContact}
-          canEdit={!isInternal}
+          canEdit={customerCanEdit}
         />
         <LogisticsProviderCard
           eventId={id}
           provider={logisticsProvider}
           canEdit={isInternal}
         />
+        {!isInternal && planLocked && (
+          <RequestChangePanel eventId={id} formType="ops" />
+        )}
       </section>
 
       {isInternal && (
@@ -168,7 +179,7 @@ export default async function LogisticsPage({
             action={
               isInternal
                 ? undefined
-                : { label: "View timeline", href: `/events/${id}/timeline` }
+                : { label: "Open Timeline", href: `/events/${id}/timeline` }
             }
             tone="flat"
           />

@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { PAGE_SIZE, paginateQuery, totalPages } from "@/lib/pagination";
 import type { Notification } from "@/types";
+import { logQueryError } from "@/lib/observability/log-query-error";
 
 /**
  * Normalise a raw notifications row (snake_case from Postgres) into the
@@ -41,7 +42,37 @@ export async function getNotificationsByUser(
     .order("created_at", { ascending: false })
     .limit(50);
 
-  if (error || !data) return [];
+  if (error || !data) {
+    logQueryError("getNotificationsByUser", error, { userId });
+    return [];
+  }
+  return data.map((row) => mapNotification(row as Record<string, unknown>));
+}
+
+/**
+ * Recent non-actionable notifications — the "things that happened" half of
+ * the customer home's Needs-you / Recent-activity split (Linear's
+ * Triage-vs-Inbox model, docs/18-design-research.md R1). Action-required
+ * notifications are excluded because they already surface in "Over to you";
+ * showing them twice would make the split meaningless.
+ */
+export async function getRecentActivityForUser(
+  userId: string,
+  limit: number = 6
+): Promise<Notification[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("notifications")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("action_required", false)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (error || !data) {
+    logQueryError("getRecentActivityForUser", error, { userId });
+    return [];
+  }
   return data.map((row) => mapNotification(row as Record<string, unknown>));
 }
 
@@ -59,7 +90,10 @@ export async function getNotificationsByUserPaginated(
     .order("created_at", { ascending: false });
 
   const { data, error, count } = await paginateQuery(query, page, pageSize);
-  if (error || !data) return { data: [], totalCount: 0, totalPages: 1 };
+  if (error || !data) {
+    logQueryError("getNotificationsByUserPaginated", error, { userId });
+    return { data: [], totalCount: 0, totalPages: 1 };
+  }
 
   const total = count ?? 0;
   return {
@@ -78,7 +112,10 @@ export async function getUnreadCount(userId: string): Promise<number> {
     .eq("user_id", userId)
     .eq("is_read", false);
 
-  if (error) return 0;
+  if (error) {
+    logQueryError("getUnreadCount", error, { userId });
+    return 0;
+  }
   return count ?? 0;
 }
 
@@ -134,7 +171,10 @@ export async function getNotificationPreferences(
     .select("kind, in_portal, email_mode")
     .eq("user_id", userId);
 
-  if (error || !data) return [];
+  if (error || !data) {
+    logQueryError("getNotificationPreferences", error, { userId });
+    return [];
+  }
   return data.map((row) => ({
     kind: row.kind as string,
     inPortal: Boolean(row.in_portal),
@@ -153,7 +193,10 @@ export async function getNotificationUserSettings(
     .eq("user_id", userId)
     .maybeSingle();
 
-  if (error || !data) return null;
+  if (error || !data) {
+    logQueryError("getNotificationUserSettings", error, { userId });
+    return null;
+  }
   return {
     timezone: (data.timezone as string) ?? null,
     digestHour: (data.digest_hour as number) ?? null,

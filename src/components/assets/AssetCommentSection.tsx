@@ -11,6 +11,7 @@ interface AssetCommentSectionProps {
   assetId: string;
   eventId: string;
   currentUserId: string;
+  currentVersion?: number;
 }
 
 export function AssetCommentSection({
@@ -18,6 +19,7 @@ export function AssetCommentSection({
   assetId,
   eventId,
   currentUserId,
+  currentVersion,
 }: AssetCommentSectionProps) {
   const [open, setOpen] = useState(false);
 
@@ -41,6 +43,7 @@ export function AssetCommentSection({
             assetId={assetId}
             eventId={eventId}
             currentUserId={currentUserId}
+            currentVersion={currentVersion}
           />
         </div>
       )}

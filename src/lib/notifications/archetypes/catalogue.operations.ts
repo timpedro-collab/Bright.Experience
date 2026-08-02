@@ -70,6 +70,21 @@ export const operationsArchetypes = {
     audience: "internal",
   },
 
+  // Live machine stock
+  "machine.stock_low": {
+    kind: "machine.stock_low",
+    classOf: "action_required",
+    priority: "high",
+    eyebrow: "Action required — reload",
+    subjectTemplate: "{eventName}: machine stock is running low",
+    bodyTemplate:
+      "Roughly {stockRemaining} of {stockCapacity} units are left at {eventName}. Plan a reload before the machine runs dry.",
+    linkTemplate: "/events/{eventId}/live",
+    ownerResolver: "event_operations_lead",
+    defaults: { inPortal: true, emailMode: "immediate" },
+    audience: "internal",
+  },
+
   // Deadline escalation
   "deadline.escalation": {
     kind: "deadline.escalation",

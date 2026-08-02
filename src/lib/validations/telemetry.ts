@@ -1,9 +1,11 @@
 /** Zod schemas for telemetry and lead capture validation. */
 import { z } from "zod";
 
+import { uuidLike } from "./id";
+
 export const ingestTelemetrySchema = z.object({
   machineSerial: z.string().min(1, "Machine serial is required"),
-  eventId: z.string().uuid("Valid event ID is required"),
+  eventId: uuidLike("Valid event ID is required"),
   eventType: z.enum([
     "play_started",
     "play_completed",
@@ -18,8 +20,8 @@ export const ingestTelemetrySchema = z.object({
 export type IngestTelemetryInput = z.infer<typeof ingestTelemetrySchema>;
 
 export const captureLeadSchema = z.object({
-  eventId: z.string().uuid("Valid event ID is required"),
-  machineInstanceId: z.string().uuid().optional(),
+  eventId: uuidLike("Valid event ID is required"),
+  machineInstanceId: uuidLike("Invalid machine").optional(),
   contactName: z.string().min(1, "Contact name is required"),
   contactEmail: z.string().email("Valid email is required"),
   contactPhone: z.string().optional(),

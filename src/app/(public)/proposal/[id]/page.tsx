@@ -9,14 +9,12 @@ import { buildProposalDocument } from "@/lib/proposals/build-proposal";
 import { ProposalDocumentView } from "@/components/quotes/proposal/ProposalDocumentView";
 import { PrintProposalButton } from "@/components/quotes/proposal/PrintProposalButton";
 import { PostAcceptBanner } from "@/components/quotes/PostAcceptBanner";
+import { walkthroughUrlFor } from "@/lib/calcom";
 
 export const metadata: Metadata = {
   title: "Your proposal",
   description: "Your bespoke Bright.Blue proposal.",
 };
-
-/** Fallback scheduler used until an AE sets a per-proposal link. */
-const DEFAULT_WALKTHROUGH_URL = "https://cal.com/brightblue/15min";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -37,7 +35,7 @@ export default async function ProposalDetailPage({ params }: PageProps) {
     ? new Date(quote.expires_at) < new Date()
     : false;
   const canRespond = quote.status === "proposal_sent" && !isExpired;
-  const walkthroughUrl = quote.walkthrough_url || DEFAULT_WALKTHROUGH_URL;
+  const walkthroughUrl = walkthroughUrlFor(quote.walkthrough_url);
 
   return (
     <Section className="relative" spacing="md">

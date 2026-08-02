@@ -18,6 +18,8 @@
  *             A non-2xx response is treated as "scanner unavailable".
  */
 
+import { isSvgUpload, inspectSvg } from "./svg-safety";
+
 export interface ScanResult {
   /** True when the file is safe to store (clean, or scanning was skipped). */
   ok: boolean;
@@ -88,4 +90,26 @@ export async function scanUpload(
     console.error("[scan] scanner request failed — failing open:", err);
     return { ok: true, skipped: true, detail: "scanner unreachable" };
   }
+}
+
+/**
+ * The screen every upload path runs before committing bytes to storage.
+ *
+ * Two checks, in order of certainty: an SVG carrying active content is refused
+ * outright (no scanner needed, and the reason is something the customer can
+ * fix), then the malware scan, which fails open when it isn't configured.
+ */
+export async function screenUpload(
+  bytes: Uint8Array,
+  filename: string,
+  mime?: string
+): Promise<ScanResult> {
+  if (isSvgUpload(mime, filename)) {
+    const svg = inspectSvg(bytes);
+    if (!svg.ok) {
+      return { ok: false, skipped: false, detail: svg.reason };
+    }
+  }
+
+  return scanUpload(bytes, filename);
 }

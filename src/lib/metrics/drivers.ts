@@ -15,7 +15,7 @@
  * consistent (snapshots → reports → benchmarks → campaign aggregates).
  */
 
-export const DRIVERS = {
+const DRIVERS = {
   /** Plays per machine per day (mid-point of the 250-300 band). */
   playsPerMachineDay: 275,
   /** Share of plays that opt in as a lead. */
@@ -97,6 +97,10 @@ export interface SnapshotRow {
   avg_dwell_time: number;
   peak_hour: number;
   is_final: boolean;
+  /** Units left in the machine(s); null when capacity is unknown. */
+  stock_remaining?: number | null;
+  /** Total units loaded for the event. */
+  stock_capacity?: number | null;
 }
 
 export interface BuildSnapshotsOptions {
@@ -113,6 +117,12 @@ export interface BuildSnapshotsOptions {
   peakHours?: number[];
   /** Dwell seconds per day; cycles if shorter than `days`. Default ~DRIVERS.dwellSeconds. */
   dwellByDay?: number[];
+  /**
+   * Total prize/sample units loaded for the event. When set, each snapshot
+   * carries `stock_capacity` and a `stock_remaining` of capacity minus the
+   * cumulative prizes dispensed (floored at zero) for the live stock tile.
+   */
+  stockCapacity?: number;
 }
 
 /**
@@ -136,7 +146,7 @@ export function buildSnapshots(opts: BuildSnapshotsOptions): SnapshotRow[] {
     const dwell =
       opts.dwellByDay?.[i] ??
       DRIVERS.dwellSeconds + ((i % 3) - 1); // ~27-29s
-    rows.push({
+    const row: SnapshotRow = {
       event_id: opts.eventId,
       snapshot_date: addDays(opts.startDate, i),
       total_plays: cumulative,
@@ -146,7 +156,12 @@ export function buildSnapshots(opts: BuildSnapshotsOptions): SnapshotRow[] {
       avg_dwell_time: dwell,
       peak_hour: peakHours[i % peakHours.length] ?? 14,
       is_final: i === opts.days - 1,
-    });
+    };
+    if (opts.stockCapacity != null) {
+      row.stock_capacity = opts.stockCapacity;
+      row.stock_remaining = Math.max(0, opts.stockCapacity - m.prizes);
+    }
+    rows.push(row);
   }
   return rows;
 }
@@ -160,6 +175,8 @@ export interface ReportEngagementExtras {
   qrScans: number;
   demographics: Record<string, number>;
   peakHours: number[];
+  /** Machine guardrail counts: junk entries turned away at capture. */
+  captureQuality: { rejectedDomains: number; duplicatesBlocked: number };
 }
 
 export interface BuildReportOptions {
@@ -191,6 +208,7 @@ export interface ReportMetrics {
   qrScans?: number;
   demographics?: Record<string, number>;
   peakHours?: number[];
+  captureQuality?: ReportEngagementExtras["captureQuality"];
   snapshotCount?: number;
 }
 
@@ -215,6 +233,7 @@ export function buildReportMetrics(opts: BuildReportOptions): ReportMetrics {
   if (e.qrScans != null) base.qrScans = e.qrScans;
   if (e.demographics != null) base.demographics = e.demographics;
   if (e.peakHours != null) base.peakHours = e.peakHours;
+  if (e.captureQuality != null) base.captureQuality = e.captureQuality;
   return base;
 }
 

@@ -32,7 +32,6 @@ import {
   KpiCard,
 } from "@/components/cloud";
 import { HealthBadge, StageBadge } from "@/components/ui/StatusBadge";
-import { CustomerActionSummary } from "@/components/events/CustomerActionSummary";
 import { OverviewNextStep } from "@/components/events/OverviewNextStep";
 import { OverviewSidebar } from "@/components/events/OverviewSidebar";
 import { IntegrationStatus } from "@/components/ui/IntegrationStatus";
@@ -51,7 +50,9 @@ import { getUser } from "@/lib/auth";
 import { isInternalRole, canAdvanceEventStage } from "@/lib/roles";
 import { ownerForTask } from "@/lib/ownership";
 import { RemindCustomerButton } from "@/components/events/RemindCustomerButton";
-import { stageLabelFor } from "@/lib/customer-copy";
+import { EventHealthControl } from "@/components/events/EventHealthControl";
+import { stageLabelFor, customerStatusLine } from "@/lib/customer-copy";
+import { CustomerEventBody } from "@/components/events/CustomerEventBody";
 import { STAGE_CONFIG } from "@/types";
 import type { Event } from "@/types";
 import { formatDateLong, formatDateShort, daysUntilDate, isOverdue } from "@/lib/dates";
@@ -74,26 +75,28 @@ export default async function EventOverviewPage({
 
   const isInternal = isInternalRole(user.role);
   const days = daysUntilDate(event.eventDateStart);
-  const stageConfig = STAGE_CONFIG[event.currentStage];
   // Lifecycle is driven by STAGE, not the calendar — an event is only
   // "wrapped" once it reaches reporting/complete, never because its date passed.
   const delivered =
     event.currentStage === "reporting" || event.currentStage === "complete";
 
-  const venue = event.venueName ?? (isInternal ? "the venue" : "your venue");
-  const heroSubtitle = (() => {
-    if (delivered) {
-      return isInternal
-        ? `Delivered — report published for ${event.account.name}. Currently at ${stageConfig.label}.`
-        : `Delivered — reports and reads are in your inbox. Currently at ${stageConfig.label}.`;
-    }
-    if (days > 0) {
-      return `Live in ${days} ${days === 1 ? "day" : "days"} at ${venue}. Currently at ${stageConfig.label}.`;
-    }
-    if (days === 0) return `Live today at ${venue}.`;
-    // Date has passed but the event isn't reported yet — still being delivered.
-    return `Live now at ${venue}. Currently at ${stageConfig.label}.`;
-  })();
+  const venue = event.venueName ?? "the venue";
+  // Internal keeps the operational "Currently at {label}"; customers get one
+  // calm status line ("Ready for your approval · Live in 12 days at ExCeL").
+  const heroStageLabel = stageLabelFor(event.currentStage, false);
+  const heroSubtitle = isInternal
+    ? (() => {
+        const stagePhrase = ` Currently at ${heroStageLabel}.`;
+        if (delivered) {
+          return `Delivered — report published for ${event.account.name}.${stagePhrase}`;
+        }
+        if (days > 0) {
+          return `Live in ${days} ${days === 1 ? "day" : "days"} at ${venue}.${stagePhrase}`;
+        }
+        if (days === 0) return `Live today at ${venue}.`;
+        return `Live now at ${venue}.${stagePhrase}`;
+      })()
+    : customerStatusLine(event);
 
   return (
     <EventPageShell
@@ -110,7 +113,8 @@ export default async function EventOverviewPage({
       heroRight={
         <div className="flex items-center gap-2 flex-wrap justify-end">
           <HealthBadge status={event.healthStatus} isCustomer={!isInternal} />
-          <StageBadge stage={event.currentStage} isCustomer={!isInternal} />
+          {/* Stage now lives in the customer status line; internal keeps the badge. */}
+          {isInternal && <StageBadge stage={event.currentStage} isCustomer={false} />}
           <Link
             href={`/events/${id}/communications`}
             className="inline-flex items-center gap-1.5 text-overline text-muted-foreground hover:text-foreground transition-colors"
@@ -179,30 +183,6 @@ async function OverviewContent({
   const pendingCustomerTasks = customerTasks.filter(
     (t) => t.status !== "complete" && t.status !== "skipped",
   );
-  /** Customer KPI must match home "Needs you" (not tasks-only). */
-  const customerNeedsYouCount = isInternal
-    ? pendingCustomerTasks.length
-    : customerActionItems.length;
-  // Internal "Your actions" = work this viewer actually OWNS. A
-  // `customer_action` is the customer's job no matter what internal
-  // `assigned_role` it carries (that field names the internal *chaser*, not
-  // the doer), so it must never appear as the staff member's own to-do.
-  const myTasks = isInternal
-    ? tasks.filter(
-        (t) =>
-          t.status !== "complete" &&
-          t.status !== "skipped" &&
-          ownerForTask(t) !== "customer" &&
-          (t.assignedRole === user.role || t.assignedTo?.id === user.id),
-      )
-    : pendingCustomerTasks;
-
-  // Customer-owned work an internal viewer can only *nudge*, never tick off
-  // from here. Surfaced as a separate "Awaiting the customer" panel.
-  const awaitingCustomer = isInternal ? pendingCustomerTasks : [];
-  const stageConfig = STAGE_CONFIG[event.currentStage];
-  const stageLabel = stageLabelFor(event.currentStage, !isInternal);
-
   const nextStep = resolveEventNextStep({
     event,
     tasks,
@@ -211,16 +191,57 @@ async function OverviewContent({
     isInternal,
   });
 
-  const stageGate = isInternal
-    ? await canAdvanceStage(id)
-    : { canAdvance: false, blockers: [] };
-
   const missedMilestones = milestones.filter(
     (m) =>
       m.status !== "complete" &&
       m.status !== "skipped" &&
       isOverdue(m.targetDate),
   ).length;
+
+  // Customer surface: one calm single-column body (action block, journey,
+  // team, quiet disclosures). Internal keeps the operational layout below.
+  if (!isInternal) {
+    const approvalsPending = approvals.filter(
+      (a) => a.status === "pending",
+    ).length;
+    return (
+      <CustomerEventBody
+        eventId={id}
+        event={event}
+        milestones={milestones}
+        items={customerActionItems}
+        nextStep={nextStep}
+        teamMembers={teamMembers}
+        metrics={{
+          daysToEvent: days,
+          delivered,
+          pendingActions: customerActionItems.length,
+          approvalsPending,
+          missedMilestones,
+        }}
+      />
+    );
+  }
+
+  // ---- Internal layout (customers returned above) ----
+  // Internal "Your actions" = work this viewer actually OWNS. A
+  // `customer_action` is the customer's job no matter what internal
+  // `assigned_role` it carries (that field names the internal *chaser*, not
+  // the doer), so it must never appear as the staff member's own to-do.
+  const myTasks = tasks.filter(
+    (t) =>
+      t.status !== "complete" &&
+      t.status !== "skipped" &&
+      ownerForTask(t) !== "customer" &&
+      (t.assignedRole === user.role || t.assignedTo?.id === user.id),
+  );
+
+  // Customer-owned work an internal viewer can only *nudge*, never tick off
+  // from here. Surfaced as a separate "Awaiting the customer" panel.
+  const awaitingCustomer = pendingCustomerTasks;
+  const stageConfig = STAGE_CONFIG[event.currentStage];
+  const stageLabel = stageLabelFor(event.currentStage, false);
+  const stageGate = await canAdvanceStage(id);
 
   return (
       <div className="space-y-8 py-6">
@@ -244,10 +265,10 @@ async function OverviewContent({
             hint={event.venueName ?? undefined}
           />
           <KpiCard
-            label={isInternal ? "Open actions" : "Needs you"}
-            value={isInternal ? myTasks.length : customerNeedsYouCount}
+            label="Open actions"
+            value={myTasks.length}
             icon={ListChecks}
-            hint={isInternal ? "assigned to you" : "tasks, assets & briefings"}
+            hint="assigned to you"
           />
           <KpiCard label="Assets" value={assets.length} icon={Files} />
           <KpiCard
@@ -262,64 +283,49 @@ async function OverviewContent({
           <div className="space-y-6 min-w-0">
             <GlassCard>
               <GlassCardHeader
-                title={isInternal ? "Your actions" : "What's needed from you"}
+                title="Your actions"
                 action={
                   <span className="text-overline text-muted-foreground tabular-nums">
-                    {isInternal
-                      ? `${myTasks.length} open`
-                      : `${customerNeedsYouCount} open`}
+                    {`${myTasks.length} open`}
                   </span>
                 }
               />
               <div className="p-6">
-                {isInternal ? (
-                  myTasks.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">
-                      Nothing assigned to your role right now.
-                    </p>
-                  ) : (
-                    <ul className="space-y-2">
-                      {myTasks.slice(0, 8).map((task) => (
-                        <li key={task.id}>
-                          <Link
-                            href={`/events/${id}/${task.targetPath ?? "actions"}`}
-                            className="flex items-center justify-between gap-3 rounded-2xl border border-border/60 px-4 py-3 transition-colors hover:bg-muted/40"
-                          >
-                            <span className="text-sm font-medium text-foreground truncate">
-                              {task.title}
-                            </span>
-                            {task.priority === "critical" || task.priority === "high" ? (
-                              <span className={`text-[10px] font-semibold ${task.priority === "critical" ? "text-destructive" : "text-warning"}`}>
-                                {task.priority === "critical" ? "Critical" : "High"}
-                              </span>
-                            ) : null}
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  )
+                {myTasks.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">
+                    Nothing assigned to your role right now.
+                  </p>
                 ) : (
-                  // Same source as the "Needs you" KPI above (and the home
-                  // dashboard): tasks + assets + briefings, never tasks-only —
-                  // so the number and the list always agree.
-                  <CustomerActionSummary
-                    eventId={id}
-                    items={customerActionItems}
-                    teaserLimit={6}
-                  />
+                  <ul className="space-y-2">
+                    {myTasks.slice(0, 8).map((task) => (
+                      <li key={task.id}>
+                        <Link
+                          href={`/events/${id}/${task.targetPath ?? "actions"}`}
+                          className="flex items-center justify-between gap-3 rounded-2xl border border-border/60 px-4 py-3 transition-colors hover:bg-muted/40"
+                        >
+                          <span className="text-sm font-medium text-foreground truncate">
+                            {task.title}
+                          </span>
+                          {task.priority === "critical" || task.priority === "high" ? (
+                            <span className={`text-[10px] font-semibold ${task.priority === "critical" ? "text-destructive" : "text-warning"}`}>
+                              {task.priority === "critical" ? "Critical" : "High"}
+                            </span>
+                          ) : null}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
                 )}
-                {isInternal && (
-                  <Link
-                    href={`/events/${id}/actions`}
-                    className="mt-4 inline-block text-overline text-[var(--color-bb-cobalt)] underline decoration-from-font underline-offset-4 font-medium"
-                  >
-                    View all tasks →
-                  </Link>
-                )}
+                <Link
+                  href={`/events/${id}/actions`}
+                  className="mt-4 inline-block text-overline text-[var(--color-bb-cobalt)] underline decoration-from-font underline-offset-4 font-medium"
+                >
+                  View all tasks →
+                </Link>
               </div>
             </GlassCard>
 
-            {isInternal && awaitingCustomer.length > 0 && (
+            {awaitingCustomer.length > 0 && (
               <GlassCard>
                 <GlassCardHeader
                   title="Awaiting the customer"
@@ -370,24 +376,33 @@ async function OverviewContent({
               </div>
             </GlassCard>
 
-            {isInternal && (
-              <GlassCard>
-                <GlassCardHeader title="Internal" />
-                <div className="p-6 space-y-6">
-                  <IntegrationStatus
-                    webhookConfigured={!!process.env.BRIGHTBLUE_WEBHOOK_SECRET}
-                    cloudApiConfigured={!!process.env.BRIGHTBLUE_API_KEY}
-                  />
-                  <Hairline className="opacity-40" />
-                  <div>
-                    <EditorialEyebrow>Template</EditorialEyebrow>
-                    <div className="mt-3">
-                      <SaveAsTemplateButton eventId={id} />
-                    </div>
+            <GlassCard>
+              <GlassCardHeader title="Internal" />
+              <div className="p-6 space-y-6">
+                <IntegrationStatus
+                  webhookConfigured={!!process.env.BRIGHTBLUE_WEBHOOK_SECRET}
+                  cloudApiConfigured={!!process.env.BRIGHTBLUE_API_KEY}
+                />
+                <Hairline className="opacity-40" />
+                <div>
+                  <EditorialEyebrow>Delivery health</EditorialEyebrow>
+                  <div className="mt-3">
+                    <EventHealthControl
+                      eventId={id}
+                      status={event.healthStatus}
+                      reason={event.healthReason}
+                    />
                   </div>
                 </div>
-              </GlassCard>
-            )}
+                <Hairline className="opacity-40" />
+                <div>
+                  <EditorialEyebrow>Template</EditorialEyebrow>
+                  <div className="mt-3">
+                    <SaveAsTemplateButton eventId={id} />
+                  </div>
+                </div>
+              </div>
+            </GlassCard>
           </div>
 
           <OverviewSidebar

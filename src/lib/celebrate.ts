@@ -13,7 +13,7 @@ const BRAND_COLORS = [
 const Z = 10010;
 
 /** Default celebration — gentle burst from the centre */
-export function celebrate(): void {
+function celebrate(): void {
   if (typeof window === "undefined") return;
   confetti({
     particleCount: 80,
@@ -29,6 +29,11 @@ export function celebrate(): void {
 /** Larger celebration — used for major milestones like quote acceptance */
 export function celebrateBig(): void {
   if (typeof window === "undefined") return;
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    celebrate();
+    return;
+  }
+
   const duration = 1.4 * 1000;
   const end = Date.now() + duration;
 

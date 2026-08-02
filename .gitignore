@@ -30,14 +30,15 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
+# env files — everything is ignored by default so no real credential can be
+# committed. Only these two no-secret files are allowlisted:
 .env*
-# frontend-mock-data branch: commit the no-secret .env so fresh clones default
-# to standalone mock mode (NEXT_PUBLIC_MOCK_MODE=1). Still ignores .env.local.
-!.env
-# ...but the example file MUST be committed so new engineers know
-# which env vars to fill in. It contains no secrets.
+# The example file MUST be committed so new engineers know which env vars to
+# fill in. It contains no secrets.
 !.env.example
+# Development-only demo defaults (mock mode). Next.js reads this file only when
+# NODE_ENV=development, so committing it cannot affect a production build.
+!.env.development
 
 # vercel
 .vercel

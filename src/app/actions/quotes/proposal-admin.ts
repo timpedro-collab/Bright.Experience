@@ -1,10 +1,13 @@
 /** Internal proposal preparation server actions (line items + walkthrough). */
 "use server";
 
+import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { getUser } from "@/lib/auth";
 import { canViewCommercial, isInternalRole } from "@/lib/roles";
+import { sendProposalReadyEmail } from "@/lib/email";
+import { walkthroughUrlFor, formatSlotLabel } from "@/lib/calcom";
 
 /** Prepare and send a proposal with line items (internal). */
 export async function prepareProposal(
@@ -51,6 +54,42 @@ export async function prepareProposal(
   if (updateError) {
     console.error("[prepareProposal] update failed", updateError);
     return { success: false as const, error: "Failed to send proposal" };
+  }
+
+  // Deliver the proposal link to the customer. Fire-and-forget: a mail failure
+  // must never fail the send itself (the AE already flipped the status).
+  try {
+    const { data: quote } = await supabase
+      .from("quotes")
+      .select(
+        "contact_name, contact_email, company_name, event_type, walkthrough_url, walkthrough_scheduled_at, walkthrough_slot_label"
+      )
+      .eq("id", quoteId)
+      .maybeSingle();
+
+    if (quote?.contact_email) {
+      const h = await headers();
+      const host = h.get("host") ?? "localhost:3000";
+      const proto = h.get("x-forwarded-proto") ?? "https";
+      const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? `${proto}://${host}`;
+      // If the customer already booked their call on the confirmation screen,
+      // the email confirms that call instead of asking them to book one.
+      const scheduledSlotLabel = quote.walkthrough_scheduled_at
+        ? (quote.walkthrough_slot_label ??
+          formatSlotLabel(quote.walkthrough_scheduled_at))
+        : null;
+      await sendProposalReadyEmail({
+        contactName: quote.contact_name ?? "there",
+        contactEmail: quote.contact_email,
+        companyName: quote.company_name,
+        eventType: quote.event_type,
+        proposalUrl: `${baseUrl}/proposal/${quoteId}`,
+        walkthroughUrl: walkthroughUrlFor(quote.walkthrough_url),
+        scheduledSlotLabel,
+      });
+    }
+  } catch (emailError) {
+    console.error("[prepareProposal] proposal-ready email failed", emailError);
   }
 
   revalidatePath(`/admin/quotes/${quoteId}`);

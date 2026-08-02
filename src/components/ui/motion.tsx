@@ -2,7 +2,7 @@
 "use client";
 
 import * as React from "react";
-import { motion, type HTMLMotionProps, type Variants } from "framer-motion";
+import { motion, useReducedMotion, type HTMLMotionProps, type Variants } from "framer-motion";
 
 /* ------------------------------------------------------------------ */
 /* Easing curves & durations — Apple-style smooth                     */
@@ -137,11 +137,17 @@ export function AnimatedCounter({
   formatter = (n) => Math.round(n).toLocaleString(),
   className,
 }: AnimatedCounterProps) {
+  const prefersReduced = useReducedMotion();
   const [display, setDisplay] = React.useState(0);
   const startRef = React.useRef<number | null>(null);
   const fromRef = React.useRef(0);
 
   React.useEffect(() => {
+    if (prefersReduced) {
+      fromRef.current = value;
+      return;
+    }
+
     const from = fromRef.current;
     const target = value;
     let raf = 0;
@@ -160,7 +166,84 @@ export function AnimatedCounter({
 
     raf = requestAnimationFrame(step);
     return () => cancelAnimationFrame(raf);
-  }, [value, duration]);
+  }, [value, duration, prefersReduced]);
 
-  return <span className={className}>{formatter(display)}</span>;
+  return <span className={className}>{formatter(prefersReduced ? value : display)}</span>;
+}
+
+/* ------------------------------------------------------------------ */
+/* Reveal — scroll-triggered fade + rise                              */
+/* ------------------------------------------------------------------ */
+
+interface RevealProps extends HTMLMotionProps<"div"> {
+  delay?: number;
+  y?: number;
+  duration?: number;
+  amount?: number;
+}
+
+/** Scroll-triggered reveal — fades + rises when the element enters the viewport, once. Reduced motion is handled globally by MotionConfig in the root layout. */
+export function Reveal({
+  delay = 0,
+  y = 20,
+  duration = 0.6,
+  amount = 0.3,
+  children,
+  ...props
+}: RevealProps) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount }}
+      transition={{ duration, delay, ease: EASE_OUT }}
+      {...props}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* RevealGroup — scroll-triggered stagger for children                */
+/* ------------------------------------------------------------------ */
+
+const REVEAL_GROUP_CONTAINER: Variants = {
+  hidden: {},
+  visible: {
+    transition: {
+      staggerChildren: 0.08,
+    },
+  },
+};
+
+const REVEAL_GROUP_ITEM: Variants = {
+  hidden: { opacity: 0, y: 16 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.55, ease: EASE_OUT },
+  },
+};
+
+export function RevealGroup({ children, ...props }: HTMLMotionProps<"div">) {
+  return (
+    <motion.div
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, amount: 0.25 }}
+      variants={REVEAL_GROUP_CONTAINER}
+      {...props}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+export function RevealItem({ children, ...props }: HTMLMotionProps<"div">) {
+  return (
+    <motion.div variants={REVEAL_GROUP_ITEM} {...props}>
+      {children}
+    </motion.div>
+  );
 }

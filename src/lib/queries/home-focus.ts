@@ -39,6 +39,8 @@ export interface FocusItem {
   cta: string;
   tone: FocusTone;
   dueDate?: string;
+  /** Present when kind is "task" — powers snooze on the focus list. */
+  taskId?: string;
 }
 
 const TONE_RANK: Record<FocusTone, number> = {
@@ -215,6 +217,7 @@ export function buildFocusItems({
       items.push({
         id: `task-${task.id}`,
         kind: "task",
+        taskId: task.id,
         title: task.title,
         reason: group.eventName,
         href: task.targetPath

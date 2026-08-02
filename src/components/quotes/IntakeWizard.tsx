@@ -26,6 +26,7 @@ import { PostIntakeCard } from "./PostIntakeCard";
 import { submitProposalIntake } from "@/app/actions/quotes";
 import { decodeCapabilityParam } from "@/lib/capabilities";
 import { bridgeQuizToIntake } from "@/lib/quiz-intake-bridge";
+import { briefEchoItems } from "@/lib/brief-echo";
 import { cn } from "@/lib/utils";
 
 const STEP_LABELS = [
@@ -68,14 +69,6 @@ interface IntakeFormData {
   doohMediaValue: string;
 }
 
-interface IntakeWizardProps {
-  /**
-   * Reserved for future flows that may need catalog data. The customer-facing
-   * confirmation deliberately does NOT surface model names — every customer
-   * surface speaks one umbrella product: the Experience Portal.
-   */
-  machines?: ReadonlyArray<{ slug: string; name: string }>;
-}
 
 function makeInitial(searchParams: URLSearchParams): IntakeFormData {
   // Translate the quiz taxonomy onto intake field values so the radio cards
@@ -117,8 +110,13 @@ function makeInitial(searchParams: URLSearchParams): IntakeFormData {
   };
 }
 
-/** Guided multi-step intake wizard for proposal requests. */
-export function IntakeWizard(_props: IntakeWizardProps = {}) {
+/**
+ * Guided multi-step intake wizard for proposal requests.
+ *
+ * Takes no catalogue props on purpose: every customer surface speaks one
+ * umbrella product, the Experience Portal, so no model names appear here.
+ */
+export function IntakeWizard() {
   const searchParams = useSearchParams();
 
   // The URL params come from the match card's CTA. They are absorbed silently
@@ -129,6 +127,10 @@ export function IntakeWizard(_props: IntakeWizardProps = {}) {
     [searchParams]
   );
   const initialPackageSlug = searchParams.get("package") ?? "";
+
+  // What the quiz already told us — surfaced as a visible "already noted"
+  // strip so the customer sees their answers carried over, not re-asked.
+  const quizEcho = useMemo(() => briefEchoItems(initial), [initial]);
 
   // If the quiz already captured the event type, skip straight to "Where & when"
   // — the customer shouldn't re-answer step 0.
@@ -187,8 +189,10 @@ export function IntakeWizard(_props: IntakeWizardProps = {}) {
         <PostIntakeCard
           quoteId={submitted.quoteId}
           contactName={data.contactName}
+          contactEmail={data.contactEmail}
           packageName={friendlyPackageFromSlug(initialPackageSlug)}
           capabilitySlugs={addons}
+          brief={data}
         />
       </div>
     );
@@ -196,6 +200,27 @@ export function IntakeWizard(_props: IntakeWizardProps = {}) {
 
   return (
     <div className="mx-auto max-w-2xl space-y-8 py-12">
+      {quizEcho.length > 0 && (
+        <div className="rounded-[var(--radius-card)] border border-primary/15 bg-primary/[0.04] px-4 py-3">
+          <p className="text-xs text-muted-foreground">
+            <span className="font-semibold text-primary">
+              Already noted from your quiz
+            </span>
+            , so you won&apos;t be asked twice:
+          </p>
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {quizEcho.map((item) => (
+              <span
+                key={item.label}
+                className="inline-flex items-center rounded-full border border-border/60 bg-background/70 px-2.5 py-1 text-xs font-medium text-foreground"
+              >
+                {item.value}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="flex items-center gap-2">
         {STEP_LABELS.map((label, i) => (
           <div key={label} className="flex items-center gap-2 flex-1">

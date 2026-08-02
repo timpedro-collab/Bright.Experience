@@ -8,8 +8,9 @@ import { revalidatePath } from "next/cache";
 import { quoteLimiter, getClientIp } from "@/lib/rate-limit";
 import { sanitiseCapabilitySlugs } from "@/lib/capabilities";
 import { dispatchNotification } from "@/lib/notifications/dispatch";
+import { sendBookingConfirmationEmail } from "@/lib/email";
 import { recordAttribution } from "@/app/actions/partners";
-import { provisionEventFromQuote } from "@/app/actions/provisioning";
+import { provisionEventFromQuote } from "@/server/provisioning";
 import { shouldAutoProvisionQuote } from "@/lib/booking-flags";
 import { bookNowSchema } from "@/lib/validations/quotes";
 import { PARTNER_ATTRIBUTION_COOKIE } from "./constants";
@@ -37,7 +38,7 @@ export async function submitBookNowQuote(data: {
   contactPhone?: string;
   companyName?: string;
 }) {
-  if (!quoteLimiter(await getClientIp())) {
+  if (!(await quoteLimiter(await getClientIp()))) {
     return {
       success: false as const,
       error: "Too many submissions. Please wait a moment and try again.",
@@ -122,6 +123,24 @@ export async function submitBookNowQuote(data: {
     } catch (attrError) {
       console.error("[submitBookNowQuote] attribution failed", attrError);
     }
+  }
+
+  // The buyer's own confirmation. Separate from the internal fan-out below
+  // because a Book Now buyer has no portal account to notify into.
+  try {
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+    await sendBookingConfirmationEmail({
+      contactName: data.contactName,
+      contactEmail: data.contactEmail,
+      packageName: pkg.name as string,
+      companyName: data.companyName ?? null,
+      eventDateStart: data.eventDateStart ?? null,
+      eventDateEnd: data.eventDateEnd ?? null,
+      totalAmount,
+      receiptUrl: `${baseUrl}/book/confirmation/${quote.id}`,
+    });
+  } catch (emailError) {
+    console.error("[submitBookNowQuote] confirmation email failed", emailError);
   }
 
   try {

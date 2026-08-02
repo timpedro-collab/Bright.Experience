@@ -367,6 +367,7 @@ function AddQAItemForm({ eventId }: { eventId: string }) {
       <select
         value={category}
         onChange={(e) => setCategory(e.target.value)}
+        aria-label="Check category"
         className="px-3 py-2 rounded-[var(--radius-control)] border border-border bg-muted/40 text-sm text-foreground outline-none focus:ring-2 focus:ring-ring"
       >
         {Object.entries(CATEGORY_LABELS).map(([key, label]) => (

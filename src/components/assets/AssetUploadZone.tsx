@@ -24,6 +24,7 @@ import {
   Circle,
   TriangleAlert,
   X,
+  Lock,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -298,6 +299,18 @@ export function AssetUploadZone({
   const hasFailures = criteria.some((c) => c.status === "fail");
   const slot = slotForAsset(asset.name, machineSlug);
   const machine = slot?.preview ?? null;
+
+  if (asset.reviewStatus === "approved") {
+    return (
+      <div className="mt-3 flex items-start gap-2.5 rounded-2xl border border-border bg-muted/30 px-4 py-4">
+        <Lock className="size-4 shrink-0 text-muted-foreground mt-0.5" aria-hidden />
+        <p className="text-sm text-muted-foreground leading-snug">
+          This asset is approved and locked. Ask your Bright.Blue contact to
+          reopen it if something must change.
+        </p>
+      </div>
+    );
+  }
 
   async function doUpload() {
     if (!staged) return;

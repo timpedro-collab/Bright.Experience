@@ -78,6 +78,50 @@ describe("getNotificationsByUser", () => {
   });
 });
 
+describe("getRecentActivityForUser", () => {
+  it("excludes action-required notifications (they live in Over to you)", async () => {
+    supabase.setTableResponse("notifications", {
+      data: [
+        {
+          id: 2,
+          user_id: "u1",
+          type: "stage.advanced",
+          title: "Your game moved into testing",
+          is_read: false,
+          created_at: "2026-07-30",
+          action_required: false,
+        },
+      ],
+      error: null,
+    });
+    const { getRecentActivityForUser } = await import("./notifications");
+    const out = await getRecentActivityForUser("u1");
+    expect(out).toHaveLength(1);
+    expect(out[0].actionRequired).toBe(false);
+    const calls = supabase.callsFor("notifications");
+    expect(
+      calls.some(
+        (c) =>
+          c.method === "eq" &&
+          c.args[0] === "action_required" &&
+          c.args[1] === false
+      )
+    ).toBe(true);
+    expect(calls.some((c) => c.method === "limit" && c.args[0] === 6)).toBe(
+      true
+    );
+  });
+
+  it("returns an empty array on error", async () => {
+    supabase.setTableResponse("notifications", {
+      data: null,
+      error: { message: "boom" },
+    });
+    const { getRecentActivityForUser } = await import("./notifications");
+    await expect(getRecentActivityForUser("u1")).resolves.toEqual([]);
+  });
+});
+
 describe("getUnreadCount", () => {
   it("returns the count from the query", async () => {
     supabase.setTableResponse("notifications", { count: 5, error: null });

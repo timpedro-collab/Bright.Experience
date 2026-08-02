@@ -23,11 +23,17 @@ vi.mock("@/lib/auth", () => ({
 vi.mock("@/lib/pipedrive/triggers", () => ({
   enqueueDealKickoff: (...args: unknown[]) => enqueueDealKickoff(...args),
 }));
+vi.mock("@/lib/audit", () => ({
+  writeAudit: (...args: unknown[]) => writeAudit(...args),
+}));
+
+const writeAudit = vi.fn();
 
 beforeEach(() => {
   supabase = createMockSupabase();
   getUser.mockReset();
   enqueueDealKickoff.mockReset();
+  writeAudit.mockReset();
 });
 
 const validInput = {
@@ -204,5 +210,126 @@ describe("duplicateEvent", () => {
       success: false,
       error: expect.stringMatching(/source event/),
     });
+  });
+});
+
+describe("setEventHealth", () => {
+  const EVENT_ID = "00000000-0000-4000-8000-0000000000e1";
+
+  beforeEach(() => {
+    getUser.mockResolvedValue({
+      id: "u1",
+      name: "x",
+      email: "x@x",
+      role: "events_lead",
+    });
+  });
+
+  /** The action selects the row back to prove RLS didn't filter the write. */
+  function updateReturnsRow() {
+    supabase.setTableResponse("events", {
+      data: { id: EVENT_ID },
+      error: null,
+    });
+  }
+
+  it("flags an event red with its reason and marks it a manual override", async () => {
+    updateReturnsRow();
+    const { setEventHealth } = await import("./events");
+    const result = await setEventHealth({
+      eventId: EVENT_ID,
+      status: "red",
+      reason: "Artwork still not signed off",
+    });
+
+    expect(result.success).toBe(true);
+    const update = supabase.callsFor("events").find((c) => c.method === "update");
+    expect(update?.args[0]).toEqual({
+      health_status: "red",
+      health_override: true,
+      health_reason: "Artwork still not signed off",
+    });
+    expect(writeAudit).toHaveBeenCalledWith(
+      expect.objectContaining({ action: "health_flagged", eventId: EVENT_ID })
+    );
+  });
+
+  it("clears back to green and drops the reason", async () => {
+    updateReturnsRow();
+    const { setEventHealth } = await import("./events");
+    const result = await setEventHealth({
+      eventId: EVENT_ID,
+      status: "green",
+      reason: "stale text",
+    });
+
+    expect(result.success).toBe(true);
+    const update = supabase.callsFor("events").find((c) => c.method === "update");
+    expect(update?.args[0]).toEqual({
+      health_status: "green",
+      health_override: false,
+      health_reason: null,
+    });
+    expect(writeAudit).toHaveBeenCalledWith(
+      expect.objectContaining({ action: "health_cleared" })
+    );
+  });
+
+  it("refuses to flag without a reason", async () => {
+    const { setEventHealth } = await import("./events");
+    const result = await setEventHealth({ eventId: EVENT_ID, status: "amber" });
+
+    expect(result.success).toBe(false);
+    if (!result.success) expect(result.error).toMatch(/say what's wrong/i);
+    expect(supabase.callsFor("events")).toHaveLength(0);
+  });
+
+  it("keeps customers out", async () => {
+    getUser.mockResolvedValue({
+      id: "u1",
+      name: "x",
+      email: "x@x",
+      role: "customer_admin",
+    });
+    const { setEventHealth } = await import("./events");
+    const result = await setEventHealth({
+      eventId: EVENT_ID,
+      status: "red",
+      reason: "Something is wrong",
+    });
+
+    expect(result.success).toBe(false);
+    if (!result.success) expect(result.error).toMatch(/delivery team/i);
+  });
+
+  it("reports a failed write rather than claiming the flag stuck", async () => {
+    supabase.setTableResponse("events", {
+      data: null,
+      error: { message: "permission denied" },
+    });
+    const { setEventHealth } = await import("./events");
+    const result = await setEventHealth({
+      eventId: EVENT_ID,
+      status: "amber",
+      reason: "Venue access unconfirmed",
+    });
+
+    expect(result.success).toBe(false);
+    expect(writeAudit).not.toHaveBeenCalled();
+  });
+
+  it("treats an RLS-filtered write as a failure, not a silent success", async () => {
+    // PostgREST reports "updated nothing" the same as a real update, which is
+    // how a flag could appear to stick while the row never changed.
+    supabase.setTableResponse("events", { data: null, error: null });
+    const { setEventHealth } = await import("./events");
+    const result = await setEventHealth({
+      eventId: EVENT_ID,
+      status: "red",
+      reason: "Venue access unconfirmed",
+    });
+
+    expect(result.success).toBe(false);
+    expect(writeAudit).not.toHaveBeenCalled();
   });
 });

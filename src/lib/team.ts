@@ -30,12 +30,3 @@ export const DEFAULT_ACCOUNT_MANAGER: TeamPersona = {
   title: "Event Lead",
   email: "tim@brightblue.co.uk",
 };
-
-/**
- * Scheduling link for the 15-minute proposal walkthrough call. Set
- * `NEXT_PUBLIC_CALENDLY_URL` to the real Calendly event; the fallback keeps the
- * flow working in demos.
- */
-export const PROPOSAL_CALL_URL =
-  process.env.NEXT_PUBLIC_CALENDLY_URL ??
-  "https://calendly.com/bright-blue/proposal-walkthrough";

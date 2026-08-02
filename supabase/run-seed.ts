@@ -222,7 +222,9 @@ async function seed() {
     },
   ], { onConflict: "asset_id,version" });
   if (verErr) {
-    console.warn("Asset versions skipped (table not migrated yet):", verErr.message);
+    // Depends on the canonical asset rows from seed.sql, so this is the first
+    // thing to fail if the seed ran out of order.
+    console.warn("Asset versions skipped:", verErr.message);
   } else {
     console.log("Asset versions seeded");
   }
@@ -241,7 +243,7 @@ async function seed() {
     },
   ]);
   if (annErr) {
-    console.warn("Asset annotations skipped (table not migrated yet):", annErr.message);
+    console.warn("Asset annotations skipped:", annErr.message);
   } else {
     console.log("Asset annotations seeded");
   }

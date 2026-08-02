@@ -71,3 +71,47 @@ describe("getAssetsByEvent", () => {
     expect(result[0].reviewStatus).toBe("pending_review");
   });
 });
+
+describe("getAssetDecisionLog", () => {
+  it("maps version rows to audit entries newest-first", async () => {
+    supabase.setTableResponse("asset_versions", {
+      data: [
+        {
+          id: "v2",
+          asset_id: "a1",
+          version: 2,
+          file_name: "hero-v2.png",
+          review_status: "approved",
+          review_feedback: "Looks good",
+          review_decided_by: "u-reviewer",
+          review_decided_at: "2026-06-02T10:00:00Z",
+          created_at: "2026-06-02T09:00:00Z",
+          uploaded_by: "u-customer",
+          asset: { name: "Hero Banner" },
+          uploader: { name: "James" },
+          reviewer: { name: "Emma" },
+        },
+      ],
+      error: null,
+    });
+    const { getAssetDecisionLog } = await import("./assets");
+    const result = await getAssetDecisionLog("evt-1");
+    expect(result).toHaveLength(1);
+    expect(result[0]).toMatchObject({
+      assetName: "Hero Banner",
+      version: 2,
+      reviewStatus: "approved",
+      uploaderName: "James",
+      reviewerName: "Emma",
+    });
+  });
+
+  it("returns an empty array on error", async () => {
+    supabase.setTableResponse("asset_versions", {
+      data: null,
+      error: { message: "boom" },
+    });
+    const { getAssetDecisionLog } = await import("./assets");
+    expect(await getAssetDecisionLog("evt-1")).toEqual([]);
+  });
+});

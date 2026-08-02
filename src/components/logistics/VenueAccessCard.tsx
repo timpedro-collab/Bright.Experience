@@ -19,8 +19,6 @@ interface VenueAccessCardProps {
 const inputClass =
   "w-full px-3 py-2 rounded-[var(--radius-control)] border border-border bg-muted/40 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-ring";
 
-const EMPTY: VenueAccess = { hall: "", stand: "", loadingZone: "", notes: "" };
-
 export function VenueAccessCard({ eventId, access, canEdit }: VenueAccessCardProps) {
   const router = useRouter();
   const [saving, startSave] = useTransition();

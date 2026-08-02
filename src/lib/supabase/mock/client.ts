@@ -195,6 +195,7 @@ class MockQuery implements PromiseLike<Result> {
   private _maybeSingle = false;
   private selectRequested = false;
   private upsertOnConflict?: string;
+  private upsertIgnoreDuplicates = false;
 
   constructor(table: string) {
     this.table = table;
@@ -225,10 +226,11 @@ class MockQuery implements PromiseLike<Result> {
     return this;
   }
 
-  upsert(payload: any, opts?: { onConflict?: string }) {
+  upsert(payload: any, opts?: { onConflict?: string; ignoreDuplicates?: boolean }) {
     this.op = "upsert";
     this.payload = payload;
     this.upsertOnConflict = opts?.onConflict;
+    this.upsertIgnoreDuplicates = opts?.ignoreDuplicates ?? false;
     return this;
   }
 
@@ -353,9 +355,15 @@ class MockQuery implements PromiseLike<Result> {
       const affected: MockRow[] = [];
       for (const p of rows) {
         if (this.op === "upsert") {
+          // NULL conflict keys match each other here, which mirrors the
+          // `nulls not distinct` indexes we actually upsert against
+          // (benchmarks). A plain unique index treats NULLs as distinct, so
+          // any caller relying on that must pass a non-null key — the
+          // telemetry ingest always does.
           const existing = arr.find((r) => keys.every((k) => r[k] === (p as any)[k]));
           if (existing) {
-            Object.assign(existing, p, { updated_at: now });
+            // ignoreDuplicates is PostgREST's `do nothing`: the stored row wins.
+            if (!this.upsertIgnoreDuplicates) Object.assign(existing, p, { updated_at: now });
             affected.push(existing);
             continue;
           }

@@ -1,6 +1,8 @@
 /** Admin queries — user and account management for internal users. */
 import { createClient } from "@/lib/supabase/server";
-import { PAGE_SIZE, paginateQuery, totalPages } from "@/lib/pagination";
+import { paginateQuery, totalPages } from "@/lib/pagination";
+import { logQueryError } from "@/lib/observability/log-query-error";
+import { anyOf, ilikeContains, isEmptySearch } from "@/lib/queries/filters";
 
 export interface AdminProfile {
   id: string;
@@ -34,15 +36,20 @@ export async function getProfilesPaginated(
     .select("*, accounts(name)", { count: "exact" })
     .order("created_at", { ascending: false });
 
-  if (search) {
-    query = query.or(`name.ilike.%${search}%,email.ilike.%${search}%`);
+  if (search && !isEmptySearch(search)) {
+    query = query.or(
+      anyOf(ilikeContains("name", search), ilikeContains("email", search))
+    );
   }
   if (roleFilter) {
     query = query.eq("role", roleFilter);
   }
 
   const { data, error, count } = await paginateQuery(query, page);
-  if (error || !data) return { data: [], totalCount: 0, totalPages: 1 };
+  if (error || !data) {
+    logQueryError("getProfilesPaginated", error);
+    return { data: [], totalCount: 0, totalPages: 1 };
+  }
 
   const total = count ?? 0;
   return {
@@ -175,20 +182,6 @@ export async function getAccountDetail(
     })),
   };
 }
-
-/** Simple account list (no pagination) for lightweight dropdowns. */
-export async function getAccountsList(): Promise<
-  Array<{ id: string; name: string; slug: string }>
-> {
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("accounts")
-    .select("id, name, slug")
-    .order("name")
-    .limit(200);
-  return (data ?? []) as Array<{ id: string; name: string; slug: string }>;
-}
-
 /** id + name only — invite / new-event dropdowns. */
 export async function getAccountOptions(): Promise<
   Array<{ id: string; name: string }>
@@ -199,7 +192,10 @@ export async function getAccountOptions(): Promise<
     .select("id, name")
     .order("name", { ascending: true });
 
-  if (error || !data) return [];
+  if (error || !data) {
+    logQueryError("getAccountOptions", error);
+    return [];
+  }
   return data.map((a) => ({ id: String(a.id), name: String(a.name) }));
 }
 
@@ -214,6 +210,9 @@ export async function getAccountNameSlug(
     .eq("id", accountId)
     .single();
 
-  if (error || !data) return null;
+  if (error || !data) {
+    logQueryError("getAccountNameSlug", error, { accountId });
+    return null;
+  }
   return { name: String(data.name), slug: String(data.slug) };
 }

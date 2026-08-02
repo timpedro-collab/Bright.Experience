@@ -282,6 +282,7 @@ function ComposeArea({
           <select
             value={topic}
             onChange={(e) => onTopicChange(e.target.value as MessageTopic)}
+            aria-label="Message topic"
             className="px-2 py-1 rounded-lg border border-border/60 bg-transparent text-xs text-muted-foreground outline-none"
           >
             {TOPIC_OPTIONS.map((opt) => (

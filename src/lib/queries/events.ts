@@ -3,6 +3,14 @@ import { PAGE_SIZE, paginateQuery, totalPages } from "@/lib/pagination";
 import { getUser } from "@/lib/auth";
 import { isInternalRole } from "@/lib/roles";
 import type { Event } from "@/types";
+import { logQueryError } from "@/lib/observability/log-query-error";
+import {
+  anyOf,
+  ilikeContains,
+  inList,
+  isEmptySearch,
+} from "@/lib/queries/filters";
+import { findAccountIdsByName } from "@/lib/queries/accounts";
 
 function mapEvent(row: Record<string, unknown>): Event {
   const account = row.accounts as Record<string, unknown> | null;
@@ -29,6 +37,8 @@ function mapEvent(row: Record<string, unknown>): Event {
     collectionDate: row.collection_date as string | undefined,
     currentStage: row.current_stage as Event["currentStage"],
     healthStatus: row.health_status as Event["healthStatus"],
+    healthOverride: (row.health_override as boolean | null) ?? false,
+    healthReason: (row.health_reason as string | null) ?? undefined,
     pipedriveDealId: (row.pipedrive_deal_id as string | null) ?? undefined,
     pipedriveLinkedAt: (row.pipedrive_linked_at as string | null) ?? undefined,
     createdAt: row.created_at as string,
@@ -52,7 +62,10 @@ export async function getEvents(): Promise<Event[]> {
   if (scopeAccountId) query = query.eq("account_id", scopeAccountId);
 
   const { data, error } = await query;
-  if (error || !data) return [];
+  if (error || !data) {
+    logQueryError("getEvents", error);
+    return [];
+  }
   return data.map(mapEvent);
 }
 
@@ -77,9 +90,16 @@ export async function getEventsPaginated(
   const user = await getUser();
   const scopeAccountId =
     user && !isInternalRole(user.role) ? user.accountId : null;
-  // Inner-join accounts so account-name filters (search + account picker)
-  // actually constrain the result set rather than just nulling the embed.
-  const needsAccountFilter = Boolean(filters?.q || filters?.account);
+  // The search covers the event name OR the customer's name, which live in two
+  // tables. PostgREST cannot OR across an embedded resource — `accounts.name`
+  // inside a top-level `or=` is not a column it can resolve, and the whole
+  // filter is rejected — so resolve the matching accounts first and search
+  // events by their ids.
+  const searchAccountIds = filters?.q
+    ? await findAccountIdsByName(supabase, filters.q)
+    : [];
+
+  const needsAccountFilter = Boolean(filters?.account);
   let query = supabase
     .from("events")
     .select(
@@ -91,11 +111,23 @@ export async function getEventsPaginated(
   if (scopeAccountId) query = query.eq("account_id", scopeAccountId);
   if (filters?.stage) query = query.eq("current_stage", filters.stage);
   if (filters?.health) query = query.eq("health_status", filters.health);
-  if (filters?.q) query = query.or(`name.ilike.%${filters.q}%,accounts.name.ilike.%${filters.q}%`);
+  if (filters?.q && !isEmptySearch(filters.q)) {
+    query = query.or(
+      anyOf(
+        ilikeContains("name", filters.q),
+        searchAccountIds.length > 0
+          ? inList("account_id", searchAccountIds)
+          : ""
+      )
+    );
+  }
   if (filters?.account) query = query.eq("accounts.name", filters.account);
 
   const { data, error, count } = await paginateQuery(query, page, pageSize);
-  if (error || !data) return { data: [], totalCount: 0, totalPages: 1 };
+  if (error || !data) {
+    logQueryError("getEventsPaginated", error);
+    return { data: [], totalCount: 0, totalPages: 1 };
+  }
 
   const total = count ?? 0;
   return { data: data.map(mapEvent), totalCount: total, totalPages: totalPages(total, pageSize) };
@@ -114,6 +146,9 @@ export async function getEventById(id: string): Promise<Event | null> {
   if (scopeAccountId) query = query.eq("account_id", scopeAccountId);
 
   const { data, error } = await query.maybeSingle();
-  if (error || !data) return null;
+  if (error || !data) {
+    logQueryError("getEventById", error, { id });
+    return null;
+  }
   return mapEvent(data);
 }

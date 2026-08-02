@@ -11,7 +11,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getUser, requireInternalUser } from "@/lib/auth";
 import { dispatchNotification } from "@/lib/notifications/dispatch";
-import { inviteCustomerUserSystem } from "@/app/actions/invites";
+import { inviteCustomerUserInternal } from "@/server/invites";
 import {
   approveTeamMemberSchema,
   inviteTeammateSchema,
@@ -84,7 +84,7 @@ export async function inviteTeammate(
 
   // Self-serve: same company domain + standard member → instant login.
   if (sameDomain && !asAdmin) {
-    const result = await inviteCustomerUserSystem(
+    const result = await inviteCustomerUserInternal(
       target,
       user.accountId,
       "customer_user",
@@ -231,7 +231,7 @@ export async function approveTeamMember(
 
   const inviteRole =
     member.role_label === ADMIN_ROLE_LABEL ? "customer_admin" : "customer_user";
-  const invite = await inviteCustomerUserSystem(
+  const invite = await inviteCustomerUserInternal(
     member.email as string,
     event.account_id as string,
     inviteRole,

@@ -10,7 +10,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { updateQAItemSchema, addQAItemSchema } from "@/lib/validations/qa";
-import { autoCompleteTaskByPath } from "@/app/actions/tasks";
+import { autoCompleteTaskByPath } from "@/server/tasks";
 import { bumpStreak } from "./streak";
 import { getUser } from "@/lib/auth";
 import type { UserRole } from "@/types";

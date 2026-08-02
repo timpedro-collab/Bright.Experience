@@ -1,6 +1,7 @@
 /** Supabase read queries for event reports (proof of performance). */
 import { createClient } from "@/lib/supabase/server";
 import type { EventReport } from "@/types";
+import { logQueryError } from "@/lib/observability/log-query-error";
 
 /** Map a database row to a camelCase EventReport. */
 function mapEventReport(row: Record<string, unknown>): EventReport {
@@ -33,25 +34,12 @@ export async function getEventReports(
     .eq("event_id", eventId)
     .order("generated_at", { ascending: false });
 
-  if (error || !data) return [];
+  if (error || !data) {
+    logQueryError("getEventReports", error, { eventId });
+    return [];
+  }
   return data.map(mapEventReport);
 }
-
-/** Fetch a single report by its ID. */
-export async function getEventReportById(
-  id: string
-): Promise<EventReport | null> {
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("event_reports")
-    .select("*")
-    .eq("id", id)
-    .single();
-
-  if (error || !data) return null;
-  return mapEventReport(data);
-}
-
 /** Fetch a published report by its public share token. */
 export async function getEventReportByShareToken(
   token: string
@@ -64,19 +52,9 @@ export async function getEventReportByShareToken(
     .eq("is_published", true)
     .single();
 
-  if (error || !data) return null;
+  if (error || !data) {
+    logQueryError("getEventReportByShareToken", error, { token });
+    return null;
+  }
   return mapEventReport(data);
-}
-
-/** Fetch all published reports (internal dashboard listing). */
-export async function getPublishedReports(): Promise<EventReport[]> {
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("event_reports")
-    .select("*")
-    .eq("is_published", true)
-    .order("published_at", { ascending: false });
-
-  if (error || !data) return [];
-  return data.map(mapEventReport);
 }

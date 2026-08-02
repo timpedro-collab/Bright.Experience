@@ -1,6 +1,7 @@
 /** Supabase read queries for briefing responses. */
 
 import { createClient } from "@/lib/supabase/server";
+import { logQueryError } from "@/lib/observability/log-query-error";
 
 export type BriefingFormType = "creative" | "ops";
 
@@ -28,7 +29,10 @@ export async function getBriefingResponse(
     .eq("form_type", formType)
     .maybeSingle();
 
-  if (error || !data) return null;
+  if (error || !data) {
+    logQueryError("getBriefingResponse", error, { eventId });
+    return null;
+  }
   return data as BriefingResponseRow;
 }
 

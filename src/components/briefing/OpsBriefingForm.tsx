@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { saveBriefingResponse } from "@/app/actions/briefing";
+import { RequestChangePanel } from "@/components/briefing/RequestChangePanel";
 import { celebrateFromElement } from "@/lib/celebrate";
 
 const OPS_BRIEFING_FIELDS = [
@@ -66,10 +67,10 @@ const OPS_BRIEFING_FIELDS = [
   },
   {
     id: "staffing_needs",
-    label: "Staffing & Brand Ambassadors",
+    label: "On-Site Support",
     type: "textarea" as const,
     placeholder:
-      "Do you need Bright.Blue staff on-site? How many? Any branded uniform requirements?",
+      "Will you need Bright.Blue on-site support during the event? Let us know which days and roughly how many people.",
   },
   {
     id: "special_requirements",
@@ -86,6 +87,11 @@ interface OpsBriefingFormProps {
   isSubmitted: boolean;
   /** Internal viewers read the customer's logistics — they never fill it in. */
   readOnly?: boolean;
+  /**
+   * Delivery plan is locked (event at/after logistics_confirmed). A submitted
+   * brief can no longer be edited directly — changes go through a request.
+   */
+  planLocked?: boolean;
 }
 
 export function OpsBriefingForm({
@@ -93,6 +99,7 @@ export function OpsBriefingForm({
   initialResponses,
   isSubmitted: initiallySubmitted,
   readOnly = false,
+  planLocked = false,
 }: OpsBriefingFormProps) {
   const [responses, setResponses] = useState<Record<string, string>>(
     (initialResponses as Record<string, string>) || {}
@@ -141,6 +148,24 @@ export function OpsBriefingForm({
     }
   }
 
+  /** Re-save an already-submitted (but unlocked) brief, re-notifying the team. */
+  async function handleUpdate() {
+    setSubmitting(true);
+    try {
+      await saveBriefingResponse(eventId, "ops", responses, true);
+      setSaved(true);
+      toast.success("Details updated", {
+        description: "We've let the operations team know about the change.",
+      });
+    } catch (err) {
+      toast.error("Couldn't update your details", {
+        description: err instanceof Error ? err.message : "Please try again.",
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
   if (readOnly) {
     const hasAny = OPS_BRIEFING_FIELDS.some(
       (f) => (responses[f.id] ?? "").trim().length > 0
@@ -175,7 +200,9 @@ export function OpsBriefingForm({
     );
   }
 
-  if (isSubmitted) {
+  // Submitted AND the delivery plan is locked → no direct edits; offer a
+  // change request instead of a dead-end read-only wall.
+  if (isSubmitted && planLocked) {
     return (
       <Card tone="subtle" className="p-8">
         <div className="flex flex-col items-center gap-3 text-center">
@@ -200,12 +227,22 @@ export function OpsBriefingForm({
             </div>
           ))}
         </div>
+        <RequestChangePanel eventId={eventId} formType="ops" />
       </Card>
     );
   }
 
   return (
     <Card tone="subtle" className="p-6">
+      {isSubmitted && (
+        <div className="mb-6 flex items-start gap-2 rounded-[var(--radius-control)] border border-border/60 bg-muted/30 p-3">
+          <CheckCircle2 size={16} className="mt-0.5 shrink-0 text-success" />
+          <p className="text-sm text-muted-foreground">
+            Submitted — you can still update these details while we plan. Saving
+            your changes lets the operations team know.
+          </p>
+        </div>
+      )}
       <div className="space-y-6">
         {OPS_BRIEFING_FIELDS.map((field) => (
           <div key={field.id}>
@@ -234,35 +271,54 @@ export function OpsBriefingForm({
       </div>
 
       <div className="flex flex-col-reverse gap-3 mt-8 pt-6 border-t border-border/60 sm:flex-row sm:items-center">
-        <Button
-          onClick={handleSave}
-          disabled={saving}
-          variant="glass"
-          className="sm:w-auto"
-        >
-          {saving ? (
-            <Loader2 size={14} className="animate-spin" />
-          ) : saved ? (
-            <CheckCircle2 size={14} className="text-success" />
-          ) : (
-            <Save size={14} />
-          )}
-          {saving ? "Saving…" : saved ? "Saved" : "Save draft"}
-        </Button>
-        <Button
-          ref={submitRef}
-          onClick={handleSubmit}
-          disabled={submitting}
-          variant="brand"
-          className="sm:ml-auto"
-        >
-          {submitting ? (
-            <Loader2 size={14} className="animate-spin" />
-          ) : (
-            <Send size={14} />
-          )}
-          {submitting ? "Submitting…" : "Submit ops briefing"}
-        </Button>
+        {isSubmitted ? (
+          <Button
+            ref={submitRef}
+            onClick={handleUpdate}
+            disabled={submitting}
+            variant="brand"
+            className="sm:ml-auto"
+          >
+            {submitting ? (
+              <Loader2 size={14} className="animate-spin" />
+            ) : (
+              <Save size={14} />
+            )}
+            {submitting ? "Updating…" : "Update details"}
+          </Button>
+        ) : (
+          <>
+            <Button
+              onClick={handleSave}
+              disabled={saving}
+              variant="glass"
+              className="sm:w-auto"
+            >
+              {saving ? (
+                <Loader2 size={14} className="animate-spin" />
+              ) : saved ? (
+                <CheckCircle2 size={14} className="text-success" />
+              ) : (
+                <Save size={14} />
+              )}
+              {saving ? "Saving…" : saved ? "Saved" : "Save draft"}
+            </Button>
+            <Button
+              ref={submitRef}
+              onClick={handleSubmit}
+              disabled={submitting}
+              variant="brand"
+              className="sm:ml-auto"
+            >
+              {submitting ? (
+                <Loader2 size={14} className="animate-spin" />
+              ) : (
+                <Send size={14} />
+              )}
+              {submitting ? "Submitting…" : "Submit ops briefing"}
+            </Button>
+          </>
+        )}
       </div>
     </Card>
   );

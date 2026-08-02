@@ -78,7 +78,7 @@ const OWNER_TO_INTERNAL_ROLE: Partial<Record<OwnerRole, UserRole[]>> = {
 };
 
 /** True when the viewer's own role is the party responsible for this work. */
-export function isOwnedByViewer(owner: OwnerRole, viewerRole: UserRole): boolean {
+function isOwnedByViewer(owner: OwnerRole, viewerRole: UserRole): boolean {
   if (owner === "customer") return CUSTOMER_ROLES.includes(viewerRole);
   const internalRoles = OWNER_TO_INTERNAL_ROLE[owner];
   return !!internalRoles && internalRoles.includes(viewerRole);
@@ -225,6 +225,4 @@ export function groupOpenTasksByOwner(tasks: Task[]): OwnershipBucket[] {
     .filter((o) => map.has(o))
     .map((owner) => ({ owner, tasks: map.get(owner) ?? [] }));
 }
-
-export const OWNER_DISPLAY_LABEL = OWNER_LABEL;
 export const OWNER_TEAM_DISPLAY_LABEL = OWNER_TEAM_LABEL;

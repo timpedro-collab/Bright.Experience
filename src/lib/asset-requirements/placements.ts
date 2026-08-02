@@ -50,7 +50,7 @@ export const FULL_VIEWPORT: Rect = { x: 0, y: 0, w: 100, h: 100 };
  * new artwork — every placement references this one source, so nothing else
  * needs to change. (`kiosk.png` is the calibrated 1024×1024 stand-in.)
  */
-export const MACHINE_RENDER = "/machine/kiosk.png";
+const MACHINE_RENDER = "/machine/kiosk.png";
 const KIOSK = MACHINE_RENDER;
 
 /*
@@ -136,14 +136,3 @@ export const PLACEMENT_PREVIEWS: Record<string, PlacementPreview> = {
     caption: "Distractor icons in the game flow",
   },
 };
-
-/**
- * Lookup the on-machine preview config for an asset slot, if any.
- *
- * Backward-compatible entry point: returns the default-variant geometry. New
- * machine-variant-aware call sites should use `placementPreviewForMachine` /
- * `slotForAsset` from `./machine-placements`.
- */
-export function placementPreviewFor(assetName: string): PlacementPreview | null {
-  return PLACEMENT_PREVIEWS[assetName] ?? null;
-}

@@ -1,6 +1,7 @@
 /** Supabase queries for event template management */
 
 import { createClient } from "@/lib/supabase/server";
+import { logQueryError } from "@/lib/observability/log-query-error";
 
 /** Fetch all active templates ordered by name */
 export async function getTemplates() {
@@ -11,7 +12,10 @@ export async function getTemplates() {
     .eq("is_active", true)
     .order("name");
 
-  if (error || !data) return [];
+  if (error || !data) {
+    logQueryError("getTemplates", error);
+    return [];
+  }
   return data;
 }
 
@@ -24,6 +28,9 @@ export async function getTemplateById(id: string) {
     .eq("id", id)
     .single();
 
-  if (error || !data) return null;
+  if (error || !data) {
+    logQueryError("getTemplateById", error, { id });
+    return null;
+  }
   return data;
 }

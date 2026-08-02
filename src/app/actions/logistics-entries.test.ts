@@ -11,7 +11,7 @@ const autoCompleteTaskByPath = vi.fn();
 vi.mock("@/lib/supabase/server", () => ({
   createClient: vi.fn(async () => supabase),
 }));
-vi.mock("@/app/actions/tasks", () => ({
+vi.mock("@/server/tasks", () => ({
   autoCompleteTaskByPath: (...args: unknown[]) => autoCompleteTaskByPath(...args),
 }));
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
@@ -25,8 +25,16 @@ describe("updateLogisticsEntry", () => {
   it("rejects an unauthenticated caller", async () => {
     supabase.setUser(null);
     const { updateLogisticsEntry } = await import("./logistics/entries");
+    const result = await updateLogisticsEntry("le1", { status: "completed" });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects a status the lifecycle does not define", async () => {
+    supabase.setUser({ id: "u1" });
+    const { updateLogisticsEntry } = await import("./logistics/entries");
     const result = await updateLogisticsEntry("le1", { status: "complete" });
     expect(result.success).toBe(false);
+    expect(supabase.callsFor("logistics_entries")).toHaveLength(0);
   });
 
   it("updates the entry and writes an audit row", async () => {
@@ -36,7 +44,7 @@ describe("updateLogisticsEntry", () => {
       error: null,
     });
     const { updateLogisticsEntry } = await import("./logistics/entries");
-    const result = await updateLogisticsEntry("le1", { status: "complete" });
+    const result = await updateLogisticsEntry("le1", { status: "completed" });
     expect(result.success).toBe(true);
 
     const auditInsert = supabase

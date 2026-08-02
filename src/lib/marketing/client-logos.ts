@@ -15,6 +15,14 @@ export interface ClientLogo {
    * touch taller than the wordmark default.
    */
   imgClassName?: string;
+  /**
+   * The client's primary brand colour, injected inline into the case-study
+   * tile hover wash (On Board pattern: per-client accent as data, not CSS —
+   * twelve tiles, twelve colours, one component). Approximate hues, purely
+   * decorative; swap for exact values if a brand team supplies them.
+   * Absent → the tile falls back to Bright.Blue cobalt.
+   */
+  brandColor?: string;
 }
 
 /**
@@ -30,20 +38,24 @@ export interface ClientLogo {
  * so they normalise like the rest). Stacked marks can opt into a taller height.
  */
 export const CLIENT_LOGOS: ClientLogo[] = [
-  { name: "Storyblok", src: "/logos/storyblok.svg" },
-  { name: "Adyen", src: "/logos/adyen.svg" },
-  { name: "Red Bull", src: "/logos/red-bull.svg" },
-  { name: "Pepsi", src: "/logos/pepsi.png" },
-  { name: "Porsche", src: "/logos/porsche.svg" },
-  { name: "Suntory", src: "/logos/suntory.svg" },
-  { name: "Lucozade", src: "/logos/lucozade.png" },
-  { name: "Celsius", src: "/logos/celsius.svg" },
-  { name: "Pelion", src: "/logos/pelion.png" },
-  { name: "Intact", src: "/logos/intact.png" },
+  { name: "Storyblok", src: "/logos/storyblok.svg", brandColor: "#09b3af" },
+  { name: "Adyen", src: "/logos/adyen.svg", brandColor: "#0abf53" },
+  { name: "Red Bull", src: "/logos/red-bull.svg", brandColor: "#db0a40" },
+  { name: "Pepsi", src: "/logos/pepsi.png", brandColor: "#005cb4" },
+  { name: "Porsche", src: "/logos/porsche.svg", brandColor: "#d5001c" },
+  { name: "Suntory", src: "/logos/suntory.svg", brandColor: "#004098" },
+  { name: "Lucozade", src: "/logos/lucozade.png", brandColor: "#ff8200" },
+  { name: "Celsius", src: "/logos/celsius.svg", brandColor: "#f47920" },
+  { name: "Pelion", src: "/logos/pelion.png", brandColor: "#00a19a" },
+  { name: "Intact", src: "/logos/intact.png", brandColor: "#c8102e" },
   // British Insurance Brokers' Association — real BIBA Conference client. Full
   // lion + wordmark lockup; supplied asset had its white background stripped to
   // a transparent mask so it normalises to white like the rest of the wall.
-  { name: "British Insurance Brokers' Association", src: "/logos/biba.png" },
+  {
+    name: "British Insurance Brokers' Association",
+    src: "/logos/biba.png",
+    brandColor: "#003087",
+  },
 ];
 
 /** Case-study `client_name` values that differ from the logo's display name. */

@@ -17,6 +17,7 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import { applyAsPartner } from "@/app/actions/partners";
+import type { PublicPartnerType } from "@/lib/validations/partners";
 
 const STEPS = [
   { label: "Company Info", icon: Building2 },
@@ -34,7 +35,7 @@ interface FormData {
   contactEmail: string;
   contactPhone: string;
   contactRole: string;
-  partnerType: string;
+  partnerType: PublicPartnerType;
   referralSource: string;
   notes: string;
 }
@@ -53,7 +54,15 @@ const INITIAL_DATA: FormData = {
   notes: "",
 };
 
-const PARTNER_TYPES = [
+/**
+ * Every tier here has to be one the application schema accepts, or the form
+ * offers a choice the database will reject.
+ */
+const PARTNER_TYPES: Array<{
+  value: PublicPartnerType;
+  label: string;
+  desc: string;
+}> = [
   { value: "referral", label: "Referral Partner", desc: "Earn commission for every referred client" },
   { value: "reseller", label: "Reseller Partner", desc: "Resell Bright.Blue packages under your brand" },
   { value: "agency", label: "Agency Partner", desc: "Integrate our experiences into your events offering" },
@@ -66,7 +75,7 @@ export function PartnerOnboardingWizard() {
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  function update(field: keyof FormData, value: string) {
+  function update<K extends keyof FormData>(field: K, value: FormData[K]) {
     setForm((prev) => ({ ...prev, [field]: value }));
   }
 
@@ -78,7 +87,7 @@ export function PartnerOnboardingWizard() {
         name: form.companyName || form.contactName,
         contactName: form.contactName,
         contactEmail: form.contactEmail,
-        type: form.partnerType || "reseller",
+        type: form.partnerType,
         companyName: form.companyName || undefined,
         website: form.website || undefined,
         industry: form.industry || undefined,

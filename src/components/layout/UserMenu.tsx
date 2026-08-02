@@ -31,9 +31,15 @@ const ROLE_LABELS: Record<string, string> = {
 
 interface UserMenuProps {
   user: User;
+  /**
+   * Override the role label shown under the user's name. Venue operators are
+   * modelled as `partner_*` roles, so without this they'd read "Partner
+   * admin" — the venue portal passes "Venue admin" / "Venue" instead.
+   */
+  roleLabel?: string;
 }
 
-export function UserMenu({ user }: UserMenuProps) {
+export function UserMenu({ user, roleLabel }: UserMenuProps) {
   const router = useRouter();
   const { isDark, toggleTheme } = useTheme();
 
@@ -86,7 +92,7 @@ export function UserMenu({ user }: UserMenuProps) {
               {user.name}
             </span>
             <span className="text-overline text-[0.6rem] text-muted-foreground">
-              {ROLE_LABELS[user.role] ?? user.role}
+              {roleLabel ?? ROLE_LABELS[user.role] ?? user.role}
             </span>
           </span>
         </button>

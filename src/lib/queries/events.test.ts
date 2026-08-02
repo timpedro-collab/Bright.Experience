@@ -84,6 +84,45 @@ describe("getEvents", () => {
   });
 });
 
+describe("getEventsPaginated search", () => {
+  it("searches account names by id rather than through the embed", async () => {
+    supabase.setTableResponse("accounts", {
+      data: [{ id: "acc-1" }],
+      error: null,
+    });
+    supabase.setTableResponse("events", { data: [], error: null, count: 0 });
+
+    const { getEventsPaginated } = await import("./events");
+    await getEventsPaginated(1, 20, { q: "acme" });
+
+    const or = supabase.callsFor("events").find((c) => c.method === "or");
+    expect(or?.args[0]).toBe('name.ilike."%acme%",account_id.in.("acc-1")');
+    expect(or?.args[0]).not.toContain("accounts.name");
+  });
+
+  it("still searches event names when no account matches", async () => {
+    supabase.setTableResponse("accounts", { data: [], error: null });
+    supabase.setTableResponse("events", { data: [], error: null, count: 0 });
+
+    const { getEventsPaginated } = await import("./events");
+    await getEventsPaginated(1, 20, { q: "spring" });
+
+    const or = supabase.callsFor("events").find((c) => c.method === "or");
+    expect(or?.args[0]).toBe('name.ilike."%spring%"');
+  });
+
+  it("keeps an injected filter inside the quoted search value", async () => {
+    supabase.setTableResponse("accounts", { data: [], error: null });
+    supabase.setTableResponse("events", { data: [], error: null, count: 0 });
+
+    const { getEventsPaginated } = await import("./events");
+    await getEventsPaginated(1, 20, { q: "x,health.eq.red" });
+
+    const or = supabase.callsFor("events").find((c) => c.method === "or");
+    expect(or?.args[0]).toBe('name.ilike."%x,health.eq.red%"');
+  });
+});
+
 describe("getEventById", () => {
   it("returns the mapped single row when found", async () => {
     supabase.setTableResponse("events", {

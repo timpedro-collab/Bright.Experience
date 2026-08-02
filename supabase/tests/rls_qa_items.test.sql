@@ -22,10 +22,13 @@ on conflict (id) do nothing;
 
 select plan(4);
 
--- (1) Internal sees every QA item
+-- (1) Internal sees every QA item. Scoped to the fixture rows because
+-- `supabase test db` runs against a seeded database.
 select _rls_test_as('00000000-0000-4000-8000-000000000011');
 select is(
-  (select count(*)::int from qa_items),
+  (select count(*)::int from qa_items where id in (
+    '00000000-0000-4000-8000-0000000000aa',
+    '00000000-0000-4000-8000-0000000000ab')),
   2,
   'internal sees every QA item'
 );

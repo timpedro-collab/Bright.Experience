@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import type { StudioTier } from "@/components/studio/StudioServiceCard";
 import type { StudioServiceType } from "@/types";
+import { logQueryError } from "@/lib/observability/log-query-error";
 
 interface StudioPricingRow {
   id: string;
@@ -29,22 +30,6 @@ function mapRowToTier(row: StudioPricingRow): StudioTier {
     featured: row.is_featured,
   };
 }
-
-/** Returns pricing tiers for a given service type, ordered by sort_order */
-export async function getStudioPricingByType(
-  serviceType: "design" | "animation"
-): Promise<StudioTier[]> {
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("studio_pricing")
-    .select("*")
-    .eq("service_type", serviceType)
-    .order("sort_order");
-
-  if (error || !data) return [];
-  return (data as unknown as StudioPricingRow[]).map(mapRowToTier);
-}
-
 /** Returns all pricing tiers grouped by service type */
 export async function getAllStudioPricing(): Promise<{
   design: StudioTier[];
@@ -56,7 +41,10 @@ export async function getAllStudioPricing(): Promise<{
     .select("*")
     .order("sort_order");
 
-  if (error || !data) return { design: [], animation: [] };
+  if (error || !data) {
+    logQueryError("getAllStudioPricing", error);
+    return { design: [], animation: [] };
+  }
 
   const rows = data as unknown as StudioPricingRow[];
   return {

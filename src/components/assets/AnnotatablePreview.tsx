@@ -47,6 +47,9 @@ export function AnnotatablePreview({
   const [body, setBody] = React.useState("");
   const [pending, startTransition] = React.useTransition();
 
+  const openCount = annotations.filter((a) => !a.resolved).length;
+  const resolvedCount = annotations.length - openCount;
+
   function handleImageClick(e: React.MouseEvent<HTMLDivElement>) {
     if (pending) return;
     const rect = e.currentTarget.getBoundingClientRect();
@@ -179,7 +182,27 @@ export function AnnotatablePreview({
       )}
 
       {annotations.length > 0 ? (
-        <ul className="space-y-1.5">
+        <>
+          {/* Filestage framing: notes are a to-do list, not a chat log — the
+              open count is the headline number a reviewer scans for. */}
+          <div className="flex items-center gap-2">
+            <span className="text-overline text-muted-foreground">Notes</span>
+            {openCount > 0 ? (
+              <span className="inline-flex items-center rounded-full bg-[var(--color-bb-cobalt)]/10 px-2 py-0.5 text-[10px] font-semibold text-[var(--color-bb-cobalt)] tabular-nums">
+                {openCount} open
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 rounded-full bg-success/10 px-2 py-0.5 text-[10px] font-semibold text-success">
+                <Check className="h-3 w-3" /> All resolved
+              </span>
+            )}
+            {resolvedCount > 0 && openCount > 0 && (
+              <span className="text-[10px] text-quaternary tabular-nums">
+                {resolvedCount} resolved
+              </span>
+            )}
+          </div>
+          <ul className="space-y-1.5">
           {annotations.map((a, i) => (
             <li
               key={a.id}
@@ -190,7 +213,14 @@ export function AnnotatablePreview({
                   : "border-border bg-card text-foreground",
               )}
             >
-              <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-primary/15 text-[10px] font-semibold text-primary">
+              <span
+                className={cn(
+                  "mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold",
+                  a.resolved
+                    ? "bg-success/15 text-success"
+                    : "bg-primary/15 text-primary",
+                )}
+              >
                 {i + 1}
               </span>
               <span className="min-w-0 flex-1 break-words">{a.body}</span>
@@ -206,7 +236,8 @@ export function AnnotatablePreview({
               </button>
             </li>
           ))}
-        </ul>
+          </ul>
+        </>
       ) : (
         !draft && (
           <p className="text-xs text-muted-foreground">
@@ -228,10 +259,12 @@ function Pin({
   return (
     <span
       className={cn(
-        "absolute z-10 flex h-5 w-5 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 text-[10px] font-bold shadow",
+        "absolute z-10 flex -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 text-[10px] font-bold shadow",
+        // Open pins are loud; resolved pins recede so the remaining work
+        // stays scannable on a heavily-annotated proof.
         annotation.resolved
-          ? "border-emerald-500 bg-emerald-500/80 text-white"
-          : "border-white bg-primary text-primary-foreground",
+          ? "h-4 w-4 border-emerald-500/60 bg-emerald-500/60 text-white opacity-70"
+          : "h-5 w-5 border-white bg-primary text-primary-foreground",
       )}
       style={{ left: `${annotation.x}%`, top: `${annotation.y}%` }}
       title={annotation.body}

@@ -51,8 +51,9 @@ export function YourTeamWidget({ eventId, members }: YourTeamWidgetProps) {
         Your team
       </p>
       <ul className="space-y-2.5">
+        {/* Key on name+role: the same person can hold two roles on one event. */}
         {team.map((member) => (
-          <li key={member.name} className="flex items-center gap-3">
+          <li key={`${member.name}-${member.role}`} className="flex items-center gap-3">
             <span className="flex items-center justify-center size-8 rounded-full bg-card border border-border text-overline text-foreground text-xs">
               {initials(member.name)}
             </span>

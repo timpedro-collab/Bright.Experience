@@ -1,6 +1,7 @@
 /** Supabase queries for event messaging */
 
 import { createClient } from "@/lib/supabase/server";
+import { logQueryError } from "@/lib/observability/log-query-error";
 
 /** Fetch messages for an event with sender profile, ordered chronologically. RLS filters internal messages for customers. */
 export async function getMessagesByEvent(eventId: string) {
@@ -11,7 +12,10 @@ export async function getMessagesByEvent(eventId: string) {
     .eq("event_id", eventId)
     .order("created_at", { ascending: true });
 
-  if (error || !data) return [];
+  if (error || !data) {
+    logQueryError("getMessagesByEvent", error, { eventId });
+    return [];
+  }
   return data.map((row) => {
     const sender = row.sender as Record<string, unknown> | null;
     return {
@@ -26,16 +30,4 @@ export async function getMessagesByEvent(eventId: string) {
       createdAt: row.created_at as string,
     };
   });
-}
-
-/** Count of messages for an event */
-export async function getMessageCount(eventId: string): Promise<number> {
-  const supabase = await createClient();
-  const { count, error } = await supabase
-    .from("messages")
-    .select("*", { count: "exact", head: true })
-    .eq("event_id", eventId);
-
-  if (error) return 0;
-  return count ?? 0;
 }

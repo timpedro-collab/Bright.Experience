@@ -23,7 +23,7 @@ vi.mock("@/lib/storage/signed-url", () => ({
   createSignedReadUrl: vi.fn(async () => "https://signed"),
 }));
 vi.mock("@/lib/storage/scan", () => ({
-  scanUpload: vi.fn(async () => ({ ok: true })),
+  screenUpload: vi.fn(async () => ({ ok: true })),
 }));
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 

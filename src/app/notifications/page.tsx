@@ -111,7 +111,7 @@ export default async function NotificationsPage({
             icon={Bell}
             title="No notifications yet"
             description="When something needs your attention — assets uploaded, approvals decided, stage changes — it'll appear right here."
-            action={{ label: "Back to dashboard", href: "/" }}
+            action={{ label: "Return to Dashboard", href: "/" }}
             size="lg"
           />
         ) : (

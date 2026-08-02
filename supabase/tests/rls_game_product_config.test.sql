@@ -5,10 +5,11 @@
 --   1. Customer sees their own event's game config
 --   2. Customer cannot see another account's game config
 --   3. Internal user sees all game configs
---   4. Customer can fill in (insert) their own event's game config
---   5. Customer sees their own event's product config
+--   4. Customer can write their own event's product config
+--   5. Customer cannot write another account's product config
 --   6. Customer cannot see another account's product config
---   7. Anonymous user gets no game config rows
+--   7. Internal user sees all product configs
+--   8. Anonymous user gets no game config rows
 -- =====================================================================
 
 begin;
@@ -24,7 +25,7 @@ insert into product_configurations (id, event_id, total_units) values
   ('00000000-0000-4000-8000-000000000612', '00000000-0000-4000-8000-0000000000e2', 600)
 on conflict (id) do nothing;
 
-select plan(7);
+select plan(8);
 
 -- (1) Acme customer sees own-event game config
 select _rls_test_as('00000000-0000-4000-8000-000000000020');
@@ -49,26 +50,44 @@ select cmp_ok(
   'internal user sees all game configs'
 );
 
--- (4) Customer can fill in their own event's product config. One config per
--- event since 20260602120000 (UNIQUE event_id), so the write is an upsert.
+-- (4) Customer can fill in their own event's product config. Since
+-- 20260727000001 the scope key is (event_id, machine_instance_id) enforced by
+-- an expression index over coalesce(), which PostgREST cannot use as an
+-- on_conflict target — so the app read-then-writes and so does this test.
 select _rls_test_as('00000000-0000-4000-8000-000000000020');
-insert into product_configurations (event_id, total_units)
-values ('00000000-0000-4000-8000-0000000000e1', 750)
-on conflict (event_id) do update set total_units = excluded.total_units;
+update product_configurations
+  set total_units = 750
+  where event_id = '00000000-0000-4000-8000-0000000000e1'
+    and machine_instance_id is null;
 select is(
-  (select total_units::int from product_configurations where event_id = '00000000-0000-4000-8000-0000000000e1'),
+  (select total_units::int from product_configurations
+    where event_id = '00000000-0000-4000-8000-0000000000e1'),
   750,
-  'customer can upsert own-event product config'
+  'customer can write own-event product config'
 );
 
--- (5) Customer sees own-event product config
+-- (5) The same write against OtherCo's event must not land. RLS filters the
+-- row out of the UPDATE rather than raising, so assert on the stored value.
+update product_configurations
+  set total_units = 999
+  where event_id = '00000000-0000-4000-8000-0000000000e2';
+select _rls_test_as('00000000-0000-4000-8000-000000000011');
+select is(
+  (select total_units::int from product_configurations
+    where event_id = '00000000-0000-4000-8000-0000000000e2'),
+  600,
+  'customer cannot write other-account product config'
+);
+
+-- (6) Customer cannot read the other account's product config either
+select _rls_test_as('00000000-0000-4000-8000-000000000020');
 select is(
   (select count(*)::int from product_configurations where event_id = '00000000-0000-4000-8000-0000000000e2'),
   0,
   'customer cannot see other-account product config'
 );
 
--- (6) Internal sees all product configs
+-- (7) Internal sees all product configs
 select _rls_test_as('00000000-0000-4000-8000-000000000011');
 select cmp_ok(
   (select count(*)::int from product_configurations),
@@ -76,7 +95,7 @@ select cmp_ok(
   'internal user sees all product configs'
 );
 
--- (7) Anon gets no rows
+-- (8) Anon gets no rows
 select _rls_test_anon();
 select is(
   (select count(*)::int from game_configurations),

@@ -51,8 +51,22 @@ Three faces, all owned by the brand:
 | **Nunito Bold** | Headings, display, page titles, hero | `--font-display` / `text-heading` / `text-display` |
 | **DM Sans Regular** | Body, paragraphs, default text | `--font-body` |
 | **DM Sans Medium** | Eyebrows, overlines, metadata, tabular nums | `--font-overline` / `text-overline` |
+| **Fraunces (variable)** | *Public marketing surfaces only* — homepage/catalog section headlines | `--font-display-serif` / `text-display-serif` |
 
-The font files live in `public/fonts/` and are wired up in `src/app/layout.tsx`. **Don't add a new font** — three is the budget.
+The font files live in `src/lib/fonts/` and are wired up in `src/app/layout.tsx`. **Don't add a new font** — this is the budget. Fraunces is `preload: false` and must never appear inside the portal: it is the marketing voice, not the product voice (Aug 2026 design build, docs/18-design-research.md H5).
+
+### Text-grey ramp (Aug 2026)
+
+Four steps, Linear-style, so a dense row can carry title / subtitle / metadata / timestamp without competition:
+
+| Class | Role |
+|-------|------|
+| `text-foreground` | Title |
+| `text-muted-foreground` | Subtitle / secondary |
+| `.text-tertiary` | Metadata |
+| `.text-quaternary` | Timestamps, trailing hints |
+
+Per-size tracking utilities `.text-ui-15` / `.text-ui-14` / `.text-ui-13` pair small UI sizes with their correct letter-spacing.
 
 ### Type scale
 
@@ -78,6 +92,22 @@ There are exactly three legal radii. Use a CSS variable, never an ad-hoc `rounde
 Shadows live as variables too — `--bb-shadow-card`, `--bb-shadow-premium`, `--bb-shadow-float`, `--bb-shadow-glow`. Reach for the variable instead of hand-rolling a `shadow-[...]`.
 
 Motion is restrained. The two durations you'll use are `--bb-duration-fast` (~120ms) and `--bb-duration-base` (~200ms), both with `--bb-ease-standard` for the easing. Anything more than that needs justification.
+
+### Expressive motion (Aug 2026 design build — marketing + one-shot reveals only)
+
+| Token | Value | Use |
+|-------|-------|-----|
+| `--bb-ease-expressive` | `cubic-bezier(0.16,1,0.3,1)` | Hero/section entrances |
+| `--bb-ease-sheet` | `cubic-bezier(0.32,0.72,0,1)` | Sheets/drawers |
+| `--bb-duration-reveal` | 600ms | Scroll-reveal entrances |
+| `--bb-duration-hero` | 900ms | One element per page, maximum |
+| `--bb-stagger-*` | 20/30/40ms | Stagger steps |
+
+Shared primitives: `Reveal` / `RevealGroup` / `RevealItem` (`src/components/ui/motion.tsx`), `StatCountUp` (`src/components/ui/StatCountUp.tsx`), `useInViewClass` (mobile hover-parity), `useStableStatus` (debounces threshold-derived status colours on polled dashboards — never let a status dot strobe). The case-study tile choreography lives under `.cs-tile` in `globals.css`.
+
+**Reduced motion is three-layered**: `MotionConfig reducedMotion="user"` at the root for Framer Motion, duration-variable zeroing in `globals.css` for CSS, and `useReducedMotion()` guards inside every `requestAnimationFrame` loop. New rAF loops must add the guard.
+
+**Never** scroll-reveal portal lists — entrance animation belongs to genuinely new content only (live feed items).
 
 ---
 

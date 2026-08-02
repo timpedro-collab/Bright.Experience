@@ -1,6 +1,7 @@
 /** Supabase read queries for Pipedrive admin config + outbox (service role). */
 
 import { getServiceRoleClient } from "@/lib/supabase/service-role";
+import { logQueryError } from "@/lib/observability/log-query-error";
 
 export interface PipedriveConfigRow {
   api_token: string | null;
@@ -36,7 +37,10 @@ export async function getPipedriveConfig(): Promise<PipedriveConfigRow | null> {
     .eq("id", 1)
     .maybeSingle();
 
-  if (error || !data) return null;
+  if (error || !data) {
+    logQueryError("getPipedriveConfig", error);
+    return null;
+  }
   return data as PipedriveConfigRow;
 }
 
@@ -53,7 +57,10 @@ export async function getPipedriveOutboxTail(
     .order("created_at", { ascending: false })
     .limit(limit);
 
-  if (error || !data) return [];
+  if (error || !data) {
+    logQueryError("getPipedriveOutboxTail", error);
+    return [];
+  }
   return (data as Array<Record<string, unknown>>).map((row) => ({
     id: String(row.id),
     eventId: (row.event_id as string) ?? null,

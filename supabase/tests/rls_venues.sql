@@ -23,10 +23,15 @@ on conflict (id) do nothing;
 
 select plan(5);
 
--- (1) Internal sees both venues
+-- (1) Internal is not filtered — sees both fixture venues. Scoped to the
+-- fixture partners because the suite runs against a demo-seeded database.
 select _rls_test_as('00000000-0000-4000-8000-000000000011');
 select is(
-  (select count(*)::int from venues),
+  (select count(*)::int from venues
+    where partner_id in (
+      '00000000-0000-4000-8000-0000000000b1',
+      '00000000-0000-4000-8000-0000000000b2'
+    )),
   2,
   'internal sees every venue'
 );

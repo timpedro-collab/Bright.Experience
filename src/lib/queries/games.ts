@@ -1,5 +1,6 @@
 /** Supabase read queries for the games catalog entity. */
 import { createClient } from "@/lib/supabase/server";
+import { logQueryError } from "@/lib/observability/log-query-error";
 
 /** Fetch all active games ordered by sort_order. */
 export async function getGames() {
@@ -11,10 +12,29 @@ export async function getGames() {
     .order("sort_order");
 
   if (error) {
-    console.error("[getGames] query failed", error);
+    logQueryError("getGames", error);
     return [];
   }
   return data ?? [];
+}
+
+/**
+ * The display name for a game id. Used where a configuration row stores the
+ * id and the reader needs the title — nobody should be shown a UUID.
+ */
+export async function getGameNameById(id: string): Promise<string | null> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("games")
+    .select("name")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (error || !data) {
+    logQueryError("getGameNameById", error, { id });
+    return null;
+  }
+  return String((data as { name: string }).name);
 }
 
 /** Fetch a single active game by slug with compatible machines. */
@@ -33,7 +53,7 @@ export async function getGameBySlug(slug: string) {
     .maybeSingle();
 
   if (error) {
-    console.error("[getGameBySlug] query failed", { slug, error });
+    logQueryError("getGameBySlug", error, { slug });
     return null;
   }
   return data;

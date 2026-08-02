@@ -40,11 +40,24 @@ interface MachineSummary {
 
 interface RecommendationQuizProps {
   machines: MachineSummary[];
+  /**
+   * Pre-seeded `event-type` answer (validated upstream with
+   * `isQuizEventType`). The visitor self-selected on the homepage
+   * ("Let's plan ___"), so they arrive at question two, not question one.
+   */
+  initialEventType?: string;
 }
 
-export function RecommendationQuiz({ machines }: RecommendationQuizProps) {
-  const [answers, setAnswers] = useState<QuizAnswers>({});
-  const [stepIndex, setStepIndex] = useState(0);
+export function RecommendationQuiz({
+  machines,
+  initialEventType,
+}: RecommendationQuizProps) {
+  const [answers, setAnswers] = useState<QuizAnswers>(() => {
+    const seeded: QuizAnswers = {};
+    if (initialEventType) seeded["event-type"] = [initialEventType];
+    return seeded;
+  });
+  const [stepIndex, setStepIndex] = useState(() => (initialEventType ? 1 : 0));
 
   const steps = getQuizSteps(answers);
   const done = stepIndex >= steps.length;

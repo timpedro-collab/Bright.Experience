@@ -28,9 +28,13 @@ A single, premium, role-aware workspace that:
 - **Events Lead** — owns the event lifecycle, manages milestones, coordinates across teams
 - **Creative Lead** — manages creative intake, asset review, Bright.Studio requests
 - **Operations Lead** — manages logistics, product/prize readiness, venue coordination
-- **QA / Configuration Lead** — manages machine configuration, game logic, pre-event testing
-- **Developer** — handles custom development tasks, technical configuration
-- **Reporting / Admin** — generates reports, manages exports, system administration
+- **QA Lead** — manages machine configuration, game logic, pre-event testing (`qa_lead`)
+- **Admin** — generates reports, manages exports, technical configuration, and full system administration (`admin`)
+
+> The standalone **Developer** persona was retired: technical configuration now
+> lives under `admin`. The implemented roles are the nine in
+> [`src/types/core.ts`](../src/types/core.ts) (`UserRole`) — there is no
+> `developer` role. See [`docs/03-roles-permissions.md`](03-roles-permissions.md).
 
 ### Partners & venues (secondary)
 - **Partner Member / Partner Admin** — co-branded reseller or venue portal (attribution, commissions, placements). Implemented roles are `partner_member` / `partner_admin`; broader reseller/venue/sponsor role names in the platform vision are aspirational.

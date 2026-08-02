@@ -9,8 +9,11 @@
 // The three-way sync between this file and the SQL seeds is MANUAL: if you
 // change seed data, change it in both places (see HANDOFF.md "Mock dataset").
 //
-// Relative dates (daysFromNow / now()) are resolved against a base date of
-// 2026-06-18 so cross-table relationships and demo deadlines stay coherent.
+// All dates in this file are authored against a fixed anchor of 2026-06-18
+// (`AUTHORED_NOW` in ./shift-dates.ts). At load time `store.ts` slides every
+// date by (today − 2026-06-18) days, so the demo timeline tracks the current
+// date and never goes stale while cross-table relationships stay intact.
+// Keep new rows consistent with that 2026-06-18 "present" when editing.
 import {
   buildSnapshots,
   buildReportMetrics,
@@ -52,6 +55,9 @@ const SAMSUNG_GALAXY_SNAPSHOTS = buildSnapshots({
   startDate: "2026-05-22",
   days: 3,
   machines: 2,
+  // Demo stock for the live dashboard tile: ends the run low (~10% left)
+  // so the "reload soon" state is visible.
+  stockCapacity: 1800,
   peakHours: [18, 19, 17],
   dwellByDay: [29, 30, 28],
 });
@@ -77,6 +83,11 @@ const COKE_SPRING_REPORT_METRICS = buildReportMetrics({
     ],
     demographics: { "18-24": 31, "25-34": 38, "35-44": 19, "45-54": 8, "55+": 4 },
     peakHours: [14, 15, 13],
+    // Consumer sampling: business-emails-only is off, but dedupe still ran.
+    captureQuality: {
+      rejectedDomains: 0,
+      duplicatesBlocked: Math.round(cokeFinal.plays * 0.03),
+    },
   },
 });
 const COKE_SPRING_FORECAST = buildForecast(COKE_SPRING_REPORT_METRICS, 0.14);
@@ -98,6 +109,10 @@ const SAMSUNG_UNPACKED_REPORT_METRICS = buildReportMetrics({
     ],
     demographics: { "18-24": 27, "25-34": 41, "35-44": 21, "45-54": 8, "55+": 3 },
     peakHours: [16, 15, 14],
+    captureQuality: {
+      rejectedDomains: Math.round(unpackedFinal.leads * 0.06),
+      duplicatesBlocked: Math.round(unpackedFinal.plays * 0.03),
+    },
   },
 });
 const SAMSUNG_UNPACKED_FORECAST = buildForecast(SAMSUNG_UNPACKED_REPORT_METRICS, 0.16);
@@ -119,6 +134,10 @@ const SAMSUNG_GALAXY_REPORT_METRICS = buildReportMetrics({
     ],
     demographics: { "18-24": 29, "25-34": 40, "35-44": 20, "45-54": 8, "55+": 3 },
     peakHours: [18, 19, 17],
+    captureQuality: {
+      rejectedDomains: Math.round(galaxyFinal.leads * 0.06),
+      duplicatesBlocked: Math.round(galaxyFinal.plays * 0.03),
+    },
   },
 });
 const SAMSUNG_GALAXY_FORECAST = buildForecast(SAMSUNG_GALAXY_REPORT_METRICS, 0.12);
@@ -216,6 +235,16 @@ export const MOCK_TABLES: Record<string, MockRow[]> = {
         "Product launches that hand out full-size product",
         "High-volume lead capture in busy spaces",
       ],
+      // INDICATIVE site requirements — the shape a venue asks for, not
+      // measured figures from the hardware team. Every surface that shows
+      // them says so; replace with the manufacturer's data before an
+      // organizer sends a spec sheet to a venue (see OWNER-TODO.md).
+      footprint_mm: "W 890 × D 1000 × H 1940 mm",
+      weight_kg: 320,
+      power_spec: "230V AC, 13A dedicated socket. No extension leads.",
+      connectivity: "4G dual-SIM, with Wi-Fi or wired ethernet as a fallback.",
+      clearance_notes:
+        "600 mm clear at the front to open the service door, 100 mm at the rear for ventilation.",
       hero_image_url: "/catalog/machines/europa/01-hero-pelion.jpg",
       gallery_urls: [
         "/catalog/machines/europa/01-hero-pelion.jpg",
@@ -257,6 +286,12 @@ export const MOCK_TABLES: Record<string, MockRow[]> = {
         "High-value prize reveals & VIP gifting",
         "Limited-edition product drops",
       ],
+      footprint_mm: "W 900 × D 800 × H 1900 mm",
+      weight_kg: 240,
+      power_spec: "230V AC, 13A dedicated socket. No extension leads.",
+      connectivity: "4G dual-SIM, with Wi-Fi or wired ethernet as a fallback.",
+      clearance_notes:
+        "600 mm clear at the front to open the locker doors, 100 mm at the rear for ventilation.",
       hero_image_url: "/catalog/machines/blinx/01-hero-porsche.jpg",
       gallery_urls: [
         "/catalog/machines/blinx/01-hero-porsche.jpg",
@@ -295,6 +330,12 @@ export const MOCK_TABLES: Record<string, MockRow[]> = {
         "Stadium and arena concourses",
         "High-volume sampling that can't run dry",
       ],
+      footprint_mm: "W 1800 × D 1000 × H 1990 mm",
+      weight_kg: 520,
+      power_spec: "230V AC, 16A dedicated socket. No extension leads.",
+      connectivity: "4G dual-SIM, with Wi-Fi or wired ethernet as a fallback.",
+      clearance_notes:
+        "800 mm clear at the front for restocking, 100 mm at the rear for ventilation. Check the lifting route: this unit does not fit a standard passenger lift.",
       hero_image_url: "/catalog/machines/hyperion/01-hero-redbull.jpg",
       gallery_urls: [
         "/catalog/machines/hyperion/01-hero-redbull.jpg",
@@ -329,6 +370,13 @@ export const MOCK_TABLES: Record<string, MockRow[]> = {
         "FMCG ice cream & dessert launches",
         "Hospitality & premium bar activations",
       ],
+      footprint_mm: "W 900 × D 1000 × H 1940 mm",
+      weight_kg: 380,
+      power_spec:
+        "230V AC, 16A dedicated socket, powered continuously — the freezer must stay on overnight.",
+      connectivity: "4G dual-SIM, with Wi-Fi or wired ethernet as a fallback.",
+      clearance_notes:
+        "600 mm clear at the front, 150 mm at the rear and sides for the compressor. Cannot be boxed into set or shell scheme.",
       hero_image_url: "/catalog/machines/callisto/01-hero-benjerry.jpg",
       gallery_urls: [
         "/catalog/machines/callisto/01-hero-benjerry.jpg",
@@ -362,6 +410,12 @@ export const MOCK_TABLES: Record<string, MockRow[]> = {
         "Tight retail counters & pop-ups",
         "A data-capture add-on beside a larger unit",
       ],
+      footprint_mm: "W 500 × D 500 × H 1600 mm (freestanding)",
+      weight_kg: 45,
+      power_spec: "230V AC, standard 13A socket.",
+      connectivity: "4G dual-SIM, with Wi-Fi or wired ethernet as a fallback.",
+      clearance_notes:
+        "400 mm clear at the front for the attendee, no rear clearance needed.",
       hero_image_url: "/catalog/machines/kiosks/01-hero-freestanding.jpg",
       gallery_urls: [
         "/catalog/machines/kiosks/01-hero-freestanding.jpg",
@@ -629,6 +683,8 @@ export const MOCK_TABLES: Record<string, MockRow[]> = {
       testimonial_quote:
         "The giant cup stopped people in their tracks and the game gave them a reason to stay. We launched the range, sampled thousands of drinks, and walked away with a fully opted-in database to prove it.",
       testimonial_author: "Brand Experience Team, Costa Coffee",
+      publication_rights: "anonymised",
+      anonymised_label: "A global coffee chain",
       is_published: true,
       published_at: "2026-03-30T10:00:00Z",
     },
@@ -642,10 +698,13 @@ export const MOCK_TABLES: Record<string, MockRow[]> = {
       description:
         "A branded Experience Portal on the exhibition floor at the BIBA Conference — a memorable, on-brand draw amongst hundreds of stands that turned footfall into conversations and clean opt-in data.",
       hero_image_url: null, // drop photo at /catalog/case-studies/biba-conference/01-hero.jpg then set this
-      stats_json: { plays: 910, leads: 845, avgDwellSec: 25 },
+      // Stats intentionally empty until real activation figures are supplied.
+      stats_json: {},
       testimonial_quote:
         "It gave delegates a reason to stop, and gave our team a natural way to start a conversation.",
       testimonial_author: "Events Team, BIBA",
+      publication_rights: "named",
+      anonymised_label: null,
       is_published: true,
       published_at: "2026-03-20T10:00:00Z",
     },
@@ -659,10 +718,13 @@ export const MOCK_TABLES: Record<string, MockRow[]> = {
       description:
         "A custom Experience Portal on Pelion's expo stand — an interactive moment that cut through a noisy hall and captured quality leads without the hard sell.",
       hero_image_url: null, // drop photo at /catalog/case-studies/pelion-expo/01-hero.jpg then set this
-      stats_json: { plays: 540, leads: 480, avgDwellSec: 27 },
+      // Stats intentionally empty until real activation figures are supplied.
+      stats_json: {},
       testimonial_quote:
         "A simple, brilliant way to make our stand the one people remembered.",
       testimonial_author: "Marketing Team, Pelion",
+      publication_rights: "named",
+      anonymised_label: null,
       is_published: true,
       published_at: "2026-03-12T10:00:00Z",
     },
@@ -676,10 +738,13 @@ export const MOCK_TABLES: Record<string, MockRow[]> = {
       description:
         "An interactive Experience Portal on the Storyblok stand at DMEXCO — a fun, branded moment that doubled as automatic, high-quality data capture.",
       hero_image_url: null, // drop photo at /catalog/case-studies/storyblok-dmexco/01-hero.jpg then set this
-      stats_json: { plays: 720, leads: 685, avgDwellSec: 31 },
+      // Stats intentionally empty until real activation figures are supplied.
+      stats_json: {},
       testimonial_quote:
         "Bright.Blue brought our DMEXCO booth to life. The interactive machine became a magnet for attendees, giving us both a fun experience and high-quality data — automatically.",
       testimonial_author: "Ioana Grapa, Head of Global Events, Storyblok",
+      publication_rights: "named",
+      anonymised_label: null,
       is_published: true,
       published_at: "2026-03-05T10:00:00Z",
     },
@@ -693,10 +758,13 @@ export const MOCK_TABLES: Record<string, MockRow[]> = {
       description:
         "A fully customised, unattended Experience Portal vending branded gifts across an Adyen business event — delivery, setup, and restocking all handled by Bright.Blue.",
       hero_image_url: null, // drop photo at /catalog/case-studies/adyen-event-gifting/01-hero.jpg then set this
-      stats_json: { giftsVended: 600, interactions: 810, satisfactionPct: 97 },
+      // Stats intentionally empty until real activation figures are supplied.
+      stats_json: {},
       testimonial_quote:
         "We vended gifts from their unattended machine and saw fantastic attendee engagement. The team handled everything from delivery and setup to restocking — it let me focus on the event itself.",
       testimonial_author: "Brigitte Brown, Senior Event Marketing Manager, Adyen",
+      publication_rights: "named",
+      anonymised_label: null,
       is_published: true,
       published_at: "2026-03-18T10:00:00Z",
     },
@@ -712,6 +780,8 @@ export const MOCK_TABLES: Record<string, MockRow[]> = {
       stats_json: {},
       testimonial_quote: null,
       testimonial_author: null,
+      publication_rights: "named",
+      anonymised_label: null,
       is_published: false,
       published_at: null,
     },
@@ -1428,7 +1498,7 @@ export const MOCK_TABLES: Record<string, MockRow[]> = {
     { id: "f0f0f0f0-f0f0-4f0f-8f0f-f0f0f0f0f0f0", partner_id: "e0e0e0e0-e0e0-4e0e-8e0e-e0e0e0e0e0e0", name: "Manchester Pop-Up", slug: "manchester-pop-up", address: "Spinningfields, M3 3JE", postcode: "M3 3JE", location_tier: "tier_2", capacity: 1500, venue_type: "shopping_centre", is_active: true },
     { id: "f1f1f1f1-f1f1-4f1f-8f1f-f1f1f1f1f1f1", partner_id: "e1e1e1e1-e1e1-4e1e-8e1e-e1e1e1e1e1e1", name: "ExCeL London", slug: "excel-london", address: "One Western Gateway, Royal Victoria Dock, London E16 1XL", postcode: "E16 1XL", location_tier: "tier_1", capacity: 90000, venue_type: "convention_centre", is_active: true },
     { id: "f2f2f2f2-f2f2-4f2f-8f2f-f2f2f2f2f2f2", partner_id: "e3e3e3e3-e3e3-4e3e-8e3e-e3e3e3e3e3e3", name: "Westfield Stratford", slug: "westfield-stratford", address: "Montfichet Rd, E20 1EJ", postcode: "E20 1EJ", location_tier: "tier_1", capacity: 5000, venue_type: "shopping_centre", is_active: true },
-    { id: "f3f3f3f3-f3f3-4f3f-8f3f-f3f3f3f3f3f3", partner_id: "e4e4e4e4-e4e4-4e4e-8e4e-e4e4e4e4e4e4", name: "NEC Birmingham", slug: "nec-birmingham", address: "North Ave, B40 1NT", postcode: "B40 1NT", location_tier: "tier_1", capacity: 6000, venue_type: "exhibition_centre", is_active: true },
+    { id: "f3f3f3f3-f3f3-4f3f-8f3f-f3f3f3f3f3f3", partner_id: "e4e4e4e4-e4e4-4e4e-8e4e-e4e4e4e4e4e4", name: "NEC Birmingham", slug: "nec-birmingham", address: "North Ave, B40 1NT", postcode: "B40 1NT", location_tier: "tier_1", capacity: 6000, venue_type: "convention_centre", is_active: true },
   ],
 
   machine_instances: [
@@ -1460,6 +1530,8 @@ export const MOCK_TABLES: Record<string, MockRow[]> = {
   benchmarks: [
     { event_type: "activation", location_tier: "tier_1", machine_type: "Bright.Play", metric_name: "plays_per_day", avg_value: 275, median_value: 270, p25_value: 250, p75_value: 300, sample_size: 28 },
     { event_type: "activation", location_tier: "tier_2", machine_type: "Bright.Play", metric_name: "plays_per_day", avg_value: 205, median_value: 200, p25_value: 175, p75_value: 235, sample_size: 19 },
+    { event_type: "activation", location_tier: "tier_1", machine_type: "Bright.Play", metric_name: "leads_per_day", avg_value: 212, median_value: 208, p25_value: 185, p75_value: 240, sample_size: 28 },
+    { event_type: "activation", location_tier: "tier_2", machine_type: "Bright.Play", metric_name: "leads_per_day", avg_value: 154, median_value: 150, p25_value: 128, p75_value: 180, sample_size: 19 },
     { event_type: "sampling", location_tier: "tier_1", machine_type: "Bright.Vend Pro", metric_name: "samples_per_day", avg_value: 270, median_value: 265, p25_value: 245, p75_value: 295, sample_size: 22 },
     { event_type: "sampling", location_tier: "tier_2", machine_type: "Bright.Vend Pro", metric_name: "samples_per_day", avg_value: 200, median_value: 195, p25_value: 170, p75_value: 230, sample_size: 17 },
   ],
@@ -1471,6 +1543,10 @@ export const MOCK_TABLES: Record<string, MockRow[]> = {
     { machine_instance_id: "1c1c1c1c-1c1c-4c1c-8c1c-1c1c1c1c1c1c", event_id: "e2222222-2222-2222-2222-222222222222", event_type: "play_started", payload_json: { session: "s2" }, timestamp: "2026-06-18T13:46:00Z" },
     { machine_instance_id: "1c1c1c1c-1c1c-4c1c-8c1c-1c1c1c1c1c1c", event_id: "e2222222-2222-2222-2222-222222222222", event_type: "play_completed", payload_json: { session: "s2", score: 640 }, timestamp: "2026-06-18T13:47:00Z" },
     { machine_instance_id: "1c1c1c1c-1c1c-4c1c-8c1c-1c1c1c1c1c1c", event_id: "e2222222-2222-2222-2222-222222222222", event_type: "prize_awarded", payload_json: { session: "s2", prize: "sample" }, timestamp: "2026-06-18T13:48:00Z" },
+    // Capture-quality guardrails firing at the machine (P2.1) — these rows
+    // surface in the live feed and are counted into report captureQuality.
+    { machine_instance_id: "1c1c1c1c-1c1c-4c1c-8c1c-1c1c1c1c1c1c", event_id: "e2222222-2222-2222-2222-222222222222", event_type: "capture_rejected_domain", payload_json: { domain: "gmail.com" }, timestamp: "2026-06-18T13:51:00Z" },
+    { machine_instance_id: "1c1c1c1c-1c1c-4c1c-8c1c-1c1c1c1c1c1c", event_id: "e2222222-2222-2222-2222-222222222222", event_type: "capture_duplicate_blocked", payload_json: { match: "email" }, timestamp: "2026-06-18T13:54:00Z" },
     // Coca-Cola Spring Sampling Tour (completed) — recent activity for the live
     // feed on the post-event dashboard. Hourly bars are synthesized from the
     // metrics snapshot; these rows give the "Right now" feed real moments.
@@ -1788,7 +1864,7 @@ export const MOCK_TABLES: Record<string, MockRow[]> = {
         wifi_connectivity: "No reliable venue WiFi — please bring your own 4G/5G backup for lead capture.",
         loading_bay: "Vehicle entry via Park Lane gate. Max vehicle 3.5t. Nearest drop-off 40m from stand.",
         health_safety: "RAMS required 14 days prior. $5M public liability cover. Hi-vis on site during build/de-rig.",
-        staffing_needs: "2 Bright.Blue brand ambassadors requested, branded polo shirts.",
+        staffing_needs: "Bright.Blue on-site support across all three days, please — happy to be led on numbers.",
         special_requirements: "Floor protection required on the paved area. Noise curfew after 20:00.",
       },
       is_submitted: true,
@@ -1845,7 +1921,7 @@ export const MOCK_TABLES: Record<string, MockRow[]> = {
         health_safety:
           "RAMS filed with Manchester City Council. $5M public liability cover. Hi-vis worn during build and de-rig.",
         staffing_needs:
-          "3 Bright.Blue brand ambassadors per day in Coca-Cola branded tees.",
+          "Bright.Blue on-site support each day of the sampling tour.",
         special_requirements:
           "Chilled stock storage required on site. Food-hygiene compliant sampling handling throughout.",
       },
@@ -1903,7 +1979,7 @@ export const MOCK_TABLES: Record<string, MockRow[]> = {
         health_safety:
           "RAMS approved by BPS events. $5M public liability cover. Method statement on file.",
         staffing_needs:
-          "4 Samsung product specialists per day in branded uniform.",
+          "Samsung's own product specialists will cover the demos; Bright.Blue on-site support for build and daily setup.",
         special_requirements:
           "Secure overnight storage for demo devices. Glass-screen cleaning kit kept on site throughout.",
       },
@@ -1965,6 +2041,12 @@ export const MOCK_TABLES: Record<string, MockRow[]> = {
       leaderboard_enabled: false,
       game_parameters_json: { roundSeconds: 30, difficulty: "easy" },
       idle_screen_config_json: { headline: "Play to win an ice-cold Coke", subhead: "Tap the screen to start" },
+      // Capture-quality guardrails (P2.1) — empty blob = safe defaults
+      // (business emails only, duplicate blocking, consent on). The demo row
+      // opts out of business-emails-only: a consumer brand wants every email.
+      capture_rules_json: { businessEmailsOnly: false },
+      retention_days: 60,
+      branded_landing: true,
       status: "submitted",
       submitted_by: "22222222-2222-2222-2222-222222222222",
       submitted_at: "2026-06-12T14:30:00Z",

@@ -20,23 +20,46 @@ Canonical product wording: [`docs/01-product-definition.md`](./docs/01-product-d
 
 ## Run it locally
 
+There are two runtimes, and the difference matters more than it looks.
+
+### Local Postgres — the one that tells the truth
+
 ```bash
 nvm use 22          # any Node 20+ works (see "engines" in package.json)
 npm install
+npm run db:local    # Docker: start Supabase, apply migrations, seed users + data
+npm run dev:local   # dev server pointed at that stack, mock mode off
+```
+
+`db:local` and `dev:local` read the anon/service keys back out of the Supabase
+CLI, so a `supabase stop --no-backup` and fresh `start` keeps working and
+nothing needs pasting into `.env.local`. This is the only way to exercise the
+real security boundary: RLS, PostgREST query shapes, password checks, storage
+policies and database constraints all run. Anything touching auth, policies, or
+a new query shape must be checked here before it is called done.
+
+```bash
+npm run test:rls          # pgTAP policy suite against the same stack
+npm run test:integration  # the hot read path, run as real personas
+npm run db:reset          # wipe and re-seed when the data drifts
+npm run db:stop           # stop the containers
+```
+
+### Mock mode — demos and offline UI work
+
+```bash
 cp .env.example .env.local   # fill Supabase (+ optional Resend / Cloud / Pipedrive)
-npx supabase db push         # if using a real project
-npx tsx supabase/seed-users.ts
-npx tsx supabase/run-seed.ts
 npm run dev
 ```
 
+`NEXT_PUBLIC_MOCK_MODE=1` lives in `.env.development` and runs the app against
+the in-memory dataset (`src/lib/supabase/mock/`) with no database at all. Fast,
+and good for UI demos, but it has **no RLS, no PostgREST, and no password
+check** — every session is a seeded persona. A production build ignores the flag
+and logs a security error (`src/lib/supabase/mock/flag.ts`). A query that passes
+in mock mode has proved nothing about whether the real database will accept it.
+
 Open **http://localhost:3000**.
-
-### Mock mode
-
-Set `NEXT_PUBLIC_MOCK_MODE=true` in `.env.local` to run against the in-memory /
-mock Supabase dataset (`src/lib/supabase/mock/`) without a live project. Useful
-for UI demos and offline work. Turn it off for real auth, RLS, and storage.
 
 ### Demo personas
 
@@ -55,14 +78,27 @@ Aaron Howe (venue). Full walkthrough: [`DEMO_ROADMAP.md`](./DEMO_ROADMAP.md).
 ```bash
 npm run lint
 npm run typecheck
-npm test
+npm test              # unit, hermetic (mocked Supabase)
 ```
 
-Also available: `npm run test:rls` (Docker), `npm run test:e2e` (Playwright).
-Conventions: [`docs/testing.md`](./docs/testing.md), [`CONTRIBUTING.md`](./CONTRIBUTING.md).
+Anything touching auth, RLS, or a query shape also has to pass against the local
+stack, because the unit suite mocks Supabase and cannot see those failures:
+
+```bash
+npm run db:local          # if it isn't already up
+npm run test:rls          # pgTAP, one file per policy
+npm run test:integration  # hot read path as real personas
+```
+
+Also available: `npm run test:e2e` (Playwright). Conventions:
+[`docs/testing.md`](./docs/testing.md), [`CONTRIBUTING.md`](./CONTRIBUTING.md).
 
 ## Stubs and integrations
 
+- **Start here for "what do we build first":**
+  [`docs/13-dev-handover-priorities.md`](./docs/13-dev-handover-priorities.md)
+  — the prioritized worklist (activation wiring → integration builds →
+  client-committed features → full-system security checklist).
 - **Launch stubs / intentional gaps:** [`STUBS-TO-REPLACE.md`](./STUBS-TO-REPLACE.md)
   (no in-portal payments; file-scan is env-gated until an AV endpoint is chosen).
 - **External systems:** [`docs/10-integrations.md`](./docs/10-integrations.md)
@@ -85,9 +121,19 @@ Conventions: [`docs/testing.md`](./docs/testing.md), [`CONTRIBUTING.md`](./CONTR
 | `docs/09-design-system.md` | Cloud UI language |
 | `docs/10-integrations.md` | Webhooks, crons, env |
 | `docs/11-cloud-handoff.md` | Full schema + Cloud handoff |
+| `docs/13-dev-handover-priorities.md` | Dev team's prioritized worklist + security checklist |
+| `docs/14-codebase-map.md` | Directory taxonomy, entry points, tooling, inventories |
+| `docs/15-system-architecture.md` | Architecture + data-flow diagrams |
+| `docs/16-api-and-actions-reference.md` | Route handlers + server-action reference |
+| `docs/17-feature-reference.md` | Role-based feature catalogue → implementation |
+| `docs/ops/` | Operations runbooks (deploy, integrations, monitoring/DR, maintenance) |
+| `OWNER-TODO.md` | Non-dev action list for the business owner (pricing, legal, accounts) |
+| `SETUP.md` | Three tested setup paths (mock demo, local Supabase, hosted Supabase) |
 | `DEMO_ROADMAP.md` | Live demo script |
 | `CHANGELOG.md` | What shipped when |
 | `README.md` | Setup, structure, scripts |
+
+The full, role-routed index is [`docs/00-documentation-index.md`](./docs/00-documentation-index.md).
 
 ## Path to 10/10 status
 
@@ -116,8 +162,9 @@ account check; login redirect allow-list.
 spec-blocked asset uploads; board-ready report framing (&lt;24h proof + share/export).
 
 Path to 10/10 passes 1–5 are complete for **demo + handoff + architecture + focused
-product**. Production soak against live Supabase remains a separate CTO track
-(mock mode stays the default demo runtime).
+product**. The remediation build below moved development onto real Postgres and
+closed what that exposed; soak against a hosted Supabase project under
+production traffic remains a separate CTO track.
 
 ## Builds since the 10/10 passes (July 2026)
 
@@ -139,13 +186,21 @@ Four further builds landed after passes 1–5 — each has a full entry in
    tasks / approvals / messages / notifications, live-dashboard motion and
    session deltas, global G-shortcuts + `?` overlay, command-palette Recent
    group, streaming skeletons, skip-to-content.
+5. **Remediation build** (2026-08-01) — development moved onto local Postgres,
+   seven security holes closed with pgTAP cases behind each, 124 swallowed
+   query errors wired to Sentry, PostgREST-incompatible queries fixed, unwired
+   features (approvals creation, sponsor conversion, health control,
+   quote→event) connected, CSP/HSTS/rate-limiting/telemetry idempotency, and
+   54 dead exports deleted with 41 more un-exported. This is the pass that made
+   mock-mode-only defects visible.
 
-Current gate status at handoff: `lint`, `typecheck`, and `test` (977 tests /
-99 files) all green.
+Current gate status at handoff: `lint` and `typecheck` clean; `npm test`
+1,858 tests / 203 files; `npm run test:rls` 215 assertions / 33 policy files;
+`npm run test:integration` 58 checks. The last two run against local Postgres.
 
 ## Mock dataset sync
 
-When running with `NEXT_PUBLIC_MOCK_MODE=true`, the in-memory dataset in
+When running with `NEXT_PUBLIC_MOCK_MODE=1`, the in-memory dataset in
 [`src/lib/supabase/mock/dataset.ts`](./src/lib/supabase/mock/dataset.ts)
 mirrors the SQL seed:
 
@@ -158,6 +213,16 @@ three-way sync between it, `seed.sql`, and `run-seed.ts` is entirely manual.
 **Rule:** any schema or seed-data change must update **both** the SQL/seed path
 and `dataset.ts`, or mock mode and real Supabase will drift (missing tables,
 stale columns, or demo personas that only exist in one place).
+
+**Dates are evergreen.** Every date in `dataset.ts` + `extra.ts` is authored
+against a fixed anchor of **2026-06-18** (`AUTHORED_NOW` in
+[`src/lib/supabase/mock/shift-dates.ts`](./src/lib/supabase/mock/shift-dates.ts)).
+At load time `store.ts` slides every date by `(today − 2026-06-18)` days, so the
+demo timeline always tracks the current date — upcoming events stay upcoming,
+completed events stay recently finished, and the deadline list never becomes a
+wall of overdue. When adding rows, date them relative to that 2026-06-18
+"present" and the shift takes care of the rest. The shift is applied once per
+server start (the demo's natural refresh point).
 
 ## Deferred / gated features (deliberate)
 

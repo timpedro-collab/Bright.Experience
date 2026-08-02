@@ -6,13 +6,16 @@
  */
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { Activity, Users, Gift, Clock, RefreshCw } from "lucide-react";
+import { useState, useEffect, useCallback, useMemo } from "react";
+import { Activity, Users, Gift, Clock, RefreshCw, X } from "lucide-react";
 
 import { LiveCounter } from "./LiveCounter";
 import { HourlyChart } from "./HourlyChart";
 import { LiveFeed } from "./LiveFeed";
 import { MachineStatusCard } from "./MachineStatusCard";
+import { StockCard } from "./StockCard";
+import { FleetBoard } from "./FleetBoard";
+import type { MachineBreakdown, ZoneBreakdown } from "@/lib/metrics/fleet";
 import { EditorialEyebrow, Hairline } from "@/components/brand";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Badge } from "@/components/ui/badge";
@@ -27,6 +30,9 @@ interface Metrics {
   total_interactions: number;
   total_prizes: number;
   avg_dwell_time: number;
+  stock_remaining?: number | null;
+  stock_capacity?: number | null;
+  reload_eta_minutes?: number | null;
 }
 
 interface HourlyPoint {
@@ -40,9 +46,11 @@ interface FeedItem {
   type: string;
   message: string;
   timestamp: string;
+  machineInstanceId?: string | null;
 }
 
 interface MachineInfo {
+  id?: string;
   serial_number: string;
   nickname?: string;
   status: string;
@@ -55,6 +63,8 @@ interface LiveData {
   metrics: Metrics;
   hourly: HourlyPoint[];
   machines: MachineInfo[];
+  machine_breakdown?: MachineBreakdown[];
+  zones?: ZoneBreakdown[];
   feed: FeedItem[];
 }
 
@@ -79,9 +89,37 @@ export function LiveDashboardClient({
   const [hourly, setHourly] = useState<HourlyPoint[]>(initialHourly);
   const [feed, setFeed] = useState<FeedItem[]>(initialFeed);
   const [machines, setMachines] = useState<MachineInfo[]>(initialMachines);
+  // Populated by the first poll; the SSR seed has no per-machine split.
+  const [breakdown, setBreakdown] = useState<MachineBreakdown[]>([]);
+  const [zones, setZones] = useState<ZoneBreakdown[]>([]);
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
   const [isPolling, setIsPolling] = useState(true);
   const [source, setSource] = useState<string>("local");
+  const [selectedMachineId, setSelectedMachineId] = useState<string | null>(null);
+
+  const selectMachine = useCallback((machineId: string) => {
+    setSelectedMachineId((prev) => (prev === machineId ? null : machineId));
+    requestAnimationFrame(() => {
+      document.getElementById("live-feed")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }, []);
+
+  const selectedMachineLabel = useMemo(() => {
+    if (!selectedMachineId) return null;
+    const fromBreakdown = breakdown.find((m) => m.machine_instance_id === selectedMachineId);
+    if (fromBreakdown) {
+      if (fromBreakdown.nickname) return fromBreakdown.nickname;
+      if (isCustomer) {
+        return fromBreakdown.zone ? `${fromBreakdown.zone} unit` : "Activation unit";
+      }
+      return fromBreakdown.serial_number;
+    }
+    const fromMachines = machines.find((m) => m.id === selectedMachineId);
+    if (fromMachines) {
+      return fromMachines.nickname ?? (isCustomer ? "Activation unit" : fromMachines.serial_number);
+    }
+    return "Selected machine";
+  }, [selectedMachineId, breakdown, machines, isCustomer]);
 
   // 1-second tick so "Updated Ns ago" stays honest between polls.
   const [now, setNow] = useState(() => Date.now());
@@ -108,6 +146,8 @@ export function LiveDashboardClient({
       setHourly(data.hourly);
       if (data.feed.length > 0) setFeed(data.feed);
       setMachines(data.machines);
+      setBreakdown(data.machine_breakdown ?? []);
+      setZones(data.zones ?? []);
       setSource(data.source);
       setLastRefresh(new Date());
     } catch {
@@ -210,7 +250,36 @@ export function LiveDashboardClient({
             icon={<Clock size={20} />}
           />
         </div>
+        {metrics.stock_remaining != null && metrics.stock_capacity != null && (
+          <div className="mt-4">
+            <StockCard
+              remaining={metrics.stock_remaining}
+              capacity={metrics.stock_capacity}
+              reloadEtaMinutes={metrics.reload_eta_minutes ?? null}
+            />
+          </div>
+        )}
       </section>
+
+      {/* A single-machine activation says everything it needs to in the
+          machine-status cards below; the fleet board is for multi-unit shows. */}
+      {breakdown.length > 1 && (
+        <>
+          <Hairline className="opacity-60" />
+          <section className="py-8">
+            <EditorialEyebrow>By machine</EditorialEyebrow>
+            <div className="mt-4">
+              <FleetBoard
+                zones={zones}
+                breakdown={breakdown}
+                isCustomer={isCustomer}
+                onMachineSelect={(machine) => selectMachine(machine.machine_instance_id)}
+                selectedMachineId={selectedMachineId}
+              />
+            </div>
+          </section>
+        </>
+      )}
 
       <Hairline className="opacity-60" />
 
@@ -225,9 +294,24 @@ export function LiveDashboardClient({
 
       <section className="py-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div>
-          <EditorialEyebrow>Live feed</EditorialEyebrow>
+          <div className="flex flex-wrap items-center gap-3">
+            <EditorialEyebrow>Live feed</EditorialEyebrow>
+            {selectedMachineId && selectedMachineLabel && (
+              <Badge variant="outline" className="gap-1.5 text-xs font-normal">
+                Showing: {selectedMachineLabel}
+                <button
+                  type="button"
+                  onClick={() => setSelectedMachineId(null)}
+                  className="ml-0.5 inline-flex items-center rounded-sm p-0.5 text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  aria-label="Clear machine filter"
+                >
+                  <X size={12} />
+                </button>
+              </Badge>
+            )}
+          </div>
           <div className="mt-4">
-            <LiveFeed items={feed} />
+            <LiveFeed items={feed} machineFilter={selectedMachineId} />
           </div>
         </div>
         <div>
@@ -242,7 +326,10 @@ export function LiveDashboardClient({
                 <MachineStatusCard
                   key={m.serial_number}
                   isCustomer={isCustomer}
+                  onSelect={m.id ? () => selectMachine(m.id!) : undefined}
+                  isSelected={Boolean(m.id && selectedMachineId === m.id)}
                   machine={{
+                    id: m.id,
                     serialNumber: m.serial_number,
                     nickname: m.nickname,
                     status: m.status,

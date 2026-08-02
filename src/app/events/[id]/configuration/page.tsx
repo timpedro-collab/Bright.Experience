@@ -1,18 +1,21 @@
 /** Game and product configuration portal. */
 import { notFound, redirect } from "next/navigation";
-import { Gamepad2, Package } from "lucide-react";
+import { Gamepad2 } from "lucide-react";
 
 import { EventPageShell } from "@/components/brand/event-page-shell";
 import { EditorialEyebrow, Hairline } from "@/components/brand";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { GameConfigForm } from "@/components/configuration/GameConfigForm";
+import { FleetConfigTabs } from "@/components/configuration/FleetConfigTabs";
 import { ProductConfigForm } from "@/components/configuration/ProductConfigForm";
 
 import { getEventById } from "@/lib/queries/events";
+import { getFleetByEvent } from "@/lib/queries/machine-instances";
 import {
-  getGameConfiguration,
+  getGameConfigurations,
   getProductConfiguration,
 } from "@/app/actions/game-config";
+import { findDefaultConfig } from "@/lib/configuration/resolve-config";
 import { getUnreadCount } from "@/lib/queries/notifications";
 import { getUser } from "@/lib/auth";
 import { isInternalRole } from "@/lib/roles";
@@ -28,15 +31,19 @@ export default async function ConfigurationPage({
   const { id } = await params;
   if (!canViewSection(user.role, "configuration")) redirect(`/events/${id}`);
 
-  const [event, gameConfig, productConfig, unread] = await Promise.all([
+  const [event, gameConfigs, productConfig, fleet, unread] = await Promise.all([
     getEventById(id),
-    getGameConfiguration(id),
+    getGameConfigurations(id),
     getProductConfiguration(id),
+    getFleetByEvent(id),
     getUnreadCount(user.id),
   ]);
   if (!event) return notFound();
 
   const isInternal = isInternalRole(user.role);
+  // A single-machine activation keeps the plain form; only a real fleet gets
+  // the scope switcher, so the common case stays as simple as it was.
+  const hasFleet = fleet.length > 1;
   const hasGame = event.eventType === "activation" || event.eventType === "hybrid" || event.eventType === "custom" || !!event.machineType;
   const hasProduct = event.eventType === "sampling" || event.eventType === "vending";
 
@@ -72,11 +79,20 @@ export default async function ConfigurationPage({
             <section className="py-8">
               <EditorialEyebrow accent>Game configuration</EditorialEyebrow>
               <div className="mt-4">
-                <GameConfigForm
-                  eventId={id}
-                  config={gameConfig}
-                  viewerRole={user.role}
-                />
+                {hasFleet ? (
+                  <FleetConfigTabs
+                    eventId={id}
+                    fleet={fleet}
+                    configs={gameConfigs}
+                    viewerRole={user.role}
+                  />
+                ) : (
+                  <GameConfigForm
+                    eventId={id}
+                    config={findDefaultConfig(gameConfigs)}
+                    viewerRole={user.role}
+                  />
+                )}
               </div>
             </section>
           )}

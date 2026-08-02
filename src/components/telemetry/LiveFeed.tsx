@@ -10,10 +10,13 @@ interface FeedItem {
   type: string;
   message: string;
   timestamp: string;
+  machineInstanceId?: string | null;
 }
 
 interface LiveFeedProps {
   items: FeedItem[];
+  /** When set, only rows for this machine instance are shown. */
+  machineFilter?: string | null;
 }
 
 const TYPE_ICONS: Record<string, React.ElementType> = {
@@ -26,15 +29,23 @@ const TYPE_ICONS: Record<string, React.ElementType> = {
 function getRelativeTime(timestamp: string): string {
   const diff = Date.now() - new Date(timestamp).getTime();
   const seconds = Math.floor(diff / 1000);
-  if (seconds < 60) return `${seconds}s ago`;
+  // A row can carry a timestamp a few seconds ahead of the reader's clock —
+  // machines and browsers drift. Reading "-8s ago" makes the whole feed look
+  // broken, so anything within the last minute (or slightly ahead) is "just
+  // now".
+  if (seconds < 60) return "just now";
   const minutes = Math.floor(seconds / 60);
   if (minutes < 60) return `${minutes}m ago`;
   const hours = Math.floor(minutes / 60);
-  return `${hours}h ago`;
+  if (hours < 24) return `${hours}h ago`;
+  return `${Math.floor(hours / 24)}d ago`;
 }
 
-export function LiveFeed({ items }: LiveFeedProps) {
+export function LiveFeed({ items, machineFilter = null }: LiveFeedProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const visibleItems = machineFilter
+    ? items.filter((item) => item.machineInstanceId === machineFilter)
+    : items;
 
   // Items present on first render don't animate — only ones that arrive
   // while the user is watching slide in (once, on mount; keys are stable
@@ -45,19 +56,20 @@ export function LiveFeed({ items }: LiveFeedProps) {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [items]);
+  }, [visibleItems]);
 
   return (
     <div
+      id="live-feed"
       ref={scrollRef}
       className="max-h-[360px] overflow-y-auto space-y-2 pr-1 scrollbar-thin"
     >
-      {items.length === 0 && (
+      {visibleItems.length === 0 && (
         <p className="text-sm text-muted-foreground text-center py-8">
-          No activity yet
+          {machineFilter ? "No activity for this machine yet" : "No activity yet"}
         </p>
       )}
-      {items.map((item) => {
+      {visibleItems.map((item) => {
         const Icon = TYPE_ICONS[item.type] ?? TYPE_ICONS.default;
         const isNew = !initialIds.has(item.id);
         return (

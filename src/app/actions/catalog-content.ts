@@ -99,21 +99,6 @@ export async function updatePackage(
   return { success: true, data: { id: pkg.id as string } };
 }
 
-/** Delete a package from the catalog. */
-export async function deletePackage(id: string): Promise<ActionResult> {
-  const auth = await requireCatalogEditor();
-  if (!auth.ok) return { success: false, error: auth.error };
-  const { supabase } = auth;
-
-  const { error } = await supabase.from("packages").delete().eq("id", id);
-  if (error) {
-    return { success: false, error: "Could not delete package. Please try again." };
-  }
-
-  revalidatePath("/catalog");
-  return { success: true, data: undefined };
-}
-
 /** Insert a new case study (created as unpublished by default). */
 export async function createCaseStudy(data: {
   title: string;
@@ -214,19 +199,4 @@ export async function publishCaseStudy(
 
   revalidatePath("/catalog");
   return { success: true, data: { id: study.id as string } };
-}
-
-/** Delete a case study from the catalog. */
-export async function deleteCaseStudy(id: string): Promise<ActionResult> {
-  const auth = await requireCatalogEditor();
-  if (!auth.ok) return { success: false, error: auth.error };
-  const { supabase } = auth;
-
-  const { error } = await supabase.from("case_studies").delete().eq("id", id);
-  if (error) {
-    return { success: false, error: "Could not delete case study. Please try again." };
-  }
-
-  revalidatePath("/catalog");
-  return { success: true, data: undefined };
 }

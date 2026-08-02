@@ -2,7 +2,8 @@
  * GET /api/events/:id/live — polled by the live dashboard client component.
  *
  * Returns the latest metrics snapshot, recent telemetry feed, machine
- * statuses, and hourly breakdown for the current day.
+ * statuses, hourly breakdown for the current day, and a per-machine roll-up
+ * grouped by zone for shows running a fleet.
  *
  * If Bright.Blue Cloud API credentials are configured, this endpoint
  * first tries to pull a fresh snapshot from Cloud. If unavailable or
@@ -15,6 +16,13 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getLiveSnapshot } from "@/lib/brightblue/client";
 import { hourlyCurveFromTotal } from "@/lib/metrics/drivers";
+import {
+  buildMachineBreakdown,
+  groupBreakdownByZone,
+  type FleetMachineRow,
+  type TelemetryRow,
+} from "@/lib/metrics/fleet";
+import { feedItemFromTelemetry } from "@/lib/metrics/feed-labels";
 
 export const dynamic = "force-dynamic";
 
@@ -55,9 +63,17 @@ export async function GET(
         total_interactions: cloudSnapshot.total_interactions,
         total_prizes: cloudSnapshot.total_prizes,
         avg_dwell_time: cloudSnapshot.avg_dwell_time,
+        stock_remaining: null,
+        stock_capacity: null,
+        reload_eta_minutes: null,
       },
       hourly: cloudSnapshot.hourly,
       machines: cloudSnapshot.machines,
+      // Cloud's snapshot contract has no per-machine split yet; the fleet
+      // board falls back to the local roll-up rather than showing a
+      // half-populated one. Tracked in docs/13-dev-handover-priorities.md.
+      machine_breakdown: [],
+      zones: [],
       feed: [],
     });
   }
@@ -75,21 +91,28 @@ export async function GET(
       .limit(1)
       .maybeSingle(),
 
+    // `machine_instance_id` travels with each row so a per-machine view can
+    // filter this feed instead of asking for its own endpoint.
     supabase
       .from("telemetry_events")
-      .select("id, event_type, payload_json, timestamp")
+      .select("id, event_type, payload_json, timestamp, machine_instance_id")
       .eq("event_id", eventId)
       .order("timestamp", { ascending: false })
       .limit(30),
 
     supabase
       .from("machine_instances")
-      .select("id, serial_number, nickname, status, last_heartbeat, firmware_version")
-      .eq("current_event_id", eventId),
+      .select(
+        "id, serial_number, nickname, zone, mission, status, last_heartbeat, firmware_version"
+      )
+      .eq("current_event_id", eventId)
+      .order("serial_number"),
 
+    // Also the source for the per-machine roll-up, so the fleet board and
+    // the hourly curve always describe the same window of the same day.
     supabase
       .from("telemetry_events")
-      .select("event_type, timestamp")
+      .select("event_type, timestamp, machine_instance_id")
       .eq("event_id", eventId)
       .gte("timestamp", startOfDay)
       .lte("timestamp", endOfDay)
@@ -131,26 +154,34 @@ export async function GET(
     );
   }
 
-  const feedLabels: Record<string, string> = {
-    play_started: "Game session started",
-    play_completed: "Game completed",
-    lead_captured: "New lead captured",
-    prize_awarded: "Prize dispensed",
-    heartbeat: "Machine check-in",
-    interaction: "Screen interaction",
-    survey_completed: "Survey submitted",
-    linkedin_follow: "LinkedIn follow",
-    qr_scan: "QR code scanned",
-  };
+  // Per-machine roll-up over today's telemetry. Machines with no rows still
+  // appear with zero counts — a silent unit is the point of the fleet board.
+  const machineBreakdown = buildMachineBreakdown(
+    machines as unknown as FleetMachineRow[],
+    rawHourly as unknown as TelemetryRow[]
+  );
 
-  const feed = telemetry.map((t: Record<string, unknown>) => ({
-    id: String(t.id),
-    type: String(t.event_type ?? "unknown")
-      .replace(/_.*/, "")
-      .replace("captured", "lead"),
-    message: feedLabels[String(t.event_type)] ?? String(t.event_type),
-    timestamp: String(t.timestamp ?? ""),
-  }));
+  const feed = telemetry.map((t: Record<string, unknown>) =>
+    feedItemFromTelemetry(t)
+  );
+
+  // Reload estimate: stock depletes roughly one unit per play (a completed
+  // game ≈ a prize), so the recent play pace projects minutes until empty.
+  const stockRemaining =
+    metrics?.stock_remaining != null ? Number(metrics.stock_remaining) : null;
+  const stockCapacity =
+    metrics?.stock_capacity != null ? Number(metrics.stock_capacity) : null;
+  let reloadEtaMinutes: number | null = null;
+  if (stockRemaining != null && stockRemaining > 0) {
+    const nowHour = new Date().getUTCHours();
+    const recentPlays = hourly
+      .filter((h) => h.hour === nowHour || h.hour === nowHour - 1)
+      .reduce((sum, h) => sum + h.plays, 0);
+    const playsPerMinute = recentPlays / 120;
+    if (playsPerMinute > 0) {
+      reloadEtaMinutes = Math.round(stockRemaining / playsPerMinute);
+    }
+  }
 
   return NextResponse.json({
     source: "local",
@@ -161,16 +192,33 @@ export async function GET(
           total_interactions: metrics.total_interactions ?? 0,
           total_prizes: metrics.total_prizes ?? 0,
           avg_dwell_time: metrics.avg_dwell_time ?? 0,
+          stock_remaining: stockRemaining,
+          stock_capacity: stockCapacity,
+          reload_eta_minutes: reloadEtaMinutes,
         }
-      : { total_plays: 0, total_leads: 0, total_interactions: 0, total_prizes: 0, avg_dwell_time: 0 },
+      : {
+          total_plays: 0,
+          total_leads: 0,
+          total_interactions: 0,
+          total_prizes: 0,
+          avg_dwell_time: 0,
+          stock_remaining: null,
+          stock_capacity: null,
+          reload_eta_minutes: null,
+        },
     hourly,
     machines: machines.map((m: Record<string, unknown>) => ({
+      id: m.id,
       serial_number: m.serial_number,
       nickname: m.nickname,
+      zone: m.zone ?? null,
+      mission: m.mission ?? null,
       status: m.status ?? "available",
       last_heartbeat: m.last_heartbeat,
       firmware_version: m.firmware_version,
     })),
+    machine_breakdown: machineBreakdown,
+    zones: groupBreakdownByZone(machineBreakdown),
     feed,
   });
 }

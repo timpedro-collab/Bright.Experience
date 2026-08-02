@@ -1,6 +1,7 @@
 /** Supabase read queries for the quotes entity. */
 import { createClient } from "@/lib/supabase/server";
 import { PAGE_SIZE, paginateQuery, totalPages } from "@/lib/pagination";
+import { logQueryError } from "@/lib/observability/log-query-error";
 
 const QUOTE_LIST_COLUMNS = `id, track, status, contact_name, contact_email, company_name,
        package_id, event_type, venue_name, postcode,
@@ -18,7 +19,10 @@ export async function getQuotes() {
     .select(QUOTE_LIST_COLUMNS)
     .order("created_at", { ascending: false });
 
-  if (error || !data) return [];
+  if (error || !data) {
+    logQueryError("getQuotes", error);
+    return [];
+  }
   return data;
 }
 
@@ -34,7 +38,10 @@ export async function getQuotesPaginated(
     .order("created_at", { ascending: false });
 
   const { data, error, count } = await paginateQuery(query, page, pageSize);
-  if (error || !data) return { data: [], totalCount: 0, totalPages: 1 };
+  if (error || !data) {
+    logQueryError("getQuotesPaginated", error);
+    return { data: [], totalCount: 0, totalPages: 1 };
+  }
 
   const total = count ?? 0;
   return { data, totalCount: total, totalPages: totalPages(total, pageSize) };
@@ -70,7 +77,10 @@ export async function getPendingQuotesForCustomer(email?: string) {
     .eq("contact_email", email)
     .order("created_at", { ascending: false });
 
-  if (error || !data) return [];
+  if (error || !data) {
+    logQueryError("getPendingQuotesForCustomer", error);
+    return [];
+  }
   return data.filter((q) => {
     const status = String(q.status ?? "");
     if (TERMINAL_QUOTE_STATUSES.has(status)) return false;
@@ -100,7 +110,10 @@ export async function getUpcomingWalkthroughs(): Promise<UpcomingWalkthrough[]> 
     .select(
       `id, contact_name, company_name, walkthrough_scheduled_at, walkthrough_slot_label, walkthrough_completed_at`,
     );
-  if (error || !data) return [];
+  if (error || !data) {
+    logQueryError("getUpcomingWalkthroughs", error);
+    return [];
+  }
 
   const cutoff = Date.now() - 60 * 60 * 1000; // keep meetings until an hour past
   return data
@@ -134,6 +147,9 @@ export async function getQuoteById(id: string) {
     .eq("id", id)
     .single();
 
-  if (error || !data) return null;
+  if (error || !data) {
+    logQueryError("getQuoteById", error, { id });
+    return null;
+  }
   return data;
 }

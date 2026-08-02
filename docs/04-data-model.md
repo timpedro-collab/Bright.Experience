@@ -1,5 +1,12 @@
 # Core Data Model
 
+> **Version:** 0.1.0 · **Status:** current · **Last verified:** 2026-07-25.
+> Schemas here are hand-maintained summaries. The **executable truth** is the
+> **59 migrations** in `supabase/migrations/*` (applied in filename order);
+> `supabase/schema.sql` and [`docs/11-cloud-handoff.md`](11-cloud-handoff.md)
+> Part B are the fullest column-level references. The notification settings
+> table is `notification_preferences` (per-user, per-kind).
+
 ## Entity Relationship Overview
 
 ```
@@ -139,6 +146,7 @@ Task {
   is_blocking     boolean
   customer_visible boolean
   sort_order      integer
+  snoozed_until   timestamp?      // Aug 2026: internal queue snooze — queries exclude tasks snoozed into the future
   created_at      timestamp
   updated_at      timestamp
 }
@@ -212,7 +220,7 @@ StudioRequest {
   reference_assets UUID[]? → Asset
   estimated_cost  decimal?
   estimated_days  integer?
-  status          enum            // draft | submitted | quoted | approved | in_progress | delivered | cancelled
+  status          enum            // draft | submitted | confirmed | quoted | approved | in_progress | delivered | cancelled (StudioRequestStatus, src/types/approvals.ts)
   quoted_cost     decimal?
   quoted_days     integer?
   approved_by     UUID? → User
@@ -495,6 +503,7 @@ TelemetryEvent {
   event_type          string          // play_started | play_completed | lead_captured | prize_awarded | heartbeat | error
   payload_json        JSON
   timestamp           timestamp
+  external_event_id   string?         // unique; sender-side idempotency key so a Cloud webhook redelivery is a no-op. NULL (and NULLs stay distinct) for rows not ingested from a webhook — see docs/10-integrations.md §1a
 }
 ```
 
@@ -510,8 +519,9 @@ Lead {
   contact_email       string?
   contact_phone       string?
   custom_fields_json  JSON
-  source              string          // game | manual | import
+  source              string          // free text, DB default 'game'; inbound Cloud webhook writes 'webhook' (also seen: manual, import)
   captured_at         timestamp
+  consented_at        timestamp?      // GDPR consent stamp (Jul 2026); leads purged by /api/cron/purge-leads after the event's retention window
 }
 ```
 
@@ -529,6 +539,8 @@ EventMetricsSnapshot {
   total_prizes        integer
   avg_dwell_time      numeric?
   peak_hour           integer?
+  stock_remaining     integer?        // live prize stock (Jul 2026), recomputed on telemetry ingest
+  stock_capacity      integer?        // from product_configurations.total_units
   custom_json         JSON
   created_at          timestamp
   updated_at          timestamp
@@ -585,14 +597,22 @@ StudioPricing {
 ## Partner Entities (Phase 6)
 
 ### Partner
-A reseller, venue, or agency organisation that refers business.
+An organisation that refers or resells business, or that hosts machines.
+
+The five tiers split into two groups. `referral`, `reseller` and `agency` are
+self-service: anyone can apply through `/partners/join`, and all three share the
+`/partners/:slug` portal (referral link, attributed quotes, commissions).
+`venue` and `organizer` carry inventory tooling — placement boards, slot
+inventory, show management — and their own portals, so they are only ever
+created internally. `partnerApplicationSchema` enforces that split; a public
+applicant cannot ask to be either.
 
 ```
 Partner {
   id                    UUID
   name                  text
   slug                  text (unique)
-  type                  text            // 'reseller' | 'venue' | 'agency'
+  type                  text            // 'referral' | 'reseller' | 'agency' | 'venue' | 'organizer'
   contact_name          text?
   contact_email         text?
   logo_url              text?
@@ -640,6 +660,14 @@ PartnerAttribution {
 ---
 
 ## Indexes and Query Patterns
+
+Every pattern below is backed by a real index. `20260731000001_hot_path_indexes.sql`
+converted the hot ones from single-column to composite (parent + sort column),
+since a list that filters by event and orders by date otherwise still sorts
+every matching row — see the measurements in
+[`docs/13-dev-handover-priorities.md`](./13-dev-handover-priorities.md#query-performance-indexes-and-counts).
+When you add a query, check that the leading columns of some index match its
+`WHERE` columns and that its `ORDER BY` follows them.
 
 ### Primary Queries
 - Events by account (customer dashboard)
@@ -691,17 +719,49 @@ detail, RLS notes, and migration provenance, treat
 |----------------|---------|
 | `venues` | Host locations; partner-owned scoping |
 | `placements` | A machine at a venue for a date range |
-| `sponsorship_slots` | Bookable sponsor windows on a placement |
+| `sponsorship_slots` | Bookable sponsor windows. Dual-scoped since Jul 2026: either a venue `placement_id` **or** an `event_id` + `machine_instance_id` (an organizer selling one machine at their show). Show slots add `sponsor_name`, `pitch_token` (unique) and `pitch_token_expires_at` for the public pitch page |
 | `campaigns` / `campaign_events` | Multi-event campaign grouping |
 | `invoices` | Issued invoices (no in-portal card payments) |
 | `compliance_documents` | Per-event insurance / DPA / RAMS (with expiry) |
-| `game_configurations` | Per-event game setup (prizes, form fields, params) |
-| `product_configurations` | Per-event product/sampling + machine config JSON |
+| `game_configurations` | Game setup (prizes, form fields, params). Jul 2026: + `capture_rules_json` (business-email / blocklist / dedupe / consent rules), `retention_days` (lead retention window, default 60), `branded_landing`, `capture_method` (`form` / `badge_scan` / `both`). **Scope changed**: no longer one row per event — `machine_instance_id` NULL is the show-wide default and a non-NULL row overrides one unit. Uniqueness is an expression index on `(event_id, coalesce(machine_instance_id, <sentinel>))`, so writes read-then-write instead of `upsert` |
+| `product_configurations` | Product/sampling + machine config JSON. Same default-plus-override scoping as `game_configurations` |
 | `scheduled_exports` | Recurring report/export schedules |
 | `event_team_members` | Customer-added teammates (pending / approved / removed) |
-| `comments` | Threaded comments on event or asset |
+| `comments` | Threaded comments on event or asset. Aug 2026: + `asset_version_id` (nullable FK) — comments bind to the version they were posted on; thread UI shows "on vN" chips when it differs from the current version |
 | `notification_preferences` | Per-user / per-kind in-portal + email mode |
+| `case_studies` | Public portfolio pieces. Aug 2026: + `publication_rights` (`named` / `anonymised` / `aggregate_only`) and `anonymised_label` — public queries route through `applyPublicationRights()` (`src/lib/publication-rights.ts`), which excludes `aggregate_only` rows and scrubs the client's name from name/title/description for `anonymised` ones (Costa Coffee ships anonymised as "A global coffee chain") |
 | `pipedrive_outbox` | Durable CRM write-back queue (hourly drain) |
+
+Also changed for organizer shows (Jul 2026): `partners.type` accepts
+`organizer`; `events.organizer_partner_id` links a show to the producer running
+it; `machine_instances` gains `zone` (free text) and `mission` (`lead_capture`,
+`sponsor_activation`, `welcome_gift`, `rebook_reward`, `sampling`). RLS lets an
+organizer read their own shows, fleet, slots, and aggregate telemetry — and
+deliberately **not** `leads`, which stay with the brand that captured them
+(`supabase/tests/rls_organizers.test.sql`).
+
+The `machines` catalogue gained site requirements in the same month
+(`20260727000003_machine_site_requirements.sql`): `footprint_mm`, `weight_kg`,
+`power_spec`, `connectivity` and `clearance_notes`. The catalogue already
+described what a machine *does*; these describe what it *needs* to stand
+somewhere, which is the half every exhibition venue asks an organizer for weeks
+before move-in. They are free text (except the numeric weight) because they are
+quoted verbatim into venue paperwork. **The seeded values are indicative
+placeholders, not measured figures** — every surface says so, and replacing them
+with the manufacturer's data is an owner task (`OWNER-TODO.md`).
+
+Organizers also read `assets` where `customer_visible = true` on their own shows
+(`20260727000004_organizer_asset_reads.sql`), which is what lets them attach
+sponsor creative to a slot and see whether artwork has cleared review. SELECT
+only: uploading and approving artwork stays with the brand supplying it and the
+creative team reviewing it.
+
+Those rows are all written from `/admin/organizers` rather than by hand: an
+organizer `partners` row, the `profiles` + `partner_users` pair that gets their
+team in, `events.organizer_partner_id`, and `machine_instances.current_event_id`
+(cleared with `zone` and `mission` on release). Writes go through the internal
+session client, since `is_internal_user()` write policies already cover all four
+tables — see `src/app/actions/organizer-admin.ts`.
 
 Related tables also documented in the cloud handoff (not duplicated here):
 `venue_packages`, `venue_requirements`, `client_compliance_requirements`,

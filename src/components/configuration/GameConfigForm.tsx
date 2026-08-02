@@ -16,13 +16,30 @@ import {
   type PrizeMode,
   type PrizeEntry,
   type FormFieldEntry,
+  type CaptureMethod,
 } from "@/app/actions/game-config";
+import { CaptureQualitySection } from "@/components/configuration/CaptureQualitySection";
+import { PRIZE_MODES, CAPTURE_METHODS } from "@/lib/configuration/config-labels";
+import {
+  defaultCaptureRules,
+  DEFAULT_RETENTION_DAYS,
+  type CaptureRules,
+} from "@/lib/capture-rules";
 import type { UserRole } from "@/types";
 
 interface GameConfigFormProps {
   eventId: string;
   config: GameConfiguration | null;
   viewerRole: UserRole;
+  /**
+   * Set to configure one machine instead of the whole show. The form then
+   * writes a per-machine override rather than the show-wide default.
+   */
+  machineInstanceId?: string | null;
+  /** How this machine is labelled in the inheritance notice. */
+  machineLabel?: string;
+  /** False when the machine is still inheriting the show-wide default. */
+  isOverride?: boolean;
 }
 
 /** Roles that author the configuration. QA verifies (read-only + sign-off). */
@@ -34,13 +51,14 @@ const EDIT_ROLES: UserRole[] = [
   "admin",
 ];
 
-const PRIZE_MODES: { value: PrizeMode; label: string; description: string }[] = [
-  { value: "random", label: "Random", description: "Each play randomly awards a prize" },
-  { value: "score_based", label: "Score-based", description: "Players earn prizes based on score thresholds" },
-  { value: "guaranteed", label: "Guaranteed", description: "Every player receives a prize" },
-];
-
-export function GameConfigForm({ eventId, config, viewerRole }: GameConfigFormProps) {
+export function GameConfigForm({
+  eventId,
+  config,
+  viewerRole,
+  machineInstanceId = null,
+  machineLabel,
+  isOverride = true,
+}: GameConfigFormProps) {
   const router = useRouter();
   const [saving, startSave] = useTransition();
   const [submitting, startSubmit] = useTransition();
@@ -60,8 +78,19 @@ export function GameConfigForm({ eventId, config, viewerRole }: GameConfigFormPr
   );
   const [includeScore, setIncludeScore] = useState(config?.includeScoreInExport ?? false);
   const [leaderboard, setLeaderboard] = useState(config?.leaderboardEnabled ?? false);
+  const [captureRules, setCaptureRules] = useState<CaptureRules>(
+    config?.captureRulesJson ?? defaultCaptureRules()
+  );
+  const [retentionDays, setRetentionDays] = useState(
+    config?.retentionDays ?? DEFAULT_RETENTION_DAYS
+  );
+  const [brandedLanding, setBrandedLanding] = useState(config?.brandedLanding ?? false);
+  const [captureMethod, setCaptureMethod] = useState<CaptureMethod>(
+    config?.captureMethod ?? "form"
+  );
 
   const isSubmitted = config?.status === "submitted" || config?.status === "configured" || config?.status === "tested";
+  const isInheriting = Boolean(machineInstanceId) && !isOverride;
 
   function buildPayload() {
     return {
@@ -72,6 +101,11 @@ export function GameConfigForm({ eventId, config, viewerRole }: GameConfigFormPr
       leaderboardEnabled: leaderboard,
       gameParametersJson: config?.gameParametersJson ?? {},
       idleScreenConfigJson: config?.idleScreenConfigJson ?? {},
+      captureRulesJson: captureRules,
+      retentionDays,
+      brandedLanding,
+      captureMethod,
+      machineInstanceId,
     };
   }
 
@@ -118,6 +152,14 @@ export function GameConfigForm({ eventId, config, viewerRole }: GameConfigFormPr
         <div className="rounded-lg border border-info/25 bg-info/8 px-4 py-3 text-sm text-muted-foreground">
           QA view — review the configuration below, then mark it as tested when
           everything checks out.
+        </div>
+      )}
+
+      {isInheriting && (
+        <div className="rounded-lg border border-border bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
+          {machineLabel ?? "This machine"} is running the show default. Saving
+          here creates an override for this unit only; every other machine keeps
+          following the default.
         </div>
       )}
 
@@ -200,6 +242,7 @@ export function GameConfigForm({ eventId, config, viewerRole }: GameConfigFormPr
                 className="flex-1 px-3 py-2 rounded-[var(--radius-control)] border border-border bg-muted/40 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-ring"
               />
               <select
+                aria-label={`Field type for ${field.label || `field ${i + 1}`}`}
                 value={field.type}
                 onChange={(e) => {
                   const next = [...formFields];
@@ -237,6 +280,47 @@ export function GameConfigForm({ eventId, config, viewerRole }: GameConfigFormPr
           </Button>
         </div>
       </div>
+
+      {/* How a play is unlocked and identity established */}
+      <div>
+        <label className="block text-sm font-medium text-foreground mb-2">
+          How attendees enter
+        </label>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          {CAPTURE_METHODS.map((method) => (
+            <button
+              key={method.value}
+              type="button"
+              onClick={() => setCaptureMethod(method.value)}
+              className={cn(
+                "p-3 rounded-lg border text-left text-sm transition-colors",
+                captureMethod === method.value
+                  ? "border-[var(--color-bb-cobalt)] bg-[var(--color-bb-cobalt)]/10"
+                  : "border-border bg-muted/40 hover:bg-accent"
+              )}
+            >
+              <p className="font-medium text-foreground">{method.label}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">{method.description}</p>
+            </button>
+          ))}
+        </div>
+        {captureMethod !== "form" && (
+          <p className="mt-2 text-xs text-muted-foreground">
+            Badge scanning needs the show organizer&apos;s registration provider
+            connected before the event. Confirm it with your Bright.Blue contact.
+          </p>
+        )}
+      </div>
+
+      {/* Capture quality guardrails (business emails, dedupe, consent…) */}
+      <CaptureQualitySection
+        rules={captureRules}
+        onRulesChange={setCaptureRules}
+        retentionDays={retentionDays}
+        onRetentionChange={setRetentionDays}
+        brandedLanding={brandedLanding}
+        onBrandedLandingChange={setBrandedLanding}
+      />
 
       {/* Options */}
       <div className="flex flex-wrap gap-4">

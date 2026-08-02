@@ -15,6 +15,7 @@ import {
   DialogDescription, DialogFooter, DialogTrigger,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+import { formatTimestamp } from "@/lib/dates";
 import { createApiKey, revokeApiKey } from "@/app/actions/api-management";
 
 interface ApiKeyRow {
@@ -169,7 +170,16 @@ export function ApiKeyManager({ keys }: ApiKeyManagerProps) {
                   </Badge>
                 </TableCell>
                 <TableCell className="text-sm text-muted-foreground">
-                  {k.lastUsedAt ?? "Never"}
+                  {k.lastUsedAt ? (
+                    <span
+                      className="tabular-nums"
+                      title={formatTimestamp(k.lastUsedAt).exact || undefined}
+                    >
+                      {formatTimestamp(k.lastUsedAt).display}
+                    </span>
+                  ) : (
+                    "—"
+                  )}
                 </TableCell>
                 <TableCell>
                   {k.isActive && (

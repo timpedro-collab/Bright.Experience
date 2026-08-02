@@ -34,10 +34,14 @@ select is(
   'cross-account customer cannot see Acme tasks'
 );
 
--- Internal user sees all three
+-- Internal user sees all three, hidden one included. Scoped to the fixture
+-- events so the assertion holds alongside demo seed data.
 select _rls_test_as('00000000-0000-4000-8000-000000000011');
 select is(
-  (select count(*)::int from tasks),
+  (select count(*)::int from tasks where event_id in (
+    '00000000-0000-4000-8000-0000000000e1',
+    '00000000-0000-4000-8000-0000000000e2'
+  )),
   3,
   'internal user sees every task'
 );

@@ -16,6 +16,15 @@ The target audience is the incoming CTO — assume they have zero project contex
 - If a new database migration is created, ensure `docs/04-data-model.md` reflects the new/changed entities
 - If a new external integration point is added (API, webhook, cron), document it in `docs/10-integrations.md`
 
+## Dev Handover Priorities (docs/13-dev-handover-priorities.md)
+
+`docs/13-dev-handover-priorities.md` is the prioritized worklist the dev team executes on receipt of this codebase (activation wiring, integration builds, client-committed features, and the full-system security checklist). It must never go stale:
+
+- If a change **completes** an item listed there (wires an env var, ships an integration, implements a P2 feature, closes a security row), update its status in the same change
+- If a change **adds** a new integration point, stub, env var, or externally-visible surface, add the corresponding activation/build/security row
+- If a change introduces a **new security consideration** (new inbound route, new PII field, new upload path, new secret), add it to the security checklist with a status
+- If a client commitment or product decision changes the priority list (new feature promise, deferral, de-scope), reflect it under the correct priority tier
+
 ## External Integration Points
 
 - Every inbound webhook / API route must have a JSDoc block explaining the expected caller, auth mechanism, and payload shape

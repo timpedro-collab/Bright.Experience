@@ -1,6 +1,7 @@
 /** Supabase read queries for venue packages (rate-card / turnkey buys). */
 
 import { createClient } from "@/lib/supabase/server";
+import { logQueryError } from "@/lib/observability/log-query-error";
 
 export interface VenuePackageRow {
   id: string;
@@ -22,6 +23,9 @@ export async function getVenuePackagesByVenueId(
     .eq("venue_id", venueId)
     .order("sort_order", { ascending: true });
 
-  if (error || !data) return [];
+  if (error || !data) {
+    logQueryError("getVenuePackagesByVenueId", error, { venueId });
+    return [];
+  }
   return data as VenuePackageRow[];
 }

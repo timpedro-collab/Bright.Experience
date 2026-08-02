@@ -16,6 +16,18 @@ export type TelemetryEventType =
   | "heartbeat"
   | "error";
 
+/**
+ * What a machine is deployed to do. A multi-unit show runs several missions
+ * at once, so this is per-machine rather than per-event. The machine stack
+ * branches on it; the portal only authors it.
+ */
+export type MachineMission =
+  | "lead_capture"
+  | "sponsor_activation"
+  | "welcome_gift"
+  | "rebook_reward"
+  | "sampling";
+
 /** A physical machine deployed to events, tracked by serial number */
 export interface MachineInstance {
   id: string;
@@ -24,6 +36,9 @@ export interface MachineInstance {
   nickname?: string;
   currentEventId?: string;
   currentPlacementId?: string;
+  /** Free-text venue location for the current deployment ("Hall 3 entrance"). */
+  zone?: string;
+  mission?: MachineMission;
   status: MachineInstanceStatus;
   lastHeartbeat?: string;
   firmwareVersion?: string;

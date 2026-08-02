@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import type { StudioRequest } from "@/types";
+import { logQueryError } from "@/lib/observability/log-query-error";
 
 function mapRequest(row: Record<string, unknown>): StudioRequest {
   return {
@@ -32,7 +33,10 @@ export async function getStudioRequestsByEvent(
     .eq("event_id", eventId)
     .order("created_at", { ascending: false });
 
-  if (error || !data) return [];
+  if (error || !data) {
+    logQueryError("getStudioRequestsByEvent", error, { eventId });
+    return [];
+  }
   return data.map(mapRequest);
 }
 
@@ -53,7 +57,10 @@ export async function getAllStudioRequests(): Promise<
     )
     .order("created_at", { ascending: false });
 
-  if (error || !data) return [];
+  if (error || !data) {
+    logQueryError("getAllStudioRequests", error);
+    return [];
+  }
 
   return data.map((row) => {
     const event = row.events as Record<string, unknown> | null;

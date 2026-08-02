@@ -187,7 +187,7 @@ export function WebhookManager({ subscriptions }: WebhookManagerProps) {
                       {wh.isActive ? "Active" : "Inactive"}
                     </Badge>
                     {wh.failureCount > 0 && (
-                      <span className="flex items-center gap-0.5 text-xs text-warning">
+                      <span className="flex items-center gap-0.5 text-xs text-warning tabular-nums">
                         <AlertCircle size={12} />
                         {wh.failureCount}
                       </span>

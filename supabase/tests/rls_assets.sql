@@ -22,7 +22,10 @@ select plan(3);
 -- Acme customer
 select _rls_test_as('00000000-0000-4000-8000-000000000020');
 select is(
-  (select array_agg(id order by id)::uuid[] from assets),
+  (select array_agg(id order by id)::uuid[] from assets where id in (
+    '00000000-0000-4000-8000-0000000000d1',
+    '00000000-0000-4000-8000-0000000000d2',
+    '00000000-0000-4000-8000-0000000000d3')),
   array['00000000-0000-4000-8000-0000000000d1'::uuid],
   'customer sees only their own visible asset'
 );
@@ -35,10 +38,14 @@ select is(
   'other-account customer cannot see Acme assets'
 );
 
--- Internal user sees all
+-- Internal user sees all. Scoped to the fixture rows: `supabase test db`
+-- runs against a seeded database, so an unqualified count is not stable.
 select _rls_test_as('00000000-0000-4000-8000-000000000011');
 select is(
-  (select count(*)::int from assets),
+  (select count(*)::int from assets where id in (
+    '00000000-0000-4000-8000-0000000000d1',
+    '00000000-0000-4000-8000-0000000000d2',
+    '00000000-0000-4000-8000-0000000000d3')),
   3,
   'internal user sees every asset'
 );

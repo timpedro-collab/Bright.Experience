@@ -28,6 +28,7 @@ import {
   canViewCreativeProduct,
   canViewLocations,
 } from "@/lib/roles";
+import { isPublicApiEnabled } from "@/lib/integration-flags";
 import {
   getPaletteRecents,
   pushPaletteRecent,
@@ -347,13 +348,14 @@ function StaticGroups({ go, isInternal, role, eventId, partnerSlug, venueSlug }:
         {canCreativeProduct && <CommandItem onSelect={() => go("/studio", "Studio orders")}><Sparkles /><span>Studio orders</span></CommandItem>}
         {canCommercial && <CommandItem onSelect={() => go("/admin/quotes", "Quotes pipeline")}><FileText /><span>Quotes pipeline</span></CommandItem>}
         {canCommercial && <CommandItem onSelect={() => go("/admin/partners", "Partners")}><Handshake /><span>Partners</span></CommandItem>}
+        {canCommercial && <CommandItem onSelect={() => go("/admin/organizers", "Show organizers")}><Building2 /><span>Show organizers</span></CommandItem>}
         {canCommercial && <CommandItem onSelect={() => go("/admin/campaigns", "Campaigns")}><Layers /><span>Campaigns</span></CommandItem>}
         {canCommercial && <CommandItem onSelect={() => go("/admin/templates", "Templates")}><FileText /><span>Templates</span></CommandItem>}
         {canCreativeProduct && <CommandItem onSelect={() => go("/admin/catalog", "Catalog")}><Sparkles /><span>Catalog</span></CommandItem>}
         {canLocations && <CommandItem onSelect={() => go("/admin/locations", "Locations")}><MapPin /><span>Locations</span></CommandItem>}
         {canCommercial && <CommandItem onSelect={() => go("/admin/benchmarks", "Benchmarks")}><BarChart3 /><span>Benchmarks</span></CommandItem>}
         {canCommercial && <CommandItem onSelect={() => go("/admin/recommendations", "Recommendations")}><Lightbulb /><span>Recommendations</span></CommandItem>}
-        {isAdmin && <CommandItem onSelect={() => go("/admin/api", "API & integrations")}><Key /><span>API & integrations</span></CommandItem>}
+        {isAdmin && isPublicApiEnabled() && <CommandItem onSelect={() => go("/admin/api", "API & integrations")}><Key /><span>API & integrations</span></CommandItem>}
       </CommandGroup></>)}
 
       <CommandSeparator />

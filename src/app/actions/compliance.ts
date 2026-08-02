@@ -11,9 +11,8 @@ import { getUser } from "@/lib/auth";
 import { isInternalRole } from "@/lib/roles";
 import { dispatchNotification } from "@/lib/notifications/dispatch";
 import { validateUpload, storagePathFor } from "@/lib/storage/signed-url";
-import { scanUpload } from "@/lib/storage/scan";
+import { screenUpload } from "@/lib/storage/scan";
 import {
-  createComplianceRequirementSchema,
   uploadComplianceDocumentSchema,
   reviewComplianceDocumentSchema,
   seedComplianceSchema,
@@ -25,6 +24,7 @@ import {
   type ComplianceStatus,
   type ComplianceDocument,
 } from "@/types/compliance";
+import { logQueryError } from "@/lib/observability/log-query-error";
 
 function mapDoc(row: Record<string, unknown>): ComplianceDocument {
   return {
@@ -56,49 +56,11 @@ export async function getComplianceDocuments(eventId: string): Promise<Complianc
     .eq("event_id", eventId)
     .order("created_at");
 
-  if (error || !data) return [];
-  return data.map((row) => mapDoc(row as Record<string, unknown>));
-}
-
-/** Create a compliance document requirement for an event. */
-export async function createComplianceRequirement(
-  eventId: string,
-  documentType: ComplianceDocType,
-  title: string,
-  requiredMinimum?: string,
-  expiresAt?: string
-): Promise<ActionResult<{ id: string }>> {
-  const parsed = createComplianceRequirementSchema.safeParse({
-    eventId,
-    documentType,
-    title,
-    requiredMinimum,
-    expiresAt,
-  });
-  if (!parsed.success) {
-    return { success: false, error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  if (error || !data) {
+    logQueryError("getComplianceDocuments", error, { eventId });
+    return [];
   }
-
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { success: false, error: "Not authenticated" };
-
-  const { data, error } = await supabase
-    .from("compliance_documents")
-    .insert({
-      event_id: eventId,
-      document_type: documentType,
-      title,
-      required_minimum: requiredMinimum ?? null,
-      expires_at: expiresAt ?? null,
-      status: "required",
-    })
-    .select("id")
-    .single();
-
-  if (error) return { success: false, error: `Failed to create requirement: ${error.message}` };
-  revalidatePath(`/events/${eventId}/compliance`);
-  return { success: true, data: { id: data.id } };
+  return data.map((row) => mapDoc(row as Record<string, unknown>));
 }
 
 /** Upload a compliance document file. */
@@ -135,7 +97,7 @@ export async function uploadComplianceDocument(
 
   const buffer = Buffer.from(await file.arrayBuffer());
 
-  const scan = await scanUpload(buffer, file.name);
+  const scan = await screenUpload(buffer, file.name, file.type);
   if (!scan.ok) {
     return { success: false, error: scan.detail ?? "This file was flagged by our security scan." };
   }
@@ -159,7 +121,10 @@ export async function uploadComplianceDocument(
     .update(updateData)
     .eq("id", docId);
 
-  if (error) return { success: false, error: `Failed to update document: ${error.message}` };
+  if (error) {
+    logQueryError("uploadComplianceDocument", error);
+    return { success: false, error: `Failed to update document: ${error.message}` };
+  }
 
   await supabase.from("audit_entries").insert({
     event_id: eventId,
@@ -218,7 +183,10 @@ export async function reviewComplianceDocument(
     })
     .eq("id", docId);
 
-  if (error) return { success: false, error: `Review failed: ${error.message}` };
+  if (error) {
+    logQueryError("reviewComplianceDocument", error, { docId });
+    return { success: false, error: `Review failed: ${error.message}` };
+  }
 
   await supabase.from("audit_entries").insert({
     event_id: eventId,

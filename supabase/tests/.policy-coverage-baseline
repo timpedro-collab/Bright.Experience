@@ -1,0 +1,9 @@
+# Tables that carry an RLS policy but have no pgTAP test yet.
+#
+# `scripts/check-policy-tests.mjs` (run in CI) fails on any table missing
+# from supabase/tests/ unless it is listed here. The list is currently
+# empty and should stay that way: adding a table means deliberately
+# shipping an untested access-control decision, and it will show up in
+# review as a line added to this file.
+#
+# One table name per line.

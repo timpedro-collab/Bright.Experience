@@ -1,5 +1,6 @@
 /** Supabase read queries for sponsorship slot entities. */
 import { createClient } from "@/lib/supabase/server";
+import { logQueryError } from "@/lib/observability/log-query-error";
 
 /** Fetch all sponsorship slots for a given placement. */
 export async function getSlotsByPlacement(placementId: string) {
@@ -14,7 +15,10 @@ export async function getSlotsByPlacement(placementId: string) {
     .eq("placement_id", placementId)
     .order("start_date", { ascending: true });
 
-  if (error || !data) return [];
+  if (error || !data) {
+    logQueryError("getSlotsByPlacement", error, { placementId });
+    return [];
+  }
   return data;
 }
 
@@ -33,6 +37,9 @@ export async function getAvailableSlots() {
     .eq("status", "available")
     .order("start_date", { ascending: true });
 
-  if (error || !data) return [];
+  if (error || !data) {
+    logQueryError("getAvailableSlots", error);
+    return [];
+  }
   return data;
 }

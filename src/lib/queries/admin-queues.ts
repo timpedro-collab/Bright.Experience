@@ -17,7 +17,7 @@ export interface InternalQueueCounts {
  * of upload. Mirrors STUCK_CUSTOMER_DAYS but for the Bright.Blue side of the
  * desk, so a slow review escalates just like a slow customer.
  */
-export const REVIEWER_SLA_DAYS = 2;
+const REVIEWER_SLA_DAYS = 2;
 
 /**
  * Days after which a customer-side action is treated as "stuck". Used

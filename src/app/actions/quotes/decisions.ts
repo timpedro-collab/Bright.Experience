@@ -4,7 +4,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { dispatchNotification } from "@/lib/notifications/dispatch";
-import { provisionEventFromQuote } from "@/app/actions/provisioning";
+import { provisionEventFromQuote } from "@/server/provisioning";
 import { shouldAutoProvisionQuote } from "@/lib/booking-flags";
 import { decisionLimiter, getClientIp } from "@/lib/rate-limit";
 
@@ -12,7 +12,7 @@ const RATE_LIMITED = "Too many requests. Please wait a moment and try again.";
 
 /** Accept a proposal (public). */
 export async function acceptQuote(quoteId: string) {
-  if (!decisionLimiter(await getClientIp())) {
+  if (!(await decisionLimiter(await getClientIp()))) {
     return { success: false as const, error: RATE_LIMITED };
   }
 
@@ -59,7 +59,7 @@ export async function acceptQuote(quoteId: string) {
 
 /** Decline a proposal (public). */
 export async function declineQuote(quoteId: string) {
-  if (!decisionLimiter(await getClientIp())) {
+  if (!(await decisionLimiter(await getClientIp()))) {
     return { success: false as const, error: RATE_LIMITED };
   }
 

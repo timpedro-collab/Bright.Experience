@@ -1,5 +1,6 @@
 /** Supabase read queries for partner attribution and commission tracking. */
 import { createClient } from "@/lib/supabase/server";
+import { logQueryError } from "@/lib/observability/log-query-error";
 
 export type CommissionStatus = "pending" | "approved" | "paid" | "rejected";
 
@@ -49,7 +50,10 @@ export async function getAttributionsByPartner(partnerId: string) {
     .eq("partner_id", partnerId)
     .order("created_at", { ascending: false });
 
-  if (error || !data) return [];
+  if (error || !data) {
+    logQueryError("getAttributionsByPartner", error, { partnerId });
+    return [];
+  }
   return data;
 }
 
@@ -62,6 +66,7 @@ export async function getPartnerCommissionSummary(partnerId: string) {
     .eq("partner_id", partnerId);
 
   if (error || !data) {
+    logQueryError("getPartnerCommissionSummary", error, { partnerId });
     return { totalEarned: 0, totalPending: 0, totalPaid: 0, totalApproved: 0 };
   }
 
@@ -98,7 +103,10 @@ export async function getPartnerPipeline(partnerId: string): Promise<PartnerDeal
     .eq("partner_id", partnerId)
     .order("created_at", { ascending: false });
 
-  if (error || !data) return [];
+  if (error || !data) {
+    logQueryError("getPartnerPipeline", error, { partnerId });
+    return [];
+  }
 
   return data.map((row: Record<string, unknown>): PartnerDeal => {
     const quote = asRecord(row.quotes);

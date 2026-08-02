@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Sparkles, CalendarCheck, BarChart3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useModalOverlay } from "@/hooks/useModalOverlay";
 import { useTour } from "./TourProvider";
 import { completeOnboarding } from "@/app/actions/onboarding";
 
@@ -27,6 +28,11 @@ export function TourWelcomeScreen() {
   const { phase, config, finish } = useTour();
   const router = useRouter();
 
+  const overlayRef = useModalOverlay<HTMLDivElement>({
+    active: phase === "welcome" && !!config,
+    onClose: handleSkip,
+  });
+
   if (phase !== "welcome" || !config) return null;
 
   async function handleLetsGo() {
@@ -45,7 +51,12 @@ export function TourWelcomeScreen() {
 
   return (
     <motion.div
-      className="theme-dark fixed inset-0 z-[10000] flex items-center justify-center text-foreground"
+      ref={overlayRef}
+      role="dialog"
+      aria-modal="true"
+      aria-label={config.welcomeTitle}
+      tabIndex={-1}
+      className="theme-dark fixed inset-0 z-[10000] flex items-center justify-center text-foreground outline-none"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -70,13 +81,17 @@ export function TourWelcomeScreen() {
           ))}
         </motion.div>
 
+        {/* The title animates in character by character, which a screen
+            reader would otherwise spell out one letter at a time. */}
         <motion.h1
           className="text-[clamp(1.75rem,4vw,2.75rem)] font-bold text-white leading-tight"
           variants={itemVariants}
+          aria-label={config.welcomeTitle}
         >
           {chars.map((c, i) => (
             <motion.span
               key={i}
+              aria-hidden="true"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.6 + i * 0.03, duration: 0.05 }}

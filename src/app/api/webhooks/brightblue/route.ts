@@ -24,6 +24,46 @@ import { NextResponse } from "next/server";
 import * as Sentry from "@sentry/nextjs";
 import { getServiceRoleClient } from "@/lib/supabase/service-role";
 import { parseWebhookRequest } from "@/lib/webhooks/verify";
+import {
+  batchDigest,
+  telemetryExternalId,
+} from "@/lib/webhooks/telemetry-idempotency";
+import { dispatchNotification } from "@/lib/notifications/dispatch";
+
+/** Ops get a reload alert when stock first drops to this share of capacity. */
+const LOW_STOCK_THRESHOLD = 0.15;
+
+/**
+ * What a handler did, when it's worth telling the sender.
+ *
+ * `skipped` means "accepted and deliberately not stored" — a 200 that stops the
+ * retry loop for a payload no amount of retrying will fix.
+ */
+interface HandlerOutcome {
+  skipped?: string;
+}
+
+/**
+ * Acknowledge a payload we can't attribute, instead of failing it.
+ *
+ * A serial we don't hold is not a transient fault: it's a machine registered in
+ * Cloud but not here (a new unit, a swapped board, a rig on someone's bench).
+ * Returning 500 makes Cloud retry the same batch until it gives up, which buries
+ * the real failures in its delivery log and ours. The event is recorded in
+ * Sentry as a message so the gap is visible without being paged for it.
+ */
+function acknowledgeUnknownSerial(
+  eventType: string,
+  serial: string
+): HandlerOutcome {
+  const detail = `[webhook:brightblue] ${eventType}: no machine instance for serial ${serial} — acknowledged without storing`;
+  console.warn(detail);
+  Sentry.captureMessage(detail, {
+    level: "warning",
+    tags: { webhook_event_type: eventType, machine_serial: serial },
+  });
+  return { skipped: "unknown_machine_serial" };
+}
 
 export async function POST(request: Request) {
   const result = await parseWebhookRequest(request);
@@ -35,19 +75,21 @@ export async function POST(request: Request) {
     );
   }
 
-  const { body } = result;
+  const { body, rawBody } = result;
   const eventType = String(body.event_type ?? "");
 
   try {
+    let outcome: HandlerOutcome = {};
+
     switch (eventType) {
       case "telemetry.batch":
-        await handleTelemetryBatch(body);
+        outcome = await handleTelemetryBatch(body, rawBody);
         break;
       case "lead.captured":
-        await handleLeadCaptured(body);
+        outcome = await handleLeadCaptured(body);
         break;
       case "machine.heartbeat":
-        await handleMachineHeartbeat(body);
+        outcome = await handleMachineHeartbeat(body);
         break;
       case "report.ready":
         await handleReportReady(body);
@@ -59,7 +101,11 @@ export async function POST(request: Request) {
         );
     }
 
-    return NextResponse.json({ received: true, event_type: eventType });
+    return NextResponse.json({
+      received: true,
+      event_type: eventType,
+      ...(outcome.skipped ? { skipped: outcome.skipped } : {}),
+    });
   } catch (err) {
     Sentry.captureException(err, { tags: { webhook_event_type: eventType } });
     console.error(`[webhook:brightblue] ${eventType} failed:`, err);
@@ -82,13 +128,21 @@ export async function POST(request: Request) {
  *   "machine_serial": "BB-001",
  *   "event_id": "<uuid>",
  *   "events": [
- *     { "type": "play_started", "timestamp": "ISO", "payload": {} },
+ *     { "id": "<cloud event id>", "type": "play_started", "timestamp": "ISO", "payload": {} },
  *     { "type": "play_completed", "timestamp": "ISO", "payload": { "score": 42 } }
  *   ]
  * }
  * ```
+ *
+ * `events[].id` is optional but strongly preferred: it is the idempotency key.
+ * Without it the key is derived from the raw body, which still makes a
+ * byte-identical redelivery a no-op but not a re-send with, say, a regenerated
+ * timestamp. See `lib/webhooks/telemetry-idempotency.ts`.
  */
-async function handleTelemetryBatch(body: Record<string, unknown>) {
+async function handleTelemetryBatch(
+  body: Record<string, unknown>,
+  rawBody: string
+): Promise<HandlerOutcome> {
   const supabase = getServiceRoleClient();
   const serial = String(body.machine_serial ?? "");
   const eventId = String(body.event_id ?? "");
@@ -102,24 +156,31 @@ async function handleTelemetryBatch(body: Record<string, unknown>) {
     .from("machine_instances")
     .select("id")
     .eq("serial_number", serial)
-    .single();
+    .maybeSingle();
 
   if (!instance) {
-    throw new Error(`Machine instance not found for serial: ${serial}`);
+    return acknowledgeUnknownSerial("telemetry.batch", serial);
   }
 
-  const rows = events.map((e: Record<string, unknown>) => ({
+  const digest = batchDigest(rawBody);
+  const rows = events.map((e: Record<string, unknown>, index: number) => ({
     machine_instance_id: instance.id,
     event_id: eventId,
+    external_event_id: telemetryExternalId(e, digest, index),
     event_type: String(e.type ?? "unknown"),
     timestamp: e.timestamp ? String(e.timestamp) : new Date().toISOString(),
     payload_json: (e.payload as Record<string, unknown>) ?? {},
   }));
 
-  const { error } = await supabase.from("telemetry_events").insert(rows);
+  // A redelivery lands on the same keys and is dropped rather than counted
+  // twice — plays, prizes and interactions all come off these rows.
+  const { error } = await supabase
+    .from("telemetry_events")
+    .upsert(rows, { onConflict: "external_event_id", ignoreDuplicates: true });
   if (error) throw new Error(`Telemetry insert failed: ${error.message}`);
 
   await refreshSnapshotAfterIngest(supabase, eventId);
+  return {};
 }
 
 /**
@@ -135,12 +196,17 @@ async function handleTelemetryBatch(body: Record<string, unknown>) {
  *     "name": "Jane Doe",
  *     "email": "jane@example.com",
  *     "phone": "+44...",
- *     "custom_fields": { "linkedin": "..." }
+ *     "custom_fields": { "linkedin": "..." },
+ *     "consented_at": "ISO"        // when the GDPR checkbox was ticked
  *   }
  * }
  * ```
+ * `consent: true` (boolean) is also accepted — it stamps consent at ingest
+ * time for machine firmware that doesn't send a timestamp.
  */
-async function handleLeadCaptured(body: Record<string, unknown>) {
+async function handleLeadCaptured(
+  body: Record<string, unknown>
+): Promise<HandlerOutcome> {
   const supabase = getServiceRoleClient();
   const eventId = String(body.event_id ?? "");
   const serial = body.machine_serial ? String(body.machine_serial) : null;
@@ -158,7 +224,22 @@ async function handleLeadCaptured(body: Record<string, unknown>) {
       .eq("serial_number", serial)
       .maybeSingle();
     machineInstanceId = inst?.id ?? null;
+    if (!inst) {
+      // The lead is the valuable part, so store it against the event and lose
+      // only the per-machine attribution.
+      console.warn(
+        `[webhook:brightblue] lead.captured: no machine instance for serial ${serial} — storing the lead unattributed`
+      );
+    }
   }
+
+  // Consent state from the capture form: an explicit timestamp wins;
+  // a bare `consent: true` flag is stamped at ingest time.
+  const consentedAt = contact.consented_at
+    ? String(contact.consented_at)
+    : contact.consent === true
+      ? new Date().toISOString()
+      : null;
 
   const { error } = await supabase.from("leads").insert({
     event_id: eventId,
@@ -168,9 +249,11 @@ async function handleLeadCaptured(body: Record<string, unknown>) {
     contact_phone: contact.phone ? String(contact.phone) : null,
     custom_fields_json: (contact.custom_fields as Record<string, unknown>) ?? {},
     source: "webhook",
+    consented_at: consentedAt,
   });
 
   if (error) throw new Error(`Lead insert failed: ${error.message}`);
+  return {};
 }
 
 /**
@@ -186,7 +269,9 @@ async function handleLeadCaptured(body: Record<string, unknown>) {
  * }
  * ```
  */
-async function handleMachineHeartbeat(body: Record<string, unknown>) {
+async function handleMachineHeartbeat(
+  body: Record<string, unknown>
+): Promise<HandlerOutcome> {
   const supabase = getServiceRoleClient();
   const serial = String(body.machine_serial ?? "");
   if (!serial) throw new Error("Missing machine_serial");
@@ -204,12 +289,21 @@ async function handleMachineHeartbeat(body: Record<string, unknown>) {
     update.firmware_version = String(body.firmware_version);
   }
 
-  const { error } = await supabase
+  // `select` so a serial that matches nothing is distinguishable from a
+  // successful update — an update touching zero rows is not an error.
+  // `serial_number` is unique, so at most one row comes back.
+  const { data: updated, error } = await supabase
     .from("machine_instances")
     .update(update)
-    .eq("serial_number", serial);
+    .eq("serial_number", serial)
+    .select("id")
+    .maybeSingle();
 
   if (error) throw new Error(`Heartbeat update failed: ${error.message}`);
+  if (!updated) {
+    return acknowledgeUnknownSerial("machine.heartbeat", serial);
+  }
+  return {};
 }
 
 /**
@@ -313,6 +407,35 @@ async function refreshSnapshotAfterIngest(supabase: any, eventId: string) {
       .lte("timestamp", endOfDay),
   ]);
 
+  // Stock: capacity is what ops loaded (product_configurations.total_units);
+  // remaining is capacity minus every prize dispensed across the whole event,
+  // not just today. Also read today's previous reading so the low-stock alert
+  // fires exactly once, when the level first crosses the threshold.
+  const [productConfigRes, prizesAllTimeRes, existingSnapshotRes] = await Promise.all([
+    supabase
+      .from("product_configurations")
+      .select("total_units")
+      .eq("event_id", eventId)
+      .maybeSingle(),
+    supabase
+      .from("telemetry_events")
+      .select("id", { count: "exact", head: true })
+      .eq("event_id", eventId)
+      .eq("event_type", "prize_awarded"),
+    supabase
+      .from("event_metrics_snapshot")
+      .select("stock_remaining")
+      .eq("event_id", eventId)
+      .eq("snapshot_date", today)
+      .maybeSingle(),
+  ]);
+
+  const capacity: number | null = productConfigRes.data?.total_units ?? null;
+  const stockRemaining =
+    capacity != null
+      ? Math.max(0, capacity - (prizesAllTimeRes.count ?? 0))
+      : null;
+
   await supabase.from("event_metrics_snapshot").upsert(
     {
       event_id: eventId,
@@ -321,7 +444,41 @@ async function refreshSnapshotAfterIngest(supabase: any, eventId: string) {
       total_interactions: interactionsRes.count ?? 0,
       total_leads: leadsRes.count ?? 0,
       total_prizes: prizesRes.count ?? 0,
+      ...(capacity != null
+        ? { stock_capacity: capacity, stock_remaining: stockRemaining }
+        : {}),
     },
     { onConflict: "event_id,snapshot_date" }
   );
+
+  if (capacity != null && stockRemaining != null) {
+    const threshold = Math.floor(capacity * LOW_STOCK_THRESHOLD);
+    const previous = existingSnapshotRes.data?.stock_remaining as number | null | undefined;
+    const justCrossed =
+      stockRemaining <= threshold && (previous == null || previous > threshold);
+
+    if (justCrossed) {
+      try {
+        const { data: event } = await supabase
+          .from("events")
+          .select("name")
+          .eq("id", eventId)
+          .maybeSingle();
+        await dispatchNotification(
+          "machine.stock_low",
+          {
+            eventId,
+            eventName: (event?.name as string) ?? "your event",
+            stockRemaining: String(stockRemaining),
+            stockCapacity: String(capacity),
+            entityType: "event",
+            entityId: eventId,
+          },
+          { supabaseClient: supabase }
+        );
+      } catch (notifyErr) {
+        console.error(`[webhook:brightblue] stock_low notify failed for ${eventId}`, notifyErr);
+      }
+    }
+  }
 }

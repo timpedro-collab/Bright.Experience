@@ -1,14 +1,14 @@
 /** Zod schemas for logistics entry validation */
 import { z } from "zod";
 
-export const logisticsEntryTypeSchema = z.enum([
+const logisticsEntryTypeSchema = z.enum([
   "delivery",
   "setup",
   "collection",
   "other",
 ]);
 
-export const logisticsStatusSchema = z.enum([
+const logisticsStatusSchema = z.enum([
   "pending",
   "confirmed",
   "in_transit",

@@ -49,17 +49,31 @@ export interface Placement {
   updatedAt: string;
 }
 
-/** A sponsorship slot on a placement available for booking */
+/**
+ * A sponsorship slot available for booking.
+ *
+ * Dual-scoped: either a venue placement (`placementId`, the Bright.Runway
+ * path) or a show machine (`eventId` + `machineInstanceId`, the organizer
+ * path). Exactly one scope is set, enforced by
+ * `sponsorship_slots_scope_check`.
+ */
 export interface SponsorshipSlot {
   id: string;
-  placementId: string;
+  placementId?: string;
+  eventId?: string;
+  machineInstanceId?: string;
   sponsorAccountId?: string;
+  /** Brand name, captured when the sponsor has no account yet. */
+  sponsorName?: string;
   startDate: string;
   endDate: string;
   price?: number;
   status: SponsorshipSlotStatus;
   creativeAssetIds: string[];
   gameConfigJson: Record<string, unknown>;
+  /** Unguessable token for the public pitch page. Null until shared. */
+  pitchToken?: string;
+  pitchTokenExpiresAt?: string;
   createdAt: string;
   updatedAt: string;
 }

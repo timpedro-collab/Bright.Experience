@@ -7,6 +7,7 @@
 
 import { MOCK_TABLES } from "./dataset";
 import { EXTRA_TABLES } from "./extra";
+import { shiftDates, shiftDaysFrom } from "./shift-dates";
 
 export type MockRow = Record<string, unknown>;
 type DB = Record<string, MockRow[]>;
@@ -30,15 +31,34 @@ function mergeSeed(): DB {
   return merged;
 }
 
+/**
+ * Give every row an `id` if the seed omitted one (e.g. milestones). A real
+ * database would generate these; without them React list keys and `.eq("id")`
+ * lookups silently break. Deterministic (`table-index`) so ids are stable
+ * for the lifetime of a seed shape.
+ */
+export function backfillMissingIds(db: DB): DB {
+  for (const [table, rows] of Object.entries(db)) {
+    rows.forEach((row, i) => {
+      if (row.id == null) row.id = `${table}-${i}`;
+    });
+  }
+  return db;
+}
+
 export function db(): DB {
   if (!_db) {
     // Deep clone so the original seed module stays pristine and the working
     // copy is freely mutable.
     const seed = mergeSeed();
-    _db =
+    const cloned =
       typeof structuredClone === "function"
         ? (structuredClone(seed) as DB)
         : (JSON.parse(JSON.stringify(seed)) as DB);
+    // Slide every date so the demo tracks the current date instead of going
+    // stale — upcoming events stay upcoming, completed events stay recent.
+    // Computed once per server start, which is the demo's natural refresh point.
+    _db = backfillMissingIds(shiftDates(cloned, shiftDaysFrom()));
   }
   return _db;
 }

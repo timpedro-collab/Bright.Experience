@@ -21,6 +21,13 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": fileURLToPath(new URL("./src", import.meta.url)),
+      // `src/server/**` modules carry React's `server-only` marker, whose entry
+      // point throws by design. Next resolves the `react-server` condition to
+      // the package's no-op variant; the subpath isn't in the exports map, so
+      // point at the file directly to get the same behaviour under Vitest.
+      "server-only": fileURLToPath(
+        new URL("./node_modules/server-only/empty.js", import.meta.url)
+      ),
     },
   },
   test: {
@@ -34,6 +41,8 @@ export default defineConfig({
       "supabase/migrations",
       "e2e/**",
       ".cursor/**",
+      // Needs a live local Postgres — see vitest.integration.config.ts.
+      "src/**/*.integration.test.ts",
     ],
     coverage: {
       provider: "v8",
@@ -50,28 +59,41 @@ export default defineConfig({
         "src/data/**",
       ],
       // Per-path thresholds. Below threshold = CI fails.
+      //
+      // These are ratchets, not targets. Until 2026-07-31 they held numbers
+      // nobody had ever met (85 / 70 / 65) and CI ran `npm test` without the
+      // coverage reporter, so nothing enforced them and the gap went unnoticed.
+      // They now sit just under the real measured coverage: the suite fails the
+      // moment a change makes coverage worse, and the numbers below get raised
+      // as tests land. Never lower one to make a build pass — write the test.
+      //
+      // Measured 2026-07-31 (1830 tests):
+      //   src/lib          lines 50.7  branches 43.0  functions 53.7  stmts 50.7
+      //   src/app/actions  lines 42.1  branches 34.7  functions 36.4  stmts 40.2
+      //   global           lines 31.0  branches 24.3  functions 24.8  stmts 30.3
       thresholds: {
-        // Library code is mostly pure; demand high coverage.
+        // Library code is mostly pure, so this is the tier to ratchet hardest.
         "src/lib/**/*.ts": {
-          lines: 85,
-          branches: 80,
-          functions: 85,
-          statements: 85,
+          lines: 50,
+          branches: 42,
+          functions: 53,
+          statements: 50,
         },
         // Server actions wrap Supabase + dispatch — branches we can hit
         // get covered, but Supabase chain coverage caps the ceiling.
         "src/app/actions/**/*.ts": {
-          lines: 70,
-          branches: 65,
-          functions: 70,
-          statements: 70,
+          lines: 41,
+          branches: 34,
+          functions: 36,
+          statements: 39,
         },
-        // Overall sanity floor.
+        // Overall floor. Low because it counts every React component,
+        // including the many that are pure layout and covered only by E2E.
         global: {
-          lines: 65,
-          branches: 60,
-          functions: 65,
-          statements: 65,
+          lines: 30,
+          branches: 24,
+          functions: 24,
+          statements: 30,
         },
       },
     },

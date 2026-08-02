@@ -45,6 +45,13 @@ describe("generateLeads", () => {
     }
   });
 
+  it("stamps consent at the moment of capture on every lead", () => {
+    const leads = generateLeads(BASE);
+    for (const lead of leads) {
+      expect(lead.consented_at).toBe(lead.captured_at);
+    }
+  });
+
   it("is deterministic for the same eventId", () => {
     const a = generateLeads(BASE);
     const b = generateLeads(BASE);

@@ -37,6 +37,8 @@ export interface Task {
   targetPath?: string;
   dueDate?: string;
   completedAt?: string;
+  /** When set and in the future, hidden from internal focus/inbox queues. */
+  snoozedUntil?: string;
   isBlocking: boolean;
   customerVisible: boolean;
   sortOrder: number;

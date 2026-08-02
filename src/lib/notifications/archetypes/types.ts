@@ -32,10 +32,14 @@ export type NotificationKind =
   | "asset.review_needed"
   | "briefing.submitted"
   | "studio.request_submitted"
+  | "sponsor.interest_received"
+  | "sponsor.slot_requested"
+  | "partner.application_received"
   | "studio.status_changed"
   | "task.assigned"
   | "task.completed"
   | "task.overdue"
+  | "machine.stock_low"
   // FYI
   | "lead.captured_live"
   | "event.metrics_daily"
@@ -73,7 +77,10 @@ export type OwnerResolverKey =
   | "message_recipients"
   | "asset_uploader"
   | "asset_comment_participants"
-  | "approval_requester";
+  | "approval_requester"
+  | "show_organizer"
+  | "venue_operator"
+  | "internal_admins";
 
 /** Reminder cadence — when does the cron consider this archetype stale? */
 export interface ReminderCadence {

@@ -18,6 +18,7 @@ import * as Sentry from "@sentry/nextjs";
 
 import { getServiceRoleClient } from "@/lib/supabase/service-role";
 import { requireCron } from "@/lib/cron-auth";
+import { recordCronRun } from "@/lib/cron/heartbeat";
 import { drainOutbox } from "@/lib/pipedrive/drain";
 import {
   enqueueEventDelivered,
@@ -138,6 +139,11 @@ export async function GET(request: Request) {
     // Drain anything new plus anything stuck.
     const drain = await drainOutbox({ limit: 50 });
 
+    await recordCronRun(getServiceRoleClient(), "pipedrive", "ok", {
+      liveFired,
+      deliveredFired,
+    });
+
     return NextResponse.json({
       ok: true,
       liveFired,
@@ -147,6 +153,9 @@ export async function GET(request: Request) {
   } catch (err) {
     Sentry.captureException(err, { tags: { cron: "pipedrive" } });
     console.error("[Cron:pipedrive] failed:", err);
+    await recordCronRun(getServiceRoleClient(), "pipedrive", "error", {
+      message: err instanceof Error ? err.message : "unknown",
+    });
     return NextResponse.json({ error: "Internal error" }, { status: 500 });
   }
 }

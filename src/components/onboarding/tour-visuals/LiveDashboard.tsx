@@ -1,12 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { Activity, Users, Zap } from "lucide-react";
 
 function useCountUp(target: number, delay: number, duration: number) {
+  const prefersReduced = useReducedMotion();
   const [value, setValue] = useState(0);
   useEffect(() => {
+    if (prefersReduced) return;
+
     const startTime = Date.now() + delay;
     const endTime = startTime + duration;
     const frame = () => {
@@ -22,8 +25,8 @@ function useCountUp(target: number, delay: number, duration: number) {
     };
     const raf = requestAnimationFrame(frame);
     return () => cancelAnimationFrame(raf);
-  }, [target, delay, duration]);
-  return value;
+  }, [target, delay, duration, prefersReduced]);
+  return prefersReduced ? target : value;
 }
 
 const CHART_POINTS = [12, 28, 35, 52, 48, 67, 72, 88, 95, 110, 124, 138];

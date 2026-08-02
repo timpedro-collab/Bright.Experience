@@ -31,7 +31,7 @@ const STATUS: Record<
   },
 };
 
-export function CommissionStatusPill({ status }: { status: CommissionStatus }) {
+function CommissionStatusPill({ status }: { status: CommissionStatus }) {
   const cfg = STATUS[status] ?? STATUS.pending;
   return (
     <span
@@ -91,7 +91,7 @@ export function PartnerDealList({
                 </p>
                 <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
                   {type && (
-                    <span className="inline-flex items-center gap-1 text-[0.65rem] text-muted-foreground">
+                    <span className="inline-flex items-center gap-1 text-[0.65rem] text-tertiary">
                       <Building2 className="h-3 w-3" />
                       {type}
                     </span>
@@ -108,11 +108,11 @@ export function PartnerDealList({
                       ? formatMoneyFromPence(deal.commissionCents)
                       : "—"}
                   </p>
-                  <p className="text-[0.65rem] text-muted-foreground">commission</p>
+                  <p className="text-[0.65rem] text-quaternary">commission</p>
                 </>
               )}
               {deal.valueCents != null && (
-                <p className="mt-0.5 text-[0.65rem] text-muted-foreground tabular-nums">
+                <p className="mt-0.5 text-[0.65rem] text-quaternary tabular-nums">
                   {formatMoneyFromPence(deal.valueCents)} deal
                 </p>
               )}

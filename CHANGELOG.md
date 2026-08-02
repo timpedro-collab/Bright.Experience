@@ -4,6 +4,657 @@ All notable changes to the Bright.Experience platform are documented here.
 
 ---
 
+## [World-class design build — homepage + portal] - 2026-08-01
+
+Implementation of the market-research findings in `docs/18-design-research.md`
+(23 experiential/design/SaaS sites audited). Phases 0–4; full detail per phase
+in that doc's Parts 5–7.
+
+**Foundations (Phase 0).** Reduced motion is now honoured everywhere:
+`MotionConfig reducedMotion="user"` at the root, duration-variable zeroing in
+CSS, and `useReducedMotion()` guards in every `requestAnimationFrame` loop. New
+motion tokens (expressive/sheet easings, reveal/hero durations, stagger steps),
+the four-step text-grey ramp (`.text-tertiary` / `.text-quaternary`), per-size
+tracking utilities, and the `Fraunces` serif display face (public marketing
+surfaces only). Shared primitives: `Reveal`/`RevealGroup`/`RevealItem`,
+`StatCountUp` (scroll-triggered count-up), `useInViewClass` (mobile
+hover-parity), `useStableStatus` (anti-strobe status debounce).
+
+**Homepage (Phase 1).** Serif display voice across all section headlines; hero
+rebuilt around real event photography with stat chips; proof numbers stripped
+of chrome and scaled to 72–96px with count-up; "Let's plan ___" self-selection
+section deep-linking into the quiz (`?type=` pre-seeds step 2); case-study
+tiles rebuilt with the staged brand-colour reveal (per-client `brandColor` on
+`CLIENT_LOGOS`, hover on desktop / in-view on mobile); numbered mobile nav;
+portal preview (a rendered live-dashboard frame, not a screenshot) in the
+platform section. `publication_rights` gating on case studies — Costa Coffee
+ships anonymised, with the client name scrubbed from title/description; trust
+stats reframed to aggregate portfolio numbers.
+
+**Portal (Phases 2–3).** Customer home split into "Over to you" (needs you) vs
+"Recent activity" (`getRecentActivityForUser`, non-actionable notifications
+only). Geist content rules swept across all tables (em-dash for unknowns,
+`tabular-nums`, relative/absolute timestamp rule via `formatTimestamp`, empty
+states outside tables, Title Case verb-noun CTAs); customer stage copy
+completed; far dates render at month precision (`formatDateByCertainty`). Live
+telemetry: threshold-derived status colours debounce over 2 polls
+(`useStableStatus`); fleet/machine cards drill down into a filtered live feed.
+Customer timeline gained the vertical journey (`EventJourney
+variant="vertical"`); pipeline gained fixed saved-view chips (At risk / Waiting
+on client / Live this week); tasks gained snooze (`snoozed_until`); annotation
+pins gained the open-count badge with resolved pins receding; venue/partner/
+organizer dashboards gained KPI count-ups, the grey ramp, spotlight hover, and
+the what/why/CTA empty-state taxonomy.
+
+**Creative approvals (Phase 4).** Version-compare slider (draggable/keyboard
+reveal line between the two newest artwork versions) in the review queue; plus
+the R3 depth pass below (lock-on-approve, reopen, CSV audit export, comment
+version binding). Guest review links deliberately deferred pending an
+access-token design decision.
+
+---
+
+## [Phase 4 · R3 creative approval depth] - 2026-08-01
+
+- **Lock-on-approve:** `uploadAsset` rejects further uploads when `review_status = approved`; `AssetUploadZone` shows a padlock message; internal `reopenAsset(assetId, reason)` unlocks with audit + customer notification.
+- **Mandatory revision feedback:** already enforced server-side in `submitAssetReview` (unchanged).
+- **Decision audit export:** `getAssetDecisionLog(eventId)` plus `GET /api/events/:id/approvals/export` CSV (internal + event customer, auth-scoped).
+- **Comment version binding:** migration adds `comments.asset_version_id`; new comments stamp the current version; thread UI shows `on vN` chips for older-version comments.
+
+---
+
+## [Remediation build: real Postgres, closed seams, visible failure] - 2026-08-01
+
+The platform had been built and demoed almost entirely against the in-memory
+mock, which accepts any password, has no RLS and no PostgREST. That made a class
+of defect invisible: policies that never ran, queries Postgres would reject,
+errors swallowed into empty arrays. This pass moved development onto local
+Postgres and then fixed everything that surfaced.
+
+**Local Postgres is now the default development runtime.** `npm run db:local`
+starts Supabase in Docker, applies every migration and seeds users plus data;
+`npm run dev:local` points the dev server at it with mock mode off. Both read
+their keys back out of the Supabase CLI, so restarting the stack doesn't mean
+re-pasting keys. Mock mode is still there for UI work and demos, now confined to
+`.env.development` and ignored — with a logged security error — in production
+builds.
+
+**The seed pipeline only ever ran against the mock.** `supabase/seed.sql` — the
+whole catalogue, locations, venues, benchmarks and the canonical asset checklist
+— is disabled in `config.toml` (it references auth users created out of band) and
+nothing else applied it, so a local database had none of it and `run-seed.ts`
+quietly logged "skipped (table not migrated yet)" for the rows that depended on
+it. Seeding is now three ordered steps (auth users → `seed.sql` →
+`run-seed.ts`), with `scripts/apply-seed-sql.sh` guarding on an empty catalogue
+so it can't double-insert. Applying the file for the first time immediately
+found three schema drifts: a venue typed `exhibition_centre` when neither the
+check constraint nor `VenueType` has ever had that value, an asset row
+referencing an event only `run-seed.ts` created, and a `benchmarks` unique key
+that left out `location_tier` and so made the curated tier-specific rows
+illegal. The pgTAP fixtures collided with the seed too (unique partner codes and
+slugs), so they are now `rls-` scoped and every count assertion is scoped to its
+own fixture rows rather than the whole table.
+
+**Seven security holes closed.** Profile bootstrap read role and account from
+user-controlled `raw_user_meta_data`, so a self-signup could mint itself an
+internal role; it now reads `raw_app_meta_data`, which only the service role can
+write. Service-role server actions (invites, provisioning, scheduled exports,
+reports, tasks) were exported and callable from the browser without an auth
+check. Four storage buckets let any authenticated user read any tenant's files.
+`prospect_sessions` and `scheduled_exports` were world-readable through
+`using(true)`. The three RLS helper functions had no fixed `search_path`.
+`/api/test/**` shipped to production. Password-reset `redirectTo` came from a
+client-supplied origin. Every one has a pgTAP case that fails if the policy is
+reverted.
+
+**A fix that went too far, caught by the fresh-stack run.** Closing self-signup
+set `[auth.email] enable_signup = false` in `config.toml`. That key is the email
+*provider* switch (`GOTRUE_EXTERNAL_EMAIL_ENABLED`), not a signup-only one, so it
+disabled email/password sign-in — every login this product has. It only surfaced
+on a cold `supabase start`, because a running container keeps its old
+environment. Self-signup is blocked by the top-level `[auth] enable_signup`
+(`GOTRUE_DISABLE_SIGNUP`) on its own; the provider is back on, and the
+deployment runbook now says explicitly that the hosted equivalent must stay
+enabled. Verified both ways against the local stack: signup returns
+`signup_disabled`, password sign-in returns a token.
+
+**Failure is visible now.** 124 sites swallowed query errors into an empty
+result; they route through `logQueryError` into Sentry with the entity and user
+context needed to debug. Sentry client init moved to `instrumentation-client.ts`
+for the current Next runtime, error and loading boundaries cover the organizer
+and public capability URLs, `/api/health` reports cron liveness from a
+`cron_runs` heartbeat, and `checkRequiredEnv` throws in production over an
+expanded required set instead of degrading silently.
+
+**Queries that only worked against the mock.** A missing `count_by_account` RPC,
+`.select('id')` against a composite-key table, an upsert with no matching unique
+constraint, two `.or()` filters across embedded relations that PostgREST rejects,
+unescaped user input in filter strings, and `.in()` lists long enough to blow the
+statement limit in the purge and digest crons. A new integration suite runs the
+thirty hottest queries as real signed-in personas, so this class of bug can't
+come back quietly.
+
+**Wiring that went nowhere.** The approvals stage had no way to create an
+approval. Sponsor pitches had no conversion CTA. Event health could be read but
+never set. Buyers got no booking confirmation, sponsors no slot-request
+notification, partners no application acknowledgement. A won quote could not be
+turned into an event without a database write. Pitch links could not be copied or
+rotated. All built, all reachable from a real screen.
+
+**Hardening.** Next patched to 16.2.12 and the remaining advisories cleared; CSP
+and HSTS with per-route `frame-ancestors` so the venue embed still works;
+unspoofable client IP and a Redis-ready rate limiter; `crypto.randomBytes` API
+keys; telemetry made idempotent with `external_event_id` and a unique index, and
+unknown serials answered 200 so Cloud stops retrying; twelve missing indexes;
+estimated counts on the unbounded list pages.
+
+**Accessibility.** Overlays (media lightbox, the three tour screens) share a new
+`useModalOverlay` hook: focus moves in on open and back to the trigger on close,
+Escape and arrow keys work, focus is trapped, background scroll is locked.
+Fourteen unlabelled `<select>` elements named. Sortable table headers are real
+buttons with `aria-sort`.
+
+**Cleanup.** 54 dead exports deleted and 41 more un-exported, found with
+`scripts/find-dead-exports.mjs` (kept, so the next pass is a command not an
+archaeology dig). The public partner form offered a "referral" tier the database
+constraint rejected — added to the constraint, and the public schema tightened so
+nobody can self-register as a venue or organizer.
+
+Ten migrations, `20260728000000_profile_bootstrap_app_metadata.sql` through
+`20260801000000_partner_referral_type.sql`. Gate at the end of the pass, all
+against a freshly reset local stack: lint and `tsc --noEmit` clean, 1,858 unit
+tests, 215 pgTAP assertions across 33 policy files, 58 integration checks.
+
+---
+
+## [World-class organizer machine experience] - 2026-07-27
+
+An organizer opening a unit at a show four months out got four zeroed counters,
+"No activity yet", "Nothing configured yet" and "Not sold to a sponsor". The
+portal only worked on the two days a year a show was open. Meanwhile the system
+already stored — and never showed them — machine photos and specifications,
+performance benchmarks with a p25–p75 spread and sample size, install and
+collection dates, config QA status, and case studies with hard numbers.
+
+**Machine detail is now pre-show mission control.**
+
+- **Readiness checklist** (`lib/metrics/unit-readiness.ts`, `show-readiness.ts`)
+  — zone, mission, game config + QA, stock, sponsor, artwork. Every item says
+  what is true right now, who owns it (the organizer or us), and links to where
+  it gets fixed. `optional` items — a screen-only unit's stock, artwork for a
+  unit nobody has bought — still render but don't count against progress, so a
+  prepared unit reads 100%. One derivation feeds the machine page, the show
+  board and the portfolio card, so they can't disagree.
+- **Unit passport + site requirements** — the machine's own catalogue record,
+  plus footprint, weight, power, connectivity and clearance from five new
+  columns on `machines`, and a **printable spec sheet** at
+  `…/machines/:id/spec` headed with the show, stand and dates. Every venue asks
+  for this weeks before move-in; it used to be an email to us and a wait.
+- **Key dates** — install, doors, close, collection, each with a countdown.
+  Stored on `events` since the beginning, never shown.
+- **Setup story** replaces "No activity yet" with what has actually happened to
+  the unit: allocated, placed, game built, sold, artwork in.
+- **Expected performance** from `benchmarks`, matched on event and machine type.
+  Always a range with its sample size, and absent entirely when nothing
+  comparable exists — a single confident number is a complaint waiting for the
+  show to end.
+
+**Sponsor pitch page is now a sales kit.** The pre-show branch was a date and
+"price on request". It now carries the machine's photo and specification, the
+expected-performance range, what the slot includes (one exported constant, so
+the pitch and the organizer's rate card can't drift), and a case-study strip
+built only from studies carrying a hard stat.
+
+**Show page leads with the run-up** — countdown badge, key dates strip, and a
+readiness board naming what each unit needs. **Sponsors page is a rate card** —
+grouped by show, ordered by days to doors, with unsold slots inside the
+three-week selling window flagged (`lib/metrics/sponsor-book.ts`). **Portfolio
+cards** for upcoming shows read "X of Y ready" and a countdown instead of
+"Plays today 0", and "No machines assigned yet" now names who allocates hardware
+and what changes when they do.
+
+Deliberately not built: the delivery team's task list is not surfaced to
+organizers. An organizer hosting a brand's activation has no business reading
+that brand's internal delivery plan, and RLS already reflects that — so the
+run-up is derived from the machines, configurations and slots they own.
+
+Migrations: `20260727000003_machine_site_requirements.sql` (five columns on
+`machines`; the seeded values are **indicative placeholders**, flagged as such
+on every surface — see `OWNER-TODO.md`), `20260727000004_organizer_asset_reads.sql`
+(organizers read `customer_visible` assets on their own shows, which is what the
+creative picker and the artwork readiness row need). New pgTAP case in
+`rls_organizers.test.sql`. Mock data for the November show now demonstrates all
+of it: a fully prepared unit, one mid-setup, one bare, approved and in-review
+artwork, and a sold and an open slot.
+
+---
+
+## [Organizer onboarding console] - 2026-07-27
+
+The organizer portal was complete but unreachable: no screen anywhere created an
+organizer, gave their people a login, put a show under them, or deployed hardware
+to that show. All four were database rows written by hand, so onboarding a real
+organizer needed an engineer. This closes that — the only true blocker to a
+pilot.
+
+- **`/admin/organizers`** — every organizer with team / show / machine counts,
+  each card naming the first thing still missing in the order it blocks them:
+  nobody can log in → no shows linked → no machines deployed. Create an
+  organizer from a name plus optional contact; slug and partner code are minted
+  (`lib/partner-identity.ts`, shared with the public application form) and the
+  record is `active` immediately, because an admin typing the name *is* the
+  approval.
+- **`/admin/organizers/:id`** — the setup console, in blocking order:
+  - **Access** — magic-link invite writing both rows the portal checks: a
+    `profiles` row with `partner_admin` (can sell and deploy) or
+    `partner_member` (view only), and the `partner_users` membership
+    `requireOrganizerContext` reads. Someone already on the platform keeps their
+    login and just gains the membership.
+  - **Shows** — link an unclaimed show, or unlink (confirmed in place). A show
+    held by another organizer must be unlinked there first, so sponsor inventory
+    never changes hands on a dropdown.
+  - **Fleet per show** — register a serial straight onto the show, or deploy a
+    unit already free. Releasing clears zone and mission so they don't follow the
+    unit to its next show, and is refused while a sponsor slot points at it —
+    the row names the buyer instead of offering a button that would fail.
+- **Hardware guards** — units sited on the venue estate (holding an active or
+  planned `placements` row) are excluded from the free-machine picker and
+  refused by `assignMachineToShow`: they're earning media revenue where they
+  stand. Retired units and units at another show are refused too.
+- **Nav** — Organizers joins the Commercial section and the command palette.
+- **`revalidatePath("/organizers", "layout")`** on every setup write, since the
+  organizer's own pages sit under a dynamic slug that a path-scoped call misses.
+
+All six actions are `events_lead`/`admin` only and write through the session
+client (`is_internal_user()` policies already permit it) — no new migration, no
+new service-role path. Verified end to end in a browser: create → invite → link
+→ deploy → release → redeploy, then signing in as the invited person and
+reaching their own portal, plus cross-tenant and non-admin refusals.
+
+---
+
+## [Organizer portal — depth pass] - 2026-07-27
+
+The first cut of the organizer portal was too thin to demo: a unit on the fleet
+board was a dead row, the portfolio page was two title cards, and a show that
+opened in December reported its warehoused machines as offline. This pass makes
+every unit openable and every page carry the numbers the reader came for.
+
+- **Machine detail page**
+  (`/organizers/:slug/shows/:eventId/machines/:machineId`) — per-unit counters
+  and activity feed, zone + mission editing, the resolved configuration it will
+  run (read-only, game resolved to its name), and the sponsor holding it.
+  Reached from the fleet board, the attention list, the fleet tab, and the
+  sponsor rows. Authorization is the event scope: a machine id belonging to
+  another producer's show 404s.
+- **Deployment editing** — `MachineDeploymentForm` writes zone and mission
+  through `updateMachineDeployment`, with quick picks for zones already in use
+  so a fleet doesn't end up with "Hall 3", "hall 3" and "Hall Three".
+  Organizers may read but not write `game_configurations` /
+  `product_configurations` (`20260727000002_organizer_machine_reads.sql`);
+  `machine_instances` stays read-only to them, with the action as the narrow
+  door that writes exactly two columns.
+- **Slot creation and reassignment in the portal** — `NewShowSlotForm` opens a
+  unit as inventory from the show page; naming a sponsor reserves the slot,
+  leaving it blank lists it for sale. `SlotMachineSelect` moves a slot between
+  units. Both use a native `<select>` styled to match shadcn, so the control
+  opens the OS picker on a phone.
+- **Portfolio page rebuilt** — totals across every show (hardware, units still
+  needing a zone or a job, sponsorship sold and left) plus a card per show
+  carrying machines, zones, sold value, and today's plays and leads, with one
+  line naming anything that needs the organizer.
+- **Fleet tab** (`/organizers/:slug/fleet`) — every unit across every show,
+  grouped by show, flagging units still to set up.
+- **Live vs prep modes** — surfaces judge a show on its dates
+  (`showRunState`). While it's open they poll; before it opens they report
+  readiness instead of signal, name what each unit is missing, and drop the
+  zeroed counters (`FleetBoard mode="prep"`).
+- **Shared telemetry labels** — `src/lib/metrics/feed-labels.ts` so the
+  event-wide feed and a per-machine feed describe the same event identically;
+  relative timestamps no longer read "-7315s ago" when a machine's clock runs
+  ahead.
+
+Migration: `20260727000002_organizer_machine_reads.sql`. New pure modules:
+`lib/metrics/organizer-portfolio.ts`, `lib/metrics/feed-labels.ts`,
+`lib/configuration/config-labels.ts`, plus `machinesNeedingSetup` /
+`setupGapLabel` in `lib/metrics/fleet.ts` — all with tests.
+
+---
+
+## [Organizer Show Command] - 2026-07-26
+
+Turned a multi-machine conference into a first-class scenario: a show producer
+(Informa-style) hosting several units doing different jobs, selling some of them
+to sponsors, and never seeing the leads those units capture.
+
+- **Organizer portal** (`/organizers/:slug/*`) — shows list, Show Command
+  (live fleet by zone + sponsor inventory), and a portfolio-wide sponsors tab.
+  `partners.type` now accepts `organizer`; `events.organizer_partner_id` links a
+  show to its producer; home routing sends organizer users to their portal.
+- **Per-machine configuration** — `game_configurations` /
+  `product_configurations` moved from one row per event to a show-wide default
+  plus optional per-machine overrides (`machine_instance_id`, uniqueness via an
+  expression index, read-then-write instead of `upsert`). New `FleetConfigTabs`
+  scope switcher; resolution logic in `src/lib/configuration/resolve-config.ts`.
+- **Machine payload v2** — `EventConfigPayload` gains `machines[]`, each entry
+  fully resolved so the machine stack never implements inheritance, plus
+  `capture_method` (`form` / `badge_scan` / `both`). v1 consumers keep working.
+- **Per-machine live metrics** — `/api/events/:id/live` returns a per-machine
+  breakdown and zone grouping (`src/lib/metrics/fleet.ts`); new `FleetBoard`
+  leads with the units needing attention rather than the totals.
+- **Sponsor storefront** — show-scoped `sponsorship_slots` (event + machine),
+  creative attached from the show's own asset library, and a public
+  `/sponsor/:token` page that reads as a pitch before the show and proof of
+  performance after. Tokens expire (30 days by default), rotate, and revoke;
+  `noindex` at both the metadata and header layer; aggregate counters only.
+- **Per-sponsor proof in reports** — `generateEventReport` writes a `sponsors`
+  block (each sponsor's own machine over their own dates), rendered by
+  `SponsorProofTable`.
+- **Privacy line enforced in the database** — organizers read their shows,
+  fleet, slots, and aggregate telemetry but not `leads`
+  (`supabase/tests/rls_organizers.test.sql`, 9 assertions).
+- **Docs + demo** — badge-scan and v2 config contracts in `docs/10`, organizer
+  audience in `docs/17`, routes in `docs/05`, schema notes in `docs/04`; mock
+  dataset gains a live five-machine show and an organizer login (Nadia Okafor).
+- **Deferred pending validation:** rebook-reward as a first-class flow and
+  revenue-share statements.
+
+Migrations: `20260727000000_organizer_shows.sql`,
+`20260727000001_per_machine_config.sql`.
+
+---
+
+## [Comprehensive documentation suite] - 2026-07-25
+
+Restructured the documentation into a verified, role-routed suite. No product
+code changed; this is a documentation-only pass that corrects drift and fills
+gaps found in a full read-only audit.
+
+- **New canonical index** `docs/00-documentation-index.md` routes readers by
+  role and lists every document with its source of truth.
+- **New `SETUP.md`** with three tested paths: mock-mode demo (no accounts),
+  local Supabase, and hosted Supabase.
+- **New reference docs:** `docs/14-codebase-map.md` (structure/tooling/
+  inventories), `docs/15-system-architecture.md` (diagrams + data flows),
+  `docs/16-api-and-actions-reference.md` (route handlers + server actions),
+  `docs/17-feature-reference.md` (role-based feature catalogue).
+- **New operations suite** under `docs/ops/`: deployment runbook, integration
+  activation, monitoring/security/DR, and maintenance/troubleshooting.
+- **Corrected drift** across `README.md`, `docs/04-data-model.md`,
+  `docs/05-information-architecture.md`, `docs/08-pricing-and-quoting-model.md`,
+  `docs/10-integrations.md`, `docs/11-cloud-handoff.md`,
+  `docs/01`/`02`/`03`, and `docs/testing.md`: five crons (not three), hourly
+  per-recipient digest (not fixed 17:00 UTC), 59 migrations, current Sentry
+  env vars, current `Quote`/`Asset`/`StudioRequest` fields,
+  `notification_user_settings`, webhook `leads.source`, Pipedrive
+  `custom_field_update`, removal of the retired `developer` role and
+  nonexistent `/internal/*` routes, and the no-Realtime (polling) reality.
+
+---
+
+## [Capture quality, retention, live stock + machine config sync] - 2026-07-24
+
+Built the portal side of every client-committed feature from the Adyen call
+(P2.1–P2.4) plus the machine config-sync contract (P1.2) from
+`docs/13-dev-handover-priorities.md`.
+
+- **Capture-quality settings (P2.1)** — new "Capture quality" section in the
+  event configuration form (`CaptureQualitySection`): business-emails-only
+  toggle with an editable blocked-domain list (starter list in
+  `src/lib/capture-rules.ts`), duplicate-entry blocking, GDPR consent
+  checkbox with templated copy (`{brand}` / `{event}` tokens). Stored in
+  `game_configurations.capture_rules_json` (migration `20260724000000`) with
+  a Zod layer (`src/lib/validations/game-config.ts`). Leads now carry
+  `consented_at`, stamped by the `lead.captured` webhook.
+- **Lead retention purge (P2.4)** — `game_configurations.retention_days`
+  (default 60, per Marta's recommendation) + a daily `/api/cron/purge-leads`
+  cron that hard-deletes expired leads (per-event windows + a default sweep)
+  and logs each purge. Retention policy footer (`RetentionNotice`) on the
+  internal reports page and the public share view.
+- **Live stock + reload estimate (P2.2)** — `event_metrics_snapshot` gained
+  `stock_remaining` / `stock_capacity` (migration `20260724000002`),
+  recomputed on every telemetry ingest. The live dashboard shows a stock bar
+  with an "empty in ~X min at current pace" estimate, and a new
+  `machine.stock_low` notification pings the ops lead when stock first
+  crosses 15%.
+- **Capture-quality proof on reports (P2.1)** — report generation counts
+  `capture_rejected_domain` / `capture_duplicate_blocked` telemetry into a
+  "Capture quality" card (`CaptureQualityCard`) on internal + public reports.
+- **Branded landing page upsell (P2.3)** — new `branded-landing-page`
+  capability (placeholder price, see `OWNER-TODO.md`) + a delivery toggle in
+  the configuration form, carried on the config payload.
+- **Machine config-sync contract (P1.2, portal side)** — versioned
+  `EventConfigPayload` assembler (`src/lib/brightblue/config-payload.ts`) and
+  `pushEventConfig` (`PUT /events/:id/config`) in the Cloud client; submitting
+  the configuration fire-and-forgets the push (logged + skipped until Cloud
+  creds are set). Contract documented in `docs/10-integrations.md` §1b.
+- **`OWNER-TODO.md`** (new, root) — Tim's post-build action list (pricing,
+  legal review of consent copy, Marta follow-ups, go-live account setup).
+- Docs updated: `04-data-model.md`, `10-integrations.md`,
+  `11-cloud-handoff.md`, `13-dev-handover-priorities.md` (shipped statuses).
+
+---
+
+## [Dev handover priorities doc + maintenance rule] - 2026-07-24
+
+Turned the "what does the dev team build first" question into a maintained
+artefact, driven by client feedback from the Adyen demo call (23 Jul 2026).
+
+- **`docs/13-dev-handover-priorities.md`** (new) — the prioritized worklist
+  for the incoming dev team: P0 activation wiring (Supabase, Resend, Cal.com,
+  Cloud webhooks, crons, Sentry, auto-provision, Pipedrive), P1 integration
+  builds (Cloud event-ID assignment push, machine config sync contract,
+  distributed rate-limit store, upload AV), P2 client-committed features
+  (capture-quality bundle: business-email enforcement + duplicate prevention
+  + GDPR consent; live stock + reload estimate; branded capture landing page
+  upsell; 60-day lead retention), P3 explicit deferrals (badge scanning,
+  Salesforce/Marketo), and a full-system security checklist with per-item
+  status (auth, RLS, webhooks, uploads, GDPR, secrets, hardening).
+- **`.cursor/rules/handover-documentation.mdc`** — new standing rule: any
+  change that completes a listed item, adds an integration point / env var /
+  stub, or introduces a security consideration must update the priorities doc
+  in the same change.
+- **`HANDOFF.md`** — docs map and "Stubs and integrations" section now point
+  at the new doc as the "start here" for build priorities.
+
+---
+
+## [Brief echo + confirmation screen upgrade] - 2026-07-21
+
+Made the quiz → intake → confirmation flow visibly prove "we were listening",
+and rebuilt the confirmation screen to sell the walkthrough call.
+
+- **`src/lib/brief-echo.ts`** (new, tested) — turns raw quiz/intake answers
+  into human echo lines (`The moment · Your goal · Where · When · The crowd ·
+  On site`). Shared by both surfaces below.
+- **Intake wizard** — a new "Already noted from your quiz" chip strip above
+  the steps plays back everything carried over (event type, goal, venue,
+  timeline, attendees…), so skipped questions read as attentiveness instead of
+  silence.
+- **`PostIntakeCard` rebuilt** — headline is now "{first name}, your proposal
+  is already taking shape."; a "What you told us" panel plays the customer's
+  brief back; and the AE card now carries a three-point call agenda (brand on
+  the machine, projected reach, exact investment live). Projected-reach
+  figures stay off this page — they're revealed on the walkthrough. New
+  `PostIntakeCard.test.tsx`.
+- **Fixed "Timwill"** — the AE intro sentence is now built in a single template
+  string so JSX whitespace trimming can never eat the space between the name
+  and the verb (regression-tested).
+
+---
+
+## [Cal.com booking + indicative pricing] - 2026-07-21
+
+Unified the walkthrough booking flow around Cal.com and softened the pricing
+black-box on the pre-call proposal.
+
+- **Indicative price band** (`src/lib/proposals/price-band.ts`, new) — the
+  gated Investment section now shows "Activations like this typically run
+  £X–£Y" (fee −10% / +15%, snapped to round money) before the walkthrough,
+  so serious buyers can budget-check without the exact figure. Exact price and
+  Accept/Decline still land after the call. Band travels on
+  `ProposalDocument.investment.indicativeBand`; hidden when the AE hasn't
+  priced the quote yet.
+- **Booked-call-aware email** — `sendProposalReadyEmail` now takes
+  `scheduledSlotLabel`; when the customer already booked on the confirmation
+  screen, the email confirms the call ("You're booked for Thu 2 Jul · 2:00 PM")
+  with a reschedule link instead of redundantly asking them to book.
+  `prepareProposal` reads `walkthrough_scheduled_at` / `walkthrough_slot_label`
+  to decide.
+- **Cal.com inline embed** (`src/components/quotes/WalkthroughScheduler.tsx`,
+  new; `@calcom/embed-react` dependency) — when `NEXT_PUBLIC_CALCOM_LINK` is
+  set, the confirmation screen renders the real Cal.com booker inline with the
+  customer prefilled and the quote id as booking metadata. AEs connect their
+  Google Calendar inside Cal.com for native availability + calendar sync. When
+  unset, the existing preset slot picker (`WalkthroughBooker`) renders, so
+  demos keep working.
+- **Cal.com inbound webhook** (`src/app/api/webhooks/calcom/route.ts`, new) —
+  HMAC-verified (`X-Cal-Signature-256`, `CALCOM_WEBHOOK_SECRET`).
+  `BOOKING_CREATED`/`BOOKING_RESCHEDULED` write the slot onto the quote and
+  ping the event lead; `BOOKING_CANCELLED` clears it; `MEETING_ENDED` sets
+  `walkthrough_completed_at`, auto-revealing pricing on the proposal page.
+- **Shared link resolution** (`src/lib/calcom.ts`, new) — the proposal page and
+  proposal email now derive the walkthrough URL from one helper
+  (per-quote override → configured Cal.com link → fallback).
+- Tests: `price-band.test.ts`, `calcom.test.ts`, `WalkthroughScheduler.test.tsx`,
+  `webhooks/calcom/route.test.ts`, plus new `prepareProposal` branches in
+  `quotes.test.ts`. Docs: `docs/10-integrations.md` §3b, `.env.example`.
+
+---
+
+## [Proposal + email copy pass] - 2026-07-20
+
+Rewrote the customer-facing proposal and delivery email so they read like a
+person wrote them, not a template.
+
+- Removed every em dash from the proposal document and the customer email;
+  reworked sentences so they stand on their own.
+- Tightened the narrative throughout `src/lib/proposals/build-proposal.ts`
+  (brief, solution, creative, data, timeline, next steps) for a clearer, more
+  professional voice.
+- The "Tailored to your brief" add-on lines now pair each outcome with a short
+  reason drawn from the brief, instead of restating the mechanism.
+- Copy-only change: no data model, routing, or component structure changed.
+
+---
+
+## [Proposal delivery email] - 2026-07-20
+
+Closed the gap where sending a proposal notified nobody on the customer side.
+
+- **`sendProposalReadyEmail`** (new — `src/lib/email.ts`) delivers a branded email
+  to the customer's `contact_email` with a "View your proposal" CTA to
+  `/proposal/[id]` and a "Book your 15-minute walkthrough" link. It never quotes a
+  figure, matching the page's rule that pricing stays hidden until the walkthrough
+  is marked complete.
+- **`prepareProposal`** (`src/app/actions/quotes/proposal-admin.ts`) now sends that
+  email when an AE hits "Send Proposal" and the status flips to `proposal_sent`.
+  It's fire-and-forget: a mail failure never fails the send, and no email goes out
+  when the quote has no contact email.
+- Tests: two new `prepareProposal` cases (customer email fires on success; no
+  email without a contact address) — `src/app/actions/quotes.test.ts`.
+- Docs: `docs/10-integrations.md` now distinguishes the Resend dispatch fan-out
+  (portal users) from direct transactional sends (addressed by email).
+
+---
+
+## [Customer view clarity pass] - 2026-07-20
+
+Reorganised the customer's home and event overview around one guiding
+principle: answer four questions once each, top to bottom — where's my event,
+what's on me, what's the journey, and the proof/details. The two surfaces now
+share a single body so home mirrors the overview exactly. Internal views are
+untouched (protected by the existing `isInternal` branch). Verified in-browser
+as the customer.
+
+### One fused action block (#1, #7, #8)
+- **`OverToYou`** (new, tested) replaces the competing "big next-step CTA", the
+  "Needs you" KPI, and the action list. The single most important task is the
+  loud primary row with the cobalt CTA; the rest are quiet supporting rows.
+- **Every item carries a plain "why it matters" line** via the new pure helper
+  `actionWhyLine` (`src/lib/customer-action-copy.ts`, unit-tested) — e.g. an
+  asset upload reads "So the studio can build your creative."
+- **Forward-looking "all clear" state** — when nothing's outstanding it
+  reassures and previews the customer's next milestone (`nextCustomerMilestone`
+  in `src/lib/journey.ts`, tested) so a quiet moment never reads as
+  "finished forever".
+
+### One status line, one timeline (#2, #3, #5, #6)
+- **`customerStatusLine`** (`src/lib/customer-copy.ts`, tested) composes one calm
+  hero subtitle — "You're booked in · Live in 12 days at ExCeL London" — used on
+  both home and overview. The stage badge is dropped from the customer hero
+  (stage now lives in the line).
+- **`EventJourney` gains `variant="steps"`** — a clean horizontal four-node bar
+  with a single "Your move" cue under the current phase and a "See full
+  timeline" link. The `"full"` variant is restyled **ownership-forward**: the
+  customer's own milestones render bold/cobalt with a person icon; ours recede.
+  The legacy `"mini"` variant and the "Phase N of 4" framing are removed.
+
+### One shared body, quiet lower zone (#4, #6, #9)
+- **`CustomerEventBody`** (new, tested) is the single-column body shared by the
+  event overview and the home featured event: `OverToYou` → journey steps →
+  your team → quiet disclosures.
+- **`CollapsibleSection`** (new `<details>`-based disclosure, tested) hides the
+  secondary detail — "Event details" and, on the overview only, "The numbers"
+  (days to event, pending actions, approvals pending, missed milestones) — so
+  the KPI grid and right rail no longer compete with the action block.
+- Removed the now-superseded `HomeNextStep` and `TeamColumn` components.
+
+---
+
+## [Stage-aware soft-lock for submitted briefs & logistics] - 2026-07-17
+
+Customers can now safely revise information they've already submitted, without
+blindsiding the delivery team who may have planned against it. Edits stay open
+early and become an acknowledged **change request** once the plan is locked for
+build. 1,008 tests passing; verified in-browser as the customer.
+
+- **New stage helper** `isStageAtOrAfter(stage, threshold)` in `src/lib/journey.ts` (unit-tested) — single source of truth for stage-gated behaviour.
+- **Soft-lock model** on both briefing forms (`OpsBriefingForm`, `BriefingForm`):
+  - **Before the plan locks** — a submitted brief stays editable. The submit button becomes **"Update details" / "Update brief"**, a banner explains the brief is submitted but still editable, and saving re-notifies the internal team.
+  - **After the plan locks** — the brief is read-only and shows a `RequestChangePanel` instead of a dead-end wall. Ops locks at `logistics_confirmed`; creative locks at `build_configuration`.
+- **`requestBriefingChange` server action** (`src/app/actions/briefing.ts`, tested) posts a clearly-labelled, customer-visible message to the event thread and notifies the right internal owner (ops for logistics, studio for creative) via the existing `sendMessage` dispatch — no silent overwrites.
+- **`RequestChangePanel`** (new client component, tested) — collapsible "Request a change" affordance with confirmation state.
+- **Logistics page consistency** — the customer delivery-windows, venue-access, and onsite-contact cards now gate their edit controls on the same lock and surface the change-request panel once locked, so the free-text brief and the structured logistics fields behave identically.
+
+---
+
+## [Unified Journey Redesign — one project, role-filtered actions] - 2026-07-17
+
+Gave every role the same **journey spine** — four phases (Create → Prepare →
+Event day → Results) derived from the ten internal stages — while decluttering
+each surface to one clear flow, reconciling every workload number to a single
+truth, and closing all 12 findings in the July UX audit (`docs/12-ux-simplification-audit.md`). Verified in-browser end to end; 999 tests passing.
+
+### One number for customer workload (C1)
+- **Asset deadlines group under their umbrella task** — `getCustomerActionItems` and `getDeadlinesByEvent` (`src/lib/queries/deadlines.ts`) fold individual asset slots beneath the open "Upload brand assets" task via new pure helpers `groupCustomerActionAssets` / `groupDeadlineAssets` (unit-tested). Home "Needs you", the event overview, and the tasks hero all read the same grouped list, so the count matches on every surface.
+- **Fixed a latent count bug** — the asset query chained `.in("status",["required"]).or("review_status…")`, which *AND*'d the conditions and silently hid every required asset from the customer's action count (0 shown while the hero said "5 required"). Now a single OR, so the numbers reconcile.
+- `DeadlineTimeline` renders grouped rows with an expandable file list.
+
+### Shared journey spine (C)
+- **`src/lib/journey.ts`** (new, tested) maps the 10 stages to the 4 customer phases (`phaseForStage`, `buildJourney`, `phaseHeadline`).
+- **`EventJourney`** (new) renders the spine in a full variant (phases + milestone chips with owner "You" / "Bright.Blue" and dates) and a mini variant, used on the customer home, event overview, and timeline.
+
+### Navigation, fully visible and stage-aware (C2, I1)
+- **Customer nav** is a two-line, never-scroll phase bar (`CustomerPhaseNav` in `EventTabNav`) — four phases always visible, current phase expanded inline, future phases in a quiet stage-aware "upcoming" state (new `currentStage` prop). Discovery of Live/Leads/Reports is solved without noise.
+- **Deadlines folded into Tasks for customers** — removed from `CUSTOMER_SECTIONS`/`CUSTOMER_PHASES`; `/deadlines` customer links redirect to `/timeline`/`/actions`; the tasks page gains a "by due date" view.
+- **Internal nav clustered** — 19 flat pills grouped into labelled clusters (`INTERNAL_NAV_CLUSTERS` / `internalNavGroups`) that wrap instead of scroll; completed the stale `SECTION_TO_SLUG` map.
+
+### Truth fixes (C3, C4, C5, V1)
+- **Stage grammar** — customer home/hero/timeline no longer prepend "Currently at/in"; the label stands as its own sentence.
+- **Phase framing** — customer KPIs read "Phase 1 of 4" instead of the internal "Stage 1/10".
+- **Date format** — the home next-step hint uses `formatDateShort` ("Due 24 Jul"); no raw ISO on customer surfaces.
+- **Venue role badge** — `UserMenu` takes a `roleLabel` override; venue pages pass `venueRoleLabel(user.role)` so the chip reads "Venue admin" / "Venue".
+
+### Page recomposition & polish (E, F, C6, I2, P1, V2, V3)
+- Customer overview and home recomposed around the spine (journey → what needs you now → what's coming → details); the redundant `ProgressColumn` was removed.
+- **V2** venue open-slots grouped into one summary card; **V3** venue eyebrow shows the venue name; **P1** partner queue splits action items from FYI; **I2** naming pass across Inbox / Tasks / home focus list.
+
+### Evergreen demo dates (H)
+- The mock dataset is now **date-relative**: `src/lib/supabase/mock/shift-dates.ts` (new, tested) slides every date in `dataset.ts` + `extra.ts` by `(today − 2026-06-18)` at load (`store.ts`), preserving all cross-row relationships. Upcoming events stay upcoming, completed events stay recent, and the "wall of overdue" never returns.
+
+---
+
 ## [World-class UX polish — optimistic UI, live motion, power-user chrome] - 2026-07-13
 
 Ranked perceived-quality build: every high-frequency interaction updates the screen instantly and reconciles with the server in the background, the live dashboard visibly breathes, and keyboard users get first-class chrome. Verified in-browser end to end; 977 tests passing.

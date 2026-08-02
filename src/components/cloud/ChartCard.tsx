@@ -30,7 +30,6 @@ import {
 
 import { LineChart as LineChartIcon } from "lucide-react";
 
-import { cn } from "@/lib/utils";
 import { GlassCard, GlassCardHeader } from "./GlassCard";
 
 export interface ChartColors {
@@ -307,6 +306,3 @@ export function CloudAreaChart<T extends Record<string, unknown>>({
     </ResponsiveContainer>
   );
 }
-
-/** Tiny class passthrough used by callers wanting to merge wrapper styles. */
-export const chartCardMerge = cn;

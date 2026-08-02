@@ -21,7 +21,7 @@ interface ThemeContextValue {
 
 const ThemeContext = React.createContext<ThemeContextValue | null>(null);
 
-export const THEME_STORAGE_KEY = "bright.theme";
+const THEME_STORAGE_KEY = "bright.theme";
 
 function applyTheme(theme: Theme) {
   const root = document.documentElement;

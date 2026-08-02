@@ -52,7 +52,7 @@ export async function submitProposalIntake(data: {
   /** DOOH media value in integer USD cents. */
   doohMediaValue?: number;
 }) {
-  if (!quoteLimiter(await getClientIp())) {
+  if (!(await quoteLimiter(await getClientIp()))) {
     return {
       success: false as const,
       error: "Too many submissions. Please wait a moment and try again.",
@@ -191,7 +191,7 @@ export async function bookWalkthrough(
   slotLabel: string,
 ) {
   // Public confirmation-page action — throttle unauthenticated writes.
-  if (!decisionLimiter(await getClientIp())) {
+  if (!(await decisionLimiter(await getClientIp()))) {
     return {
       success: false as const,
       error: "Too many requests. Please wait a moment and try again.",
@@ -240,7 +240,7 @@ export async function updateQuoteCapabilities(
   capabilitySlugs: string[]
 ) {
   // Public confirmation-page action — throttle unauthenticated writes.
-  if (!decisionLimiter(await getClientIp())) {
+  if (!(await decisionLimiter(await getClientIp()))) {
     return {
       success: false as const,
       error: "Too many requests. Please wait a moment and try again.",

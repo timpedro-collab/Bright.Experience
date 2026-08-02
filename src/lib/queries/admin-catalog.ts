@@ -1,5 +1,6 @@
 /** Admin-scoped catalog queries — fetch all items regardless of active/published status. */
 import { createClient } from "@/lib/supabase/server";
+import { logQueryError } from "@/lib/observability/log-query-error";
 
 /** Fetch all machines including inactive ones. */
 export async function getAllMachines() {
@@ -9,7 +10,10 @@ export async function getAllMachines() {
     .select("id, name, slug, tagline, hero_image_url, is_active, sort_order, created_at")
     .order("sort_order");
 
-  if (error) return [];
+  if (error) {
+    logQueryError("getAllMachines", error);
+    return [];
+  }
   return data ?? [];
 }
 
@@ -21,7 +25,10 @@ export async function getAllGames() {
     .select("id, name, slug, thumbnail_url, category, is_active, sort_order, created_at")
     .order("sort_order");
 
-  if (error) return [];
+  if (error) {
+    logQueryError("getAllGames", error);
+    return [];
+  }
   return data ?? [];
 }
 
@@ -34,7 +41,10 @@ export async function getAllPackages() {
     .order("tier")
     .order("base_price");
 
-  if (error) return [];
+  if (error) {
+    logQueryError("getAllPackages", error);
+    return [];
+  }
   return data ?? [];
 }
 
@@ -46,6 +56,9 @@ export async function getAllCaseStudies() {
     .select("id, title, slug, client_name, event_type, location, hero_image_url, is_published, published_at, created_at")
     .order("created_at", { ascending: false });
 
-  if (error) return [];
+  if (error) {
+    logQueryError("getAllCaseStudies", error);
+    return [];
+  }
   return data ?? [];
 }

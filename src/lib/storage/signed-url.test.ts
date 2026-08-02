@@ -1,9 +1,12 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import {
   validateUpload,
   storagePathFor,
+  mustDownloadInsteadOfRender,
+  createSignedReadUrl,
   BUCKET_CONSTRAINTS,
 } from "./signed-url";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 describe("validateUpload", () => {
   it("accepts a PNG into event-assets", () => {
@@ -85,5 +88,68 @@ describe("storagePathFor", () => {
       filename: longName,
     });
     expect(path.length).toBeLessThan(300);
+  });
+});
+
+describe("mustDownloadInsteadOfRender", () => {
+  it("flags the file types that execute when a browser opens them", () => {
+    expect(mustDownloadInsteadOfRender("e1/asset/a1/logo.svg")).toBe(true);
+    expect(mustDownloadInsteadOfRender("e1/asset/a1/LOGO.SVG")).toBe(true);
+    expect(mustDownloadInsteadOfRender("e1/asset/a1/deck.html")).toBe(true);
+    expect(mustDownloadInsteadOfRender("e1/asset/a1/data.xml")).toBe(true);
+  });
+
+  it("leaves ordinary media alone", () => {
+    expect(mustDownloadInsteadOfRender("e1/asset/a1/hero.png")).toBe(false);
+    expect(mustDownloadInsteadOfRender("e1/asset/a1/spec.pdf")).toBe(false);
+    expect(mustDownloadInsteadOfRender("e1/asset/a1/reel.mp4")).toBe(false);
+  });
+
+  it("is not fooled by a query string after the extension", () => {
+    expect(mustDownloadInsteadOfRender("e1/a/logo.svg?token=abc")).toBe(true);
+    expect(mustDownloadInsteadOfRender("e1/a/hero.png?name=x.svg")).toBe(false);
+  });
+});
+
+/** A Supabase stub that records what `createSignedUrl` was asked for. */
+function stubStorage() {
+  const createSignedUrl = vi.fn(async () => ({
+    data: { signedUrl: "https://storage.test/signed" },
+    error: null,
+  }));
+  const supabase = {
+    storage: { from: () => ({ createSignedUrl }) },
+  } as unknown as SupabaseClient;
+  return { supabase, createSignedUrl };
+}
+
+describe("createSignedReadUrl", () => {
+  it("signs an SVG so the browser downloads it instead of running it", async () => {
+    const { supabase, createSignedUrl } = stubStorage();
+
+    await createSignedReadUrl(supabase, "event-assets", "e1/asset/a1/logo.svg");
+
+    expect(createSignedUrl).toHaveBeenCalledWith(
+      "e1/asset/a1/logo.svg",
+      3600,
+      { download: true }
+    );
+  });
+
+  it("leaves an image inline so previews keep working", async () => {
+    const { supabase, createSignedUrl } = stubStorage();
+
+    const url = await createSignedReadUrl(
+      supabase,
+      "event-assets",
+      "e1/asset/a1/hero.png"
+    );
+
+    expect(createSignedUrl).toHaveBeenCalledWith(
+      "e1/asset/a1/hero.png",
+      3600,
+      undefined
+    );
+    expect(url).toBe("https://storage.test/signed");
   });
 });

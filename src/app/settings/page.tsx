@@ -43,7 +43,7 @@ const SETTINGS_SECTIONS = [
   },
   {
     title: "Security",
-    description: "Password, sessions, and two-factor authentication.",
+    description: "Password and active sessions.",
     icon: Shield,
     href: "/settings/security",
   },

@@ -1,7 +1,18 @@
-/** Partner types — resellers, venues, and agencies plus their attribution. */
+/** Partner types — resellers, venues, agencies, organizers, and attribution. */
 
-/** Classification of partner organisation */
-export type PartnerType = "reseller" | "venue" | "agency";
+/**
+ * Classification of partner organisation.
+ *
+ * `organizer` is a show producer (e.g. a trade-show or conference operator)
+ * who hosts a fleet of machines across their own event and resells individual
+ * units to sponsors. They route to /organizers/:slug rather than /venues/:slug.
+ */
+export type PartnerType =
+  | "referral"
+  | "reseller"
+  | "venue"
+  | "agency"
+  | "organizer";
 
 /** Partner lifecycle status */
 export type PartnerStatus = "pending" | "active" | "suspended" | "inactive";

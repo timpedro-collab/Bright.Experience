@@ -14,7 +14,7 @@ export function FinalCta() {
     <Section className="border-t border-border/60">
       <Container size="md">
         <div className="text-center">
-          <h2 className="text-3xl font-bold text-foreground md:text-4xl">
+          <h2 className="text-display-serif text-4xl text-foreground md:text-5xl">
             Plan your next activation
           </h2>
           <p className="mt-3 text-muted-foreground max-w-lg mx-auto">

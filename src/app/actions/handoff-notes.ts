@@ -7,6 +7,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import type { ActionResult } from "@/types/actions";
+import { logQueryError } from "@/lib/observability/log-query-error";
 
 export interface HandoffNote {
   id: string;
@@ -44,7 +45,10 @@ export async function getHandoffNotes(eventId: string): Promise<HandoffNote[]> {
     .select("*, profiles!handoff_notes_author_id_fkey(name)")
     .eq("event_id", eventId)
     .order("created_at", { ascending: false });
-  if (error || !data) return [];
+  if (error || !data) {
+    logQueryError("getHandoffNotes", error, { eventId });
+    return [];
+  }
   return data.map((row) => mapNote(row as Record<string, unknown>));
 }
 
@@ -76,7 +80,10 @@ export async function createHandoffNote(
     .select("id")
     .single();
 
-  if (error) return { success: false, error: `Failed to create handoff note: ${error.message}` };
+  if (error) {
+    logQueryError("createHandoffNote", error);
+    return { success: false, error: `Failed to create handoff note: ${error.message}` };
+  }
   revalidatePath(`/events/${eventId}`);
   return { success: true, data: { id: data.id } };
 }

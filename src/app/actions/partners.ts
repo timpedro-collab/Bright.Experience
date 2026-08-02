@@ -6,6 +6,8 @@ import { requirePartnerForSlug } from "@/lib/auth/portal";
 import { isAdminRole } from "@/lib/roles";
 import { applicationLimiter, getClientIp } from "@/lib/rate-limit";
 import { createClient } from "@/lib/supabase/server";
+import { dispatchNotification } from "@/lib/notifications/dispatch";
+import type { PublicPartnerType } from "@/lib/validations/partners";
 import {
   addPartnerUserSchema,
   approveCommissionSchema,
@@ -18,25 +20,19 @@ import {
 } from "@/lib/validations/partners";
 import { revalidatePath } from "next/cache";
 
-/**
- * Generate a partner code from a name.
- * Produces codes like "BB-SMITH" from "Smith Events Ltd".
- */
-function generatePartnerCode(name: string): string {
-  const slug = name
-    .toUpperCase()
-    .replace(/[^A-Z0-9]/g, "")
-    .slice(0, 8);
-  const suffix = Math.random().toString(36).slice(2, 5).toUpperCase();
-  return `BB-${slug || "PARTNER"}${suffix}`;
-}
+import { generatePartnerCode, slugifyPartnerName } from "@/lib/partner-identity";
 
-/** Submit a partner application with status 'pending'. */
+/**
+ * Submit a partner application with status 'pending'.
+ *
+ * `type` is limited to the self-service tiers: venue and organizer partners
+ * carry inventory tooling and are only ever created internally.
+ */
 export async function applyAsPartner(data: {
   name: string;
   contactName: string;
   contactEmail: string;
-  type: string;
+  type: PublicPartnerType;
   companyName?: string;
   website?: string;
   industry?: string;
@@ -47,7 +43,7 @@ export async function applyAsPartner(data: {
   notes?: string;
 }) {
   // Anonymous public form — throttle before doing any work.
-  if (!applicationLimiter(await getClientIp())) {
+  if (!(await applicationLimiter(await getClientIp()))) {
     return {
       success: false as const,
       error: "Too many applications from this connection. Please try again shortly.",
@@ -64,11 +60,7 @@ export async function applyAsPartner(data: {
 
   const supabase = await createClient();
 
-  const slug = data.name
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "");
-
+  const slug = slugifyPartnerName(data.name);
   const partnerCode = generatePartnerCode(data.name);
 
   // The application detail captured by the wizard has no dedicated columns, so
@@ -103,6 +95,21 @@ export async function applyAsPartner(data: {
     .single();
 
   if (error) return { success: false as const, error: "Failed to submit application" };
+
+  // Applications used to land as a pending row nobody was told about, so an
+  // applicant's only feedback was silence until someone opened /admin/partners.
+  try {
+    await dispatchNotification("partner.application_received", {
+      partnerName: data.companyName || data.name,
+      partnerType: data.type,
+      contactName: data.contactName,
+      contactEmail: data.contactEmail,
+      entityType: "partner",
+      entityId: partner.id,
+    });
+  } catch (notifyError) {
+    console.error("[applyAsPartner] notification failed", notifyError);
+  }
 
   revalidatePath("/admin/partners");
   return { success: true as const, data: { id: partner.id, partnerCode: partner.partner_code } };

@@ -102,7 +102,7 @@ export function FocusedHome({
           <GlassCard data-tour="my-work">
             <GlassCardHeader
               title="What needs you now"
-              description="Your most important items, most urgent first"
+              description="Your top priorities across every event, most urgent first — your full task list lives in your Inbox"
               action={
                 <Link
                   href="/pipeline"
@@ -130,7 +130,7 @@ export function FocusedHome({
         <EditionFooter
           rightSlot={
             <Link href="/inbox" className="hover:opacity-80 transition-opacity">
-              Open the queue →
+              Open your inbox →
             </Link>
           }
         />

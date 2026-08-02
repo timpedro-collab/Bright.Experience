@@ -10,6 +10,11 @@ import { useState, useEffect, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
+function prefersReducedMotion(): boolean {
+  if (typeof window === "undefined") return false;
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
 interface LiveCounterProps {
   label: string;
   value: number;
@@ -28,7 +33,10 @@ export function LiveCounter({
   className,
   suffix,
 }: LiveCounterProps) {
-  const [displayValue, setDisplayValue] = useState(0);
+  const reducedMotion = prefersReducedMotion();
+  const [displayValue, setDisplayValue] = useState(() =>
+    reducedMotion ? value : 0
+  );
   const animationRef = useRef<number | null>(null);
   const startRef = useRef<number>(0);
 
@@ -40,6 +48,10 @@ export function LiveCounter({
   const prevValueRef = useRef(value);
   const [pulsing, setPulsing] = useState(false);
   useEffect(() => {
+    if (reducedMotion) {
+      prevValueRef.current = value;
+      return;
+    }
     if (value > prevValueRef.current) {
       setPulsing(true);
       const t = setTimeout(() => setPulsing(false), 950);
@@ -47,9 +59,11 @@ export function LiveCounter({
       return () => clearTimeout(t);
     }
     prevValueRef.current = value;
-  }, [value]);
+  }, [value, reducedMotion]);
 
   useEffect(() => {
+    if (reducedMotion) return;
+
     const duration = 1200;
     const startTime = performance.now();
     startRef.current = displayValue;
@@ -70,7 +84,9 @@ export function LiveCounter({
       if (animationRef.current) cancelAnimationFrame(animationRef.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [value]);
+  }, [value, reducedMotion]);
+
+  const shownValue = reducedMotion ? value : displayValue;
 
   return (
     <Card
@@ -84,8 +100,8 @@ export function LiveCounter({
           {icon}
         </div>
         <p className="text-heading text-3xl font-bold tabular-nums text-foreground">
-          <span className={cn(pulsing && "live-value-pulse")}>
-            {displayValue.toLocaleString("en-US")}
+          <span className={cn(pulsing && !reducedMotion && "live-value-pulse")}>
+            {shownValue.toLocaleString("en-US")}
             {suffix ? <span className="text-xl font-semibold">{suffix}</span> : null}
           </span>
         </p>

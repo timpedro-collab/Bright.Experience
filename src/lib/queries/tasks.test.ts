@@ -39,6 +39,19 @@ describe("getOpenTaskCountsForUser", () => {
     expect(result).toEqual({ "evt-1": 2, "evt-2": 1 });
   });
 
+  it("excludes snoozed tasks for internal viewers", async () => {
+    supabase.setTableResponse("tasks", { data: [], error: null });
+    const { getOpenTaskCountsForUser } = await import("./tasks");
+    await getOpenTaskCountsForUser("u1", true, ["evt-1"]);
+    const calls = supabase.callsFor("tasks");
+    const snoozeOr = calls.find(
+      (c) =>
+        c.method === "or" &&
+        String(c.args[0]).includes("snoozed_until.is.null"),
+    );
+    expect(snoozeOr).toBeDefined();
+  });
+
   it("uses customer_visible filter for non-internal viewers", async () => {
     supabase.setTableResponse("tasks", {
       data: [{ event_id: "evt-1", status: "pending", customer_visible: true }],
@@ -47,16 +60,16 @@ describe("getOpenTaskCountsForUser", () => {
     const { getOpenTaskCountsForUser } = await import("./tasks");
     await getOpenTaskCountsForUser("u-cust", false, ["evt-1"]);
     const calls = supabase.callsFor("tasks");
-    // Confirm `eq("customer_visible", true)` was applied and NOT
-    // `eq("assigned_to", ...)`
     const customerVisibleCall = calls.find(
-      (c) => c.method === "eq" && c.args[0] === "customer_visible"
+      (c) => c.method === "eq" && c.args[0] === "customer_visible",
     );
     expect(customerVisibleCall).toBeDefined();
-    const assignedCall = calls.find(
-      (c) => c.method === "eq" && c.args[0] === "assigned_to"
+    const snoozeOr = calls.find(
+      (c) =>
+        c.method === "or" &&
+        String(c.args[0]).includes("snoozed_until.is.null"),
     );
-    expect(assignedCall).toBeUndefined();
+    expect(snoozeOr).toBeUndefined();
   });
 
   it("returns an empty object on a Supabase error", async () => {
@@ -113,9 +126,40 @@ describe("getTasksAssignedToUser", () => {
     const { getTasksAssignedToUser } = await import("./tasks");
     await getTasksAssignedToUser("u1", { includeCompletedSince: "2026-05-01" });
     const calls = supabase.callsFor("tasks");
-    const orCall = calls.find((c) => c.method === "or");
+    const orCall = calls.find(
+      (c) =>
+        c.method === "or" &&
+        String(c.args[0]).includes('completed_at.gte."2026-05-01"'),
+    );
     expect(orCall).toBeDefined();
-    expect((orCall!.args[0] as string)).toContain("completed_at.gte.2026-05-01");
+  });
+
+  it("excludes snoozed tasks from the inbox query", async () => {
+    supabase.setTableResponse("tasks", { data: [], error: null });
+    const { getTasksAssignedToUser } = await import("./tasks");
+    await getTasksAssignedToUser("u1");
+    const calls = supabase.callsFor("tasks");
+    const snoozeOr = calls.find(
+      (c) =>
+        c.method === "or" &&
+        String(c.args[0]).includes("snoozed_until.is.null"),
+    );
+    expect(snoozeOr).toBeDefined();
+  });
+});
+
+describe("getTasksByRole", () => {
+  it("excludes snoozed tasks from role focus queues", async () => {
+    supabase.setTableResponse("tasks", { data: [], error: null });
+    const { getTasksByRole } = await import("./tasks");
+    await getTasksByRole("events_lead", "u1");
+    const calls = supabase.callsFor("tasks");
+    const snoozeOr = calls.find(
+      (c) =>
+        c.method === "or" &&
+        String(c.args[0]).includes("snoozed_until.is.null"),
+    );
+    expect(snoozeOr).toBeDefined();
   });
 });
 

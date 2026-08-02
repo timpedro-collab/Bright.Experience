@@ -13,6 +13,7 @@
 import { getCapabilities, ALWAYS_ON } from "@/lib/capabilities";
 import { formatDateMedium, formatDateShort } from "@/lib/dates";
 import { formatNumberUS } from "@/lib/currency";
+import { indicativePriceBand, type PriceBand } from "@/lib/proposals/price-band";
 
 /* -------------------------------------------------------------------------
  * Input + output shapes
@@ -136,6 +137,8 @@ export interface ProposalDocument {
     headline: string;
     feeLabel: string;
     feePence: number;
+    /** Guide band shown before the walkthrough reveals the exact fee. */
+    indicativeBand: PriceBand | null;
     durationLabel: string;
     dateLabel: string;
     rows: InvestmentRow[];
@@ -189,46 +192,46 @@ const OBJECTIVE_NARRATIVE: Record<
   { headline: (co: string) => string; challenge: string; success: string }
 > = {
   "lead-generation": {
-    headline: () => "Turn footfall into real pipeline",
+    headline: () => "Turn stand traffic into qualified leads",
     challenge:
-      "A passive stand collects business cards. The goal is a stand people walk toward — one that captures not just contact details, but context about who is genuinely interested.",
+      "A standard stand collects business cards and little else. You need a reason for people to stop, and a way to capture who they are and what brought them over.",
     success:
-      "A busy stand with a steady stream of engaged visitors, and a follow-up list that is warm rather than cold — names paired with the context your sales team needs.",
+      "A steady flow of engaged visitors and a follow-up list your sales team can actually work, with the context behind every name.",
   },
   leads: {
-    headline: () => "Turn footfall into real pipeline",
+    headline: () => "Turn stand traffic into qualified leads",
     challenge:
-      "A passive stand collects business cards. The goal is a stand people walk toward — one that captures not just contact details, but context about who is genuinely interested.",
+      "A standard stand collects business cards and little else. You need a reason for people to stop, and a way to capture who they are and what brought them over.",
     success:
-      "A busy stand with a steady stream of engaged visitors, and a follow-up list that is warm rather than cold — names paired with the context your sales team needs.",
+      "A steady flow of engaged visitors and a follow-up list your sales team can actually work, with the context behind every name.",
   },
   "brand-awareness": {
-    headline: (co) => `Make ${co} the most talked-about presence in the room`,
+    headline: (co) => `Make ${co} the presence people remember`,
     challenge:
-      "Attention is scarce and every brand is competing for it. A static presence blends in. You need something that pulls people in and leaves a clear, lasting impression.",
+      "Attention is scarce and every brand is competing for it. A static stand blends in. You need something that draws people over and leaves a clear impression.",
     success:
-      "Queues, high-score rivalry, and people dragging colleagues back for another go — and everyone walking away with a sharpened sense of who you are.",
+      "Queues at the stand, friendly competition on the leaderboard, and visitors who leave knowing exactly who you are.",
   },
   sampling: {
     headline: (co) => `Put ${co} in people's hands`,
     challenge:
-      "Handing out product passively gets product into bags, not minds. The goal is trial that comes with engagement, so the sample is earned and remembered.",
+      "Handing out product passively fills tote bags, not memories. Trial works when people earn the sample and engage with the brand as they do.",
     success:
-      "A stream of attendees playing, winning, and collecting your product — leaving with a genuine first experience of the brand, not just a freebie.",
+      "A steady stream of visitors playing, winning, and leaving with your product and a genuine first impression of the brand.",
   },
   "product-launch": {
-    headline: (co) => `Launch with a moment people remember`,
+    headline: () => "Launch with a moment people remember",
     challenge:
-      "A launch needs a centrepiece. Without one, the message competes with the noise of the room and gets lost.",
+      "A launch needs a focal point. Without one, the message gets lost in the noise of the room.",
     success:
-      "A crowd around the launch, hands-on interaction with the new product story, and attendees leaving able to repeat your key message.",
+      "A crowd around the launch, hands-on time with the product story, and visitors who can repeat your key message afterwards.",
   },
   social: {
     headline: (co) => `Grow ${co}'s following on the floor`,
     challenge:
-      "Social reach built at events is usually accidental. The goal is to make following you part of the experience — a natural, opt-in step, not a hard ask.",
+      "Social reach at events is usually left to chance. Following you should be a natural, opt-in part of the experience, not a hard ask.",
     success:
-      "A measurable lift in followers and engagement, captured in the moment of delight when an attendee wins.",
+      "A measurable lift in followers and engagement, captured in the moment a visitor wins.",
   },
 };
 
@@ -237,26 +240,20 @@ const DEFAULT_NARRATIVE = {
   challenge:
     "A passive stand won't shift perception or drive traffic. The space needs something people walk toward, not past.",
   success:
-    "A busy stand, real engagement, and attendees walking away with a prize and a clear impression of your brand.",
+    "A busy stand, real engagement, and visitors who leave with a prize and a clear impression of your brand.",
 };
 
-/* Rationale shown when an add-on is "called out" as tailored to the brief. */
+/* Short rationale tying each called-out add-on back to the brief. Kept brief so
+ * it justifies the choice without restating the outcome it sits beside. */
 const ADDON_REASON: Record<string, string> = {
-  "lead-capture":
-    "you want first-party data — opted-in contacts are captured from every play",
-  "live-telemetry":
-    "you want real pipeline — your team sees every lead the moment it lands",
-  "sampling-unlock":
-    "trial is central to your goal — a sample dispenses on every win",
-  "linkedin-follow":
-    "you want to grow your following — players follow you for an extra entry before claiming their prize",
-  "survey-layer":
-    "you want richer insight — a single smart question slots in between rounds",
-  "dynamic-sponsors":
-    "your activation can carry rotating sponsor or campaign creative between plays",
-  "age-verification":
-    "your products are age-restricted — an age gate unlocks play",
-  "payments-onunit": "you want to take payment directly on the unit",
+  "lead-capture": "You asked for first-party data.",
+  "live-telemetry": "Pipeline is your priority.",
+  "sampling-unlock": "Product trial is central to your goal.",
+  "linkedin-follow": "You want to grow your following.",
+  "survey-layer": "You asked for richer insight.",
+  "dynamic-sponsors": "Useful when you're carrying sponsor or campaign creative.",
+  "age-verification": "Your products are age-restricted.",
+  "payments-onunit": "You want to take payment on the unit.",
 };
 
 /* -------------------------------------------------------------------------
@@ -314,7 +311,7 @@ export function buildProposalDocument(quote: ProposalQuoteInput): ProposalDocume
   const recommendedAddons: RecommendedAddon[] = recommendedCaps.map((c) => ({
     slug: c.slug,
     outcome: c.outcome,
-    reason: ADDON_REASON[c.slug] ?? "it fits the goals you outlined",
+    reason: ADDON_REASON[c.slug] ?? "It fits the goals you outlined.",
   }));
 
   // ---- What's included ---------------------------------------------------
@@ -416,41 +413,41 @@ export function buildProposalDocument(quote: ProposalQuoteInput): ProposalDocume
     },
     solution: {
       headline: `Gamified brand activation on the ${device}`,
-      intro: `A fully branded, interactive ${device} on your stand. Attendees play, compete, share details, and collect prizes — every touchpoint tells your story, from the machine wrap to the game to the idle-screen video between interactions.`,
+      intro: `A fully branded, interactive ${device} on your stand. Visitors play, compete, share their details, and collect a prize. Every touchpoint tells your story, from the machine wrap to the game to the idle-screen video between plays.`,
       cascade: [
-        { step: 1, title: "Approach", body: "Attendee sees the branded machine. The idle screen plays your brand story on loop." },
-        { step: 2, title: "Play", body: "Tap to start. A fully branded game with your colours, icons, and theming. A high-score leaderboard drives repeat play." },
-        { step: 3, title: "Scan", body: "A post-game QR code opens a web form on their phone — name plus the qualifying questions you define." },
-        { step: 4, title: "Submit", body: 'Form submission triggers the machine instantly. The screen updates: "Your prize is on its way."' },
-        { step: 5, title: "Collect", body: "The attendee collects their prize and walks away with a branded item and a clear brand impression." },
+        { step: 1, title: "Approach", body: "The visitor sees the branded machine. The idle screen plays your brand story on loop." },
+        { step: 2, title: "Play", body: "Tap to start a fully branded game in your colours, icons, and theming. A high-score leaderboard drives repeat play." },
+        { step: 3, title: "Scan", body: "A post-game QR code opens a short form on their phone: their name plus the qualifying questions you define." },
+        { step: 4, title: "Submit", body: 'Submitting the form triggers the machine instantly. The screen updates to "Your prize is on its way."' },
+        { step: 5, title: "Collect", body: "The visitor collects their prize and leaves with a branded item and a clear impression of the brand." },
       ],
     },
     creative: {
-      headline: "Your brand, A to Z",
-      intro: `Every element of the activation is built around ${company}'s brand identity. The machine will look, feel, and play like it was built by your team.`,
+      headline: "Your brand, end to end",
+      intro: `Every element of the activation is built around ${company}'s brand identity. The machine looks, feels, and plays like your own team built it.`,
       items: [
-        { title: "Machine wrap", body: "Full exterior wrap in your creative — messaging, brand colours, and campaign visuals. The machine becomes a branded installation, not a generic unit." },
-        { title: "Idle-screen video", body: "When nobody is playing, the 55-inch screen runs a looping video — your moment to tell the brand story. Content supplied by your team or built collaboratively." },
-        { title: "Game design", body: "The tap-to-play game is fully branded: your colours, logos, and themed assets. You supply assets via a brief; our creative team builds it in." },
-        { title: "Web form", body: "Light-touch data capture: name plus 1–2 qualifying questions that give your team context for follow-up. Kept non-invasive and fun." },
+        { title: "Machine wrap", body: "Full exterior wrap in your creative: messaging, brand colours, and campaign visuals. The machine becomes a branded installation, not a generic unit." },
+        { title: "Idle-screen video", body: "When nobody is playing, the 55-inch screen runs a looping video to tell your brand story. You supply the content, or we build it with you." },
+        { title: "Game design", body: "The tap-to-play game is fully branded in your colours, logos, and themed assets. You supply the assets against a brief and our creative team builds it in." },
+        { title: "Web form", body: "A name and one or two qualifying questions that give your team context for follow-up. Short and easy to complete." },
       ],
       processNote:
-        "After agreement, Bright.Blue schedules a creative call with your brand and design team. We outline the assets needed, your team supplies them, and we build the wrap, game, and screen content. We can also handle creative end-to-end as an additional service.",
+        "Once you sign off, we schedule a creative call with your brand and design team. We confirm the assets we need, you supply them, and we build the wrap, game, and screen content. If you would rather not produce the assets in-house, we can handle the creative for you as an added service.",
     },
     dataCapture: {
       headline: "Rich data without the friction",
-      intro: `The machine adds a layer of rich, contextual data on top of whatever attendee list you already receive — captured from people who actively engaged with ${company}.`,
+      intro: `The machine adds contextual data on top of any attendee list you already receive, captured from the people who actively engaged with ${company}.`,
       rows: [
-        { source: "Machine web form", what: "Name plus in-play questions (e.g. priorities, product interest, current setup)", how: "QR code after gameplay opens a branded form on the attendee's phone" },
+        { source: "Machine web form", what: "Name plus in-play questions (for example priorities, product interest, current setup)", how: "A QR code after gameplay opens a branded form on the visitor's phone" },
         { source: "Engagement metrics", what: "Plays, dwell, peak times, and leaderboard activity across the event", how: "Captured automatically and delivered in your post-event report" },
         { source: "Combined", what: "Engaged-visitor shortlist cross-referenced with your own delegate data", how: "Post-event data merge by your team" },
       ],
       valueNote:
-        "Instead of a flat list, your team gets a shortlist of people who actively engaged, with context about what they care about — turning a cold follow-up into a warm conversation.",
+        "Instead of a flat list, your team gets a shortlist of people who genuinely engaged, with context on what they care about. That turns a cold follow-up into a warm conversation.",
     },
     included: {
       headline: "Turnkey activation package",
-      intro: `One fee, everything managed. ${company} provides creative assets and giveaway items; Bright.Blue handles the rest.`,
+      intro: `One fee, fully managed. ${company} provides the creative assets and giveaway items, and Bright.Blue handles everything else.`,
       brightBlueItems,
       customerItems,
     },
@@ -458,6 +455,7 @@ export function buildProposalDocument(quote: ProposalQuoteInput): ProposalDocume
       headline: "One fee, everything included",
       feeLabel: "Turnkey activation fee",
       feePence: quote.total_amount ?? 0,
+      indicativeBand: indicativePriceBand(quote.total_amount ?? 0),
       durationLabel: `${days} day${days === 1 ? "" : "s"}`,
       dateLabel,
       rows,
@@ -466,9 +464,9 @@ export function buildProposalDocument(quote: ProposalQuoteInput): ProposalDocume
     timeline: {
       headline: "Working backwards from the event",
       intro:
-        "The timeline below works backwards from your event date to ensure everything is tested, produced, and ready in time.",
+        "This timeline works backwards from your event date so everything is produced, tested, and ready in time.",
       milestones,
-      note: "Locking the direction promptly gives us the most time for creative, production, and testing.",
+      note: "Locking the direction early gives us the most time for creative, production, and testing.",
     },
     nextSteps: {
       headline: "Getting started",
@@ -476,11 +474,11 @@ export function buildProposalDocument(quote: ProposalQuoteInput): ProposalDocume
       actions: [
         { n: 1, action: "Book your 15-minute walkthrough so we can talk you through this proposal and tailor the detail.", owner: "Both" },
         { n: 2, action: "Confirm the activation direction and game concept.", owner: company },
-        { n: 3, action: "Creative call with your brand and design team to brief assets.", owner: "Both" },
+        { n: 3, action: "Join a creative call with your brand and design team to brief the assets.", owner: "Both" },
         { n: 4, action: "Ship giveaway product samples to Bright.Blue HQ for testing.", owner: company },
-        { n: 5, action: "Activation goes live.", owner: "Both" },
+        { n: 5, action: "Go live.", owner: "Both" },
       ],
-      note: "No idea is too creative to explore — anything outside the standard format can be scoped by our development team.",
+      note: "If you have something more ambitious in mind, our development team can scope anything beyond the standard format.",
     },
     recommendedAddons,
   };

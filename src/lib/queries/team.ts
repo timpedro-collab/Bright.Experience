@@ -1,6 +1,15 @@
 /** Team member queries — reads for event and account scopes. */
 import { createClient } from "@/lib/supabase/server";
 import type { EventTeamMember } from "@/types";
+import { logQueryError } from "@/lib/observability/log-query-error";
+
+/**
+ * `event_team_members` points at `profiles` three times (member, requester,
+ * approver), so an unqualified `profiles(...)` embed is ambiguous and
+ * PostgREST rejects the whole query (PGRST201). Name the member FK.
+ */
+const MEMBER_PROFILE =
+  "profiles:event_team_members_profile_id_fkey (name, avatar_url)";
 
 function mapMember(row: Record<string, unknown>): EventTeamMember {
   const profile = row.profiles as Record<string, unknown> | null;
@@ -31,12 +40,15 @@ export async function getTeamForEvent(
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("event_team_members")
-    .select("*, profiles(name, avatar_url)")
+    .select(`*, ${MEMBER_PROFILE}`)
     .eq("event_id", eventId)
     .neq("status", "removed")
     .order("created_at");
 
-  if (error || !data) return [];
+  if (error || !data) {
+    logQueryError("getTeamForEvent", error, { eventId });
+    return [];
+  }
   return data.map(mapMember);
 }
 
@@ -55,11 +67,14 @@ export async function getTeamForAccount(
   const ids = eventIds.map((e) => e.id as string);
   const { data, error } = await supabase
     .from("event_team_members")
-    .select("*, profiles(name, avatar_url)")
+    .select(`*, ${MEMBER_PROFILE}`)
     .in("event_id", ids)
     .order("created_at");
 
-  if (error || !data) return [];
+  if (error || !data) {
+    logQueryError("getTeamForAccount", error, { accountId });
+    return [];
+  }
   return data.map(mapMember);
 }
 
@@ -82,6 +97,9 @@ export async function getAccountProfiles(
     .eq("account_id", accountId)
     .order("name");
 
-  if (error || !data) return [];
+  if (error || !data) {
+    logQueryError("getAccountProfiles", error, { accountId });
+    return [];
+  }
   return data as AccountProfileRow[];
 }

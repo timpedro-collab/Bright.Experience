@@ -6,10 +6,12 @@ import { EventPageShell } from "@/components/brand/event-page-shell";
 import { EditorialEyebrow, Hairline } from "@/components/brand";
 import { TaskChecklist } from "@/components/events/TaskChecklist";
 import { TaskViewToggle } from "@/components/events/TaskViewToggle";
+import { DeadlineTimeline } from "@/components/events/DeadlineTimeline";
 import { EmptyState } from "@/components/ui/EmptyState";
 
 import { getEventById } from "@/lib/queries/events";
 import { getTasksByEvent } from "@/lib/queries/tasks";
+import { getDeadlinesByEvent } from "@/lib/queries/deadlines";
 import { getUnreadCount } from "@/lib/queries/notifications";
 import { getUser } from "@/lib/auth";
 import { isInternalRole } from "@/lib/roles";
@@ -28,15 +30,20 @@ export default async function ActionsPage({
   const { id } = await params;
   if (!canViewSection(user.role, "actions")) redirect(`/events/${id}`);
   const { view } = await searchParams;
-  const [event, tasks, unread] = await Promise.all([
+  const isInternal = isInternalRole(user.role);
+  const [event, tasks, unread, deadlines] = await Promise.all([
     getEventById(id),
     getTasksByEvent(id),
     getUnreadCount(user.id),
+    // Customers have no separate Deadlines tab — their schedule is folded in
+    // here as a "by due date" view. Internal keep the dedicated page.
+    isInternal ? Promise.resolve([]) : getDeadlinesByEvent(id),
   ]);
   if (!event) return notFound();
 
-  const isInternal = isInternalRole(user.role);
   const showAll = view === "all";
+  // Customer schedule: only their own dated obligations, most urgent first.
+  const customerSchedule = deadlines.filter((d) => d.owner === "customer");
 
   const allTasks = isInternal
     ? tasks
@@ -83,7 +90,7 @@ export default async function ActionsPage({
       }
       subtitle={
         isInternal
-          ? "Open actions for this event. Switch views to see your own or everyone's."
+          ? "Actions for this event only — your cross-event list lives in your Inbox. Switch views to see your own or everyone's."
           : "Tick off these items to keep your event moving forward."
       }
       heroRight={
@@ -149,7 +156,7 @@ export default async function ActionsPage({
           icon={CheckCircle2}
           title="All clear"
           description="You don't have any actions assigned right now. We'll let you know if anything new comes up."
-          action={{ label: "Back to overview", href: `/events/${id}` }}
+          action={{ label: "Return to Overview", href: `/events/${id}` }}
         />
       ) : (
         <section className="py-10">
@@ -165,6 +172,24 @@ export default async function ActionsPage({
             />
           </div>
         </section>
+      )}
+
+      {!isInternal && customerSchedule.length > 0 && (
+        <>
+          <Hairline className="opacity-60" />
+          <section className="py-10">
+            <EditorialEyebrow>By due date</EditorialEyebrow>
+            <p className="mt-2 max-w-[60ch] text-sm text-muted-foreground">
+              Everything on your plate, ordered by when it&apos;s needed.
+            </p>
+            <div className="mt-6">
+              <DeadlineTimeline
+                deadlines={customerSchedule}
+                viewerRole={user.role}
+              />
+            </div>
+          </section>
+        </>
       )}
     </EventPageShell>
   );

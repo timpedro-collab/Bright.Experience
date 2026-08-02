@@ -1,6 +1,15 @@
 /** Pipeline event query — all events with stage, health, account, owner for the kanban board. */
 import { createClient } from "@/lib/supabase/server";
 import type { Stage, HealthStatus } from "@/types";
+import { logQueryError } from "@/lib/observability/log-query-error";
+import {
+  anyOf,
+  ilikeContains,
+  inList,
+  isEmptySearch,
+} from "@/lib/queries/filters";
+import { findAccountIdsByName } from "@/lib/queries/accounts";
+import type { EventFilters } from "@/lib/queries/events";
 
 export interface PipelineEvent {
   id: string;
@@ -15,7 +24,9 @@ export interface PipelineEvent {
 }
 
 /** Fetch non-cancelled events for the kanban pipeline view (capped at 200). */
-export async function getPipelineEvents(search?: string): Promise<PipelineEvent[]> {
+export async function getPipelineEvents(
+  filters?: EventFilters,
+): Promise<PipelineEvent[]> {
   const supabase = await createClient();
   let query = supabase
     .from("events")
@@ -23,12 +34,30 @@ export async function getPipelineEvents(search?: string): Promise<PipelineEvent[
     .order("event_date_start")
     .limit(200);
 
-  if (search) {
-    query = query.or(`name.ilike.%${search}%,accounts.name.ilike.%${search}%`);
+  if (filters?.stage) query = query.eq("current_stage", filters.stage);
+  if (filters?.health) query = query.eq("health_status", filters.health);
+  if (filters?.account) {
+    query = query.eq("accounts.name", filters.account);
+  }
+
+  // Event name OR customer name, resolved in two steps because PostgREST
+  // cannot OR across the embedded accounts resource.
+  const search = filters?.q;
+  if (search && !isEmptySearch(search)) {
+    const accountIds = await findAccountIdsByName(supabase, search);
+    query = query.or(
+      anyOf(
+        ilikeContains("name", search),
+        accountIds.length > 0 ? inList("account_id", accountIds) : ""
+      )
+    );
   }
 
   const { data, error } = await query;
-  if (error || !data) return [];
+  if (error || !data) {
+    logQueryError("getPipelineEvents", error);
+    return [];
+  }
 
   return data.map((row: Record<string, unknown>) => {
     const account = row.accounts as Record<string, unknown> | null;

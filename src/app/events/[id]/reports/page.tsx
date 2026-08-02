@@ -12,6 +12,8 @@ import { EventPageShell } from "@/components/brand/event-page-shell";
 import { EditorialEyebrow, Hairline } from "@/components/brand";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { MetricCard } from "@/components/reports/MetricCard";
+import { CaptureQualityCard } from "@/components/reports/CaptureQualityCard";
+import { SponsorProofTable } from "@/components/reports/SponsorProofTable";
 import {
   SurveySentimentCard,
   AudienceDemographicsCard,
@@ -29,8 +31,10 @@ import { getRebookSlugsForEvent } from "@/lib/queries/rebook";
 import { getEventReports } from "@/lib/queries/event-reports";
 import { getLatestEventMetrics } from "@/lib/queries/event-metrics";
 import { GenerateReportButton, PublishReportBanner } from "@/components/reports/ReportActions";
+import { RetentionNotice } from "@/components/reports/RetentionNotice";
 import { ScheduledExportManager } from "@/components/reports/ScheduledExportManager";
 import { getScheduledExports } from "@/app/actions/scheduled-exports";
+import { getGameConfiguration } from "@/app/actions/game-config";
 import { getUser } from "@/lib/auth";
 import { isInternalRole } from "@/lib/roles";
 import { canViewSection } from "@/lib/event-access";
@@ -129,7 +133,10 @@ export default async function ReportsPage({
     );
   }
 
-  const latestMetrics = await getLatestEventMetrics(id);
+  const [latestMetrics, gameConfig] = await Promise.all([
+    getLatestEventMetrics(id),
+    getGameConfiguration(id),
+  ]);
 
   // Use the higher of the live snapshot vs the report blob for each metric.
   // The latest daily snapshot is only the final day's reading, whereas the
@@ -236,6 +243,30 @@ export default async function ReportsPage({
         </>
       )}
 
+      {metrics.captureQuality && (
+        <>
+          <Hairline className="opacity-60" />
+          <section className="py-8">
+            <EditorialEyebrow>Data quality</EditorialEyebrow>
+            <div className="mt-4 max-w-xl">
+              <CaptureQualityCard counts={metrics.captureQuality} />
+            </div>
+          </section>
+        </>
+      )}
+
+      {metrics.sponsors.length > 0 && (
+        <>
+          <Hairline className="opacity-60" />
+          <section className="py-8">
+            <EditorialEyebrow>Sponsor performance</EditorialEyebrow>
+            <div className="mt-4">
+              <SponsorProofTable sponsors={metrics.sponsors} />
+            </div>
+          </section>
+        </>
+      )}
+
       {highlights.length > 0 && (
         <>
           <Hairline className="opacity-60" />
@@ -270,6 +301,10 @@ export default async function ReportsPage({
           />
         )}
       </section>
+
+      <footer className="pb-8 pt-2 border-t border-border/40">
+        <RetentionNotice retentionDays={gameConfig?.retentionDays} />
+      </footer>
     </EventPageShell>
   );
 }

@@ -7,6 +7,7 @@ import { AdminPageShell } from "@/components/brand";
 import { Card, CardContent } from "@/components/ui/card";
 import { QuoteStatusBadge } from "@/components/quotes/QuoteStatusBadge";
 import { WalkthroughControl } from "@/components/quotes/proposal/WalkthroughControl";
+import { ConvertToEventCard } from "@/components/quotes/ConvertToEventCard";
 import { ProposalBuilder } from "./ProposalBuilder";
 
 import { getUser } from "@/lib/auth";
@@ -69,11 +70,19 @@ export default async function QuoteDetailPage({
             </CardContent>
           </Card>
         )}
-        <WalkthroughControl
-          quoteId={quote.id}
-          initialUrl={quote.walkthrough_url ?? null}
-          completedAt={quote.walkthrough_completed_at ?? null}
-        />
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          <WalkthroughControl
+            quoteId={quote.id}
+            initialUrl={quote.walkthrough_url ?? null}
+            completedAt={quote.walkthrough_completed_at ?? null}
+          />
+          <ConvertToEventCard
+            quoteId={quote.id}
+            status={quote.status}
+            eventId={quote.event_id ?? null}
+            contactName={quote.contact_name}
+          />
+        </div>
         <ProposalBuilder quote={quote} />
       </div>
     </AdminPageShell>

@@ -8,28 +8,13 @@
  */
 
 import { describe, it, expect } from "vitest";
-import { renderNotificationEmail, escapeHtml, eyebrowToneFor } from "./email-shell";
+import { renderNotificationEmail, escapeHtml } from "./email-shell";
 
 describe("escapeHtml", () => {
   it("escapes the five common HTML chars + apostrophe", () => {
     expect(escapeHtml("<b>x & y \"z\" 'w'</b>")).toBe(
       "&lt;b&gt;x &amp; y &quot;z&quot; &#39;w&#39;&lt;/b&gt;"
     );
-  });
-});
-
-describe("eyebrowToneFor", () => {
-  it("uses amber for action-required", () => {
-    expect(eyebrowToneFor("Action required").fg).toBe("#B45309");
-  });
-
-  it("uses red for reminders and final checks", () => {
-    expect(eyebrowToneFor("Reminder").fg).toBe("#B91C1C");
-    expect(eyebrowToneFor("Final checks").fg).toBe("#B91C1C");
-  });
-
-  it("defaults to blue for FYI", () => {
-    expect(eyebrowToneFor("FYI").fg).toBe("#1F3FA8");
   });
 });
 

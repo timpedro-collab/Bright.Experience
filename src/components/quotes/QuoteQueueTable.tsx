@@ -13,6 +13,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { QuoteStatusBadge } from "./QuoteStatusBadge";
 import { cn } from "@/lib/utils";
 import { formatNumberUS } from "@/lib/currency";
+import { formatTimestamp } from "@/lib/dates";
 import type { QuoteStatus, QuoteTrack } from "@/types";
 
 interface QuoteRow {
@@ -43,6 +44,15 @@ const STATUS_TABS: { value: QuoteStatus | "open" | "all"; label: string }[] = [
   { value: "expired", label: "Expired" },
   { value: "all", label: "All" },
 ];
+
+function TimestampCell({ dateStr }: { dateStr: string }) {
+  const { display, exact } = formatTimestamp(dateStr);
+  return (
+    <span className="tabular-nums" title={exact || undefined}>
+      {display}
+    </span>
+  );
+}
 
 export function QuoteQueueTable({ quotes }: QuoteQueueTableProps) {
   const [search, setSearch] = useState("");
@@ -101,6 +111,7 @@ export function QuoteQueueTable({ quotes }: QuoteQueueTableProps) {
           <select
             value={trackFilter}
             onChange={(e) => setTrackFilter(e.target.value as QuoteTrack | "all")}
+            aria-label="Filter by track"
             className="h-10 rounded-[var(--radius-control)] border border-input bg-[hsl(233,48%,15%,0.6)] px-3.5 text-sm text-foreground"
           >
             <option value="all">All tracks</option>
@@ -134,82 +145,81 @@ export function QuoteQueueTable({ quotes }: QuoteQueueTableProps) {
       </div>
 
       <CardContent className="p-0">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-border/60 text-left text-overline text-muted-foreground">
-                <th className="px-4 py-3 font-medium">Contact</th>
-                <th className="px-4 py-3 font-medium">Track</th>
-                <th className="px-4 py-3 font-medium">Status</th>
-                <th className="px-4 py-3 font-medium">Type</th>
-                <th className="px-4 py-3 font-medium">Reach</th>
-                <th className="px-4 py-3 font-medium">Meeting</th>
-                <th className="px-4 py-3 font-medium">Submitted</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((q) => (
-                <tr
-                  key={q.id}
-                  className="border-b border-border/60 transition-colors hover:bg-accent"
-                >
-                  <td className="px-4 py-3">
-                    <Link href={`/admin/quotes/${q.id}`} className="block">
-                      <span className="font-medium text-foreground">
-                        {q.contact_name}
-                      </span>
-                      <span className="block text-xs text-muted-foreground">
-                        {q.company_name ?? q.contact_email}
-                      </span>
-                    </Link>
-                  </td>
-                  <td className="px-4 py-3">
-                    <Badge variant={q.track === "book_now" ? "info" : "default"}>
-                      {q.track === "book_now" ? "Book now" : "Proposal"}
-                    </Badge>
-                  </td>
-                  <td className="px-4 py-3">
-                    <QuoteStatusBadge status={q.status} />
-                  </td>
-                  <td className="px-4 py-3 text-muted-foreground capitalize">
-                    {q.event_type ?? "—"}
-                  </td>
-                  <td className="px-4 py-3 tabular-nums">
-                    {q.estimated_impressions ? (
-                      <span className="text-foreground">
-                        {formatNumberUS(q.estimated_impressions)}
-                        <span className="ml-1 text-xs text-muted-foreground">impr.</span>
-                      </span>
-                    ) : (
-                      <span className="text-muted-foreground">—</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3">
-                    {q.walkthrough_scheduled_at ? (
-                      <span className="inline-flex items-center gap-1.5 rounded-full border border-[hsl(142_60%_40%)]/30 bg-[hsl(142_60%_40%)]/10 px-2 py-0.5 text-xs font-medium text-[hsl(142_50%_42%)]">
-                        <CalendarCheck className="h-3 w-3" aria-hidden />
-                        {q.walkthrough_slot_label ??
-                          new Date(q.walkthrough_scheduled_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
-                      </span>
-                    ) : (
-                      <span className="text-muted-foreground">—</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-muted-foreground tabular-nums">
-                    {new Date(q.created_at).toLocaleDateString("en-US")}
-                  </td>
+        {filtered.length === 0 ? (
+          <div className="px-4 py-12 text-center text-muted-foreground">
+            No quotes match your filters.
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border/60 text-left text-overline text-muted-foreground">
+                  <th className="px-4 py-3 font-medium">Contact</th>
+                  <th className="px-4 py-3 font-medium">Track</th>
+                  <th className="px-4 py-3 font-medium">Status</th>
+                  <th className="px-4 py-3 font-medium">Type</th>
+                  <th className="px-4 py-3 font-medium tabular-nums">Reach</th>
+                  <th className="px-4 py-3 font-medium">Meeting</th>
+                  <th className="px-4 py-3 font-medium">Submitted</th>
                 </tr>
-              ))}
-              {filtered.length === 0 && (
-                <tr>
-                  <td colSpan={7} className="px-4 py-12 text-center text-muted-foreground">
-                    No quotes match your filters.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {filtered.map((q) => (
+                  <tr
+                    key={q.id}
+                    className="border-b border-border/60 transition-colors hover:bg-accent"
+                  >
+                    <td className="px-4 py-3">
+                      <Link href={`/admin/quotes/${q.id}`} className="block">
+                        <span className="font-medium text-foreground">
+                          {q.contact_name}
+                        </span>
+                        <span className="block text-xs text-muted-foreground">
+                          {q.company_name ?? q.contact_email}
+                        </span>
+                      </Link>
+                    </td>
+                    <td className="px-4 py-3">
+                      <Badge variant={q.track === "book_now" ? "info" : "default"}>
+                        {q.track === "book_now" ? "Book now" : "Proposal"}
+                      </Badge>
+                    </td>
+                    <td className="px-4 py-3">
+                      <QuoteStatusBadge status={q.status} />
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground capitalize">
+                      {q.event_type ?? "—"}
+                    </td>
+                    <td className="px-4 py-3 tabular-nums">
+                      {q.estimated_impressions ? (
+                        <span className="text-foreground">
+                          {formatNumberUS(q.estimated_impressions)}
+                          <span className="ml-1 text-xs text-muted-foreground">impr.</span>
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
+                      {q.walkthrough_scheduled_at ? (
+                        <span className="inline-flex items-center gap-1.5 rounded-full border border-[hsl(142_60%_40%)]/30 bg-[hsl(142_60%_40%)]/10 px-2 py-0.5 text-xs font-medium text-[hsl(142_50%_42%)]">
+                          <CalendarCheck className="h-3 w-3" aria-hidden />
+                          {q.walkthrough_slot_label ??
+                            new Date(q.walkthrough_scheduled_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      <TimestampCell dateStr={q.created_at} />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

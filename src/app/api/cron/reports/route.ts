@@ -11,7 +11,8 @@ import * as Sentry from "@sentry/nextjs";
 
 import { getServiceRoleClient } from "@/lib/supabase/service-role";
 import { requireCron } from "@/lib/cron-auth";
-import { generateEventReportSystem } from "@/app/actions/reports";
+import { recordCronRun } from "@/lib/cron/heartbeat";
+import { generateEventReportSystem } from "@/server/reports";
 import { dispatchNotification } from "@/lib/notifications/dispatch";
 
 export const runtime = "nodejs";
@@ -43,6 +44,10 @@ export async function GET(request: Request) {
 
   if (queryErr) {
     console.error("[Cron:reports] query failed", queryErr);
+    await recordCronRun(supabase, "reports", "error", {
+      stage: "candidate_query",
+      message: queryErr.message,
+    });
     return NextResponse.json({ error: "query failed" }, { status: 500 });
   }
 
@@ -51,10 +56,14 @@ export async function GET(request: Request) {
   );
 
   if (events.length === 0) {
+    await recordCronRun(supabase, "reports", "ok", { generated: 0 });
     return NextResponse.json({ ok: true, generated: 0 });
   }
 
   let generated = 0;
+  // Individual failures are logged and skipped so one bad event doesn't stop
+  // the batch, but they still have to colour the heartbeat.
+  let failures = 0;
 
   for (const event of events) {
     try {
@@ -77,9 +86,11 @@ export async function GET(request: Request) {
           console.error(`[Cron:reports] notification failed for ${event.id}`, notifyErr);
         }
       } else {
+        failures += 1;
         console.error(`[Cron:reports] generation failed for ${event.id}`, result.error);
       }
     } catch (err) {
+      failures += 1;
       Sentry.captureException(err, {
         tags: { cron: "reports", eventId: event.id as string },
       });
@@ -99,13 +110,14 @@ export async function GET(request: Request) {
 
     for (const exp of (dueExports ?? []) as Record<string, unknown>[]) {
       try {
-        const { buildExportData } = await import("@/app/actions/scheduled-exports");
+        const { buildExportData } = await import("@/server/exports");
         const includeFields = (exp.include_fields ?? []) as ("leads" | "scores" | "metrics" | "custom_fields")[];
         const format = exp.format as "csv" | "excel" | "pdf";
         const eventId = exp.event_id as string;
 
         const { filename, data } = await buildExportData(eventId, includeFields, format);
-        const storagePath = `exports/${eventId}/${filename}`;
+        // Event id first — the storage policies scope reads by owning event.
+        const storagePath = `${eventId}/exports/${filename}`;
         const fileData = typeof data === "string" ? new TextEncoder().encode(data) : data;
 
         await supabase.storage.from("reports").upload(storagePath, fileData, { upsert: true });
@@ -159,13 +171,21 @@ export async function GET(request: Request) {
 
         exportsSent += 1;
       } catch (exportErr) {
+        failures += 1;
         console.error(`[Cron:reports] export ${exp.id} failed`, exportErr);
         Sentry.captureException(exportErr, { tags: { cron: "scheduled_export", exportId: exp.id as string } });
       }
     }
   } catch (exportsErr) {
+    failures += 1;
     console.error("[Cron:reports] scheduled exports sweep failed", exportsErr);
   }
+
+  await recordCronRun(supabase, "reports", failures > 0 ? "error" : "ok", {
+    generated,
+    exportsSent,
+    failures,
+  });
 
   return NextResponse.json({ ok: true, generated, exportsSent });
 }

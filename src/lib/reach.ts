@@ -28,7 +28,7 @@ import { DEFAULT_CONVERSION_RATE } from "./roi";
  * Ad surfaces on the Bright frozen unit: 1 front touchscreen + 2 side
  * screens, all running the brand's creative. Multiplies raw exposures.
  */
-export const SCREEN_MULTIPLIER = 3;
+const SCREEN_MULTIPLIER = 3;
 
 /** Lead opt-in rate as a fraction (DEFAULT_CONVERSION_RATE is a %). */
 const LEAD_RATE = DEFAULT_CONVERSION_RATE / 100;
@@ -38,7 +38,7 @@ const LEAD_RATE = DEFAULT_CONVERSION_RATE / 100;
  * setting. Commuters are a tougher, faster-moving crowd than a captive
  * tradeshow audience, so this is deliberately conservative.
  */
-export const EXPERIENTIAL_PLAY_RATE = 0.06;
+const EXPERIENTIAL_PLAY_RATE = 0.06;
 
 /**
  * Realistic ceiling on completed plays for a *single* Bright unit per active
@@ -46,7 +46,7 @@ export const EXPERIENTIAL_PLAY_RATE = 0.06;
  * bounded by what one machine can physically serve — so we cap them here to
  * keep the numbers defensible in a sales conversation.
  */
-export const PLAYS_PER_DAY = 220;
+const PLAYS_PER_DAY = 220;
 
 /** Days we assume for a tradeshow run when the quiz doesn't capture them. */
 const DEFAULT_TRADESHOW_DAYS = 2;

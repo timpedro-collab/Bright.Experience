@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/accordion";
 import { Input } from "@/components/ui/input";
 import { EditorialEyebrow } from "@/components/brand";
-import type { HelpArticle, HelpCategory } from "@/content/help-articles";
+import type { HelpArticle } from "@/content/help-articles";
 
 interface GroupedArticles {
   category: string;

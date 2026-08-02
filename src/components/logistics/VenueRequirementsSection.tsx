@@ -156,6 +156,7 @@ function AddRequirementForm({ eventId }: { eventId: string }) {
   return (
     <div className="mt-3 p-4 rounded-xl border border-border/60 bg-muted/40 space-y-3">
       <select
+        aria-label="Requirement type"
         value={type}
         onChange={(e) => setType(e.target.value as VenueRequirementType)}
         className="px-3 py-2 rounded-[var(--radius-control)] border border-border bg-muted/40 text-sm text-foreground outline-none"

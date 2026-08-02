@@ -4,7 +4,7 @@ import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import { AnimatedCounter } from "./motion";
+import { StatCountUp } from "./StatCountUp";
 
 interface StatCardProps {
   label: string;
@@ -50,7 +50,12 @@ export function StatCard({
   animate = true,
   className,
 }: StatCardProps) {
-  const numericValue = typeof value === "number" ? value : null;
+  const countUpRaw =
+    typeof value === "number"
+      ? String(value)
+      : typeof value === "string" && value !== "—"
+        ? value
+        : null;
   const inner = (
     <>
       <div className="flex items-center justify-between gap-3">
@@ -70,9 +75,9 @@ export function StatCard({
         )}
       </div>
       <div className="mt-3 flex items-baseline gap-2">
-        {animate && numericValue !== null ? (
-          <AnimatedCounter
-            value={numericValue}
+        {animate && countUpRaw !== null ? (
+          <StatCountUp
+            raw={countUpRaw}
             className={cn(
               "text-heading text-3xl font-bold tabular-nums tracking-tight",
               toneStyles[tone]
@@ -115,7 +120,7 @@ export function StatCard({
     "bg-card/70 backdrop-blur-md",
     "p-5 transition-all duration-200",
     href &&
-      "cursor-pointer hover:border-foreground/20 hover:bg-card hover:-translate-y-0.5 hover:shadow-[var(--bb-shadow-premium)]",
+      "cursor-pointer hover:border-foreground/20 hover:bg-accent/50 hover:-translate-y-0.5 hover:shadow-[var(--bb-shadow-premium)]",
     className
   );
 

@@ -15,6 +15,7 @@ import {
   FileText,
   Receipt,
   Handshake,
+  Building2,
   Layers,
   Boxes,
   MapPin,
@@ -31,6 +32,7 @@ import {
   canViewCreativeProduct,
   canViewLocations,
 } from "@/lib/roles";
+import { isPublicApiEnabled } from "@/lib/integration-flags";
 import type { UserRole } from "@/types";
 
 export interface NavItem {
@@ -48,7 +50,7 @@ export interface NavSection {
 
 const ALWAYS = () => true;
 
-export const INTERNAL_SECTIONS: NavSection[] = [
+const INTERNAL_SECTIONS: NavSection[] = [
   {
     heading: "Workspace",
     items: [
@@ -71,6 +73,7 @@ export const INTERNAL_SECTIONS: NavSection[] = [
       { label: "Quotes", href: "/admin/quotes", icon: FileText, show: canViewCommercial },
       { label: "Invoices", href: "/admin/invoices", icon: Receipt, show: canViewCommercial },
       { label: "Partners", href: "/admin/partners", icon: Handshake, show: canViewCommercial },
+      { label: "Organizers", href: "/admin/organizers", icon: Building2, show: canViewCommercial },
       { label: "Campaigns", href: "/admin/campaigns", icon: Layers, show: canViewCommercial },
     ],
   },
@@ -88,7 +91,13 @@ export const INTERNAL_SECTIONS: NavSection[] = [
     heading: "Admin",
     items: [
       { label: "Users", href: "/admin/users", icon: Users, show: isAdminRole },
-      { label: "API & integrations", href: "/admin/api", icon: Key, show: isAdminRole },
+      {
+        label: "API & integrations",
+        href: "/admin/api",
+        icon: Key,
+        // The page 404s while the public API is off, so don't link to it.
+        show: (role) => isAdminRole(role) && isPublicApiEnabled(),
+      },
     ],
   },
 ];

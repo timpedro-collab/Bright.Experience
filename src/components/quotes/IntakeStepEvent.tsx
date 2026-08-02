@@ -44,7 +44,7 @@ const INCLUDED: { label: string; icon: LucideIcon }[] = [
  * canonical vocabulary in `@/lib/capabilities` so the selection prices and
  * builds the proposal correctly. Ordered to lead with the dispense model.
  */
-export const CAPABILITY_OPTIONS: {
+const CAPABILITY_OPTIONS: {
   slug: string;
   label: string;
   blurb: string;

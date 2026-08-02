@@ -1,5 +1,6 @@
 /** Supabase read queries for the machines catalog entity. */
 import { createClient } from "@/lib/supabase/server";
+import { logQueryError } from "@/lib/observability/log-query-error";
 
 /** Fetch all active machines ordered by sort_order. */
 export async function getMachines() {
@@ -11,7 +12,7 @@ export async function getMachines() {
     .order("sort_order");
 
   if (error) {
-    console.error("[getMachines] query failed", error);
+    logQueryError("getMachines", error);
     return [];
   }
   return data ?? [];
@@ -34,7 +35,7 @@ export async function getMachineBySlug(slug: string) {
     .maybeSingle();
 
   if (error) {
-    console.error("[getMachineBySlug] query failed", { slug, error });
+    logQueryError("getMachineBySlug", error, { slug });
     return null;
   }
   return data;

@@ -37,13 +37,15 @@ export const HERO_STATS: MarketingStat[] = [
 ];
 
 /**
- * Trust-band tiles: three hard numbers, no adjectives. The 200k impressions
- * and 100% consent figures come from the Costa Coffee case study telemetry
- * (see `case_studies` seed → stats_json).
+ * Trust-band tiles: three hard numbers, no adjectives. Tiles must be aggregate
+ * portfolio numbers or process guarantees — never single-client-attributed
+ * figures, which require that client's written publication approval (see
+ * docs/18-design-research.md §4a). All figures are verified with the
+ * commercial team before changing.
  */
 export const TRUST_STATS: [MarketingStat, MarketingStat, MarketingStat] = [
   { value: "92%", label: "of clients rebook after their first activation" },
-  { value: "200k", label: "brand impressions from a single activation" },
+  { value: "Up to 40%", label: "more leads captured than a standard stand" },
   { value: "100%", label: "consent rate on captured leads" },
 ];
 

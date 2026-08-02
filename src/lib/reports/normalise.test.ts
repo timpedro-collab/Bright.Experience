@@ -43,6 +43,28 @@ describe("normaliseMetrics", () => {
     const m = normaliseMetrics({ totalPlays: "42" });
     expect(m.totalPlays).toBe(42);
   });
+
+  it("reads capture-quality counts in either casing", () => {
+    const camel = normaliseMetrics({
+      captureQuality: { rejectedDomains: 34, duplicatesBlocked: 51 },
+    });
+    expect(camel.captureQuality).toEqual({
+      rejectedDomains: 34,
+      duplicatesBlocked: 51,
+    });
+
+    const snake = normaliseMetrics({
+      capture_quality: { rejected_domains: 7, duplicates_blocked: 9 },
+    });
+    expect(snake.captureQuality).toEqual({
+      rejectedDomains: 7,
+      duplicatesBlocked: 9,
+    });
+  });
+
+  it("returns null capture quality for events that predate tracking", () => {
+    expect(normaliseMetrics({ totalPlays: 10 }).captureQuality).toBeNull();
+  });
 });
 
 describe("normalisePredictions", () => {

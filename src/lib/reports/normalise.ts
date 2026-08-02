@@ -17,6 +17,27 @@ export interface SurveyResult {
   responses: number;
 }
 
+/** Machine-enforced capture guardrail counts (P2.1 reporting proof). */
+export interface CaptureQualityCounts {
+  rejectedDomains: number;
+  duplicatesBlocked: number;
+}
+
+/**
+ * One sponsor's slice of a show, as written by `generateEventReport`.
+ * Counters only — this block is shared with the sponsor.
+ */
+export interface SponsorProofRow {
+  slotId: string;
+  sponsorName: string;
+  zone: string | null;
+  machineLabel: string | null;
+  plays: number;
+  leads: number;
+  prizes: number;
+  optInRate: number;
+}
+
 export interface NormalisedMetrics {
   totalPlays: number;
   totalLeads: number;
@@ -33,6 +54,10 @@ export interface NormalisedMetrics {
   survey: SurveyResult[];
   demographics: Record<string, number>;
   peakHours: number[];
+  /** Null when the event predates capture-quality tracking. */
+  captureQuality: CaptureQualityCounts | null;
+  /** Empty unless the show sold sponsor slots against its machines. */
+  sponsors: SponsorProofRow[];
 }
 
 export interface NormalisedPredictions {
@@ -95,6 +120,41 @@ function normalisePeakHours(input: unknown): number[] {
   return input.map((v) => num(v)).filter((n) => n >= 0 && n <= 23);
 }
 
+function normaliseCaptureQuality(input: unknown): CaptureQualityCounts | null {
+  if (!input || typeof input !== "object") return null;
+  const o = input as Bag;
+  return {
+    rejectedDomains: num(o.rejectedDomains, o.rejected_domains),
+    duplicatesBlocked: num(o.duplicatesBlocked, o.duplicates_blocked),
+  };
+}
+
+function str(value: unknown): string | null {
+  return typeof value === "string" && value.trim() !== "" ? value : null;
+}
+
+function normaliseSponsors(input: unknown): SponsorProofRow[] {
+  if (!Array.isArray(input)) return [];
+  return input
+    .map((s): SponsorProofRow | null => {
+      if (!s || typeof s !== "object") return null;
+      const o = s as Bag;
+      const sponsorName = str(o.sponsorName ?? o.sponsor_name);
+      if (!sponsorName) return null;
+      return {
+        slotId: String(o.slotId ?? o.slot_id ?? ""),
+        sponsorName,
+        zone: str(o.zone),
+        machineLabel: str(o.machineLabel ?? o.machine_label),
+        plays: num(o.plays),
+        leads: num(o.leads),
+        prizes: num(o.prizes),
+        optInRate: num(o.optInRate, o.opt_in_rate),
+      };
+    })
+    .filter((s): s is SponsorProofRow => s !== null);
+}
+
 /** Read metrics_json into a stable shape regardless of casing/keys. */
 export function normaliseMetrics(input: unknown): NormalisedMetrics {
   const m: Bag = (input && typeof input === "object") ? (input as Bag) : {};
@@ -121,6 +181,8 @@ export function normaliseMetrics(input: unknown): NormalisedMetrics {
     survey: normaliseSurvey(m.survey),
     demographics: normaliseDemographics(m.demographics),
     peakHours: normalisePeakHours(m.peakHours ?? m.peak_hours),
+    captureQuality: normaliseCaptureQuality(m.captureQuality ?? m.capture_quality),
+    sponsors: normaliseSponsors(m.sponsors),
   };
 }
 

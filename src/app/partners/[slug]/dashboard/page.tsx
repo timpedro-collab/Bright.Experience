@@ -6,6 +6,7 @@ import { Sparkles, Share2, ArrowRight, TrendingUp } from "lucide-react";
 import { PortalPageShell, partnerTabs } from "@/components/brand";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { DashboardKpi } from "@/components/ui/DashboardKpi";
 import { EmptyState } from "@/components/ui/EmptyState";
 
 import { PartnerActionQueue } from "@/components/partners/PartnerActionQueue";
@@ -25,30 +26,6 @@ import { formatMoneyFromPence } from "@/lib/currency";
 
 interface DashboardPageProps {
   params: Promise<{ slug: string }>;
-}
-
-function Kpi({
-  label,
-  value,
-  hint,
-}: {
-  label: string;
-  value: string;
-  hint?: string;
-}) {
-  return (
-    <Card>
-      <CardContent className="p-5">
-        <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-          {label}
-        </p>
-        <p className="mt-2 text-2xl font-bold tabular-nums text-foreground">
-          {value}
-        </p>
-        {hint && <p className="mt-0.5 text-xs text-muted-foreground">{hint}</p>}
-      </CardContent>
-    </Card>
-  );
 }
 
 export default async function PartnerDashboardPage({ params }: DashboardPageProps) {
@@ -108,29 +85,29 @@ export default async function PartnerDashboardPage({ params }: DashboardPageProp
         }
       >
         {showCommissions && (
-          <Kpi
+          <DashboardKpi
             label="Total earned"
             value={formatMoneyFromPence(summary.totalEarned)}
             hint="Across all referrals"
           />
         )}
-        <Kpi
+        <DashboardKpi
           label="Clients referred"
           value={String(clientsReferred)}
           hint={`${wonDeals} won`}
         />
-        <Kpi
+        <DashboardKpi
           label="Open quotes"
           value={String(openQuotes)}
           hint="Awaiting a decision"
         />
         {showCommissions ? (
-          <Kpi
+          <DashboardKpi
             label="Paid to date"
             value={formatMoneyFromPence(summary.totalPaid)}
           />
         ) : (
-          <Kpi
+          <DashboardKpi
             label="Won events"
             value={String(wonDeals)}
             hint="Referrals that converted"
@@ -162,9 +139,11 @@ export default async function PartnerDashboardPage({ params }: DashboardPageProp
               {deals.length === 0 ? (
                 <EmptyState
                   icon={Share2}
-                  title="No referrals yet"
-                  description="Share your link below — the moment a client books through it, they'll show up here with full commission tracking."
+                  title="Your book of business"
+                  description="Referred clients and their deals appear here once someone books through your link or you send a quote. You haven't had a referral convert yet."
+                  action={{ label: "Send Quote", href: `/partners/${slug}/quotes` }}
                   size="sm"
+                  tone="flat"
                 />
               ) : (
                 <PartnerDealList deals={deals.slice(0, 5)} showCommissions={showCommissions} />

@@ -20,6 +20,7 @@ import { getUnreadCount } from "@/lib/queries/notifications";
 import { getUser } from "@/lib/auth";
 import { isInternalRole } from "@/lib/roles";
 import { canViewSection } from "@/lib/event-access";
+import { isStageAtOrAfter } from "@/lib/journey";
 import { getBriefingFiles } from "@/app/actions/briefing";
 
 export default async function BriefingPage({
@@ -51,6 +52,11 @@ export default async function BriefingPage({
   const opsSubmitted = opsBrief?.is_submitted ?? false;
   const bothSubmitted = creativeSubmitted && opsSubmitted;
   const isInternal = isInternalRole(user.role);
+  // Once the plan is locked the customer can no longer edit directly — the
+  // team has planned against it. Ops locks at logistics_confirmed; creative
+  // locks earlier, once the build (production of assets) is underway.
+  const opsPlanLocked = isStageAtOrAfter(event.currentStage, "logistics_confirmed");
+  const creativePlanLocked = isStageAtOrAfter(event.currentStage, "build_configuration");
   const accountName = event.account.name;
 
   const heroTitle = isInternal
@@ -132,6 +138,7 @@ export default async function BriefingPage({
                 initialResponses={opsBrief?.responses ?? {}}
                 isSubmitted={opsSubmitted}
                 readOnly={isInternal}
+                planLocked={opsPlanLocked}
               />
             ) : (
               <BriefingForm
@@ -139,6 +146,7 @@ export default async function BriefingPage({
                 initialResponses={creativeBrief?.responses ?? {}}
                 isSubmitted={creativeSubmitted}
                 readOnly={isInternal}
+                planLocked={creativePlanLocked}
               />
             )}
           </div>

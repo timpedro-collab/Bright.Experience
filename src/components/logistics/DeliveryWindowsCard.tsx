@@ -83,6 +83,7 @@ function WindowFields({
             Time window
           </label>
           <select
+            aria-label="Time window"
             value={value.window || TIME_WINDOWS[0]}
             onChange={(e) =>
               onChange({

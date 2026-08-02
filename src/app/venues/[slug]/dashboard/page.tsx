@@ -10,10 +10,11 @@ import {
   Monitor,
 } from "lucide-react";
 
-import { PortalPageShell, venueTabs } from "@/components/brand";
+import { PortalPageShell, venueTabs, venueRoleLabel } from "@/components/brand";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { DashboardKpi } from "@/components/ui/DashboardKpi";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { VenueDetailsCard } from "@/components/venues/VenueStatWidgets";
 import {
@@ -38,30 +39,6 @@ import { formatDateShort } from "@/lib/dates";
 
 interface Props {
   params: Promise<{ slug: string }>;
-}
-
-function Kpi({
-  label,
-  value,
-  hint,
-}: {
-  label: string;
-  value: string;
-  hint?: string;
-}) {
-  return (
-    <Card>
-      <CardContent className="p-5">
-        <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-          {label}
-        </p>
-        <p className="mt-2 text-2xl font-bold tabular-nums text-foreground">
-          {value}
-        </p>
-        {hint && <p className="mt-0.5 text-xs text-muted-foreground">{hint}</p>}
-      </CardContent>
-    </Card>
-  );
 }
 
 export default async function VenueDashboardPage({ params }: Props) {
@@ -117,12 +94,13 @@ export default async function VenueDashboardPage({ params }: Props) {
   return (
     <PortalPageShell
       user={user}
+      roleLabel={venueRoleLabel(user.role)}
       unreadCount={unread}
-      scope={venue.address ? `${venue.address}` : "Venue"}
+      scope={venue.name}
       section="Dashboard"
       slug={slug}
       tabs={venueTabs(slug)}
-      title={venue.name}
+      title="Dashboard"
       subtitle="Your revenue, what needs you, and every placement at a glance."
       heroRight={
         <>
@@ -140,22 +118,22 @@ export default async function VenueDashboardPage({ params }: Props) {
       }
     >
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Kpi
+        <DashboardKpi
           label="Booked revenue"
           value={formatMoneyFromPence(econ.bookedCents)}
           hint={`${econ.booked} slot${econ.booked === 1 ? "" : "s"} booked · ${econ.confirmed} confirmed`}
         />
-        <Kpi
+        <DashboardKpi
           label="Open slot value"
           value={formatMoneyFromPence(econ.openCents)}
           hint={`${econ.available} slot${econ.available === 1 ? "" : "s"} to sell`}
         />
-        <Kpi
+        <DashboardKpi
           label="Fill rate"
           value={`${econ.fillRate}%`}
           hint={`${econ.booked} of ${econ.total} slots`}
         />
-        <Kpi
+        <DashboardKpi
           label="Active placements"
           value={String(activeCount)}
           hint={`${placements.length} total`}
@@ -187,10 +165,11 @@ export default async function VenueDashboardPage({ params }: Props) {
               {placements.length === 0 ? (
                 <EmptyState
                   icon={Ticket}
-                  title="No placements yet"
-                  description="Add a placement to start selling sponsorship slots against your footfall."
-                  action={{ label: "Add a placement", href: `/venues/${slug}/placements` }}
+                  title="Your placements"
+                  description="Each placement ties a machine to a date range so you can sell sponsorship slots against your footfall. You haven't added one yet."
+                  action={{ label: "Add Placement", href: `/venues/${slug}/placements` }}
                   size="sm"
+                  tone="flat"
                 />
               ) : (
                 <ul className="divide-y divide-border/50">
@@ -213,7 +192,7 @@ export default async function VenueDashboardPage({ params }: Props) {
                               {venueStatusLabel(p.status)}
                             </Badge>
                           </div>
-                          <p className="mt-0.5 text-xs text-muted-foreground">
+                          <p className="mt-0.5 text-xs text-tertiary">
                             {formatDateShort(String(p.start_date))}
                             {p.end_date
                               ? ` – ${formatDateShort(String(p.end_date))}`
@@ -227,7 +206,7 @@ export default async function VenueDashboardPage({ params }: Props) {
                           <p className="text-sm font-semibold tabular-nums text-foreground">
                             {formatMoneyFromPence(s.bookedCents)}
                           </p>
-                          <p className="text-[0.65rem] text-muted-foreground">
+                          <p className="text-[0.65rem] text-quaternary">
                             booked
                           </p>
                         </div>

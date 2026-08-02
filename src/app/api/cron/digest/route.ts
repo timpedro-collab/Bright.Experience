@@ -20,6 +20,7 @@ import { Resend } from "resend";
 
 import { getServiceRoleClient } from "@/lib/supabase/service-role";
 import { requireCron } from "@/lib/cron-auth";
+import { recordCronRun } from "@/lib/cron/heartbeat";
 import { ARCHETYPES, type NotificationKind } from "@/lib/notifications/archetypes";
 import { renderNotificationEmail } from "@/lib/notifications/email-shell";
 import {
@@ -27,6 +28,7 @@ import {
   DEFAULT_DIGEST_TIMING,
   type DigestTiming,
 } from "@/lib/notifications/digest-timing";
+import { forEachChunk } from "@/lib/queries/chunk";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -51,14 +53,18 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "unauthorised" }, { status: 401 });
   }
 
+  const supabase = getServiceRoleClient();
+
+  // Still a heartbeat: the scheduler is alive, we just have nothing to send
+  // with. Without this the job would read as stale on an unconfigured env.
   if (!resend) {
+    await recordCronRun(supabase, "digest", "ok", { skipped: "no_resend_key" });
     return NextResponse.json({
       ok: true,
       note: "Resend not configured — skipping digest send.",
     });
   }
 
-  const supabase = getServiceRoleClient();
   const now = new Date();
 
   const since = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString();
@@ -70,6 +76,7 @@ export async function GET(request: Request) {
     .eq("is_read", false);
 
   if (!notifications || notifications.length === 0) {
+    await recordCronRun(supabase, "digest", "ok", { digestSent: 0 });
     return NextResponse.json({ ok: true, digestSent: 0 });
   }
 
@@ -80,28 +87,35 @@ export async function GET(request: Request) {
     byUser.set(row.user_id, bucket);
   }
 
+  // Every lookup below fans out over the recipient list, which grows with the
+  // user base. Chunked so the `in.(...)` filter cannot overflow the request URL
+  // — the failure mode is a whole night's digest silently not sending.
   const userIds = Array.from(byUser.keys());
-  const { data: profilesRaw } = await supabase
-    .from("profiles")
-    .select("id, name, email")
-    .in("id", userIds)
-    .eq("is_active", true);
   type Profile = { id: string; name: string; email: string };
-  const profiles = (profilesRaw ?? []) as unknown as Profile[];
+  const profiles = await forEachChunk(userIds, async (batch) => {
+    const { data } = await supabase
+      .from("profiles")
+      .select("id, name, email")
+      .in("id", batch)
+      .eq("is_active", true);
+    return (data ?? []) as unknown as Profile[];
+  });
   const profileById = new Map<string, Profile>(
     profiles.map((p) => [p.id, p])
   );
 
-  const { data: preferencesRaw } = await supabase
-    .from("notification_preferences")
-    .select("user_id, kind, email_mode")
-    .in("user_id", userIds);
   type PrefRow = {
     user_id: string;
     kind: string;
     email_mode: "immediate" | "digest" | "off";
   };
-  const preferences = (preferencesRaw ?? []) as unknown as PrefRow[];
+  const preferences = await forEachChunk(userIds, async (batch) => {
+    const { data } = await supabase
+      .from("notification_preferences")
+      .select("user_id, kind, email_mode")
+      .in("user_id", batch);
+    return (data ?? []) as unknown as PrefRow[];
+  });
   const prefByUserKind = new Map<string, "immediate" | "digest" | "off">();
   for (const row of preferences) {
     prefByUserKind.set(`${row.user_id}::${row.kind}`, row.email_mode);
@@ -113,12 +127,6 @@ export async function GET(request: Request) {
     return ARCHETYPES[kind]?.defaults.emailMode ?? "digest";
   }
 
-  const { data: timingRaw } = await supabase
-    .from("notification_user_settings")
-    .select(
-      "user_id, timezone, digest_hour, quiet_start_hour, quiet_end_hour, last_digest_sent_at",
-    )
-    .in("user_id", userIds);
   type TimingRow = {
     user_id: string;
     timezone: string;
@@ -127,8 +135,17 @@ export async function GET(request: Request) {
     quiet_end_hour: number;
     last_digest_sent_at: string | null;
   };
+  const timingRows = await forEachChunk(userIds, async (batch) => {
+    const { data } = await supabase
+      .from("notification_user_settings")
+      .select(
+        "user_id, timezone, digest_hour, quiet_start_hour, quiet_end_hour, last_digest_sent_at",
+      )
+      .in("user_id", batch);
+    return (data ?? []) as unknown as TimingRow[];
+  });
   const timingByUser = new Map<string, TimingRow>();
-  for (const row of (timingRaw ?? []) as unknown as TimingRow[]) {
+  for (const row of timingRows) {
     timingByUser.set(row.user_id, row);
   }
 
@@ -213,5 +230,9 @@ export async function GET(request: Request) {
     }
   }
 
+  await recordCronRun(supabase, "digest", "ok", {
+    digestSent: sent,
+    skippedForTiming,
+  });
   return NextResponse.json({ ok: true, digestSent: sent, skippedForTiming });
 }

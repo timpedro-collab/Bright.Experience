@@ -48,7 +48,7 @@ export default async function QAPage({
             icon={ShieldCheck}
             title="No QA items yet"
             description="Quality assurance checks will appear here when the event reaches the QA stage."
-            action={{ label: "View timeline", href: `/events/${id}/timeline` }}
+            action={{ label: "Open Timeline", href: `/events/${id}/timeline` }}
           />
         ) : (
           <QAChecklist eventId={id} items={qaItems} isInternal={isInternal} viewerRole={user.role} />

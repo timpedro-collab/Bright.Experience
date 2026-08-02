@@ -48,7 +48,7 @@ const STAGE_NEXT_STEP: Record<Stage, StageNextStepEntry> = {
       tone: "brand",
       primaryLabel: "Start the brief",
       primaryHref: "briefing",
-      secondary: { label: "See the plan", href: "deadlines" },
+      secondary: { label: "See the plan", href: "timeline" },
     },
     internal: {
       eyebrow: "Kickoff",
@@ -132,7 +132,7 @@ const STAGE_NEXT_STEP: Record<Stage, StageNextStepEntry> = {
         "You'll be asked to approve the first proof shortly. Keep an eye on this page.",
       tone: "info",
       primaryLabel: "See the schedule",
-      primaryHref: "deadlines",
+      primaryHref: "timeline",
     },
     internal: {
       eyebrow: "Studio production",

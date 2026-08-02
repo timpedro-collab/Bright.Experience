@@ -37,6 +37,15 @@ export interface MockSupabase {
   setDefaultResponse: (response: QueryResult) => void;
   /** Queue a response for a specific table. */
   setTableResponse: (table: string, response: QueryResult) => void;
+  /**
+   * Queue responses for consecutive queries against one table, in call order.
+   * For actions that read a table and then write it (look up a clash, then
+   * insert), where a single per-table response can't describe both.
+   *
+   * Once the list is exhausted the last entry repeats, so a trailing
+   * revalidation read doesn't fall off the end.
+   */
+  queueTableResponses: (table: string, responses: QueryResult[]) => void;
   /** Queue an authenticated user for `auth.getUser()`. */
   setUser: (user: { id: string; email?: string } | null) => void;
   /** Inspect the chain calls made on a particular table. */
@@ -46,11 +55,25 @@ export interface MockSupabase {
 export function createMockSupabase(): MockSupabase {
   let defaultResponse: QueryResult = { data: null, error: null };
   const tableResponses = new Map<string, QueryResult>();
+  const tableQueues = new Map<string, QueryResult[]>();
   const tableCalls = new Map<string, Array<{ method: string; args: unknown[] }>>();
   let currentUser: { id: string; email?: string } | null = {
     id: "00000000-0000-0000-0000-000000000001",
     email: "test@brightblue.test",
   };
+
+  /**
+   * The response for the next settled query on a table: the head of its queue
+   * if one was set (keeping the last entry once drained), else its single
+   * response, else the default.
+   */
+  function nextResponse(table: string): QueryResult {
+    const queue = tableQueues.get(table);
+    if (queue && queue.length > 0) {
+      return queue.length === 1 ? queue[0] : (queue.shift() as QueryResult);
+    }
+    return tableResponses.get(table) ?? defaultResponse;
+  }
 
   function builderFor(table: string) {
     if (!tableCalls.has(table)) tableCalls.set(table, []);
@@ -77,16 +100,13 @@ export function createMockSupabase(): MockSupabase {
     for (const method of settleMethods) {
       builder[method] = vi.fn((...args: unknown[]) => {
         calls.push({ method, args });
-        const response = tableResponses.get(table) ?? defaultResponse;
-        return Promise.resolve(response);
+        return Promise.resolve(nextResponse(table));
       });
     }
 
     // Awaiting the builder itself resolves with the queued response.
-    builder.then = (resolve: (value: QueryResult) => unknown) => {
-      const response = tableResponses.get(table) ?? defaultResponse;
-      return Promise.resolve(response).then(resolve);
-    };
+    builder.then = (resolve: (value: QueryResult) => unknown) =>
+      Promise.resolve(nextResponse(table)).then(resolve);
 
     return builder;
   }
@@ -122,6 +142,9 @@ export function createMockSupabase(): MockSupabase {
     },
     setTableResponse(table, response) {
       tableResponses.set(table, response);
+    },
+    queueTableResponses(table, responses) {
+      tableQueues.set(table, [...responses]);
     },
     setUser(user) {
       currentUser = user;

@@ -2,7 +2,7 @@
 import { Clock, AlertTriangle, CheckCircle2, FileImage, ListChecks, Flag } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { formatDateShort } from "@/lib/dates";
+import { formatDateShort, formatDateByCertainty } from "@/lib/dates";
 import { OwnerBadge } from "@/components/ui/OwnerBadge";
 import type { DeadlineItem, DeadlineUrgency } from "@/lib/queries/deadlines";
 import type { UserRole } from "@/types";
@@ -46,6 +46,10 @@ function EntityIcon({ type }: { type: DeadlineItem["entityType"] }) {
     case "milestone":
       return <Flag size={12} />;
   }
+}
+
+function formatDueDate(dueDate: string, isInternal: boolean): string {
+  return isInternal ? formatDateShort(dueDate) : formatDateByCertainty(dueDate);
 }
 
 export function DeadlineTimeline({ deadlines, isInternal = false, viewerRole }: DeadlineTimelineProps) {
@@ -110,6 +114,11 @@ export function DeadlineTimeline({ deadlines, isInternal = false, viewerRole }: 
                   <span className="text-sm font-medium text-foreground truncate">
                     {d.title}
                   </span>
+                  {d.children && d.children.length > 0 && (
+                    <span className="text-xs text-muted-foreground tabular-nums">
+                      · {d.children.length} file{d.children.length === 1 ? "" : "s"}
+                    </span>
+                  )}
                   <OwnerBadge
                     owner={d.owner}
                     viewerRole={viewerRole}
@@ -127,8 +136,36 @@ export function DeadlineTimeline({ deadlines, isInternal = false, viewerRole }: 
                   </Badge>
                 </div>
                 <p className={cn("text-xs mt-0.5", styles.text)}>
-                  {formatDateShort(d.dueDate)}
+                  {formatDueDate(d.dueDate, isInternal)}
                 </p>
+                {d.children && d.children.length > 0 && (
+                  <details className="group/details mt-2">
+                    <summary className="cursor-pointer list-none text-xs font-medium text-[var(--color-bb-cobalt)] hover:underline">
+                      <span className="group-open/details:hidden">
+                        Show {d.children.length} file{d.children.length === 1 ? "" : "s"}
+                      </span>
+                      <span className="hidden group-open/details:inline">Hide files</span>
+                    </summary>
+                    <ul className="mt-2 space-y-1.5 border-l border-border pl-3">
+                      {d.children.map((child) => {
+                        const childStyles = URGENCY_STYLES[child.urgency];
+                        return (
+                          <li
+                            key={`${child.entityType}-${child.id}`}
+                            className="flex items-center justify-between gap-2"
+                          >
+                            <span className="text-xs text-foreground truncate">
+                              {child.title}
+                            </span>
+                            <span className={cn("text-[11px] shrink-0", childStyles.text)}>
+                              {formatDueDate(child.dueDate, isInternal)}
+                            </span>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </details>
+                )}
               </div>
             </div>
           );

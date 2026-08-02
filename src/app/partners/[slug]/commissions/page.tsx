@@ -1,5 +1,6 @@
 /** Partner commissions — what's coming, what's pending, and the full history. */
 import { redirect } from "next/navigation";
+import { Wallet } from "lucide-react";
 
 import { getUser } from "@/lib/auth";
 import { isPartnerAdmin } from "@/lib/roles";
@@ -11,6 +12,7 @@ import {
 import { getUnreadCount } from "@/lib/queries/notifications";
 import { PortalPageShell, partnerTabs } from "@/components/brand";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { NextPayoutCard } from "@/components/partners/NextPayoutCard";
 import { PartnerDealList } from "@/components/partners/PartnerPipeline";
 
@@ -63,10 +65,14 @@ export default async function PartnerCommissionsPage({ params }: CommissionsPage
           </CardHeader>
           <CardContent>
             {withCommission.length === 0 ? (
-              <p className="py-2 text-sm text-muted-foreground">
-                No commissions yet — they&apos;ll appear here as your referrals
-                convert and get approved.
-              </p>
+              <EmptyState
+                icon={Wallet}
+                title="Commission history"
+                description="Approved and paid commissions from your referrals appear here. None have converted and been approved yet."
+                action={{ label: "View Dashboard", href: `/partners/${slug}/dashboard` }}
+                size="sm"
+                tone="flat"
+              />
             ) : (
               <PartnerDealList deals={withCommission} />
             )}

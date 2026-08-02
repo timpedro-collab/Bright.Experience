@@ -1,7 +1,7 @@
 /**
  * Canonical capability vocabulary for Bright.Experience.
  *
- * Source of truth for the twelve capabilities (four always-on + eight
+ * Source of truth for the thirteen capabilities (four always-on + nine
  * tailorable) that every customer-facing surface (quiz, match reveal, refine
  * drawer, proposal intake, admin quote view) speaks. The customer never sees
  * the slug — they see the `outcome` line.
@@ -89,6 +89,10 @@ export const ALWAYS_ON: ReadonlyArray<Pick<Capability, "slug" | "outcome" | "cap
  *
  * Ordered roughly by how often they are pre-selected, for a stable layout
  * when several appear together.
+ *
+ * Adding a slug here? Mirror it in the `package_addons.capability_slug`
+ * check constraint with a new migration (see
+ * `20260724000001_branded_landing_capability.sql` for the pattern).
  */
 export const CAPABILITIES: ReadonlyArray<Capability> = [
   {
@@ -182,6 +186,17 @@ export const CAPABILITIES: ReadonlyArray<Capability> = [
     capability: "Payments Platform",
     kind: "tailorable",
     defaultPricePence: 120_000,
+    // Opt-in only: shown as a toggle in Refine, never auto-promised.
+    preSelect: () => false,
+  },
+  {
+    slug: "branded-landing-page",
+    outcome: "Sign-up page in your brand, not ours",
+    mechanism: "QR capture landing page styled with your brand kit",
+    capability: "Branded data-capture landing page",
+    kind: "tailorable",
+    // Placeholder price — commercial owner to confirm (see OWNER-TODO.md).
+    defaultPricePence: 30_000,
     // Opt-in only: shown as a toggle in Refine, never auto-promised.
     preSelect: () => false,
   },

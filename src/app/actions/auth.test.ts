@@ -10,7 +10,12 @@ const resetMock = vi.fn();
 
 vi.mock("next/headers", () => ({
   headers: async () => ({
-    get: (k: string) => (k === "x-forwarded-for" ? "1.2.3.4" : null),
+    get: (k: string) => {
+      if (k === "x-forwarded-for") return "1.2.3.4";
+      // An attacker-controlled origin: the reset link must not be built from it.
+      if (k === "origin") return "https://evil.example";
+      return null;
+    },
   }),
 }));
 
@@ -55,15 +60,28 @@ describe("signInWithPassword", () => {
 });
 
 describe("requestPasswordReset", () => {
-  it("returns success and passes the redirect through", async () => {
+  it("builds the reset link from the configured site URL, not the request", async () => {
+    vi.stubEnv("NEXT_PUBLIC_SITE_URL", "https://app.brightblue.co.uk");
     const { requestPasswordReset } = await import("./auth");
-    const result = await requestPasswordReset(
-      "reset-user@example.com",
-      "https://app/auth/reset-password",
-    );
+
+    const result = await requestPasswordReset("reset-user@example.com");
+
     expect(result).toEqual({ success: true });
     expect(resetMock).toHaveBeenCalledWith("reset-user@example.com", {
-      redirectTo: "https://app/auth/reset-password",
+      redirectTo: "https://app.brightblue.co.uk/auth/reset-password",
     });
+    vi.unstubAllEnvs();
+  });
+
+  it("falls back to the request origin only when no site URL is configured", async () => {
+    vi.stubEnv("NEXT_PUBLIC_SITE_URL", "");
+    const { requestPasswordReset } = await import("./auth");
+
+    await requestPasswordReset("dev-user@example.com");
+
+    expect(resetMock).toHaveBeenCalledWith("dev-user@example.com", {
+      redirectTo: "https://evil.example/auth/reset-password",
+    });
+    vi.unstubAllEnvs();
   });
 });

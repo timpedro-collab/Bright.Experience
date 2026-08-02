@@ -4,6 +4,7 @@
 import { requireInternalUser } from "@/lib/auth";
 import { canViewCreativeProduct } from "@/lib/roles";
 import { revalidatePath } from "next/cache";
+import { logQueryError } from "@/lib/observability/log-query-error";
 import type { ActionResult } from "@/types/actions";
 
 /**
@@ -165,57 +166,34 @@ export async function updateGame(
   return { success: true, data: { id: game.id as string } };
 }
 
-/** Link a game to a machine via the junction table. */
+/**
+ * Link a game to a machine via the junction table.
+ *
+ * `machine_games` is keyed on (machine_id, game_id) and has no `id` column, so
+ * the pair is the identity we hand back. Re-linking an existing pair is a
+ * no-op rather than a duplicate-key error — the caller is expressing "these
+ * two are linked", not "insert a row".
+ */
 export async function linkGameToMachine(
   machineId: string,
   gameId: string,
-): Promise<ActionResult<{ id: string }>> {
+): Promise<ActionResult<{ machineId: string; gameId: string }>> {
   const auth = await requireCatalogEditor();
   if (!auth.ok) return { success: false, error: auth.error };
   const { supabase } = auth;
 
-  const { data: row, error } = await supabase
+  const { error } = await supabase
     .from("machine_games")
-    .insert({ machine_id: machineId, game_id: gameId })
-    .select("id")
-    .single();
+    .upsert(
+      { machine_id: machineId, game_id: gameId },
+      { onConflict: "machine_id,game_id", ignoreDuplicates: true }
+    );
 
-  if (error || !row) {
+  if (error) {
+    logQueryError("linkGameToMachine", error, { machineId, gameId });
     return { success: false, error: "Could not link game to machine. Please try again." };
   }
 
   revalidatePath("/catalog");
-  return { success: true, data: { id: row.id as string } };
-}
-
-/** Delete a machine from the catalog. */
-export async function deleteCatalogMachine(
-  id: string,
-): Promise<ActionResult> {
-  const auth = await requireCatalogEditor();
-  if (!auth.ok) return { success: false, error: auth.error };
-  const { supabase } = auth;
-
-  const { error } = await supabase.from("machines").delete().eq("id", id);
-  if (error) {
-    return { success: false, error: "Could not delete machine. Please try again." };
-  }
-
-  revalidatePath("/catalog");
-  return { success: true, data: undefined };
-}
-
-/** Delete a game from the catalog. */
-export async function deleteCatalogGame(id: string): Promise<ActionResult> {
-  const auth = await requireCatalogEditor();
-  if (!auth.ok) return { success: false, error: auth.error };
-  const { supabase } = auth;
-
-  const { error } = await supabase.from("games").delete().eq("id", id);
-  if (error) {
-    return { success: false, error: "Could not delete game. Please try again." };
-  }
-
-  revalidatePath("/catalog");
-  return { success: true, data: undefined };
+  return { success: true, data: { machineId, gameId } };
 }

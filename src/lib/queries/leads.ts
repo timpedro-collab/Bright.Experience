@@ -1,39 +1,24 @@
 /** Supabase read queries for captured event leads. */
 import { createClient } from "@/lib/supabase/server";
 import { PAGE_SIZE, paginateQuery, totalPages } from "@/lib/pagination";
+import { logQueryError } from "@/lib/observability/log-query-error";
 
 const LEAD_COLUMNS =
-  "id, event_id, machine_instance_id, contact_name, contact_email, contact_phone, custom_fields_json, source, captured_at";
-
-/**
- * Hard cap for non-paginated lead fetches.
- * Prefer `getLeadsByEventPaginated` for UI tables; use this only when a
- * bounded full list is required (exports, aggregates helpers).
- */
-export const MAX_LEADS_PER_EVENT = 5000;
+  "id, event_id, machine_instance_id, contact_name, contact_email, contact_phone, custom_fields_json, source, captured_at, consented_at";
 
 /** Safety cap for aggregate scans — enough for headline metrics, not unbounded. */
 const MAX_LEAD_AGGREGATE_ROWS = 10_000;
 
 /**
- * Fetch leads captured at an event, newest first.
- * Bounded by {@link MAX_LEADS_PER_EVENT}. For paginated UI, use
- * `getLeadsByEventPaginated` instead.
+ * Paginated leads for the leads table view.
+ *
+ * The count here only sizes the pager, so it asks for `estimated` rather than
+ * `exact`: PostgREST answers exactly up to its `db-max-rows` threshold and
+ * falls back to the planner's estimate above it, which keeps a busy event's
+ * lead table from paying for a full count scan on every page turn. The
+ * headline "N contacts captured" figure on the same page comes from
+ * {@link getLeadCount}, which stays exact because that number is read as fact.
  */
-export async function getLeadsByEvent(eventId: string) {
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("leads")
-    .select(LEAD_COLUMNS)
-    .eq("event_id", eventId)
-    .order("captured_at", { ascending: false })
-    .limit(MAX_LEADS_PER_EVENT);
-
-  if (error || !data) return [];
-  return data;
-}
-
-/** Paginated leads for the leads table view. */
 export async function getLeadsByEventPaginated(
   eventId: string,
   page: number = 1,
@@ -42,12 +27,15 @@ export async function getLeadsByEventPaginated(
   const supabase = await createClient();
   const query = supabase
     .from("leads")
-    .select(LEAD_COLUMNS, { count: "exact" })
+    .select(LEAD_COLUMNS, { count: "estimated" })
     .eq("event_id", eventId)
     .order("captured_at", { ascending: false });
 
   const { data, error, count } = await paginateQuery(query, page, pageSize);
-  if (error || !data) return { data: [], totalCount: 0, totalPages: 1 };
+  if (error || !data) {
+    logQueryError("getLeadsByEventPaginated", error, { eventId });
+    return { data: [], totalCount: 0, totalPages: 1 };
+  }
 
   const total = count ?? 0;
   return { data, totalCount: total, totalPages: totalPages(total, pageSize) };
@@ -61,7 +49,10 @@ export async function getLeadCount(eventId: string) {
     .select("id", { count: "exact", head: true })
     .eq("event_id", eventId);
 
-  if (error) return 0;
+  if (error) {
+    logQueryError("getLeadCount", error, { eventId });
+    return 0;
+  }
   return count ?? 0;
 }
 

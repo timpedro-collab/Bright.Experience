@@ -58,6 +58,9 @@ export interface PackageAddon {
   category?: string;
 }
 
+/** Client-approved publication level for public marketing surfaces. */
+export type PublicationRights = "named" | "anonymised" | "aggregate_only";
+
 /** Published case study showcasing a past event */
 export interface CaseStudy {
   id: string;
@@ -72,6 +75,8 @@ export interface CaseStudy {
   statsJson: Record<string, unknown>;
   testimonialQuote?: string;
   testimonialAuthor?: string;
+  publicationRights: PublicationRights;
+  anonymisedLabel?: string | null;
   isPublished: boolean;
   publishedAt?: string;
 }

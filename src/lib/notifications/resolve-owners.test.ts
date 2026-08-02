@@ -147,6 +147,116 @@ describe("resolveOwners — task_assignee", () => {
   });
 });
 
+describe("resolveOwners — show_organizer", () => {
+  it("returns the organizer's users alongside the internal show owner", async () => {
+    supabase.setTableResponse("events", {
+      data: { organizer_partner_id: "p-1" },
+      error: null,
+    });
+    supabase.queueTableResponses("profiles", [
+      {
+        data: [{ id: "u-org", email: "org@x", name: "Org", role: "partner_admin" }],
+        error: null,
+      },
+      {
+        data: [{ id: "u-el", email: "el@x", name: "EL", role: "events_lead" }],
+        error: null,
+      },
+    ]);
+    const out = await resolveOwners(
+      ARCHETYPES["sponsor.interest_received"],
+      { eventId: "evt-1" },
+      supabase
+    );
+    expect(out.map((r) => r.id)).toEqual(["u-org", "u-el"]);
+  });
+
+  it("still reaches the team inbox for a show with no organizer users yet", async () => {
+    supabase.setTableResponse("events", {
+      data: { organizer_partner_id: null },
+      error: null,
+    });
+    supabase.setTableResponse("profiles", { data: [], error: null });
+    const out = await resolveOwners(
+      ARCHETYPES["sponsor.interest_received"],
+      { eventId: "evt-1" },
+      supabase
+    );
+    expect(out).toHaveLength(1);
+    expect(out[0].isFallbackTeamInbox).toBe(true);
+  });
+
+  it("returns empty without an event to hang the show on", async () => {
+    const out = await resolveOwners(
+      ARCHETYPES["sponsor.interest_received"],
+      {},
+      supabase
+    );
+    expect(out).toEqual([]);
+  });
+});
+
+describe("resolveOwners — venue_operator", () => {
+  it("returns the users of the partner that owns the venue", async () => {
+    supabase.setTableResponse("sponsorship_slots", {
+      data: { placements: { venues: { partner_id: "p-1" } } },
+      error: null,
+    });
+    supabase.setTableResponse("profiles", {
+      data: [{ id: "u-v", email: "v@x", name: "V", role: "partner_admin" }],
+      error: null,
+    });
+    const out = await resolveOwners(
+      ARCHETYPES["sponsor.slot_requested"],
+      { slotId: "slot-1" },
+      supabase
+    );
+    expect(out.map((r) => r.id)).toEqual(["u-v"]);
+  });
+
+  it("routes demand on an unclaimed venue to the internal team", async () => {
+    supabase.setTableResponse("sponsorship_slots", {
+      data: { placements: { venues: { partner_id: null } } },
+      error: null,
+    });
+    supabase.setTableResponse("profiles", {
+      data: [{ id: "u-el", email: "el@x", name: "EL", role: "events_lead" }],
+      error: null,
+    });
+    const out = await resolveOwners(
+      ARCHETYPES["sponsor.slot_requested"],
+      { slotId: "slot-1" },
+      supabase
+    );
+    expect(out.map((r) => r.id)).toEqual(["u-el"]);
+  });
+});
+
+describe("resolveOwners — internal_admins", () => {
+  it("returns admins without needing any entity context", async () => {
+    supabase.setTableResponse("profiles", {
+      data: [{ id: "u-a", email: "a@x", name: "A", role: "admin" }],
+      error: null,
+    });
+    const out = await resolveOwners(
+      ARCHETYPES["partner.application_received"],
+      {},
+      supabase
+    );
+    expect(out.map((r) => r.id)).toEqual(["u-a"]);
+  });
+
+  it("falls back to the team inbox when no admin profile exists", async () => {
+    supabase.setTableResponse("profiles", { data: [], error: null });
+    const out = await resolveOwners(
+      ARCHETYPES["partner.application_received"],
+      {},
+      supabase
+    );
+    expect(out[0].isFallbackTeamInbox).toBe(true);
+  });
+});
+
 describe("resolveOwners — event_members_internal", () => {
   it("fetches all internal roles", async () => {
     supabase.setTableResponse("profiles", {

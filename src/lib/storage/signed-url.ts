@@ -22,6 +22,7 @@
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { ALLOWED_FILE_TYPES, MAX_FILE_SIZE_MB } from "@/lib/validations/assets";
+import { logQueryError } from "@/lib/observability/log-query-error";
 
 export type StorageBucket =
   | "event-assets"
@@ -77,6 +78,27 @@ export const BUCKET_CONSTRAINTS: Record<StorageBucket, BucketConstraints> = {
 
 /** Default TTL for read URLs (one hour). */
 const DEFAULT_READ_TTL_SECONDS = 60 * 60;
+
+/**
+ * Extensions whose files execute script when a browser renders them at the top
+ * level. An SVG logo is a legitimate brand asset — customers send them for the
+ * machine wrap — but it is also a document that can carry `<script>`, and
+ * Supabase Storage serves it from the project host, which is the same origin as
+ * the REST and auth APIs. Uploads go browser → storage on a signed URL, so
+ * there is no server-side hook to sanitise the bytes.
+ *
+ * Reads of these files are therefore signed with `download`, which sets
+ * `Content-Disposition: attachment`. The file downloads instead of rendering,
+ * so nothing inside it ever runs. `<img>` previews are unaffected — that header
+ * only governs navigations.
+ */
+const SCRIPTABLE_EXTENSIONS = [".svg", ".svgz", ".html", ".htm", ".xhtml", ".xml"];
+
+/** True when this object must never be rendered inline by a browser. */
+export function mustDownloadInsteadOfRender(path: string): boolean {
+  const withoutQuery = path.split(/[?#]/)[0]!.toLowerCase();
+  return SCRIPTABLE_EXTENSIONS.some((ext) => withoutQuery.endsWith(ext));
+}
 
 /**
  * Validate an upload candidate against the bucket's constraints.
@@ -145,8 +167,15 @@ export async function createSignedReadUrl(
 ): Promise<string | null> {
   const { data, error } = await supabase.storage
     .from(bucket)
-    .createSignedUrl(path, ttlSeconds);
-  if (error || !data) return null;
+    .createSignedUrl(
+      path,
+      ttlSeconds,
+      mustDownloadInsteadOfRender(path) ? { download: true } : undefined
+    );
+  if (error || !data) {
+    logQueryError("createSignedReadUrl", error);
+    return null;
+  }
   return data.signedUrl;
 }
 
@@ -165,6 +194,9 @@ export async function createSignedUploadUrl(
   const { data, error } = await supabase.storage
     .from(bucket)
     .createSignedUploadUrl(path);
-  if (error || !data) return null;
+  if (error || !data) {
+    logQueryError("createSignedUploadUrl", error);
+    return null;
+  }
   return data;
 }

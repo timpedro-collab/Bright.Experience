@@ -5,6 +5,7 @@ import { useState, useTransition, useOptimistic, useMemo } from "react";
 import { MessageCircle, Reply, Trash2, Send } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { addComment, deleteComment } from "@/app/actions/comments";
 import { cn } from "@/lib/utils";
 import type { Comment } from "@/types";
@@ -26,6 +27,8 @@ interface AssetCommentThreadProps {
   assetId: string;
   eventId: string;
   currentUserId: string;
+  /** Current asset version — used for "on vN" chips on older comments. */
+  currentVersion?: number;
 }
 
 export function AssetCommentThread({
@@ -33,6 +36,7 @@ export function AssetCommentThread({
   assetId,
   eventId,
   currentUserId,
+  currentVersion,
 }: AssetCommentThreadProps) {
   const [replyTo, setReplyTo] = useState<string | null>(null);
   const [body, setBody] = useState("");
@@ -108,6 +112,7 @@ export function AssetCommentThread({
           replies={repliesMap[c.id] ?? []}
           repliesMap={repliesMap}
           currentUserId={currentUserId}
+          currentVersion={currentVersion}
           onReply={(id) => setReplyTo(id)}
           onDelete={handleDelete}
           depth={0}
@@ -146,6 +151,7 @@ function CommentNode({
   replies,
   repliesMap,
   currentUserId,
+  currentVersion,
   onReply,
   onDelete,
   depth,
@@ -154,10 +160,16 @@ function CommentNode({
   replies: Comment[];
   repliesMap: Record<string, Comment[]>;
   currentUserId: string;
+  currentVersion?: number;
   onReply: (id: string) => void;
   onDelete: (id: string) => void;
   depth: number;
 }) {
+  const showVersionChip =
+    comment.assetVersionNumber != null &&
+    currentVersion != null &&
+    comment.assetVersionNumber !== currentVersion;
+
   return (
     <div className={cn(depth > 0 && "ml-6 border-l border-border/40 pl-3")}>
       <div className="flex items-start gap-2">
@@ -166,6 +178,11 @@ function CommentNode({
             <span className="font-medium text-foreground">
               {comment.authorName ?? "Unknown"}
             </span>{" "}
+            {showVersionChip && (
+              <Badge variant="muted" className="mr-1 align-middle text-[10px] px-1.5 py-0">
+                on v{comment.assetVersionNumber}
+              </Badge>
+            )}
             <span className="text-muted-foreground">{comment.body}</span>
           </p>
           <div className="flex items-center gap-3 mt-0.5">
@@ -198,6 +215,7 @@ function CommentNode({
           replies={repliesMap[r.id] ?? []}
           repliesMap={repliesMap}
           currentUserId={currentUserId}
+          currentVersion={currentVersion}
           onReply={onReply}
           onDelete={onDelete}
           depth={depth + 1}

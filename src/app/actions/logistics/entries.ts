@@ -7,8 +7,11 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
-import { addLogisticsEntrySchema } from "@/lib/validations/logistics";
-import { autoCompleteTaskByPath } from "@/app/actions/tasks";
+import {
+  addLogisticsEntrySchema,
+  updateLogisticsEntrySchema,
+} from "@/lib/validations/logistics";
+import { autoCompleteTaskByPath } from "@/server/tasks";
 import type { ActionResult } from "@/types/actions";
 
 /** Update a logistics entry's status, notes, or completion timestamp. */
@@ -16,6 +19,11 @@ export async function updateLogisticsEntry(
   entryId: string,
   data: { status?: string; notes?: string; completedAt?: string }
 ): Promise<ActionResult> {
+  const parsed = updateLogisticsEntrySchema.safeParse({ entryId, ...data });
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  }
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -23,9 +31,9 @@ export async function updateLogisticsEntry(
   if (!user) return { success: false, error: "Not authenticated" };
 
   const updateData: Record<string, unknown> = {};
-  if (data.status) updateData.status = data.status;
-  if (data.notes !== undefined) updateData.notes = data.notes;
-  if (data.completedAt) updateData.completed_at = data.completedAt;
+  if (parsed.data.status) updateData.status = parsed.data.status;
+  if (parsed.data.notes !== undefined) updateData.notes = parsed.data.notes;
+  if (parsed.data.completedAt) updateData.completed_at = parsed.data.completedAt;
   updateData.updated_at = new Date().toISOString();
 
   const { data: entry, error } = await supabase

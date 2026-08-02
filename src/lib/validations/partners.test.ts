@@ -74,7 +74,15 @@ describe("partnerApplicationSchema", () => {
   it("rejects an empty partnership type", () => {
     expect(() =>
       partnerApplicationSchema.parse({ ...validApplication, type: "" })
-    ).toThrow(/Partnership type is required/);
+    ).toThrow(/Choose referral, reseller, or agency/);
+  });
+
+  it("rejects a privileged partner type from the public form", () => {
+    for (const type of ["venue", "organizer"]) {
+      expect(() =>
+        partnerApplicationSchema.parse({ ...validApplication, type })
+      ).toThrow(/Choose referral, reseller, or agency/);
+    }
   });
 
   it("rejects notes over the length cap", () => {

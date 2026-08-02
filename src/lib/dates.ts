@@ -68,3 +68,64 @@ export function formatDueProximity(dueDate: string): string {
   if (diffDays === 1) return "due tomorrow";
   return `due in ${diffDays} days`;
 }
+
+const SEVEN_DAYS_SEC = 7 * 86400;
+
+function relativeWithinSevenDays(diffSec: number): string {
+  const abs = Math.abs(diffSec);
+  if (abs < 60) return "Just now";
+  const mins = Math.floor(abs / 60);
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.floor(abs / 3600);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(abs / 86400);
+  return `${days}d ago`;
+}
+
+/**
+ * Geist time rule: relative under 7 days, absolute date beyond, exact
+ * timestamp on hover via `title`.
+ */
+export function formatTimestamp(dateStr: string): { display: string; exact: string } {
+  const parsed = new Date(dateStr);
+  if (Number.isNaN(parsed.getTime())) {
+    return { display: "—", exact: "" };
+  }
+
+  const exact = parsed.toLocaleString(undefined, {
+    dateStyle: "full",
+    timeStyle: "long",
+  });
+
+  const diffSec = Math.floor((Date.now() - parsed.getTime()) / 1000);
+  if (diffSec >= 0 && diffSec < SEVEN_DAYS_SEC) {
+    return { display: relativeWithinSevenDays(diffSec), exact };
+  }
+
+  const { year, month, day } = parseDate(dateStr);
+  if (Number.isNaN(year) || Number.isNaN(month) || Number.isNaN(day)) {
+    return { display: "—", exact };
+  }
+
+  return { display: `${day} ${MONTHS_SHORT[month]} ${year}`, exact };
+}
+
+/**
+ * Far dates render at month precision ("March 2026") because a specific day
+ * would be a guess; within 30 days, exact date. Credibility rule from
+ * docs/18-design-research.md R2.
+ */
+export function formatDateByCertainty(dateStr: string): string {
+  const parts = dateStr.split("T")[0].split("-");
+  if (parts.length !== 3 || parts.some((p) => !/^\d+$/.test(p))) {
+    return "—";
+  }
+
+  const days = daysUntilDate(dateStr);
+  if (days > 30) {
+    const { year, month } = parseDate(dateStr);
+    return `${MONTHS_LONG[month]} ${year}`;
+  }
+
+  return formatDateMedium(dateStr);
+}

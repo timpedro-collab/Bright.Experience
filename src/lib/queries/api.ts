@@ -1,6 +1,7 @@
 /** Supabase read queries for API keys and webhook subscriptions. */
 
 import { createClient } from "@/lib/supabase/server";
+import { logQueryError } from "@/lib/observability/log-query-error";
 
 export interface ApiKeySummary {
   id: string;
@@ -27,7 +28,10 @@ export async function getApiKeys(): Promise<ApiKeySummary[]> {
     .select("id, name, key_prefix, is_active, last_used_at, created_at")
     .order("created_at", { ascending: false });
 
-  if (error || !data) return [];
+  if (error || !data) {
+    logQueryError("getApiKeys", error);
+    return [];
+  }
   return data.map((k) => ({
     id: k.id as string,
     name: k.name as string,
@@ -46,7 +50,10 @@ export async function getWebhookSubscriptions(): Promise<WebhookSummary[]> {
     .select("id, url, events, is_active, failure_count")
     .order("created_at", { ascending: false });
 
-  if (error || !data) return [];
+  if (error || !data) {
+    logQueryError("getWebhookSubscriptions", error);
+    return [];
+  }
   return data.map((w) => ({
     id: w.id as string,
     url: w.url as string,

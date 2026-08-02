@@ -54,9 +54,32 @@ export default defineConfig({
     reuseExistingServer: !process.env.CI,
     timeout: 180_000,
     env: {
-      // Test-mode endpoints (programmatic sign-in, DB reset) are gated
-      // behind this env var so they can't accidentally ship to prod.
+      // Test-mode endpoints (programmatic sign-in, DB reset) need both: the
+      // build-level rewrite in next.config.ts keeps them out of production
+      // routing, and the handlers check TEST_MODE.
       TEST_MODE: "1",
+      ALLOW_TEST_AUTH_ROUTES: "1",
+      // The harness builds in production mode but has no Postgres to point at,
+      // so it runs on the in-memory mock. A production build ignores
+      // NEXT_PUBLIC_MOCK_MODE unless this override is set — see
+      // src/lib/supabase/mock/flag.ts.
+      NEXT_PUBLIC_MOCK_MODE: "1",
+      NEXT_PUBLIC_ALLOW_INSECURE_MOCK_AUTH: "1",
+      NEXT_PUBLIC_SUPABASE_URL: "https://mock.local",
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: "mock-anon-key",
+      NEXT_PUBLIC_SITE_URL: baseUrl,
+      BOOKING_AUTO_PROVISION: "true",
+      // checkRequiredEnv() throws at boot in production when any of these is
+      // missing (src/lib/env.ts). The harness runs a production build, so it
+      // has to supply the full set — dummy values, since nothing outbound is
+      // exercised in E2E.
+      SUPABASE_SERVICE_ROLE_KEY: "mock-service-role-key",
+      CRON_SECRET: "e2e-cron-secret",
+      RESEND_API_KEY: "e2e-resend-key",
+      FROM_EMAIL: "e2e@brightblue.test",
+      NEXT_PUBLIC_CALCOM_LINK: "brightblue/e2e",
+      BRIGHTBLUE_WEBHOOK_SECRET: "e2e-bb-webhook-secret",
+      CALCOM_WEBHOOK_SECRET: "e2e-cal-webhook-secret",
     },
   },
 });

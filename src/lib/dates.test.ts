@@ -14,6 +14,8 @@ import {
   daysUntilDate,
   isOverdue,
   timeSince,
+  formatTimestamp,
+  formatDateByCertainty,
 } from "./dates";
 
 describe("formatDateShort", () => {
@@ -110,5 +112,51 @@ describe("timeSince", () => {
     // Set to a time within the current hour
     vi.setSystemTime(new Date(2026, 5, 10, 0, 30, 0));
     expect(timeSince("2026-06-10")).toBe("Just now");
+  });
+});
+
+describe("formatTimestamp", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 2, 14, 12, 0, 0));
+  });
+  afterEach(() => vi.useRealTimers());
+
+  it("returns 2m ago for two minutes in the past", () => {
+    const twoMinAgo = new Date(2026, 2, 14, 11, 58, 0).toISOString();
+    expect(formatTimestamp(twoMinAgo).display).toBe("2m ago");
+    expect(formatTimestamp(twoMinAgo).exact).toBeTruthy();
+  });
+
+  it("returns 3d ago for three days in the past", () => {
+    expect(formatTimestamp("2026-03-11T09:00:00Z").display).toBe("3d ago");
+  });
+
+  it("returns an absolute date beyond seven days", () => {
+    expect(formatTimestamp("2026-03-01T09:00:00Z").display).toBe("1 Mar 2026");
+  });
+
+  it("returns an em-dash for an invalid string", () => {
+    expect(formatTimestamp("not-a-date")).toEqual({ display: "—", exact: "" });
+  });
+});
+
+describe("formatDateByCertainty", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 2, 14, 12, 0, 0));
+  });
+  afterEach(() => vi.useRealTimers());
+
+  it("uses month precision when more than 30 days out", () => {
+    expect(formatDateByCertainty("2026-05-01")).toBe("May 2026");
+  });
+
+  it("uses an exact date within 30 days", () => {
+    expect(formatDateByCertainty("2026-03-25")).toBe("25 Mar 2026");
+  });
+
+  it("returns an em-dash for invalid input", () => {
+    expect(formatDateByCertainty("bad-date")).toBe("—");
   });
 });

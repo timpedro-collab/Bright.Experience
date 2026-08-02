@@ -23,6 +23,7 @@ import { getUser } from "@/lib/auth";
 import { canAdvanceEventStage } from "@/lib/roles";
 import { dispatchNotification } from "@/lib/notifications/dispatch";
 import { enqueueStageAdvance } from "@/lib/pipedrive/triggers";
+import { anyOf, inList } from "@/lib/queries/filters";
 import { writeAudit } from "@/lib/audit";
 import { checkComplianceForStageGate } from "./compliance";
 import { createHandoffNote } from "./handoff-notes";
@@ -74,7 +75,7 @@ export async function canAdvanceStage(
 
   if (milestoneIds.length > 0) {
     query = query.or(
-      `milestone_id.is.null,milestone_id.in.(${milestoneIds.join(",")})`
+      anyOf("milestone_id.is.null", inList("milestone_id", milestoneIds))
     );
   } else {
     query = query.is("milestone_id", null);

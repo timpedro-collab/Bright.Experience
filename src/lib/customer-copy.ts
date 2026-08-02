@@ -11,9 +11,10 @@
  */
 import type { Stage, HealthStatus } from "@/types";
 import { STAGE_CONFIG, HEALTH_CONFIG } from "@/types";
+import { daysUntilDate } from "@/lib/dates";
 
 /** Plain-English stage labels + a short reassurance line for customers. */
-export const CUSTOMER_STAGE_COPY: Record<
+const CUSTOMER_STAGE_COPY: Record<
   Stage,
   { label: string; shortLabel: string; description: string }
 > = {
@@ -38,18 +39,18 @@ export const CUSTOMER_STAGE_COPY: Record<
     description: "Review the creative and give us the green light.",
   },
   build_configuration: {
-    label: "Building your experience",
+    label: "We're building your game",
     shortLabel: "Build",
-    description: "We're configuring everything behind the scenes.",
+    description: "We're putting your experience together behind the scenes.",
   },
   qa_readiness: {
-    label: "Final checks",
-    shortLabel: "Final checks",
-    description: "Our team is running the final quality checks.",
+    label: "We're testing it",
+    shortLabel: "Testing",
+    description: "We're running through everything to make sure it's perfect on the day.",
   },
   logistics_confirmed: {
-    label: "Logistics set",
-    shortLabel: "Logistics",
+    label: "Delivery details locked in",
+    shortLabel: "Delivery",
     description: "On-site details are locked in and ready for the day.",
   },
   event_live: {
@@ -70,7 +71,7 @@ export const CUSTOMER_STAGE_COPY: Record<
 };
 
 /** Customer-safe health labels — no "Blocked" jargon. */
-export const CUSTOMER_HEALTH_COPY: Record<HealthStatus, { label: string }> = {
+const CUSTOMER_HEALTH_COPY: Record<HealthStatus, { label: string }> = {
   green: { label: "On track" },
   amber: { label: "In progress" },
   red: { label: "In progress" },
@@ -104,4 +105,38 @@ export function healthLabelFor(
   return isCustomer
     ? CUSTOMER_HEALTH_COPY[health].label
     : HEALTH_CONFIG[health].label;
+}
+
+/** Minimal event shape needed to phrase the customer status line. */
+type StatusLineEvent = {
+  currentStage: Stage;
+  eventDateStart: string;
+  venueName?: string;
+};
+
+/**
+ * One plain-English line that answers "where's my event?" for the customer:
+ * the calm stage label plus a when/where clause, e.g.
+ * "You're booked in · Live in 12 days at ExCeL London". Once the event has
+ * been delivered we point them at their report instead of a countdown.
+ * Single source of truth for the hero subtitle on home + overview.
+ */
+export function customerStatusLine(event: StatusLineEvent): string {
+  const stageLabel = stageLabelFor(event.currentStage, true);
+
+  if (event.currentStage === "reporting" || event.currentStage === "complete") {
+    return `${stageLabel} · Your results are ready`;
+  }
+
+  const venue = event.venueName ?? "your venue";
+  const days = daysUntilDate(event.eventDateStart);
+
+  if (days > 0) {
+    const unit = days === 1 ? "day" : "days";
+    return `${stageLabel} · Live in ${days} ${unit} at ${venue}`;
+  }
+  if (days === 0) {
+    return `${stageLabel} · Live today at ${venue}`;
+  }
+  return `${stageLabel} · Live now at ${venue}`;
 }

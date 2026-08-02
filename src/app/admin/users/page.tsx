@@ -46,11 +46,13 @@ export default async function AdminUsersPage({ searchParams }: UsersPageProps) {
             type="text"
             name="q"
             defaultValue={search}
+            aria-label="Search users by name or email"
             placeholder="Search name or email…"
             className="h-9 rounded-md border border-border bg-transparent px-3 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring w-64"
           />
           <select
             name="role"
+            aria-label="Filter by role"
             defaultValue={roleFilter ?? ""}
             className="h-9 rounded-md border border-border bg-transparent px-3 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >

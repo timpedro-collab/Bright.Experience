@@ -52,9 +52,10 @@ export default async function PartnerQuotesPage({ params }: QuotesPageProps) {
       {deals.length === 0 ? (
         <EmptyState
           icon={FileText}
-          title="No quotes in your pipeline"
-          description="Quotes you send or that come through your partner link will appear here."
+          title="Your quote pipeline"
+          description="Quotes you send and proposals that arrive through your link appear here, grouped by status. You haven't sent or received any yet."
           size="sm"
+          tone="flat"
         />
       ) : (
         <div className="space-y-5">
