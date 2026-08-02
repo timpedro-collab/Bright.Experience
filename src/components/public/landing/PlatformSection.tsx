@@ -61,7 +61,7 @@ export function PlatformSection() {
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground mb-3">
             The Turnkey Platform
           </p>
-          <h2 className="text-display-serif text-4xl text-foreground md:text-5xl text-balance">
+          <h2 className="text-display-grotesk text-4xl text-foreground md:text-5xl text-balance">
             Everything Behind the Activation, Covered
           </h2>
           <p className="mt-4 text-muted-foreground leading-relaxed">

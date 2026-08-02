@@ -44,7 +44,7 @@ export function HeroSection() {
           {/* Serif display at weight 400 (Momentum pattern): the size does
               the work, the weight stays elegant. Public surfaces only. */}
           <FadeIn duration={0.9} delay={0.05} y={16}>
-            <h1 className="text-display-serif text-[clamp(2.75rem,7vw,5.5rem)] text-foreground text-balance">
+            <h1 className="text-display-grotesk text-[clamp(2.75rem,7vw,5.5rem)] text-foreground text-balance">
               Crowd-stopping activations.{" "}
               <span className="bg-gradient-to-r from-[var(--color-bb-cobalt)] to-[var(--color-bb-cyan)] bg-clip-text text-transparent">
                 Measured to the play.

@@ -48,12 +48,12 @@ Three faces, all owned by the brand:
 
 | Face | Use | Token |
 |------|-----|-------|
-| **Nunito Bold** | Headings, display, page titles, hero | `--font-display` / `text-heading` / `text-display` |
+| **Nunito Bold** | Headings, display, page titles, hero | `--font-heading` / `text-heading` / `text-display` |
 | **DM Sans Regular** | Body, paragraphs, default text | `--font-body` |
 | **DM Sans Medium** | Eyebrows, overlines, metadata, tabular nums | `--font-overline` / `text-overline` |
-| **Fraunces (variable)** | *Public marketing surfaces only* — homepage/catalog section headlines | `--font-display-serif` / `text-display-serif` |
+| **Clash Display (variable)** | *Public marketing surfaces only* — homepage/catalog hero + section headlines | `--font-display-grotesk` / `text-display-grotesk` |
 
-The font files live in `src/lib/fonts/` and are wired up in `src/app/layout.tsx`. **Don't add a new font** — this is the budget. Fraunces is `preload: false` and must never appear inside the portal: it is the marketing voice, not the product voice (Aug 2026 design build, docs/18-design-research.md H5).
+The font files live in `src/lib/fonts/` and are wired up in `src/app/layout.tsx`. **Don't add a new font** — this is the budget. Clash Display (Fontshare Free Font License, `src/lib/fonts/LICENSE-clash-display.txt`) replaced the Fraunces serif in Aug 2026 to match the cutting-edge positioning; it is `preload: false` and must never appear inside the portal: it is the marketing voice, not the product voice (docs/18-design-research.md H5).
 
 ### Text-grey ramp (Aug 2026)
 

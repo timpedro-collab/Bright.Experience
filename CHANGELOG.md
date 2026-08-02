@@ -4,6 +4,27 @@ All notable changes to the Bright.Experience platform are documented here.
 
 ---
 
+## [Marketing display font: Clash Display replaces Fraunces] - 2026-08-01
+
+Founder review called the serif too editorial for the cutting-edge
+positioning; Clash Display (Fontshare FFL, variable 200–700) won a rendered
+shoot-out against Space Grotesk, Unbounded, Cabinet Grotesk, Bricolage
+Grotesque, and Panchang.
+
+- `src/lib/fonts/bright-display.ttf` (88 KB variable, 4× smaller than
+  Fraunces) with licence file; still `preload: false`, marketing-only.
+- Token/class renamed truthfully: `--font-display-serif`/`.text-display-serif`
+  → `--font-display-grotesk`/`.text-display-grotesk` (weight 600,
+  tracking −0.015em, leading 1.08). NOT `.text-display` — that is the
+  portal's Nunito voice and already exists.
+- Also fixed leftover dark-theme surfaces rendering as grey slabs on light
+  public pages: HowItWorks step cards, GameCard, RefineDrawer footer.
+
+Files changed: `src/lib/fonts/*`, `src/app/globals.css`, eight landing/catalog
+components, `docs/09-design-system.md`.
+
+---
+
 ## [First live deployment — Vercel + hosted Supabase] - 2026-08-01
 
 The app is live at https://bright-experience.vercel.app for integration

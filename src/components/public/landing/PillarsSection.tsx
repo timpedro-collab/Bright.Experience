@@ -35,7 +35,7 @@ export function PillarsSection() {
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground mb-3">
             Own Every Room
           </p>
-          <h2 className="text-display-serif text-4xl text-foreground md:text-5xl text-balance">
+          <h2 className="text-display-grotesk text-4xl text-foreground md:text-5xl text-balance">
             One Machine, Three Jobs Done at Once
           </h2>
           <p className="mt-4 text-muted-foreground leading-relaxed">

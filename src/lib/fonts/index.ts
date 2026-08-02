@@ -48,26 +48,27 @@ const brightOverline = localFont({
 });
 
 /**
- * Editorial display serif — Fraunces (variable: wght 100–900 + optical size),
- * SIL Open Font License. Used ONLY on public marketing surfaces (hero h1,
- * section h2, pull-quotes) per docs/18-design-research.md H5 — the portal
- * stays entirely on Nunito/DM Sans. Momentum's serif-at-weight-400 pattern:
- * the size does the work, the weight stays light. Not preloaded — it must
- * not cost the logged-in portal anything.
+ * Display face — Clash Display (variable: wght 200–700), Fontshare Free Font
+ * License (see ./LICENSE-clash-display.txt). Used ONLY on public marketing
+ * surfaces (hero h1, section h2, pull-quotes) — the portal stays entirely on
+ * Nunito/DM Sans. Replaced the Fraunces serif 2026-08: an assertive modern
+ * display grotesk matches the cutting-edge positioning better than an
+ * editorial serif. Not preloaded — it must not cost the logged-in portal
+ * anything.
  */
-const brightDisplaySerif = localFont({
-  src: "./bright-display-serif.ttf",
-  variable: "--font-bright-display-serif",
+const brightDisplay = localFont({
+  src: "./bright-display.ttf",
+  variable: "--font-bright-display",
   display: "swap",
-  weight: "100 900",
+  weight: "200 700",
   style: "normal",
   preload: false,
-  fallback: ["Georgia", "Times New Roman", "serif"],
+  fallback: ["Space Grotesk", "system-ui", "sans-serif"],
 });
 
 export const brandFontVariables = [
   brightHeadings.variable,
   brightBody.variable,
   brightOverline.variable,
-  brightDisplaySerif.variable,
+  brightDisplay.variable,
 ].join(" ");

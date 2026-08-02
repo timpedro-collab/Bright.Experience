@@ -109,11 +109,10 @@
 	   - Heading  → Nunito Bold (rounded humanist sans, 700)
 	   - Body     → DM Sans Regular (geometric sans, 400)
 	   - Overline → DM Sans Medium (500, used uppercase + tracked)
-	   - Serif    → Fraunces variable (editorial display serif, OFL).
-	                PUBLIC MARKETING SURFACES ONLY — hero h1, section
-	                h2, pull-quotes, at weight 380–420 (Momentum
-	                pattern: the size does the work, the weight stays
-	                light). Never in the portal.
+	   - Display  → Clash Display variable (modern display grotesk,
+	                Fontshare FFL). PUBLIC MARKETING SURFACES ONLY —
+	                hero h1, section h2, pull-quotes, at weight ~600.
+	                Never in the portal.
 	   - Mono     → kept as a system fallback for code blocks /
 	                tabular numerals only; brand surfaces should
 	                prefer the overline token. */
@@ -121,7 +120,7 @@
 	--font-body: var(--font-bright-body), system-ui, sans-serif;
 	--font-sans: var(--font-bright-body), system-ui, sans-serif;
 	--font-overline: var(--font-bright-overline), system-ui, sans-serif;
-	--font-display-serif: var(--font-bright-display-serif), Georgia, serif;
+	--font-display-grotesk: var(--font-bright-display), "Space Grotesk", system-ui, sans-serif;
 	--font-mono: ui-monospace, SFMono-Regular, "SF Mono", Consolas, monospace;
 
 	/* ── Radius ── */
@@ -336,16 +335,16 @@ body {
 	line-height: 1.05;
 }
 
-/* Editorial display serif — public marketing surfaces ONLY (hero h1,
-   section h2, pull-quotes). Light weight + tight leading is the whole
-   effect (Momentum's serif-at-400 pattern); never bold it, never use it
-   in the portal. Fraunces is a variable font, so weight 400 renders its
-   true drawn weight. */
-.text-display-serif {
-	font-family: var(--font-display-serif);
-	font-weight: 400;
-	letter-spacing: -0.01em;
-	line-height: 1.12;
+/* Marketing display grotesk (Clash Display) — public marketing surfaces
+   ONLY (hero h1, section h2, pull-quotes); never in the portal, which keeps
+   `.text-display` (Nunito) above. Semibold + tight leading and tracking is
+   the intended voice: assertive without shouting. Clash is a variable font,
+   so 600 renders its true drawn weight. */
+.text-display-grotesk {
+	font-family: var(--font-display-grotesk);
+	font-weight: 600;
+	letter-spacing: -0.015em;
+	line-height: 1.08;
 }
 
 .text-balance {

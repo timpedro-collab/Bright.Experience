@@ -38,7 +38,7 @@ export function LetsPlanSection() {
             <p className="text-overline text-muted-foreground mb-3">
               Where to begin
             </p>
-            <h2 className="text-display-serif text-5xl text-foreground md:text-6xl">
+            <h2 className="text-display-grotesk text-5xl text-foreground md:text-6xl">
               Let&apos;s plan
             </h2>
             <p className="mt-4 max-w-sm text-muted-foreground leading-relaxed">

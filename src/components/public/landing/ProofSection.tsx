@@ -35,7 +35,7 @@ export function ProofSection({ caseStudies }: { caseStudies: ProofCaseStudy[] })
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div className="max-w-2xl">
             <p className="text-overline text-muted-foreground mb-2">The proof</p>
-            <h2 className="text-display-serif text-4xl text-foreground md:text-5xl">
+            <h2 className="text-display-grotesk text-4xl text-foreground md:text-5xl">
               Real activations, real numbers
             </h2>
             <p className="mt-2 text-muted-foreground">
