@@ -11,6 +11,7 @@
 import { useState } from "react";
 
 import { cn } from "@/lib/utils";
+import { cplBand } from "@/lib/pricing/cpl";
 import {
   TIERS,
   formatBandAmount,
@@ -32,13 +33,13 @@ const COMPARISONS = [
 ];
 
 /** Cost-per-lead range for a tier at a lead count, in whole major units. */
-function cplRange(tier: PricingTier, region: PriceRegion, leads: number): string {
-  const band = tier.bands[region];
-  const low = Math.round(band.lowMinor / 100 / leads);
-  const high = band.highMinor === null ? null : Math.round(band.highMinor / 100 / leads);
-  const lowLabel = formatBandAmount(band.currency, low * 100);
-  if (high === null) return `From ${lowLabel}`;
-  return `${lowLabel}–${formatBandAmount(band.currency, high * 100)}`;
+function cplLabel(tier: PricingTier, region: PriceRegion, leads: number): string {
+  const cpl = cplBand(tier, region, leads);
+  if (!cpl) return "—";
+  const currency = tier.bands[region].currency;
+  const low = formatBandAmount(currency, cpl.lowMinor);
+  const high = formatBandAmount(currency, cpl.highMinor);
+  return low === high ? low : `${low}–${high}`;
 }
 
 export function CplCalculator() {
@@ -107,7 +108,7 @@ export function CplCalculator() {
               {tier.displayName}
             </p>
             <p className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
-              {cplRange(tier, region, leads)}
+              {cplLabel(tier, region, leads)}
               <span className="ml-1.5 text-sm font-normal text-muted-foreground">
                 per lead
               </span>
