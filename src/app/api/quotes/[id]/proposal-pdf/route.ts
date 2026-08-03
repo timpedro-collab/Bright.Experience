@@ -27,8 +27,12 @@ export async function GET(
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
+  // Parity with /proposal/:id itself: the document is built on the fly from
+  // the quote row (buildProposalDocument), so the quote existing is the whole
+  // requirement. (`proposal_content` is a jsonb column no code path writes —
+  // gating on it made this route 404 for every real quote.)
   const quote = await getQuoteForProposal(id);
-  if (!quote || !quote.proposal_content) {
+  if (!quote) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
