@@ -66,9 +66,13 @@ const nextConfig: NextConfig = {
   serverExternalPackages: ["@sparticuz/chromium", "puppeteer-core"],
   // Externalizing keeps the import resolvable, but Vercel's file tracing
   // still has to ship the compressed browser binaries with the function —
-  // they are opened with plain fs reads that tracing cannot see.
+  // they are opened with plain fs reads that tracing cannot see. The key is
+  // a picomatch glob: `[id]` would parse as a character class, so the
+  // dynamic segment is matched with `*` instead.
   outputFileTracingIncludes: {
-    "/api/quotes/[id]/proposal-pdf": ["./node_modules/@sparticuz/chromium/bin/**"],
+    "/api/quotes/*/proposal-pdf": [
+      "./node_modules/@sparticuz/chromium/bin/**/*",
+    ],
   },
   async rewrites() {
     // Rewriting to a path with no route makes Next render not-found with a real
