@@ -64,6 +64,12 @@ const nextConfig: NextConfig = {
   // must not relocate these packages or the chromium binary directory is
   // missing from the deployed function (`/var/task/.../chromium/bin`).
   serverExternalPackages: ["@sparticuz/chromium", "puppeteer-core"],
+  // Externalizing keeps the import resolvable, but Vercel's file tracing
+  // still has to ship the compressed browser binaries with the function —
+  // they are opened with plain fs reads that tracing cannot see.
+  outputFileTracingIncludes: {
+    "/api/quotes/[id]/proposal-pdf": ["./node_modules/@sparticuz/chromium/bin/**"],
+  },
   async rewrites() {
     // Rewriting to a path with no route makes Next render not-found with a real
     // 404 status, so the target is unreachable no matter what its handler does.
