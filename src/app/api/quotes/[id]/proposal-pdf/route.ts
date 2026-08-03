@@ -10,7 +10,7 @@
 
 import { NextResponse } from "next/server";
 import { generatePdf } from "@/lib/exports/pdf";
-import { getQuoteById } from "@/lib/queries/quotes";
+import { getQuoteForProposal } from "@/lib/queries/quotes";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -27,7 +27,7 @@ export async function GET(
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  const quote = await getQuoteById(id);
+  const quote = await getQuoteForProposal(id);
   if (!quote || !quote.proposal_content) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }

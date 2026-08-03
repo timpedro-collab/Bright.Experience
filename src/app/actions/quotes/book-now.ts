@@ -90,7 +90,9 @@ export async function submitBookNowQuote(data: {
   const addonTotal = addonRows.reduce((sum, a) => sum + (a.price ?? 0), 0);
   const totalAmount = (pkg.base_price ?? 0) + addonTotal;
 
-  const { data: quote, error } = await supabase
+  // Insert + returned id via service role: anon can insert under RLS but
+  // cannot select the new row back (see getBookingReceipt below).
+  const { data: quote, error } = await getServiceRoleClient()
     .from("quotes")
     .insert({
       track: "book_now",

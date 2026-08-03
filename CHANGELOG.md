@@ -39,6 +39,31 @@ acceptance).
   logic and all wiring by the main agent. Full gate: lint + typecheck clean,
   1,998 tests green.
 
+### Production fix: the public quote journey was dead under real RLS
+
+The Stage 2 live smoke crawl caught the proposal microsite 404ing in
+production. Root cause: every public quote surface used the cookie-bound
+anon client, but `quotes` RLS only grants select/update to the owning
+account or internal users — so anonymous prospects (the entire audience of
+these pages) read nothing and their updates matched zero rows *while still
+returning success*. Local dev never showed it because the mock store
+bypasses RLS. Fixes, all following the documented `getSlotByPitchToken` /
+`getBookingReceipt` pattern (service-role client + the unguessable UUID as
+the credential + guards in code):
+
+- New `getQuoteForProposal(id)` (UUID-validated, service-role) now backs
+  `/proposal/[id]` and the proposal-PDF route.
+- `acceptQuote` / `declineQuote` write via service role, pin the transition
+  to `proposal_sent`, enforce `expires_at` server-side, and report a
+  zero-row update as a failure instead of a success.
+- `submitProposalIntake` / `submitBookNowQuote` insert via service role
+  (anon may insert under RLS but cannot select the new row back, so the
+  returned id always failed).
+- `bookWalkthrough` / `updateQuoteCapabilities` write via service role,
+  pinned to statuses where the write still makes sense.
+- 7 new/updated action + query tests covering the status pins, expiry
+  rejection, and the UUID gate.
+
 ## [Ecosystem build · Stage 1 — tell the story & publish the proof] - 2026-08-02
 
 The marketing site now tells the network story and publishes real prices —

@@ -1,7 +1,11 @@
 /** Supabase read queries for the quotes entity. */
 import { createClient } from "@/lib/supabase/server";
+import { getServiceRoleClient } from "@/lib/supabase/service-role";
 import { PAGE_SIZE, paginateQuery, totalPages } from "@/lib/pagination";
 import { logQueryError } from "@/lib/observability/log-query-error";
+
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 const QUOTE_LIST_COLUMNS = `id, track, status, contact_name, contact_email, company_name,
        package_id, event_type, venue_name, postcode,
@@ -149,6 +153,35 @@ export async function getQuoteById(id: string) {
 
   if (error || !data) {
     logQueryError("getQuoteById", error, { id });
+    return null;
+  }
+  return data;
+}
+
+/**
+ * Resolve a quote for the public proposal microsite.
+ *
+ * The reader is an anonymous prospect holding the UUID from their proposal
+ * email — they have no portal account, so `quotes` RLS (owner or internal
+ * only) correctly gives the cookie-bound client nothing. Like
+ * `getSlotByPitchToken` and `getBookingReceipt`, this reads through the
+ * service-role client: the unguessable UUID is the credential, validated
+ * here rather than by leaving the table readable to the whole internet.
+ */
+export async function getQuoteForProposal(id: string) {
+  if (!UUID_RE.test(id)) return null;
+
+  const supabase = getServiceRoleClient();
+  const { data, error } = await supabase
+    .from("quotes")
+    .select(
+      `*, quote_line_items ( id, label, amount, category, sort_order )`
+    )
+    .eq("id", id)
+    .maybeSingle();
+
+  if (error || !data) {
+    logQueryError("getQuoteForProposal", error, { id });
     return null;
   }
   return data;

@@ -19,6 +19,11 @@ const getUser = vi.fn();
 vi.mock("@/lib/supabase/server", () => ({
   createClient: vi.fn(async () => supabase),
 }));
+// Public quote surfaces write via the service-role client (anon RLS gives
+// them nothing) — point it at the same recorder.
+vi.mock("@/lib/supabase/service-role", () => ({
+  getServiceRoleClient: () => supabase,
+}));
 vi.mock("@/lib/auth", () => ({
   getUser: (...args: unknown[]) => getUser(...args),
 }));
@@ -285,7 +290,7 @@ describe("submitProposalIntake", () => {
 
 describe("updateQuoteCapabilities", () => {
   it("sanitises and updates", async () => {
-    supabase.setTableResponse("quotes", { data: null, error: null });
+    supabase.setTableResponse("quotes", { data: [{ id: "q1" }], error: null });
     const { updateQuoteCapabilities } = await import("./quotes");
     const result = await updateQuoteCapabilities("q1", [
       "live-telemetry",
@@ -306,14 +311,37 @@ describe("updateQuoteCapabilities", () => {
     const result = await updateQuoteCapabilities("q1", ["live-telemetry"]);
     expect(result.success).toBe(false);
   });
+
+  it("rejects a quote no longer in an adjustable status", async () => {
+    // Status pin matched no rows — e.g. the quote was declined meanwhile.
+    supabase.setTableResponse("quotes", { data: [], error: null });
+    const { updateQuoteCapabilities } = await import("./quotes");
+    const result = await updateQuoteCapabilities("q1", ["live-telemetry"]);
+    expect(result.success).toBe(false);
+  });
 });
+
+/** Queue one accept cycle: the status pre-read, then the pinned update. */
+function queueAcceptCycle(times = 1) {
+  const preRead = {
+    data: {
+      status: "proposal_sent",
+      expires_at: null,
+      contact_name: "Casey",
+      company_name: "Acme",
+    },
+    error: null,
+  };
+  const update = { data: [{ id: "q1" }], error: null };
+  supabase.queueTableResponses(
+    "quotes",
+    Array.from({ length: times }, () => [preRead, update]).flat()
+  );
+}
 
 describe("acceptQuote", () => {
   it("updates status to accepted and dispatches quote.accepted", async () => {
-    supabase.setTableResponse("quotes", {
-      data: { contact_name: "Casey", company_name: "Acme" },
-      error: null,
-    });
+    queueAcceptCycle();
     const { acceptQuote } = await import("./quotes");
     const result = await acceptQuote("q1");
     expect(result.success).toBe(true);
@@ -321,6 +349,27 @@ describe("acceptQuote", () => {
       "quote.accepted",
       expect.objectContaining({ quoteId: "q1", contactName: "Casey" })
     );
+  });
+
+  it("rejects a proposal that is not open (wrong status)", async () => {
+    supabase.setTableResponse("quotes", {
+      data: { status: "declined", expires_at: null },
+      error: null,
+    });
+    const { acceptQuote } = await import("./quotes");
+    const result = await acceptQuote("q1");
+    expect(result.success).toBe(false);
+    expect(dispatchNotification).not.toHaveBeenCalled();
+  });
+
+  it("rejects a proposal past its expiry even though the link still works", async () => {
+    supabase.setTableResponse("quotes", {
+      data: { status: "proposal_sent", expires_at: "2020-01-01T00:00:00Z" },
+      error: null,
+    });
+    const { acceptQuote } = await import("./quotes");
+    const result = await acceptQuote("q1");
+    expect(result.success).toBe(false);
   });
 
   it("returns failure on update error", async () => {
@@ -339,10 +388,7 @@ describe("acceptQuote", () => {
     const mocked = vi.mocked(headers);
     mocked.mockResolvedValue(new Headers({ "x-forwarded-for": "203.0.113.42" }));
     try {
-      supabase.setTableResponse("quotes", {
-        data: { contact_name: "Casey", company_name: "Acme" },
-        error: null,
-      });
+      queueAcceptCycle(11);
       const { acceptQuote } = await import("./quotes");
       const results = [];
       for (let i = 0; i < 11; i++) {
@@ -361,10 +407,17 @@ describe("acceptQuote", () => {
 
 describe("declineQuote", () => {
   it("updates status to declined", async () => {
-    supabase.setTableResponse("quotes", { data: null, error: null });
+    supabase.setTableResponse("quotes", { data: [{ id: "q1" }], error: null });
     const { declineQuote } = await import("./quotes");
     const result = await declineQuote("q1");
     expect(result.success).toBe(true);
+  });
+
+  it("rejects a proposal that is not open", async () => {
+    supabase.setTableResponse("quotes", { data: [], error: null });
+    const { declineQuote } = await import("./quotes");
+    const result = await declineQuote("q1");
+    expect(result.success).toBe(false);
   });
 
   it("returns failure on error", async () => {

@@ -5,7 +5,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 
 import { Container, Section } from "@/components/ui/section";
-import { getQuoteById } from "@/lib/queries/quotes";
+import { getQuoteForProposal } from "@/lib/queries/quotes";
 import { getBenchmarksForEventType } from "@/lib/queries/benchmarks";
 import { buildProposalDocument } from "@/lib/proposals/build-proposal";
 import {
@@ -36,7 +36,7 @@ interface PageProps {
 
 export default async function ProposalDetailPage({ params }: PageProps) {
   const { id } = await params;
-  const quote = await getQuoteById(id);
+  const quote = await getQuoteForProposal(id);
   if (!quote) notFound();
 
   const doc = buildProposalDocument(quote);

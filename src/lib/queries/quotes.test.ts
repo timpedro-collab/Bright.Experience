@@ -9,6 +9,11 @@ let supabase: MockSupabase;
 vi.mock("@/lib/supabase/server", () => ({
   createClient: vi.fn(async () => supabase),
 }));
+// The public proposal read bypasses RLS via the service-role client — same
+// recorder so we can assert on its chain calls too.
+vi.mock("@/lib/supabase/service-role", () => ({
+  getServiceRoleClient: () => supabase,
+}));
 
 beforeEach(() => {
   supabase = createMockSupabase();
@@ -52,5 +57,31 @@ describe("getQuoteById", () => {
     supabase.setTableResponse("quotes", { data: null, error: null });
     const { getQuoteById } = await import("./quotes");
     expect(await getQuoteById("q1")).toBeNull();
+  });
+});
+
+describe("getQuoteForProposal", () => {
+  const QUOTE_UUID = "22222222-2222-4222-8222-222222222220";
+
+  it("resolves a quote for an anonymous prospect holding the UUID", async () => {
+    supabase.setTableResponse("quotes", {
+      data: { id: QUOTE_UUID, quote_line_items: [] },
+      error: null,
+    });
+    const { getQuoteForProposal } = await import("./quotes");
+    const result = await getQuoteForProposal(QUOTE_UUID);
+    expect(result).toEqual({ id: QUOTE_UUID, quote_line_items: [] });
+  });
+
+  it("rejects anything that is not a UUID without touching the database", async () => {
+    const { getQuoteForProposal } = await import("./quotes");
+    expect(await getQuoteForProposal("1 OR 1=1")).toBeNull();
+    expect(supabase.callsFor("quotes")).toHaveLength(0);
+  });
+
+  it("returns null when the quote does not exist", async () => {
+    supabase.setTableResponse("quotes", { data: null, error: null });
+    const { getQuoteForProposal } = await import("./quotes");
+    expect(await getQuoteForProposal(QUOTE_UUID)).toBeNull();
   });
 });

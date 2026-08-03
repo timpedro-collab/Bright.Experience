@@ -3,6 +3,7 @@
 
 import { cookies, headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
+import { getServiceRoleClient } from "@/lib/supabase/service-role";
 import { revalidatePath } from "next/cache";
 import { quoteLimiter, decisionLimiter, getClientIp } from "@/lib/rate-limit";
 import { sanitiseCapabilitySlugs } from "@/lib/capabilities";
@@ -93,7 +94,13 @@ export async function submitProposalIntake(data: {
     packageId = pkg?.id ?? null;
   }
 
-  const { data: quote, error } = await supabase
+  // The insert + returned id go through the service-role client: anon can
+  // insert a quote under RLS but cannot select the new row back, so the
+  // cookie-bound client's `.select("id")` would fail (the pattern
+  // getBookingReceipt already documents). Validation and rate limiting above
+  // are the guards.
+  const service = getServiceRoleClient();
+  const { data: quote, error } = await service
     .from("quotes")
     .insert({
       track: "proposal",
@@ -224,16 +231,21 @@ export async function bookWalkthrough(
     };
   }
 
-  const supabase = await createClient();
-  const { error } = await supabase
+  // Anonymous confirmation-page write — RLS gives the cookie client no
+  // update rights on quotes, so this goes through the service-role client,
+  // pinned to statuses where a walkthrough still makes sense.
+  const supabase = getServiceRoleClient();
+  const { data: updated, error } = await supabase
     .from("quotes")
     .update({
       walkthrough_scheduled_at: scheduledAt,
       walkthrough_slot_label: slotLabel,
     })
-    .eq("id", quoteId);
+    .eq("id", quoteId)
+    .in("status", ["submitted", "proposal_sent"])
+    .select("id");
 
-  if (error) {
+  if (error || !updated?.length) {
     return { success: false as const, error: "Couldn't book that slot. Please try another." };
   }
 
@@ -273,15 +285,20 @@ export async function updateQuoteCapabilities(
     };
   }
 
-  const supabase = await createClient();
+  // Anonymous write from the confirmation screen / accepted proposal — the
+  // service-role client is required (RLS blocks anon updates), and the
+  // status pin keeps declined or expired quotes immutable.
+  const supabase = getServiceRoleClient();
   const addons = sanitiseCapabilitySlugs(capabilitySlugs);
 
-  const { error } = await supabase
+  const { data: updated, error } = await supabase
     .from("quotes")
     .update({ addons })
-    .eq("id", quoteId);
+    .eq("id", quoteId)
+    .in("status", ["submitted", "proposal_sent", "accepted"])
+    .select("id");
 
-  if (error) {
+  if (error || !updated?.length) {
     return { success: false as const, error: "Failed to update capabilities" };
   }
 
