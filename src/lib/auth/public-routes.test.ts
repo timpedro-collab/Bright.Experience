@@ -61,6 +61,17 @@ describe("isPublicPath", () => {
     expect(isPublicPath("/api/testimonials")).toBe(false);
   });
 
+  it("lets the proposal PDF export through, but nothing else under /api/quotes", () => {
+    expect(
+      isPublicPath("/api/quotes/22222222-2222-4222-8222-222222222220/proposal-pdf")
+    ).toBe(true);
+    expect(isPublicPath("/api/quotes")).toBe(false);
+    expect(isPublicPath("/api/quotes/22222222-2222-4222-8222-222222222220")).toBe(false);
+    expect(
+      isPublicPath("/api/quotes/22222222-2222-4222-8222-222222222220/proposal-pdf/raw")
+    ).toBe(false);
+  });
+
   it("treats the venue advertiser page as public but the rest of the venue portal as private", () => {
     expect(isPublicPath("/venues/kings-cross/advertise")).toBe(true);
     expect(isPublicPath("/venues/kings-cross/dashboard")).toBe(false);
