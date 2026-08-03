@@ -17,15 +17,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { TierCard } from "@/components/public/pricing/TierCard";
 import { tiersForDisplay, type PriceRegion } from "@/lib/pricing/tiers";
-
-export type PricingPersona = "brand" | "agency" | "organizer" | "venue";
-
-export const PRICING_PERSONAS: ReadonlyArray<{ id: PricingPersona; label: string }> = [
-  { id: "brand", label: "I'm a brand" },
-  { id: "agency", label: "I'm an agency" },
-  { id: "organizer", label: "I run events" },
-  { id: "venue", label: "I have a venue" },
-];
+import { PRICING_PERSONAS, type PricingPersona } from "@/lib/pricing/personas";
 
 const REGIONS: ReadonlyArray<{ id: PriceRegion; label: string }> = [
   { id: "uk", label: "UK £" },

@@ -6,11 +6,8 @@
 import type { Metadata } from "next";
 
 import { Container, Section } from "@/components/ui/section";
-import {
-  PricingExplorer,
-  PRICING_PERSONAS,
-  type PricingPersona,
-} from "@/components/public/pricing/PricingExplorer";
+import { PricingExplorer } from "@/components/public/pricing/PricingExplorer";
+import { isPricingPersona } from "@/lib/pricing/personas";
 
 export const metadata: Metadata = {
   title: "Pricing",
@@ -22,13 +19,9 @@ interface PageProps {
   searchParams: Promise<{ for?: string }>;
 }
 
-function isPersona(value: string | undefined): value is PricingPersona {
-  return PRICING_PERSONAS.some((p) => p.id === value);
-}
-
 export default async function PricingPage({ searchParams }: PageProps) {
   const { for: personaParam } = await searchParams;
-  const initialPersona = isPersona(personaParam) ? personaParam : "brand";
+  const initialPersona = isPricingPersona(personaParam) ? personaParam : "brand";
 
   return (
     <>
