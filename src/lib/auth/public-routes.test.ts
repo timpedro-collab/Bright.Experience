@@ -12,6 +12,22 @@ describe("isPublicPath", () => {
     expect(isPublicPath("/terms")).toBe(true);
   });
 
+  it("lets the Stage 1 marketing pages through", () => {
+    expect(isPublicPath("/pricing")).toBe(true);
+    expect(isPublicPath("/for-venues")).toBe(true);
+    expect(isPublicPath("/for-organizers")).toBe(true);
+    expect(isPublicPath("/business-case")).toBe(true);
+    expect(isPublicPath("/faq")).toBe(true);
+    expect(isPublicPath("/measured-sampling")).toBe(true);
+    expect(isPublicPath("/llm-info")).toBe(true);
+    expect(isPublicPath("/llms.txt")).toBe(true);
+  });
+
+  it("does not let prefix-sharing routes ride the new marketing entries", () => {
+    expect(isPublicPath("/pricing-admin")).toBe(false);
+    expect(isPublicPath("/faqs")).toBe(false);
+  });
+
   it("lets the tokened capability URLs through", () => {
     expect(isPublicPath("/report/abc123")).toBe(true);
     expect(isPublicPath("/sponsor/tok_live_1")).toBe(true);
