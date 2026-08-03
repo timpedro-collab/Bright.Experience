@@ -60,6 +60,10 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   reactStrictMode: true,
   images: remoteImagePatterns,
+  // The PDF export route launches headless Chromium at runtime. The bundler
+  // must not relocate these packages or the chromium binary directory is
+  // missing from the deployed function (`/var/task/.../chromium/bin`).
+  serverExternalPackages: ["@sparticuz/chromium", "puppeteer-core"],
   async rewrites() {
     // Rewriting to a path with no route makes Next render not-found with a real
     // 404 status, so the target is unreachable no matter what its handler does.
