@@ -36,6 +36,18 @@ const PUBLIC_BY_DESIGN: Record<string, string> = {
   "quotes/book-now.ts":
     "Public funnel: submitBookNowQuote is rate-limited and only writes a quote; " +
     "getBookingReceipt requires the quote UUID and returns receipt-safe fields only.",
+  "quotes/proposal-intake.ts":
+    "Public funnel: the caller is an anonymous prospect. submitProposalIntake is " +
+    "rate-limited, Zod-validated, and only inserts a quote (service role because " +
+    "anon RLS cannot select the new row back for its id). bookWalkthrough and " +
+    "updateQuoteCapabilities require the quote UUID and are pinned to statuses " +
+    "where the write makes sense; capability slugs are sanitised to the canon.",
+  "quotes/decisions.ts":
+    "Public proposal microsite: the caller holds the unguessable quote UUID from " +
+    "their proposal email. Rate-limited by IP; accept/decline are pinned to the " +
+    "proposal_sent status, accept enforces expires_at server-side, and a zero-row " +
+    "update is reported as failure — the only reachable transition is the one the " +
+    "proposal page offers.",
   "sponsor-pitch.ts":
     "Sponsor pitch link: the caller is an anonymous sponsor holding a capability " +
     "token, re-validated server-side (match + expiry) before any write. " +

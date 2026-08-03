@@ -64,6 +64,16 @@ the credential + guards in code):
 - 7 new/updated action + query tests covering the status pins, expiry
   rejection, and the UUID gate.
 
+The same crawl then found the proposal **PDF export** had never worked in
+production, behind three stacked faults fixed in sequence: the route was
+missing from the middleware allowlist (307 → /login); it gated on a
+`proposal_content` column no code path writes (404 for every real quote —
+the document is built on the fly); and the `@sparticuz/chromium` binaries
+were absent from the deployed function because the `outputFileTracingIncludes`
+route key used a literal `[id]`, which picomatch reads as a character
+class and never matches. Verified live: the export now returns the full
+8-page PDF.
+
 ## [Ecosystem build · Stage 1 — tell the story & publish the proof] - 2026-08-02
 
 The marketing site now tells the network story and publishes real prices —
