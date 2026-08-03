@@ -33,6 +33,10 @@ live ones:
   bottom of the Showstopper band. Confirm or adjust.
 - [ ] **Run the validation plan** (docs/20 §5): next five US enquiries at the
   new bands, win/loss "what else was in the budget line," pricing-page A/B.
+- [ ] **Set deposit-to-hold and pay-later terms** so the hold flow can be
+  built: deposit size, refund rule, hold-offer window, pay-later gating, and
+  payment rails. The full design (with proposed defaults to react to) is
+  `docs/21-deposit-to-hold-design.md` — it stays unbuilt until these are set.
 
 ## Commercial
 

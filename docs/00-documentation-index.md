@@ -66,6 +66,7 @@ secondary growth surfaces.
 | [`18-design-research.md`](18-design-research.md) | Competitive design/UX teardown → graded homepage + portal proposals |
 | [`19-market-ecosystem-research.md`](19-market-ecosystem-research.md) | Deep-dive market/ecosystem research (~110 orgs) → gap analysis, messaging architecture, phased build plan; raw evidence in [`research/2026-08-market/`](research/2026-08-market/) |
 | [`20-pricing-and-packaging.md`](20-pricing-and-packaging.md) | Three-tier + bespoke pricing model: evidence, fences, channel structure, audience-aware display; code source of truth `src/lib/pricing/tiers.ts` |
+| [`21-deposit-to-hold-design.md`](21-deposit-to-hold-design.md) | Deposit-to-hold + pay-later design (deliberately unbuilt; blocked on owner terms) |
 
 ### Operations runbooks (`docs/ops/`)
 

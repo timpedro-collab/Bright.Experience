@@ -26,6 +26,7 @@ import { IntakeStepContact } from "./IntakeStepContact";
 import { PostIntakeCard } from "./PostIntakeCard";
 import { submitProposalIntake } from "@/app/actions/quotes";
 import { decodeCapabilityParam } from "@/lib/capabilities";
+import type { InstantEstimate } from "@/lib/pricing/instant-estimate";
 import { bridgeQuizToIntake } from "@/lib/quiz-intake-bridge";
 import { briefEchoItems } from "@/lib/brief-echo";
 import { RESPONSE_SLA } from "@/lib/marketing/claims";
@@ -139,7 +140,10 @@ export function IntakeWizard() {
   const [step, setStep] = useState(initial.eventType ? 1 : 0);
   const [data, setData] = useState<IntakeFormData>(initial);
   const [addons, setAddons] = useState<string[]>(initialAddons);
-  const [submitted, setSubmitted] = useState<null | { quoteId: string }>(null);
+  const [submitted, setSubmitted] = useState<null | {
+    quoteId: string;
+    estimate: InstantEstimate | null;
+  }>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -172,7 +176,7 @@ export function IntakeWizard() {
     });
     setLoading(false);
     if (result.success) {
-      setSubmitted({ quoteId: result.data.id });
+      setSubmitted({ quoteId: result.data.id, estimate: result.data.estimate });
     } else {
       setError(result.error ?? "Something went wrong. Please try again.");
     }
@@ -195,6 +199,7 @@ export function IntakeWizard() {
           packageName={friendlyPackageFromSlug(initialPackageSlug)}
           capabilitySlugs={addons}
           brief={data}
+          estimate={submitted.estimate}
         />
       </div>
     );

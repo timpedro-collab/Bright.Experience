@@ -25,6 +25,11 @@ import { DEFAULT_ACCOUNT_MANAGER } from "@/lib/team";
 import { getCapabilities } from "@/lib/capabilities";
 import { briefEchoItems, type BriefEchoInput } from "@/lib/brief-echo";
 import { RESPONSE_SLA } from "@/lib/marketing/claims";
+import type { InstantEstimate } from "@/lib/pricing/instant-estimate";
+import {
+  formatRange,
+  expectationBasisLabel,
+} from "@/lib/metrics/expected-performance";
 import { updateQuoteCapabilities } from "@/app/actions/quotes";
 
 interface PostIntakeCardProps {
@@ -37,6 +42,8 @@ interface PostIntakeCardProps {
   capabilitySlugs: string[];
   /** The customer's quiz/intake answers, played back as "what you told us". */
   brief?: BriefEchoInput;
+  /** Instant estimate computed at submit time; null when nothing comparable. */
+  estimate?: InstantEstimate | null;
 }
 
 function firstName(full: string): string {
@@ -50,6 +57,7 @@ export function PostIntakeCard({
   packageName,
   capabilitySlugs,
   brief,
+  estimate,
 }: PostIntakeCardProps) {
   const [selected, setSelected] = useState<string[]>(capabilitySlugs);
   const [refineOpen, setRefineOpen] = useState(false);
@@ -163,6 +171,52 @@ export function PostIntakeCard({
               )}
             </ul>
           </div>
+
+          {/* Instant estimate — tier band + benchmark ranges, seconds after
+              submitting, ahead of the exact number on the walkthrough. */}
+          {estimate && (
+            <div className="rounded-[var(--radius-card)] border border-border/60 bg-muted/40 p-5">
+              <p className="text-overline text-muted-foreground">
+                Your early numbers
+              </p>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Activations like yours typically land in the{" "}
+                <span className="font-semibold text-foreground">
+                  {estimate.bandLabel}
+                </span>{" "}
+                range. Your exact figure comes on the walkthrough.
+              </p>
+              {(estimate.plays || estimate.leads) && (
+                <dl className="mt-3 grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
+                  {estimate.plays && (
+                    <div>
+                      <dt className="text-xs text-muted-foreground">
+                        Projected plays
+                      </dt>
+                      <dd className="mt-0.5 text-sm font-semibold text-foreground tabular-nums">
+                        {formatRange(estimate.plays.totalLow, estimate.plays.totalHigh)}
+                      </dd>
+                    </div>
+                  )}
+                  {estimate.leads && (
+                    <div>
+                      <dt className="text-xs text-muted-foreground">
+                        Projected leads
+                      </dt>
+                      <dd className="mt-0.5 text-sm font-semibold text-foreground tabular-nums">
+                        {formatRange(estimate.leads.totalLow, estimate.leads.totalHigh)}
+                      </dd>
+                    </div>
+                  )}
+                </dl>
+              )}
+              {(estimate.plays ?? estimate.leads) && (
+                <p className="mt-2 text-xs text-muted-foreground">
+                  {expectationBasisLabel((estimate.plays ?? estimate.leads)!)}
+                </p>
+              )}
+            </div>
+          )}
 
           {/* Named human + call agenda + booker. */}
           <div className="rounded-[var(--radius-card)] border border-primary/15 bg-primary/[0.04] p-5">

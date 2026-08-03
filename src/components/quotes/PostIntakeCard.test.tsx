@@ -75,4 +75,56 @@ describe("PostIntakeCard", () => {
       screen.getByText("Proposal within 1 business day")
     ).toBeInTheDocument();
   });
+
+  it("shows the instant estimate as ranges with the honesty caveat", () => {
+    render(
+      <PostIntakeCard
+        quoteId="q1"
+        contactName="Tim"
+        capabilitySlugs={["lead-capture"]}
+        estimate={{
+          tierSlug: "lead-engine",
+          tierName: "Lead Engine",
+          bandLabel: "£16,000–£24,000",
+          plays: {
+            metric: "plays",
+            perDayLow: 200,
+            perDayHigh: 280,
+            totalLow: 600,
+            totalHigh: 840,
+            sampleSize: 20,
+            basis: "event",
+          },
+          leads: {
+            metric: "leads",
+            perDayLow: 60,
+            perDayHigh: 110,
+            totalLow: 180,
+            totalHigh: 330,
+            sampleSize: 20,
+            basis: "event",
+          },
+        }}
+      />
+    );
+    expect(screen.getByText("Your early numbers")).toBeInTheDocument();
+    expect(screen.getByText("£16,000–£24,000")).toBeInTheDocument();
+    expect(screen.getByText("600–840")).toBeInTheDocument();
+    expect(screen.getByText("180–330")).toBeInTheDocument();
+    expect(
+      screen.getByText("Based on 20 comparable activations of this type")
+    ).toBeInTheDocument();
+  });
+
+  it("stays quiet when no estimate could be built", () => {
+    render(
+      <PostIntakeCard
+        quoteId="q1"
+        contactName="Tim"
+        capabilitySlugs={[]}
+        estimate={null}
+      />
+    );
+    expect(screen.queryByText("Your early numbers")).not.toBeInTheDocument();
+  });
 });

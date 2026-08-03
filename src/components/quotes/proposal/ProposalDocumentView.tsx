@@ -6,13 +6,18 @@
  * is complete we show a "book your 15-minute walkthrough" card instead of the
  * price, so pricing is always discussed on a call first.
  */
-import { CalendarClock, Check, Sparkles, Eye, Users, MapPin } from "lucide-react";
+import { CalendarClock, Check, Sparkles, Eye, Users, MapPin, Timer, Gamepad2 } from "lucide-react";
 
 import { Card } from "@/components/ui/card";
 import { Hairline } from "@/components/brand";
 import { formatGBP } from "@/lib/roi";
 import { formatNumberUS, formatMoneyFromPence } from "@/lib/currency";
 import { formatPriceBand } from "@/lib/proposals/price-band";
+import {
+  formatRange,
+  expectationBasisLabel,
+  type Expectation,
+} from "@/lib/metrics/expected-performance";
 import {
   ALWAYS_ON_OUTCOMES,
   type ProposalDocument,
@@ -27,6 +32,11 @@ interface ProposalDocumentViewProps {
   /** Whether the customer can still accept/decline (status === proposal_sent). */
   canRespond: boolean;
   walkthroughUrl: string;
+  /** Countdown line ("Valid for N more days"); null hides the chip. */
+  validity?: string | null;
+  /** Benchmark-backed ranges from comparable activations; null when none. */
+  expectedPlays?: Expectation | null;
+  expectedLeads?: Expectation | null;
 }
 
 function ReachStat({
@@ -83,6 +93,9 @@ export function ProposalDocumentView({
   priceRevealed,
   canRespond,
   walkthroughUrl,
+  validity,
+  expectedPlays,
+  expectedLeads,
 }: ProposalDocumentViewProps) {
   return (
     <div className="space-y-20 md:space-y-28">
@@ -110,6 +123,14 @@ export function ProposalDocumentView({
           {doc.cover.title}
         </h1>
         <p className="mt-4 text-lg text-muted-foreground">{doc.cover.subtitle}</p>
+        {validity && (
+          <p className="mt-5">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--color-bb-cobalt)]/25 bg-[var(--color-bb-cobalt)]/[0.06] px-3 py-1 text-xs font-medium text-[var(--color-bb-cobalt)]">
+              <Timer className="h-3 w-3" aria-hidden />
+              {validity}
+            </span>
+          </p>
+        )}
         <div className="mx-auto mt-10 flex max-w-2xl flex-wrap items-stretch justify-center gap-3">
           {doc.cover.facts.map((f) => (
             <div
@@ -151,6 +172,43 @@ export function ProposalDocumentView({
                   : "Scaled from your expected attendance and the unit's branded advertising. Final figures confirmed on your walkthrough."}
               </p>
             </div>
+          </Card>
+        </section>
+      )}
+
+      {/* ---- Projected performance (benchmark-backed) ---- */}
+      {(expectedPlays || expectedLeads) && (
+        <section>
+          <Card tone="subtle" className="p-8">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p className="text-overline tracking-[0.2em] text-[var(--color-bb-cobalt)]">
+                What activations like this actually do
+              </p>
+              <span className="text-xs text-muted-foreground">
+                {expectationBasisLabel((expectedPlays ?? expectedLeads)!)}
+              </span>
+            </div>
+            <div className="mt-5 grid grid-cols-2 gap-6 sm:max-w-md">
+              {expectedPlays && (
+                <ReachStat
+                  icon={Gamepad2}
+                  value={formatRange(expectedPlays.totalLow, expectedPlays.totalHigh)}
+                  label="Plays"
+                />
+              )}
+              {expectedLeads && (
+                <ReachStat
+                  icon={Users}
+                  value={formatRange(expectedLeads.totalLow, expectedLeads.totalHigh)}
+                  label="Leads"
+                />
+              )}
+            </div>
+            <p className="mt-5 max-w-[64ch] text-xs leading-relaxed text-muted-foreground">
+              Drawn from the measured results of comparable activations in our
+              fleet — a range, not a promise, and we&apos;ll talk you through
+              the assumptions on your walkthrough.
+            </p>
           </Card>
         </section>
       )}

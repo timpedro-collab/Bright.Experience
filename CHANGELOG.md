@@ -4,6 +4,41 @@ All notable changes to the Bright.Experience platform are documented here.
 
 ---
 
+## [Ecosystem build · Stage 2 — proposals that answer sooner] - 2026-08-02
+
+The quote → proposal journey now answers the buyer's two questions —
+"what will it cost?" and "what will it do?" — at the earliest honest moment,
+and arms the internal champion who has to sell it upward (docs/19: instant
+estimates, benchmark-backed forecasts, champion enablement, add-ons at
+acceptance).
+
+- **Instant estimate on submit** — `submitProposalIntake` now returns a
+  best-effort estimate built by new `src/lib/pricing/instant-estimate.ts`
+  (7 tests): the tier the chosen capabilities imply (telemetry → Command,
+  lead capture → Lead Engine, else base) with its published UK band, plus
+  benchmark plays/leads ranges via `buildExpectation`. The post-intake
+  confirmation shows it as "Your early numbers" with the sample-size caveat;
+  leads are never projected for a tier without the lead-capture layer.
+- **Benchmark band on the proposal** — `/proposal/[id]` now fetches event-type
+  benchmarks and renders "What activations like this actually do"
+  (plays/leads ranges + basis label) alongside the existing modelled reach
+  band. Ranges, never point estimates; the section disappears when nothing
+  comparable exists.
+- **Validity countdown** — new `src/lib/proposals/validity.ts` (5 tests)
+  turns the already-enforced `quotes.expires_at` into an honest cover chip
+  ("Valid for N more days"), shown only while the proposal is open.
+- **Champion tools** — `ShareProposalButton` (prefilled mailto forward) and
+  `ChampionSummaryCard` (copyable what/when/reach/investment lines for the
+  person who signs it off; price appears only once revealed). 4 tests.
+- **Add-ons at acceptance** — accepted proposals show `AcceptedAddOns`, a
+  one-click "add a layer" card wired to the existing
+  `updateQuoteCapabilities` action (4 tests). Copy is explicit that nothing
+  is charged until the event lead confirms the line item.
+- Composer delegation: the three microsite components were built by two
+  composer agents against exact prop contracts; estimate/benchmark/validity
+  logic and all wiring by the main agent. Full gate: lint + typecheck clean,
+  1,998 tests green.
+
 ## [Ecosystem build · Stage 1 — tell the story & publish the proof] - 2026-08-02
 
 The marketing site now tells the network story and publishes real prices —

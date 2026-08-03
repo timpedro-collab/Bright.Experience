@@ -6,6 +6,12 @@ import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { quoteLimiter, decisionLimiter, getClientIp } from "@/lib/rate-limit";
 import { sanitiseCapabilitySlugs } from "@/lib/capabilities";
+import { getBenchmarksForEventType } from "@/lib/queries/benchmarks";
+import {
+  buildInstantEstimate,
+  type InstantEstimate,
+} from "@/lib/pricing/instant-estimate";
+import { showDayCount } from "@/lib/metrics/expected-performance";
 import { sendProposalIntakeNotification } from "@/lib/email";
 import { dispatchNotification } from "@/lib/notifications/dispatch";
 import { recordAttribution } from "@/app/actions/partners";
@@ -175,9 +181,29 @@ export async function submitProposalIntake(data: {
     console.error("[submitProposalIntake] in-portal notify failed", notifyError);
   }
 
+  // Instant estimate for the confirmation screen: the tier the chosen
+  // capabilities imply plus benchmark-backed performance ranges. Best-effort —
+  // a failed lookup never blocks the submission the customer just made.
+  let estimate: InstantEstimate | null = null;
+  try {
+    const benchmarks = await getBenchmarksForEventType(data.eventType);
+    const days = data.eventDateStart
+      ? showDayCount(data.eventDateStart, data.eventDateEnd)
+      : (data.activationDays ?? 1);
+    estimate = buildInstantEstimate({
+      addons,
+      eventType: data.eventType,
+      machineType: data.machinePreference ?? null,
+      days,
+      benchmarks,
+    });
+  } catch (estimateError) {
+    console.error("[submitProposalIntake] estimate failed", estimateError);
+  }
+
   revalidatePath("/admin/quotes");
   revalidatePath("/admin/customer-queue");
-  return { success: true as const, data: { id: quote.id } };
+  return { success: true as const, data: { id: quote.id, estimate } };
 }
 
 /**
