@@ -4,6 +4,43 @@ All notable changes to the Bright.Experience platform are documented here.
 
 ---
 
+## [Ecosystem build · Stage 1 — tell the story & publish the proof] - 2026-08-02
+
+The marketing site now tells the network story and publishes real prices —
+the two biggest gaps from the docs/19 comparative audit (the venue/organizer
+sides were publicly invisible; pricing hid behind a call).
+
+- **`/pricing`** — audience-aware pricing page: persona selector (brand /
+  agency / organizer / venue) + UK/US/EU region toggle before any number.
+  Brands see the tier grid Best-first (Lead Engine badged "Most popular") +
+  a cost-per-lead strip; agencies see rack + trade terms; organizers/venues
+  see no public numbers and route to partner pages. Deep-linkable
+  (`?for=agency`). New `PricingExplorer`/`TierCard` components, 7 tests.
+- **`/for-venues` + `/for-organizers`** — public role landing pages (hosting
+  economics; wholesale resale motion) + a homepage `NetworkSection` with
+  three role doors. Nav/footer rewired (Pricing in primary nav, new Partners
+  footer column).
+- **`/business-case`** — interactive cost-per-lead calculator
+  (`CplCalculator`, 4 tests) dividing published bands by a visitor-set lead
+  count, against named CEIR/LinkedIn benchmarks. **`/faq`** — plain-language
+  answers (cost, speed, logistics, data). **`/measured-sampling`** — the
+  "<1% measured vs 100% counted" sampling story.
+- **Machine pages** now carry a commercial strip (from-price out of the tier
+  model, wrap + delivery inclusions, link to /pricing) and an honest fleet
+  benchmark ("175–300 plays/day · fleet benchmark · N measured events") via
+  new `src/lib/metrics/machine-benchmarks.ts` (6 tests); machine cards show
+  the same range on the index.
+- **Response SLA** — new `RESPONSE_SLA` claim surfaced on the intake wizard's
+  final step and the post-intake confirmation ("Proposal within 1 business
+  day"). The intake email was inspected and left unchanged: it is an internal
+  sales alert, not a customer confirmation.
+- **AI surfaces** — `/llm-info` (structured product facts page) and
+  `/llms.txt` (markdown route handler), both generated from the canonical
+  modules (tiers, capabilities, claims) so price changes propagate.
+- Composer delegation: machine pages, SLA badge, and AI surfaces were built
+  by three parallel composer agents from judgment-free briefs; all files
+  audited line-by-line afterwards.
+
 ## [Ecosystem build · Stage 0 — pricing & packaging foundation] - 2026-08-02
 
 The commercial spine for the ecosystem build (docs/19 findings + Aug 2 pricing

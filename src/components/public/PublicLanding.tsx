@@ -4,7 +4,8 @@
  * platform, Cloud) with the portal's catalog (machines, case studies, quiz).
  *
  * Section order follows the sales sequence: claim → trust → self-selection
- * ("Let's plan ___") → jobs → product → proof → capability → process → ask.
+ * ("Let's plan ___") → jobs → product → proof → capability → network story
+ * (role doors for venues/organizers) → process → ask.
  * Copy and numbers come from `src/lib/marketing/claims.ts`.
  */
 import { PublicSiteChrome } from "@/components/public/PublicSiteChrome";
@@ -15,6 +16,7 @@ import { PillarsSection } from "@/components/public/landing/PillarsSection";
 import { MachinesShowcase } from "@/components/public/landing/MachinesShowcase";
 import { ProofSection } from "@/components/public/landing/ProofSection";
 import { PlatformSection } from "@/components/public/landing/PlatformSection";
+import { NetworkSection } from "@/components/public/landing/NetworkSection";
 import { HowItWorks } from "@/components/catalog/HowItWorks";
 import { FinalCta } from "@/components/public/landing/FinalCta";
 import { CLIENT_LOGOS } from "@/lib/marketing/client-logos";
@@ -53,6 +55,7 @@ export async function PublicLanding() {
         }))}
       />
       <PlatformSection />
+      <NetworkSection />
       <HowItWorks />
       <FinalCta />
     </PublicSiteChrome>

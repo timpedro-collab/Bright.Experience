@@ -18,7 +18,7 @@ import { PartnerAttributionBanner } from "@/components/public/PartnerAttribution
 const PRIMARY_LINKS = [
   { label: "Machines", href: "/catalog/machines" },
   { label: "Games", href: "/catalog/games" },
-  { label: "Packages", href: "/catalog/packages" },
+  { label: "Pricing", href: "/pricing" },
   { label: "Case Studies", href: "/catalog/case-studies" },
   { label: "Find Your Match", href: "/quiz" },
 ];
@@ -29,24 +29,35 @@ const FOOTER_GROUPS = [
     links: [
       { label: "Machines", href: "/catalog/machines" },
       { label: "Games", href: "/catalog/games" },
-      { label: "Packages", href: "/catalog/packages" },
+      { label: "Measured Sampling", href: "/measured-sampling" },
       { label: "Case Studies", href: "/catalog/case-studies" },
     ],
   },
   {
     heading: "Order",
     links: [
+      { label: "Pricing", href: "/pricing" },
+      { label: "Build Your Business Case", href: "/business-case" },
       { label: "Find Your Match", href: "/quiz" },
       { label: "Book Now", href: "/book" },
       { label: "Get a Proposal", href: "/proposal" },
+    ],
+  },
+  {
+    heading: "Partners",
+    links: [
+      { label: "For Venues", href: "/for-venues" },
+      { label: "For Organizers", href: "/for-organizers" },
       { label: "Become a Partner", href: "/partners/join" },
+      { label: "Sign in", href: "/login" },
     ],
   },
   {
     heading: "Company",
     links: [
       { label: "How It Works", href: "/how-it-works" },
-      { label: "Sign in", href: "/login" },
+      { label: "FAQ", href: "/faq" },
+      { label: "Packages", href: "/catalog/packages" },
       { label: "Terms", href: "/terms" },
       { label: "Privacy", href: "/privacy" },
     ],
@@ -110,7 +121,7 @@ export function PublicSiteChrome({
       {/* Editorial footer — bright.blue lockup, locations strip, link columns */}
       <footer className="border-t border-border/40 bg-[hsl(233,66%,5%)]">
         <Container className="py-16">
-          <div className="grid gap-10 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
+          <div className="grid gap-10 sm:grid-cols-2 md:grid-cols-[1.4fr_1fr_1fr_1fr_1fr]">
             <div>
               <BrandLockup
                 size="md"

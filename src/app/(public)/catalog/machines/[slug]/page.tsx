@@ -12,6 +12,12 @@ import { GameCard } from "@/components/catalog/GameCard";
 import { PackageTierCard } from "@/components/catalog/PackageTierCard";
 import { MediaGallery, type MediaItem } from "@/components/catalog/MediaGallery";
 import { getMachineBySlug } from "@/lib/queries/machines";
+import { getBenchmarks } from "@/lib/queries/benchmarks";
+import {
+  playsBenchmarkForMachine,
+  formatPlaysBenchmark,
+} from "@/lib/metrics/machine-benchmarks";
+import { getTier, formatBandAmount } from "@/lib/pricing/tiers";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -34,6 +40,15 @@ export default async function MachineDetailPage({ params }: PageProps) {
   const { slug } = await params;
   const machine = await getMachineBySlug(slug);
   if (!machine) return notFound();
+
+  const showstopper = getTier("showstopper")!;
+  const fromPrice = formatBandAmount(
+    showstopper.bands.uk.currency,
+    showstopper.bands.uk.lowMinor,
+  );
+
+  const benchmarks = await getBenchmarks({ machineType: machine.name });
+  const plays = playsBenchmarkForMachine(machine.name, benchmarks);
 
   const junctionRows =
     (machine.machine_games as unknown as { games: Record<string, unknown> }[] | null) ?? [];
@@ -80,6 +95,32 @@ export default async function MachineDetailPage({ params }: PageProps) {
                     <Sparkles className="h-4 w-4" /> Find similar
                   </Link>
                 </Button>
+              </div>
+              <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-muted-foreground">
+                {plays && (
+                  <span className="inline-flex items-baseline gap-1.5">
+                    <span className="font-medium text-foreground">
+                      {formatPlaysBenchmark(plays)}
+                    </span>
+                    <span className="text-xs">
+                      fleet benchmark · {plays.sampleSize} measured events
+                    </span>
+                  </span>
+                )}
+                <span className="font-medium text-foreground">
+                  Activations from {fromPrice}
+                </span>
+                <span className="inline-flex items-center gap-1.5">
+                  <Check className="h-3.5 w-3.5 text-[hsl(189,100%,75%)]" aria-hidden />
+                  Custom wrap &amp; game skin included
+                </span>
+                <span className="inline-flex items-center gap-1.5">
+                  <Check className="h-3.5 w-3.5 text-[hsl(189,100%,75%)]" aria-hidden />
+                  Delivery, install &amp; breakdown included
+                </span>
+                <Link href="/pricing" className="underline underline-offset-4 hover:text-foreground">
+                  See activation tiers
+                </Link>
               </div>
             </div>
             <div className="relative aspect-[4/3] overflow-hidden rounded-[var(--radius-card)] border border-border bg-[radial-gradient(ellipse_at_center,hsl(230,93%,53%,0.25),transparent_55%)]">

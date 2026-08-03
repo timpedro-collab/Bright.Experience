@@ -13,6 +13,7 @@ interface MachineCardProps {
     heroImageUrl?: string | null;
     capacityLabel?: string | null;
     mechanisms?: string[] | null;
+    playsPerDayLabel?: string;
   };
   index?: number;
   featured?: boolean;
@@ -74,6 +75,11 @@ export function MachineCard({ machine, index = 0, featured = false }: MachineCar
             {machine.tagline && (
               <p className="mt-1 text-sm text-muted-foreground line-clamp-2">
                 {machine.tagline}
+              </p>
+            )}
+            {machine.playsPerDayLabel && (
+              <p className="mt-1 text-xs text-muted-foreground">
+                {machine.playsPerDayLabel} · fleet benchmark
               </p>
             )}
           </div>

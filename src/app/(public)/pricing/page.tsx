@@ -1,0 +1,60 @@
+/**
+ * Public pricing page — the three-tier + bespoke model from docs/20, shown
+ * audience-aware: persona + region selection before any number. Deep-linkable
+ * via `?for=organizer|venue|agency|brand`.
+ */
+import type { Metadata } from "next";
+
+import { Container, Section } from "@/components/ui/section";
+import {
+  PricingExplorer,
+  PRICING_PERSONAS,
+  type PricingPersona,
+} from "@/components/public/pricing/PricingExplorer";
+
+export const metadata: Metadata = {
+  title: "Pricing",
+  description:
+    "What a Bright.Blue activation costs — three tiers with real bands for UK, US and EU events, plus bespoke programs. No mystery, no 'call for pricing'.",
+};
+
+interface PageProps {
+  searchParams: Promise<{ for?: string }>;
+}
+
+function isPersona(value: string | undefined): value is PricingPersona {
+  return PRICING_PERSONAS.some((p) => p.id === value);
+}
+
+export default async function PricingPage({ searchParams }: PageProps) {
+  const { for: personaParam } = await searchParams;
+  const initialPersona = isPersona(personaParam) ? personaParam : "brand";
+
+  return (
+    <>
+      <Section spacing="md" className="border-b border-border/60">
+        <Container>
+          <div className="max-w-3xl">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground mb-3">
+              Pricing
+            </p>
+            <h1 className="text-display-grotesk text-4xl text-foreground md:text-6xl">
+              What an activation costs.
+            </h1>
+            <p className="mt-5 text-lg leading-relaxed text-muted-foreground">
+              Real bands, published — because you shouldn&apos;t need a
+              discovery call to know if we fit your budget. Pick who you are;
+              the numbers adjust to how you actually buy.
+            </p>
+          </div>
+        </Container>
+      </Section>
+
+      <Section>
+        <Container>
+          <PricingExplorer initialPersona={initialPersona} />
+        </Container>
+      </Section>
+    </>
+  );
+}

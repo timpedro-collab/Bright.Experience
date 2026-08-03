@@ -15,6 +15,7 @@
 
 import { useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { Clock } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { IntakeStepEvent } from "./IntakeStepEvent";
@@ -27,6 +28,7 @@ import { submitProposalIntake } from "@/app/actions/quotes";
 import { decodeCapabilityParam } from "@/lib/capabilities";
 import { bridgeQuizToIntake } from "@/lib/quiz-intake-bridge";
 import { briefEchoItems } from "@/lib/brief-echo";
+import { RESPONSE_SLA } from "@/lib/marketing/claims";
 import { cn } from "@/lib/utils";
 
 const STEP_LABELS = [
@@ -299,9 +301,15 @@ export function IntakeWizard() {
             Continue
           </Button>
         ) : (
-          <Button onClick={handleSubmit} disabled={!canProceed || loading} variant="brand">
-            {loading ? "Saving…" : "Continue to booking"}
-          </Button>
+          <div className="flex flex-col items-end gap-2">
+            <Button onClick={handleSubmit} disabled={!canProceed || loading} variant="brand">
+              {loading ? "Saving…" : "Continue to booking"}
+            </Button>
+            <p className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
+              <Clock className="h-3 w-3" aria-hidden />
+              {RESPONSE_SLA.line}
+            </p>
+          </div>
         )}
       </div>
     </div>

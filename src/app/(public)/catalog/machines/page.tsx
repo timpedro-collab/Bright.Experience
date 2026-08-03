@@ -8,6 +8,11 @@ import { Container, Section } from "@/components/ui/section";
 import { Button } from "@/components/ui/button";
 import { RidgeArtwork, EditorialEyebrow } from "@/components/brand";
 import { getMachines } from "@/lib/queries/machines";
+import { getBenchmarks } from "@/lib/queries/benchmarks";
+import {
+  playsBenchmarkForMachine,
+  formatPlaysBenchmark,
+} from "@/lib/metrics/machine-benchmarks";
 
 export const metadata: Metadata = {
   title: "All machines",
@@ -16,7 +21,10 @@ export const metadata: Metadata = {
 };
 
 export default async function MachinesIndexPage() {
-  const machines = await getMachines();
+  const [machines, benchmarks] = await Promise.all([
+    getMachines(),
+    getBenchmarks(),
+  ]);
 
   return (
     <>
@@ -66,19 +74,23 @@ export default async function MachinesIndexPage() {
             </div>
           ) : (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {machines.map((m, i) => (
-                <MachineCard
-                  key={m.slug}
-                  machine={{
-                    name: m.name,
-                    slug: m.slug,
-                    tagline: m.tagline ?? undefined,
-                    heroImageUrl: m.hero_image_url,
-                    capacityLabel: (m as { capacity_label?: string | null }).capacity_label,
-                  }}
-                  index={i}
-                />
-              ))}
+              {machines.map((m, i) => {
+                const plays = playsBenchmarkForMachine(m.name, benchmarks);
+                return (
+                  <MachineCard
+                    key={m.slug}
+                    machine={{
+                      name: m.name,
+                      slug: m.slug,
+                      tagline: m.tagline ?? undefined,
+                      heroImageUrl: m.hero_image_url,
+                      capacityLabel: (m as { capacity_label?: string | null }).capacity_label,
+                      playsPerDayLabel: plays ? formatPlaysBenchmark(plays) : undefined,
+                    }}
+                    index={i}
+                  />
+                );
+              })}
             </div>
           )}
         </Container>

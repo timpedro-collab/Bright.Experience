@@ -14,7 +14,7 @@
 "use client";
 
 import { useState } from "react";
-import { Settings2, Video } from "lucide-react";
+import { Clock, Settings2, Video } from "lucide-react";
 import { toast } from "sonner";
 
 import { Card, CardContent } from "@/components/ui/card";
@@ -24,6 +24,7 @@ import { WalkthroughScheduler } from "@/components/quotes/WalkthroughScheduler";
 import { DEFAULT_ACCOUNT_MANAGER } from "@/lib/team";
 import { getCapabilities } from "@/lib/capabilities";
 import { briefEchoItems, type BriefEchoInput } from "@/lib/brief-echo";
+import { RESPONSE_SLA } from "@/lib/marketing/claims";
 import { updateQuoteCapabilities } from "@/app/actions/quotes";
 
 interface PostIntakeCardProps {
@@ -102,6 +103,10 @@ export function PostIntakeCard({
               Everything you told us is now in front of {ae.firstName}.
               Here&apos;s the brief we&apos;re working from:
             </p>
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/25 bg-primary/[0.06] px-3 py-1 text-xs font-medium text-primary">
+              <Clock className="h-3 w-3" aria-hidden />
+              {RESPONSE_SLA.short}
+            </span>
           </div>
 
           {/* What you told us — the customer's own answers, played back. */}

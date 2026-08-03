@@ -84,3 +84,13 @@ export const QUIZ_CTA = {
   payoff: "60 seconds → the right machine and a reach estimate for your event.",
   href: "/quiz",
 } as const;
+
+/**
+ * The response-time promise shown at the moment of intake commitment and in
+ * confirmations. One business day is the operating SLA the team works to —
+ * change here only in step with the commercial team.
+ */
+export const RESPONSE_SLA = {
+  line: "Your tailored proposal lands within 1 business day.",
+  short: "Proposal within 1 business day",
+} as const;

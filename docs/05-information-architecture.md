@@ -1,6 +1,6 @@
 # Information Architecture
 
-> **Version:** 0.1.0 · **Status:** current · **Last verified:** 2026-07-25.
+> **Version:** 0.2.0 · **Status:** current · **Last verified:** 2026-08-02.
 > The URL tree below mirrors the real routes under `src/app/`. There is **no
 > `/internal/*` namespace** — internal and customer users share the same
 > `/events/[id]/*` workspace, and each section is filtered by role via
@@ -18,6 +18,14 @@
 /catalog/games[/:slug]              → Games index + detail
 /catalog/packages[/:slug]           → Packages index + detail
 /catalog/case-studies[/:slug]       → Case studies index + detail
+/pricing                            → Audience-aware tier pricing (persona ?for= + region toggle)
+/for-venues                         → Venue role landing page (hosting economics)
+/for-organizers                     → Organizer role landing page (resale motion)
+/business-case                      → Cost-per-lead calculator + CFO framing
+/faq                                → Plain-language FAQ
+/measured-sampling                  → Measured-sampling campaign landing page
+/llm-info                           → Structured product facts for people + AI assistants
+/llms.txt                           → Machine-readable product summary (route handler, text/markdown)
 /how-it-works                       → Explainer
 /quiz                               → Recommendation quiz (capability match)
 /book                               → Book-now track entry

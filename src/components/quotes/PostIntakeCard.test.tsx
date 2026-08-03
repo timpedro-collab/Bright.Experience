@@ -66,4 +66,13 @@ describe("PostIntakeCard", () => {
     ).toBeInTheDocument();
     expect(screen.getByText(/Your exact investment, live/)).toBeInTheDocument();
   });
+
+  it("shows the response-time promise", () => {
+    render(
+      <PostIntakeCard quoteId="q1" contactName="Tim" capabilitySlugs={[]} />
+    );
+    expect(
+      screen.getByText("Proposal within 1 business day")
+    ).toBeInTheDocument();
+  });
 });
