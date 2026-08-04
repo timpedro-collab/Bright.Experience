@@ -24,6 +24,10 @@ interface Props {
   params: Promise<{ slug: string }>;
 }
 
+// The service-role read model uses no request APIs, so without this Next
+// would cache the route and advertisers would see stale inventory.
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const media = await getPublicVenueMedia(slug);

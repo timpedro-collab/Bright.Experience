@@ -13,6 +13,10 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
+// The service-role read model uses no request APIs, so without this Next
+// would cache the route and embeds would show stale slot counts.
+export const dynamic = "force-dynamic";
+
 /** Compact embeddable widget page — no chrome, sized for sidebar iframes. */
 export default async function VenueWidgetPage({ params }: Props) {
   const { slug } = await params;

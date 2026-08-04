@@ -65,11 +65,14 @@ export async function getPublicVenueMedia(
   if (venueError) logQueryError("getPublicVenueMedia", venueError, { slug });
   if (!venue || venue.is_active === false) return null;
 
+  // The machine_instances embed must name the FK: placements point at the
+  // unit and machine_instances.current_placement_id points back, so a bare
+  // embed is ambiguous to PostgREST (see lib/queries/placements.ts).
   const { data: placementRows, error: placementsError } = await supabase
     .from("placements")
     .select(
       `id, status, sku_status, location_label, notes, pricing_model_json,
-       machine_instances ( nickname )`,
+       machine_instances!placements_machine_instance_id_fkey ( nickname )`,
     )
     .eq("venue_id", venue.id)
     .in("status", ["active", "planned"]);
