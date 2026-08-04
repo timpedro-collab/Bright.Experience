@@ -144,6 +144,85 @@ export const internalArchetypes = {
     roleScope: ["partner_admin", "partner_member", "events_lead", "admin"],
   },
   /**
+   * An organizer registered a sponsor conversation. Bright.Blue reviews
+   * within a 24-hour SLA — approval grants the organizer a 14-day
+   * exclusivity window on that sponsor, so a slow review stalls their sale.
+   */
+  "deal.registered": {
+    kind: "deal.registered",
+    classOf: "action_required",
+    priority: "high",
+    eyebrow: "Action required",
+    subjectTemplate: "Deal registered — {sponsorCompany} by {partnerName}",
+    bodyTemplate:
+      "{partnerName} registered {sponsorCompany} as their sponsor prospect. Review within 24 hours — approval locks the deal to them for 14 days.",
+    linkTemplate: "/admin/deals",
+    ownerResolver: "internal_admins",
+    reminderCadence: {
+      firstAfterHours: 12,
+      intervalHours: 12,
+      maxEscalations: 2,
+    },
+    defaults: { inPortal: true, emailMode: "immediate" },
+    audience: "internal",
+  },
+  /**
+   * Bright.Blue approved a registration — the organizer now owns that
+   * sponsor conversation for 14 days across every channel.
+   */
+  "deal.approved": {
+    kind: "deal.approved",
+    classOf: "fyi",
+    priority: "high",
+    eyebrow: "FYI",
+    subjectTemplate: "{sponsorCompany} is registered to you",
+    bodyTemplate:
+      "Your registration for {sponsorCompany} is approved. The deal is exclusively yours for the next 14 days — go close it.",
+    linkTemplate: "/organizers/{organizerSlug}/deals",
+    ownerResolver: "registration_partner",
+    defaults: { inPortal: true, emailMode: "immediate" },
+    // Recipients are partner-role users; internal filter must not drop them.
+    audience: "both",
+    roleScope: ["partner_admin", "partner_member"],
+  },
+  "deal.rejected": {
+    kind: "deal.rejected",
+    classOf: "fyi",
+    priority: "normal",
+    eyebrow: "FYI",
+    subjectTemplate: "Registration for {sponsorCompany} was not approved",
+    bodyTemplate:
+      "Your registration for {sponsorCompany} was declined: {reason}. Reply to this thread if you think we got it wrong.",
+    linkTemplate: "/organizers/{organizerSlug}/deals",
+    ownerResolver: "registration_partner",
+    defaults: { inPortal: true, emailMode: "immediate" },
+    audience: "both",
+    roleScope: ["partner_admin", "partner_member"],
+  },
+  /**
+   * Reverse registration: an inbound brand lead matched an organizer's show,
+   * so Bright.Blue pushed it to them as a pre-filled deal shell.
+   */
+  "deal.lead_pushed": {
+    kind: "deal.lead_pushed",
+    classOf: "action_required",
+    priority: "high",
+    eyebrow: "Action required",
+    subjectTemplate: "We've matched a sponsor lead to you — {sponsorCompany}",
+    bodyTemplate:
+      "{sponsorCompany} came to Bright.Blue directly and fits your show. The deal is pre-registered to you — pick it up and make contact.",
+    linkTemplate: "/organizers/{organizerSlug}/deals",
+    ownerResolver: "registration_partner",
+    reminderCadence: {
+      firstAfterHours: TWENTY_FOUR,
+      intervalHours: TWENTY_FOUR,
+      maxEscalations: 2,
+    },
+    defaults: { inPortal: true, emailMode: "immediate" },
+    audience: "both",
+    roleScope: ["partner_admin", "partner_member"],
+  },
+  /**
    * An advertiser asked for an open slot on a venue's public page. The hold is
    * already placed; the venue operator has to confirm or release it.
    */

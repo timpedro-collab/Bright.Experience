@@ -16,6 +16,8 @@ export const createShowSlotSchema = z.object({
   startDate: z.string().min(1, "Start date is required"),
   endDate: z.string().min(1, "End date is required"),
   price: z.number().min(0, "Price can't be negative").optional(),
+  /** What Bright.Blue invoices the organizer; the spread is their margin. */
+  wholesalePrice: z.number().min(0, "Wholesale can't be negative").optional(),
 });
 
 /** Input for `assignSlotMachine` — move a sold slot to a different unit. */

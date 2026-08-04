@@ -68,6 +68,18 @@ export const completeSlotSchema = slotIdOnlySchema;
 export const releaseSlotSchema = slotIdOnlySchema;
 export const deleteSlotSchema = slotIdOnlySchema;
 
+/** Input for `holdSlot` — reserve with a countdown instead of forever. */
+export const holdSlotSchema = z.object({
+  slotId: uuidLike("Invalid slot ID"),
+  sponsorName: z.string().max(200, "Sponsor name is too long").optional(),
+  days: z
+    .number()
+    .int()
+    .min(1, "A hold needs at least a day")
+    .max(60, "A hold can't sit longer than 60 days")
+    .optional(),
+});
+
 export const updateSlotSchema = z.object({
   slotId: uuidLike("Invalid slot ID"),
   price: priceDollars.optional(),

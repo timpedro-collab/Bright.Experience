@@ -124,7 +124,19 @@ page — it is the `GET /api/events/:id/export` handler
 /organizers/:slug/fleet             → Every unit across every show they run
 /organizers/:slug/sponsors          → The sponsorship book: slots grouped by
                                       show, ordered by days to doors
+/organizers/:slug/deals             → Deal registration board: claim a sponsor
+                                      conversation; approval = 14-day exclusivity
+/organizers/:slug/earnings          → Margin roll-up: earned vs pipeline across
+                                      every sold slot (sponsor price − wholesale)
+/organizers/:slug/shows/:eventId/slots/:slotId/prospectus
+                                    → Printable prospectus block for one slot
+/organizers/:slug/shows/:eventId/slots/:slotId/one-pager
+                                    → Co-branded printable sales one-pager
 ```
+
+Internal counterpart: `/admin/deals` is the review queue for registrations
+(24 h SLA; approve starts the window, reject sends the typed reason to the
+organizer's board verbatim).
 
 Show pages switch between two modes on the show's dates: while a show is open
 they poll for live telemetry; before it opens they show the run-up — the dated

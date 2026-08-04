@@ -402,6 +402,12 @@ export default async function ShowMachinePage({ params }: Props) {
                           ? String(slot.pitch_token_expires_at)
                           : null
                       }
+                      viewCount={Number(slot.pitch_view_count) || 0}
+                      lastViewedAt={
+                        slot.pitch_last_viewed_at
+                          ? String(slot.pitch_last_viewed_at)
+                          : null
+                      }
                       className="mt-3"
                     />
                     <Link

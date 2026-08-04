@@ -57,6 +57,8 @@ export interface DispatchContext {
   studioRequestId?: string;
   /** A sponsorship slot — the anchor for venue-operator routing. */
   slotId?: string;
+  /** A deal registration — the anchor for registration-partner routing. */
+  dealRegistrationId?: string;
   briefingFormType?: string;
   /** The acting user — used to suppress self-notifications. */
   actorId?: string;
@@ -414,6 +416,28 @@ export async function resolveOwners(
       return [
         teamInboxFallback("events_lead", DEFAULT_ACCOUNT_MANAGER.email),
       ];
+    }
+
+    case "registration_partner": {
+      if (!context.dealRegistrationId) return [];
+      const sb = await client(supabase);
+      const { data: registration } = await sb
+        .from("deal_registrations")
+        .select("partner_id")
+        .eq("id", String(context.dealRegistrationId))
+        .maybeSingle();
+      if (!registration?.partner_id) return [];
+
+      const { data } = await sb
+        .from("profiles")
+        .select("id, email, name, role")
+        .eq("partner_id", registration.partner_id)
+        .eq("is_active", true);
+      const partnerUsers = (data ?? []) as ResolvedRecipient[];
+      if (partnerUsers.length > 0) return partnerUsers;
+      // A registration verdict with no portal user to receive it goes to us,
+      // so somebody can relay it rather than the decision evaporating.
+      return fetchInternalsByRoles(["events_lead", "admin"], supabase);
     }
 
     case "internal_admins": {

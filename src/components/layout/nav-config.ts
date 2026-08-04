@@ -74,6 +74,7 @@ const INTERNAL_SECTIONS: NavSection[] = [
       { label: "Invoices", href: "/admin/invoices", icon: Receipt, show: canViewCommercial },
       { label: "Partners", href: "/admin/partners", icon: Handshake, show: canViewCommercial },
       { label: "Organizers", href: "/admin/organizers", icon: Building2, show: canViewCommercial },
+      { label: "Deal registrations", href: "/admin/deals", icon: Handshake, show: canViewCommercial },
       { label: "Campaigns", href: "/admin/campaigns", icon: Layers, show: canViewCommercial },
     ],
   },

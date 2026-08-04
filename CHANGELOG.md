@@ -4,6 +4,59 @@ All notable changes to the Bright.Experience platform are documented here.
 
 ---
 
+## [Ecosystem build · Stage 3 — organizer sales engine] - 2026-08-04
+
+The organizer channel gets the machinery that lets a show's sales team resell
+Bright.Blue with confidence (docs/19 §organizers): channel protection, wholesale
+economics, sales collateral, and automatic fulfilment when a slot sells.
+
+- **Deal registration** — new `deal_registrations` table + migration
+  (`20260803000000_organizer_sales_engine.sql`, pgTAP RLS tests). An organizer
+  registers a sponsor conversation at `/organizers/:slug/deals`; internal
+  review at `/admin/deals` (nav: Commercial → Deal registrations) inside a
+  24 h SLA. Approval starts a 14-day exclusivity window on that company across
+  every channel; rejection sends the typed reason to the organizer verbatim.
+  Duplicate claims by the same partner return the existing claim; competing
+  claims by another channel are blocked while live (service-role check that
+  leaks only a boolean). Actions in `src/app/actions/deal-registrations.ts`
+  (9 tests), library in `src/lib/deal-registrations.ts`, queries in
+  `src/lib/queries/deal-registrations.ts` (4 tests).
+- **Reverse lead push** — `pushLeadToOrganizer` creates a pre-approved deal
+  shell from an inbound quote, wired to the internal quote page as
+  `PushLeadCard` (4 tests): route a direct brand lead to the organizer whose
+  show owns that audience, window already running.
+- **Slot holds** — `holdSlot` action + `hold_expires_at`: a countdown
+  reservation (default 14 days, extendable) instead of a forever-reserved
+  slot. Confirm clears the hold; release clears it; an expired hold reads as
+  available at query time (`src/lib/slot-holds.ts`), so no sweep cron.
+- **Wholesale economics** — `wholesale_price` on show slots. The open-a-slot
+  form asks for sponsor price and "your cost", suggesting rack −25%
+  (`src/lib/pricing/slot-economics.ts`, 12 tests); the earnings page at
+  `/organizers/:slug/earnings` rolls up earned vs pipeline margin per show
+  (`organizer-earnings` query, 3 tests).
+- **Fulfilment spawning** — confirming a show slot spawns the standard
+  fulfilment checklist (artwork, wrap proof, prize stock, config, go-live)
+  on the show event via `src/server/slot-fulfilment.ts` (idempotent,
+  never blocks the sale; 5 tests).
+- **Pitch-link engagement** — public pitch opens bump `pitch_view_count` /
+  `pitch_last_viewed_at` (counts only, no visitor identity;
+  `src/server/pitch-views.ts`, 4 tests) and the rep's link controls read
+  "opened N times, last …". The pitch page gains a sponsor-side
+  cost-per-lead calculator (`SlotRoiCalculator`, benchmark-bounded).
+- **Print collateral** — per-slot prospectus block and co-branded one-pager
+  at `/organizers/:slug/shows/:eventId/slots/:slotId/{prospectus,one-pager}`
+  (print-first pages; locked performance claims with sample sizes).
+- **Notifications** — four new kinds (`deal.registered` → internal admins,
+  `deal.approved` / `deal.rejected` / `deal.lead_pushed` → the registering
+  partner via new `registration_partner` resolver).
+- Composer delegation: earnings dashboard, collateral pages + queries,
+  fulfilment spawner, and ROI calculator built by four composer agents
+  against exact contracts; schema, actions, holds, wholesale, pitch views,
+  deals surfaces, and all wiring by the main agent. Full gate: lint +
+  typecheck clean, 2,088 tests green.
+
+---
+
 ## [Ecosystem build · Stage 2 — proposals that answer sooner] - 2026-08-02
 
 The quote → proposal journey now answers the buyer's two questions —

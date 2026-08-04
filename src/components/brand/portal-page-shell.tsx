@@ -177,5 +177,7 @@ export function organizerTabs(slug: string): PortalTab[] {
     { label: "Shows", href: `/organizers/${slug}/shows` },
     { label: "Fleet", href: `/organizers/${slug}/fleet` },
     { label: "Sponsors", href: `/organizers/${slug}/sponsors` },
+    { label: "Deals", href: `/organizers/${slug}/deals` },
+    { label: "Earnings", href: `/organizers/${slug}/earnings` },
   ];
 }

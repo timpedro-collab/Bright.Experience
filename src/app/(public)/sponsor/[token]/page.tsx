@@ -25,6 +25,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { UnitPassport } from "@/components/organizers/UnitPassport";
 import { ExpectedPerformance } from "@/components/organizers/ExpectedPerformance";
+import { SlotRoiCalculator } from "@/components/organizers/SlotRoiCalculator";
 import { WhatYouGet } from "@/components/sponsors/WhatYouGet";
 import { CaseStudyStrip } from "@/components/sponsors/CaseStudyStrip";
 import { SponsorInterestForm } from "@/components/sponsors/SponsorInterestForm";
@@ -41,6 +42,7 @@ import {
   showDayCount,
 } from "@/lib/metrics/expected-performance";
 import { pitchTokenDaysRemaining } from "@/lib/sponsor-pitch";
+import { recordPitchView } from "@/server/pitch-views";
 import { formatDateShort } from "@/lib/dates";
 import { formatMoneyFromPence } from "@/lib/currency";
 import { missionLabel, MISSION_DESCRIPTIONS } from "@/lib/fleet-labels";
@@ -93,6 +95,10 @@ export default async function SponsorPitchPage({ params }: Props) {
   const machine = first(slot.machine_instances);
   const show = first(slot.events);
   if (!show) return notFound();
+
+  // Count the open so the rep knows the link landed. Fire-and-forget; a
+  // failed count never breaks the page.
+  await recordPitchView(String(slot.id));
 
   const startDate = String(slot.start_date);
   const endDate = String(slot.end_date);
@@ -261,6 +267,14 @@ export default async function SponsorPitchPage({ params }: Props) {
               </div>
             </CardContent>
           </Card>
+
+          {slot.price && expectedLeads ? (
+            <SlotRoiCalculator
+              pricePence={Number(slot.price)}
+              leadsLow={expectedLeads.totalLow}
+              leadsHigh={expectedLeads.totalHigh}
+            />
+          ) : null}
 
           <SponsorInterestForm
             token={token}

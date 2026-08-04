@@ -21,6 +21,7 @@ import { Label } from "@/components/ui/label";
 import { NativeSelect } from "@/components/ui/native-select";
 import { createShowSlot } from "@/app/actions/organizers";
 import { missionLabel } from "@/lib/fleet-labels";
+import { suggestedWholesalePence } from "@/lib/pricing/slot-economics";
 import type { MachineMission } from "@/types";
 
 export interface SlotMachineOption {
@@ -54,6 +55,13 @@ export function NewShowSlotForm({
   const [startDate, setStartDate] = useState(defaultStartDate);
   const [endDate, setEndDate] = useState(defaultEndDate);
   const [price, setPrice] = useState("");
+  const [wholesale, setWholesale] = useState("");
+
+  // Rack −25%, so the organizer sees their margin before they commit to a
+  // sponsor price. They can overtype it; the suggestion only fills the blank.
+  const suggestedWholesale = price
+    ? suggestedWholesalePence(Number(price) * 100) / 100
+    : null;
 
   function reset() {
     setMachineId("");
@@ -61,6 +69,7 @@ export function NewShowSlotForm({
     setStartDate(defaultStartDate);
     setEndDate(defaultEndDate);
     setPrice("");
+    setWholesale("");
     setOpen(false);
   }
 
@@ -83,6 +92,9 @@ export function NewShowSlotForm({
         startDate,
         endDate,
         price: price ? Number(price) : undefined,
+        wholesalePrice: wholesale
+          ? Number(wholesale)
+          : suggestedWholesale ?? undefined,
       });
       if (!result.success) {
         toast.error(result.error);
@@ -153,7 +165,7 @@ export function NewShowSlotForm({
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="slot-price">Price (£)</Label>
+          <Label htmlFor="slot-price">Sponsor price (£)</Label>
           <Input
             id="slot-price"
             type="number"
@@ -163,6 +175,27 @@ export function NewShowSlotForm({
             onChange={(e) => setPrice(e.target.value)}
             placeholder="18000"
           />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="slot-wholesale">Your cost (£)</Label>
+          <Input
+            id="slot-wholesale"
+            type="number"
+            min={0}
+            step={50}
+            value={wholesale}
+            onChange={(e) => setWholesale(e.target.value)}
+            placeholder={
+              suggestedWholesale != null ? String(suggestedWholesale) : "Wholesale"
+            }
+          />
+          {suggestedWholesale != null && !wholesale && (
+            <p className="text-xs text-muted-foreground">
+              Suggested: £{suggestedWholesale.toLocaleString()} — the rest is
+              your margin.
+            </p>
+          )}
         </div>
 
         <div className="space-y-2">

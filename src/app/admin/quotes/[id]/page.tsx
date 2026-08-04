@@ -8,11 +8,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { QuoteStatusBadge } from "@/components/quotes/QuoteStatusBadge";
 import { WalkthroughControl } from "@/components/quotes/proposal/WalkthroughControl";
 import { ConvertToEventCard } from "@/components/quotes/ConvertToEventCard";
+import { PushLeadCard } from "@/components/quotes/PushLeadCard";
 import { ProposalBuilder } from "./ProposalBuilder";
 
 import { getUser } from "@/lib/auth";
 import { canViewCommercial } from "@/lib/roles";
 import { getQuoteById } from "@/lib/queries/quotes";
+import { getOrganizerPartners } from "@/lib/queries/organizer-admin";
 import { getUnreadCount } from "@/lib/queries/notifications";
 
 export default async function QuoteDetailPage({
@@ -25,9 +27,10 @@ export default async function QuoteDetailPage({
   if (!user) redirect("/login");
   if (!canViewCommercial(user.role)) redirect("/");
 
-  const [quote, unread] = await Promise.all([
+  const [quote, unread, organizers] = await Promise.all([
     getQuoteById(id),
     getUnreadCount(user.id),
+    getOrganizerPartners(),
   ]);
   if (!quote) notFound();
 
@@ -83,6 +86,11 @@ export default async function QuoteDetailPage({
             contactName={quote.contact_name}
           />
         </div>
+        <PushLeadCard
+          quoteId={quote.id}
+          companyName={quote.company_name ?? quote.contact_name}
+          organizers={organizers.map((o) => ({ id: o.id, name: o.name }))}
+        />
         <ProposalBuilder quote={quote} />
       </div>
     </AdminPageShell>

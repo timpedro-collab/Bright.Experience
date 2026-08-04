@@ -13,6 +13,7 @@ import {
   createSponsorshipSlotSchema,
   createVenuePackageSchema,
   deleteSlotSchema,
+  holdSlotSchema,
   releaseSlotSchema,
   requestVenueSlotSchema,
   reserveSlotSchema,
@@ -22,6 +23,8 @@ import {
 import { dispatchNotification } from "@/lib/notifications/dispatch";
 import { firstRelated } from "@/lib/queries/embed";
 import { applicationLimiter, getClientIp } from "@/lib/rate-limit";
+import { holdExpiry } from "@/lib/slot-holds";
+import { spawnSlotFulfilmentTasks } from "@/server/slot-fulfilment";
 import { revalidatePath } from "next/cache";
 
 /** Create a new venue event package. `price` is whole dollars from the form; stored as integer cents. */
@@ -187,6 +190,47 @@ export async function reserveSlot(
   return { success: true as const, data: { id: slotId } };
 }
 
+/**
+ * Place a countdown hold on a slot: available → reserved with an expiry.
+ * An expired hold reads as available again (computed at read time), so
+ * holds never need a cron to sweep them.
+ */
+export async function holdSlot(
+  slotId: string,
+  options?: { sponsorName?: string; days?: number },
+) {
+  const parsed = holdSlotSchema.safeParse({ slotId, ...options });
+  if (!parsed.success) {
+    return { success: false as const, error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  }
+
+  const { supabase } = await requireVenueManagerForSlot(slotId);
+
+  const { data: updated, error } = await supabase
+    .from("sponsorship_slots")
+    .update({
+      status: "reserved",
+      hold_expires_at: holdExpiry(parsed.data.days),
+      ...(parsed.data.sponsorName?.trim()
+        ? { sponsor_name: parsed.data.sponsorName.trim() }
+        : {}),
+    })
+    .eq("id", slotId)
+    // Reserved is allowed too so an existing hold can be extended.
+    .in("status", ["available", "reserved"])
+    .select("id")
+    .maybeSingle();
+
+  if (error) return { success: false as const, error: "Failed to hold slot" };
+  if (!updated) {
+    return { success: false as const, error: "Only an open slot can be held" };
+  }
+
+  revalidatePath("/venues");
+  revalidatePath("/organizers");
+  return { success: true as const, data: { id: slotId } };
+}
+
 /** Confirm a held slot as a booked, paid campaign. reserved → active. */
 export async function confirmSlot(slotId: string) {
   const parsed = confirmSlotSchema.safeParse({ slotId });
@@ -196,13 +240,31 @@ export async function confirmSlot(slotId: string) {
 
   const { supabase } = await requireVenueManagerForSlot(slotId);
 
-  const { error } = await supabase
+  const { data: confirmed, error } = await supabase
     .from("sponsorship_slots")
-    .update({ status: "active" })
+    .update({ status: "active", hold_expires_at: null })
     .eq("id", slotId)
-    .eq("status", "reserved");
+    .eq("status", "reserved")
+    .select("id, event_id, sponsor_name, start_date")
+    .maybeSingle();
 
   if (error) return { success: false as const, error: "Failed to confirm booking" };
+  if (!confirmed) {
+    return { success: false as const, error: "Only a reserved slot can be confirmed" };
+  }
+
+  // A sold show slot spawns the standard fulfilment checklist on the show
+  // event (artwork, wrap proof, prize stock, config, go-live). The helper is
+  // idempotent and never throws — the sale must not be blocked by checklist
+  // plumbing.
+  if (confirmed.event_id) {
+    await spawnSlotFulfilmentTasks({
+      slotId,
+      eventId: String(confirmed.event_id),
+      sponsorName: (confirmed.sponsor_name as string | null) ?? null,
+      startDate: String(confirmed.start_date),
+    });
+  }
 
   revalidatePath("/venues");
   return { success: true as const, data: { id: slotId } };
@@ -255,6 +317,7 @@ export async function releaseSlot(slotId: string) {
     .update({
       sponsor_account_id: null,
       status: "available",
+      hold_expires_at: null,
       game_config_json: gameConfig,
     })
     .eq("id", slotId);

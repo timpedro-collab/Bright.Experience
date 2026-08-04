@@ -105,7 +105,7 @@ describe("NewShowSlotForm", () => {
 
     await user.selectOptions(screen.getByLabelText("Machine"), MACHINE_ID);
     await user.type(screen.getByLabelText("Sponsor"), "Vitality");
-    await user.type(screen.getByLabelText("Price (£)"), "18000");
+    await user.type(screen.getByLabelText("Sponsor price (£)"), "18000");
     await user.click(screen.getByRole("button", { name: "Open slot" }));
 
     await waitFor(() => {
@@ -116,6 +116,8 @@ describe("NewShowSlotForm", () => {
         startDate: "2026-07-26",
         endDate: "2026-07-28",
         price: 18000,
+        // Untouched wholesale falls back to the rack −25% suggestion.
+        wholesalePrice: 13500,
       });
     });
   });
@@ -130,6 +132,22 @@ describe("NewShowSlotForm", () => {
     await waitFor(() => {
       expect(createShowSlot).toHaveBeenCalledWith(
         expect.objectContaining({ sponsorName: undefined, price: undefined })
+      );
+    });
+  });
+
+  it("prefers a typed wholesale cost over the suggested one", async () => {
+    const user = userEvent.setup();
+    renderForm();
+    await user.click(screen.getByRole("button", { name: /open a slot/i }));
+    await user.selectOptions(screen.getByLabelText("Machine"), MACHINE_ID);
+    await user.type(screen.getByLabelText("Sponsor price (£)"), "18000");
+    await user.type(screen.getByLabelText("Your cost (£)"), "12000");
+    await user.click(screen.getByRole("button", { name: "Open slot" }));
+
+    await waitFor(() => {
+      expect(createShowSlot).toHaveBeenCalledWith(
+        expect.objectContaining({ price: 18000, wholesalePrice: 12000 })
       );
     });
   });

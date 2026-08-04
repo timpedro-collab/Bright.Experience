@@ -18,6 +18,7 @@ import { Check, Copy, Link2, Loader2, RefreshCw, XCircle } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { TimeAgo } from "@/components/ui/TimeAgo";
 import { shareSlotPitch, revokeSlotPitch } from "@/app/actions/organizers";
 import { pitchTokenDaysRemaining } from "@/lib/sponsor-pitch";
 
@@ -25,12 +26,18 @@ export function PitchLinkControls({
   slotId,
   pitchToken,
   expiresAt,
+  viewCount,
+  lastViewedAt,
   className,
 }: {
   slotId: string;
   pitchToken: string | null;
   /** ISO expiry of the current token, when there is one. */
   expiresAt?: string | null;
+  /** Times the sponsor opened the link — counts only, no identity. */
+  viewCount?: number | null;
+  /** ISO timestamp of the most recent open. */
+  lastViewedAt?: string | null;
   className?: string;
 }) {
   const router = useRouter();
@@ -123,6 +130,17 @@ export function PitchLinkControls({
         {daysLeft > 0
           ? `Link is live · expires in ${daysLeft} day${daysLeft === 1 ? "" : "s"}`
           : "Link has expired — rotate it to send again"}
+        {typeof viewCount === "number" && viewCount > 0 ? (
+          <>
+            {" · opened "}
+            {viewCount === 1 ? "once" : `${viewCount} times`}
+            {lastViewedAt ? (
+              <>
+                , last <TimeAgo dateStr={lastViewedAt} />
+              </>
+            ) : null}
+          </>
+        ) : null}
       </p>
     </div>
   );

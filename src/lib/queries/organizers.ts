@@ -384,7 +384,8 @@ export async function getSlotForMachine(
     .from("sponsorship_slots")
     .select(
       `id, sponsor_name, status, start_date, end_date, price, pitch_token,
-       pitch_token_expires_at, creative_asset_ids`
+       pitch_token_expires_at, pitch_view_count, pitch_last_viewed_at,
+       creative_asset_ids`
     )
     .eq("event_id", eventId)
     .eq("machine_instance_id", machineInstanceId)
@@ -407,7 +408,8 @@ export async function getSlotsByEvent(eventId: string) {
     .select(
       `id, event_id, machine_instance_id, sponsor_account_id, sponsor_name,
        start_date, end_date, price, status, creative_asset_ids,
-       pitch_token, pitch_token_expires_at, created_at, updated_at,
+       pitch_token, pitch_token_expires_at, pitch_view_count,
+       pitch_last_viewed_at, created_at, updated_at,
        machine_instances ( id, serial_number, nickname, zone, mission )`
     )
     .eq("event_id", eventId)

@@ -39,6 +39,7 @@ export async function createShowSlot(data: {
   startDate: string;
   endDate: string;
   price?: number;
+  wholesalePrice?: number;
 }) {
   const parsed = createShowSlotSchema.safeParse(data);
   if (!parsed.success) {
@@ -68,6 +69,8 @@ export async function createShowSlot(data: {
       start_date: data.startDate,
       end_date: data.endDate,
       price: data.price != null ? Math.round(data.price * 100) : null,
+      wholesale_price:
+        data.wholesalePrice != null ? Math.round(data.wholesalePrice * 100) : null,
       // Naming a sponsor is the organizer saying it's spoken for. Leaving the
       // name blank opens it for sale. Anything beyond that (confirm, complete,
       // release) goes through the shared status transitions in `./venues.ts`.

@@ -34,6 +34,10 @@ export type NotificationKind =
   | "studio.request_submitted"
   | "sponsor.interest_received"
   | "sponsor.slot_requested"
+  | "deal.registered"
+  | "deal.approved"
+  | "deal.rejected"
+  | "deal.lead_pushed"
   | "partner.application_received"
   | "studio.status_changed"
   | "task.assigned"
@@ -80,6 +84,7 @@ export type OwnerResolverKey =
   | "approval_requester"
   | "show_organizer"
   | "venue_operator"
+  | "registration_partner"
   | "internal_admins";
 
 /** Reminder cadence — when does the cron consider this archetype stale? */

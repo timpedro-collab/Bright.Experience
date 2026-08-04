@@ -36,6 +36,7 @@ const OWNER_RESOLVERS: ReadonlySet<string> = new Set([
   "approval_requester",
   "show_organizer",
   "venue_operator",
+  "registration_partner",
   "internal_admins",
 ]);
 
