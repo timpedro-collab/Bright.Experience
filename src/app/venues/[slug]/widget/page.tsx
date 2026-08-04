@@ -3,9 +3,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { VenueWidgetCard } from "@/components/venues/VenueWidgetCard";
-import { getVenueBySlug } from "@/lib/queries/venues";
-import { getPlacementsByVenue } from "@/lib/queries/placements";
-import { getSlotsByPlacement } from "@/lib/queries/sponsorship-slots";
+import { getPublicVenueMedia } from "@/lib/queries/public-venue-media";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -18,27 +16,16 @@ export const metadata: Metadata = {
 /** Compact embeddable widget page — no chrome, sized for sidebar iframes. */
 export default async function VenueWidgetPage({ params }: Props) {
   const { slug } = await params;
-  const venue = await getVenueBySlug(slug);
-  if (!venue) notFound();
-
-  const placements = await getPlacementsByVenue(venue.id);
-  const livePlacements = placements.filter(
-    (p) =>
-      (p.status === "active" || p.status === "planned") &&
-      p.sku_status !== "draft",
-  );
-
-  const slotGroups = await Promise.all(
-    livePlacements.map((p) => getSlotsByPlacement(p.id)),
-  );
-  const openSlots = slotGroups
-    .flat()
-    .filter((s) => s.status === "available");
+  // Anonymous surface: the public read model already applies the venue
+  // approval step (live SKUs only) and only returns marketing-safe fields.
+  const media = await getPublicVenueMedia(slug);
+  if (!media) notFound();
+  const { openSlots } = media;
 
   const openSlotCount = openSlots.length;
 
   const pricedSlots = openSlots
-    .map((s) => (s.price != null ? Number(s.price) : null))
+    .map((s) => s.pricePence)
     .filter((p): p is number => p != null);
 
   const fromPricePence =
@@ -46,16 +33,16 @@ export default async function VenueWidgetPage({ params }: Props) {
 
   const earliest = openSlots
     .slice()
-    .sort((a, b) => a.start_date.localeCompare(b.start_date))[0];
+    .sort((a, b) => a.startDate.localeCompare(b.startDate))[0];
 
   const nextWindow = earliest
-    ? { start: earliest.start_date, end: earliest.end_date }
+    ? { start: earliest.startDate, end: earliest.endDate }
     : null;
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-transparent p-4">
       <VenueWidgetCard
-        venueName={venue.name}
+        venueName={media.venue.name}
         openSlotCount={openSlotCount}
         fromPricePence={fromPricePence}
         nextWindow={nextWindow}

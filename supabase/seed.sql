@@ -39,7 +39,8 @@ insert into profiles (id, name, email, role, account_id) values
   ('22222222-2222-2222-2222-222222222222', 'James Chen', 'james.chen@cocacola.com', 'customer_admin', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'),
   ('33333333-3333-3333-3333-333333333333', 'Theo Roturu', 'theo@brightblue.co.uk', 'creative_lead', null),
   ('44444444-4444-4444-4444-444444444444', 'Dan Barnes', 'dan@brightblue.co.uk', 'operations_lead', null),
-  ('55555555-5555-5555-5555-555555555555', 'Alex Rivera', 'alex@brightblue.co.uk', 'qa_lead', null)
+  ('55555555-5555-5555-5555-555555555555', 'Alex Rivera', 'alex@brightblue.co.uk', 'qa_lead', null),
+  ('99999999-9999-9999-9999-999999999999', 'Daniel Cole', 'daniel@westfield-stratford.com', 'partner_admin', null)
 on conflict (id) do nothing;
 
 -- ============================================================
@@ -427,6 +428,11 @@ insert into venues (id, partner_id, name, slug, address, postcode, location_tier
   ('f2f2f2f2-f2f2-4f2f-8f2f-f2f2f2f2f2f2', 'e3e3e3e3-e3e3-4e3e-8e3e-e3e3e3e3e3e3', 'Westfield Stratford', 'westfield-stratford', 'Montfichet Rd, E20 1EJ', 'E20 1EJ', 'tier_1', 5000, 'shopping_centre',   true),
   ('f3f3f3f3-f3f3-4f3f-8f3f-f3f3f3f3f3f3', 'e4e4e4e4-e4e4-4e4e-8e4e-e4e4e4e4e4e4', 'NEC Birmingham',      'nec-birmingham',      'North Ave, B40 1NT',     'B40 1NT', 'tier_1', 6000, 'convention_centre', true)
 on conflict (id) do nothing;
+
+-- Venue portal access: Daniel (profile 9999…) manages Westfield Stratford.
+insert into partner_users (partner_id, profile_id, role) values
+  ('e3e3e3e3-e3e3-4e3e-8e3e-e3e3e3e3e3e3', '99999999-9999-9999-9999-999999999999', 'admin')
+on conflict (partner_id, profile_id) do nothing;
 
 -- ============================================================
 -- MACHINE INSTANCES (tied to events)

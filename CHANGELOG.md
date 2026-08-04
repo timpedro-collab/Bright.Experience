@@ -39,6 +39,29 @@ white-label embed.
   CTA; `VenueWidgetCard`, 5 tests) added to the middleware allowlist; the
   embed-code generator now offers full-page and compact-widget variants.
 - Venue portal tabs gain Calendar and Earnings.
+- **Three production RLS bugs found by the live smoke** (mock mode has no
+  RLS, so local never saw them): (1) the hardening policy "Partner admins
+  manage own partner users" selected from `partner_users` inside its own
+  USING clause → "infinite recursion detected" on every non-internal read,
+  bouncing every partner out of their portal — fixed with a
+  `user_is_partner_admin()` SECURITY DEFINER helper
+  (`20260804000001`, regression-tested in `supabase/tests/rls_partner_users.sql`);
+  (2) partners had SELECT/UPDATE but no INSERT policy on `placements`, so
+  "New placement" always failed live (`20260804000002`, tests added to
+  `rls_venues.sql`); (3) the public advertise page and widget read venues
+  with the anon client, which has no venue policy at all → 404 for every
+  anonymous visitor. Rather than a blanket anon SELECT (would expose venue
+  contact details over the REST API), both pages now read through
+  `src/lib/queries/public-venue-media.ts` — a service-role read model that
+  returns marketing-safe fields only, never raw `pricing_model_json`
+  (5 tests, including a commercial-terms leak guard).
+- Fixed a pre-existing `EmbedCodeGenerator` hydration mismatch + CSP
+  violation (`window.location.origin` read during render) with the
+  `useSyncExternalStore` pattern; the preview iframe now mounts only once
+  the real origin is known.
+- Live seed gains a venue-operator persona
+  (daniel@westfield-stratford.com / demo-password-123) so the venue portal
+  is testable in production.
 - Composer delegation: earnings query + pages, dark-day board + page,
   configurator + SKU editor, and widget + embed upgrade built by four composer
   agents against exact contracts; schema, revenue-model and dark-day

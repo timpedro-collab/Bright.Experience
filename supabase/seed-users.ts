@@ -56,6 +56,12 @@ const users = [
     email: "alex@brightblue.co.uk",
     password: "demo-password-123",
   },
+  // Venue operator persona — Westfield Stratford (partner e3e3…, venue f2f2…).
+  {
+    id: "99999999-9999-9999-9999-999999999999",
+    email: "daniel@westfield-stratford.com",
+    password: "demo-password-123",
+  },
 ];
 
 async function seed() {

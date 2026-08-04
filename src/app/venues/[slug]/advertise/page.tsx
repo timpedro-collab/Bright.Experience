@@ -13,10 +13,7 @@ import { PublicSiteChrome } from "@/components/public/PublicSiteChrome";
 import { Container, Section } from "@/components/ui/section";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { getVenueBySlug } from "@/lib/queries/venues";
-import { getPlacementsByVenue } from "@/lib/queries/placements";
-import { getSlotsByPlacement } from "@/lib/queries/sponsorship-slots";
-import { getVenuePackagesByVenueId } from "@/lib/queries/venue-packages";
+import { getPublicVenueMedia } from "@/lib/queries/public-venue-media";
 import { formatMoneyFromPence } from "@/lib/currency";
 import {
   VenueAdvertiseBoard,
@@ -29,55 +26,35 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const venue = await getVenueBySlug(slug);
-  if (!venue) return { title: "Venue not found" };
+  const media = await getPublicVenueMedia(slug);
+  if (!media) return { title: "Venue not found" };
   return {
-    title: `Advertise at ${venue.name} · Bright.Blue`,
-    description: `Book interactive ad slots against the footfall at ${venue.name}.`,
+    title: `Advertise at ${media.venue.name} · Bright.Blue`,
+    description: `Book interactive ad slots against the footfall at ${media.venue.name}.`,
   };
 }
 
 export default async function VenueAdvertisePage({ params }: Props) {
   const { slug } = await params;
-  const venue = await getVenueBySlug(slug);
-  if (!venue) notFound();
+  // Anonymous surface: the public read model already applies the venue
+  // approval step (live SKUs only) and returns marketing-safe fields only.
+  const media = await getPublicVenueMedia(slug);
+  if (!media) notFound();
+  const { venue, placements, packages } = media;
 
-  const placements = await getPlacementsByVenue(venue.id);
-  // The venue approval step: only published SKUs reach the public page.
-  // Rows predating the register (no sku_status) read as live.
-  const activePlacements = placements.filter(
-    (p) =>
-      (p.status === "active" || p.status === "planned") &&
-      p.sku_status !== "draft",
-  );
-
-  const slotGroups = await Promise.all(
-    activePlacements.map(async (p) => {
-      const raw = await getSlotsByPlacement(p.id);
-      const pricing = (p.pricing_model_json as { format?: string } | null) ?? null;
-      const unitName =
-        (p.machine_instances as { nickname?: string } | null)?.nickname ??
-        "Boulevard unit";
-      return raw
-        .filter((s) => s.status === "available")
-        .map<AdvertiseSlot>((s) => ({
-          id: s.id,
-          unitName,
-          format: pricing?.format ?? undefined,
-          locationNote:
-            (p.location_label as string | null) ??
-            (p.notes as string | null) ??
-            undefined,
-          startDate: s.start_date,
-          endDate: s.end_date,
-          price: s.price != null ? Number(s.price) : undefined,
-        }));
-    }),
-  );
-  const openSlots = slotGroups.flat();
-
-  // Venue packages (rate-card style) for advertisers who want a turnkey buy.
-  const packages = await getVenuePackagesByVenueId(venue.id);
+  const placementById = new Map(placements.map((p) => [p.id, p]));
+  const openSlots = media.openSlots.map<AdvertiseSlot>((s) => {
+    const placement = placementById.get(s.placementId);
+    return {
+      id: s.id,
+      unitName: placement?.unitName ?? "Boulevard unit",
+      format: placement?.format ?? undefined,
+      locationNote: placement?.locationNote ?? undefined,
+      startDate: s.startDate,
+      endDate: s.endDate,
+      price: s.pricePence ?? undefined,
+    };
+  });
 
   const fromPrice = openSlots
     .map((s) => s.price ?? Infinity)
@@ -85,7 +62,7 @@ export default async function VenueAdvertisePage({ params }: Props) {
 
   const stats = [
     venue.capacity
-      ? { label: "Daily capacity", value: Number(venue.capacity).toLocaleString("en-US") }
+      ? { label: "Daily capacity", value: venue.capacity.toLocaleString("en-US") }
       : null,
     { label: "Digital screens", value: String(placements.length) },
     { label: "Slots open now", value: String(openSlots.length) },
@@ -159,7 +136,7 @@ export default async function VenueAdvertisePage({ params }: Props) {
                   <CardContent className="space-y-3 p-6">
                     <div className="flex items-start justify-between gap-3">
                       <h3 className="font-semibold text-foreground">{pkg.name}</h3>
-                      {pkg.includes_bright_blue && (
+                      {pkg.includesBrightBlue && (
                         <Badge variant="info" className="shrink-0">
                           Managed
                         </Badge>
@@ -170,9 +147,9 @@ export default async function VenueAdvertisePage({ params }: Props) {
                         {pkg.description}
                       </p>
                     )}
-                    {pkg.price != null && (
+                    {pkg.pricePence != null && (
                       <p className="text-lg font-bold text-brand">
-                        {formatMoneyFromPence(Number(pkg.price))}
+                        {formatMoneyFromPence(pkg.pricePence)}
                       </p>
                     )}
                   </CardContent>

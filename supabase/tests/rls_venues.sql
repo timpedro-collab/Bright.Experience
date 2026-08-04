@@ -6,6 +6,9 @@
 --   2. Partner users see only venues belonging to their partner
 --   3. Placements + slots inherit the same scoping
 --   4. Partner admins can create new venues under their partner
+--   5. Partner users can create placements at their own venues, and only
+--      theirs (post 20260804000002 — the missing insert policy that made
+--      every "New placement" from the venue portal fail in production)
 -- =====================================================================
 
 begin;
@@ -21,7 +24,7 @@ insert into sponsorship_slots (id, placement_id, start_date, end_date, status) v
   ('00000000-0000-4000-8000-0000000000c6', '00000000-0000-4000-8000-0000000000c4', '2026-09-01', '2026-09-02', 'available')
 on conflict (id) do nothing;
 
-select plan(5);
+select plan(7);
 
 -- (1) Internal is not filtered — sees both fixture venues. Scoped to the
 -- fixture partners because the suite runs against a demo-seeded database.
@@ -65,6 +68,22 @@ select is(
   (select count(*)::int from venues where slug = 'pop-up-north'),
   1,
   'partner admin can insert a venue under their partner'
+);
+
+-- (6) Northern admin can create a placement at their own venue
+select lives_ok(
+  $$insert into placements (venue_id, start_date, status)
+    values ('00000000-0000-4000-8000-0000000000c1', '2026-10-01', 'planned')$$,
+  'partner user can create a placement at their own venue'
+);
+
+-- (7) ...but not at Kings Cross's venue
+select throws_ok(
+  $$insert into placements (venue_id, start_date, status)
+    values ('00000000-0000-4000-8000-0000000000c2', '2026-10-01', 'planned')$$,
+  '42501',
+  'new row violates row-level security policy for table "placements"',
+  'partner user cannot create a placement at another partner''s venue'
 );
 
 select * from finish();
