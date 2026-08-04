@@ -31,13 +31,24 @@ describe("isPublicPath", () => {
   it("lets the tokened capability URLs through", () => {
     expect(isPublicPath("/report/abc123")).toBe(true);
     expect(isPublicPath("/sponsor/tok_live_1")).toBe(true);
+    expect(isPublicPath("/live/some-token")).toBe(true);
     expect(isPublicPath("/p/AB12CD")).toBe(true);
+  });
+
+  it("does not treat /live alone as public, same as /report", () => {
+    expect(isPublicPath("/live")).toBe(true);
+    expect(isPublicPath("/report")).toBe(true);
+    expect(isPublicPath("/live-dashboard")).toBe(false);
   });
 
   it("lets webhooks, crons and the health probe through", () => {
     expect(isPublicPath("/api/webhooks/brightblue")).toBe(true);
     expect(isPublicPath("/api/cron/digest")).toBe(true);
     expect(isPublicPath("/api/health")).toBe(true);
+  });
+
+  it("lets journey email tracking through — a mail client can't hold a session", () => {
+    expect(isPublicPath("/api/journeys/track")).toBe(true);
   });
 
   it("keeps the authenticated app behind the gate", () => {

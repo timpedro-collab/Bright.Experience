@@ -8,7 +8,7 @@
  * auth gate. Matching is now exact, or a prefix followed by `/`.
  *
  * Being listed here is not the same as being unauthenticated: the tokened
- * routes (`/report/:token`, `/sponsor/:token`, `/p/:code`) are capability
+ * routes (`/report/:token`, `/sponsor/:token`, `/live/:token`, `/p/:code`) are capability
  * URLs whose token is validated server-side, and the machine-to-machine
  * routes enforce HMAC or a bearer secret in their handlers. This list only
  * says "the session cookie gate does not apply".
@@ -47,12 +47,17 @@ const PUBLIC_ROUTES = [
   "/p",
   "/report",
   "/sponsor",
+  "/live",
   // Machine-to-machine endpoints that can never carry a browser session:
   // inbound Cloud/Cal.com webhooks (HMAC) and scheduled crons (CRON_SECRET
   // bearer). Without these the session gate 307s the caller to /login and
   // the payload is silently dropped.
   "/api/webhooks",
   "/api/cron",
+  // Journey email tracking (open pixel + click redirect). The caller is a
+  // mail client; the capability is the unguessable journey+lead UUID pair,
+  // validated in the handler.
+  "/api/journeys",
   // Uptime probe. The public payload is a status summary; the detail is
   // gated on the CRON_SECRET bearer inside the handler.
   "/api/health",

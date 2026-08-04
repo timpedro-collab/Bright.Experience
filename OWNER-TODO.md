@@ -60,6 +60,12 @@ live ones:
 - [ ] **Confirm the 60-day retention default against Adyen's terms** (and any
   other client with its own data-processing agreement). Marta suggested 60
   days on the call; the portal defaults to 60 and allows 1–730 per event.
+- [ ] **Compliance tier (Stage 5 item deferred pending legal review).** The
+  build plan prices age gates, custom consent copy, a DPA pack, and retention
+  controls as a paid add-on (Simple Booth Select pattern). The mechanics
+  mostly exist (`age-verification` capability, `capture_rules_json`,
+  `retention_days`); what's missing is lawyer-reviewed copy and the packaged
+  add-on. Decide the legal review path, then it's a small build.
 
 ## Relationship (from the Marta call)
 

@@ -4,6 +4,75 @@ All notable changes to the Bright.Experience platform are documented here.
 
 ---
 
+## [Ecosystem build · Stage 5 — measurement & proof engine] - 2026-08-04
+
+The report becomes the product (docs/19 §agencies, §event-tech): a
+three-audience story with CFO-grade unit economics, benchmark context,
+procurement-defensible lead quality, real-time CRM delivery, a post-play
+journey that extends the story past event day, a shareable live dashboard,
+and campaign roll-ups that finally compute.
+
+- **Foundation migration** `20260805000000_measurement_proof_engine.sql`:
+  `leads.email_status` + `leads.is_repeat_player`; `events.live_share_token`
+  (+ expiry, unique partial index); `webhook_subscriptions.event_id`;
+  new `post_play_journeys` + `journey_touches` tables (RLS + pgTAP
+  `rls_post_play_journeys.sql`, 5 tests); widens the `telemetry_events`
+  event-type CHECK to admit the two capture-quality types it was rejecting.
+- **Engaged minutes** — `src/lib/metrics/engaged-minutes.ts` (10 tests):
+  plays × average session, plus cost-per-engaged-minute. Headlines the new
+  report executive tier and the campaign KPIs.
+- **Three-audience report** — the event report now opens with an executive
+  summary (cost per lead, engaged minutes, cost per engaged minute, benchmark
+  verdicts; `ExecutiveSummary`, 4 tests), keeps KPI detail in the middle, and
+  closes with ops learnings (capture quality + the new lead-quality screen).
+- **Benchmark layer** — `benchmark-compare` (7 tests) + `benchmark-context`
+  query (3 tests) render "vs your last event" and "vs venues like this one"
+  verdict sentences (`BenchmarkContextCard`, 4 tests; small samples are
+  flagged "directional"). `updateBenchmarks` now also writes p25/p75 and the
+  `plays_per_day`/`leads_per_day` rows the expectation engine reads —
+  previously seed-only (3 new action tests).
+- **Lead-quality scoring** — `src/lib/leads/quality.ts` (11 tests): RFC-lite
+  syntax check, 40-domain disposable screen, gmail-aware dedupe. Applied at
+  webhook ingest (verdict + repeat flag stamped on every new lead; 3 new
+  route tests) and reported as a separate "verified leads" number
+  (`LeadQualityCard`, 5 tests) on the leads page and report.
+- **Real-time lead delivery** — event-scoped outbound webhooks
+  (`src/server/lead-delivery.ts`, 5 tests): HMAC-signed POST per captured
+  lead, 5s timeout, 5-failure circuit breaker; managed from the leads page
+  (`LeadWebhookManager`, 3 tests; secret shown once at creation — actions,
+  8 tests). HubSpot/Salesforce/Klaviyo recipes in docs/10 §8d.
+- **Post-play journeys** — internal-configured where-to-buy / review /
+  discount follow-up (`JourneyConfigCard`, 4 tests; action, 4 tests) sent to
+  **verified leads only** on capture (`src/server/journeys.ts`, 9 tests;
+  idempotent via the touch constraint). Open pixel + server-resolved click
+  redirect at `/api/journeys/track` (allowlisted; docs/10 §8e). The report
+  gains a sent→opened→clicked funnel with a first-24h split
+  (`JourneyFunnelCard`, 4 tests; queries, 6 tests).
+- **Shareable live dashboard** — `/live/:token` (public, expiring, noindex,
+  "Powered by Bright.Experience", 60s auto-refresh): headline totals only via
+  a service-role read model (`public-live`, 4 tests) — never lead rows.
+  Issue/rotate/revoke from the new stock page (`LiveShareControls`, 3 tests;
+  actions, 4 tests).
+- **Stock telemetry page** — `/events/:id/stock`: remaining/capacity bar with
+  amber/red thresholds, prizes dispensed, honest empty state
+  (`StockTelemetryCard`, 3 tests), plus the share-link controls; "Stock" tab
+  added to the event nav (logistics visibility).
+- **Campaign workspace economics** — `campaigns.aggregate_metrics_json` was
+  read by the dashboard but written by nothing; `src/server/campaign-rollup.ts`
+  (4 tests) now recomputes it on membership changes and after cron report
+  generation (sums latest snapshot per event, play-weighted dwell, engaged
+  minutes). The campaign dashboard shows real plays/leads/engaged-minutes
+  KPIs and per-event side-by-side comparisons
+  (`getLatestMetricsForEvents`, 3 tests).
+- **Deferred by design**: the compliance tier (age gates, consent copy,
+  retention controls as a paid add-on) is conditioned on legal copy review in
+  the build plan — owner decision before build (`OWNER-TODO`).
+- Docs: 04 (new tables/columns), 05 (routes), 10 (§8d outbound delivery,
+  §8e journey tracking). Gates: lint ✓, typecheck ✓, 2,273 unit tests across
+  275 files ✓, 233 pgTAP tests across 36 files ✓.
+
+---
+
 ## [Ecosystem build · Stage 4 — venue yield engine] - 2026-08-04
 
 The venue channel gets the machinery that turns a hosted machine into managed,

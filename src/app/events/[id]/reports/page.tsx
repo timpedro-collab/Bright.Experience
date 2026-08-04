@@ -20,6 +20,11 @@ import {
   DigitalFollowThroughCard,
 } from "@/components/reports/EngagementReport";
 import { ReportHighlights } from "@/components/reports/ReportHighlights";
+import { ExecutiveSummary } from "@/components/reports/ExecutiveSummary";
+import { BenchmarkContextCard } from "@/components/reports/BenchmarkContext";
+import { LeadQualityCard } from "@/components/leads/LeadQualityCard";
+import { JourneyFunnelCard } from "@/components/journeys/JourneyFunnelCard";
+import { JourneyConfigCard } from "@/components/journeys/JourneyConfigCard";
 import { ShareableReportBanner } from "@/components/reports/ShareableReportBanner";
 import { RebookCTA } from "@/components/reports/RebookCTA";
 import { DashboardTabs } from "@/components/reports/DashboardTabs";
@@ -30,6 +35,9 @@ import { getEventById } from "@/lib/queries/events";
 import { getRebookSlugsForEvent } from "@/lib/queries/rebook";
 import { getEventReports } from "@/lib/queries/event-reports";
 import { getLatestEventMetrics } from "@/lib/queries/event-metrics";
+import { getJourneyForEvent, getJourneyFunnel } from "@/lib/queries/journeys";
+import { getBenchmarkContext } from "@/lib/queries/benchmark-context";
+import { getLeadQualitySummary } from "@/lib/queries/lead-quality";
 import { GenerateReportButton, PublishReportBanner } from "@/components/reports/ReportActions";
 import { RetentionNotice } from "@/components/reports/RetentionNotice";
 import { ScheduledExportManager } from "@/components/reports/ScheduledExportManager";
@@ -39,6 +47,7 @@ import { getUser } from "@/lib/auth";
 import { isInternalRole } from "@/lib/roles";
 import { canViewSection } from "@/lib/event-access";
 import {
+  costPerLeadPence,
   normaliseHighlights,
   normaliseMetrics,
 } from "@/lib/reports/normalise";
@@ -133,10 +142,23 @@ export default async function ReportsPage({
     );
   }
 
-  const [latestMetrics, gameConfig] = await Promise.all([
-    getLatestEventMetrics(id),
-    getGameConfiguration(id),
-  ]);
+  const [latestMetrics, gameConfig, journey, benchmarkContext, leadQuality] =
+    await Promise.all([
+      getLatestEventMetrics(id),
+      getGameConfiguration(id),
+      getJourneyForEvent(id),
+      getBenchmarkContext(id),
+      getLeadQualitySummary(id),
+    ]);
+  const journeyFunnel = journey ? await getJourneyFunnel(journey.id) : null;
+
+  // The executive tier leads with the venue-class verdicts (the market
+  // context), falling back to last-event comparisons for repeat customers.
+  const verdictSentences = (
+    benchmarkContext.venueClass?.verdicts ??
+    benchmarkContext.lastEvent?.verdicts ??
+    []
+  ).map((v) => `${v.label}: ${v.sentence}`);
 
   // Use the higher of the live snapshot vs the report blob for each metric.
   // The latest daily snapshot is only the final day's reading, whereas the
@@ -180,6 +202,25 @@ export default async function ReportsPage({
         <PublishReportBanner reportId={report.id} />
       )}
 
+      {/* Tier 1 — the executive story: what it cost per unit of attention. */}
+      <section className="pt-8 pb-2">
+        <EditorialEyebrow accent>The executive summary</EditorialEyebrow>
+        <div className="mt-4">
+          <ExecutiveSummary
+            totalPlays={metrics.totalPlays}
+            totalLeads={metrics.totalLeads}
+            avgDwellSeconds={metrics.avgDwellSeconds}
+            totalCostPence={metrics.totalCostPence}
+            costPerLeadPence={costPerLeadPence(metrics)}
+            verdictSentences={verdictSentences}
+          />
+        </div>
+        <div className="mt-4">
+          <BenchmarkContextCard context={benchmarkContext} />
+        </div>
+      </section>
+
+      {/* Tier 2 — KPI detail for the marketing team. */}
       <section className="py-8">
         <DashboardTabs accountId={event.accountId}>
           <div>
@@ -243,13 +284,29 @@ export default async function ReportsPage({
         </>
       )}
 
-      {metrics.captureQuality && (
+      {journey && journeyFunnel && journeyFunnel.sent > 0 && (
+        <>
+          <Hairline className="opacity-60" />
+          <section className="py-8">
+            <EditorialEyebrow accent>The story after the play</EditorialEyebrow>
+            <div className="mt-4 max-w-xl">
+              <JourneyFunnelCard journey={journey} funnel={journeyFunnel} />
+            </div>
+          </section>
+        </>
+      )}
+
+      {/* Tier 3 — ops learnings: data quality and delivery mechanics. */}
+      {(metrics.captureQuality || leadQuality.total > 0) && (
         <>
           <Hairline className="opacity-60" />
           <section className="py-8">
             <EditorialEyebrow>Data quality</EditorialEyebrow>
-            <div className="mt-4 max-w-xl">
-              <CaptureQualityCard counts={metrics.captureQuality} />
+            <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {leadQuality.total > 0 && <LeadQualityCard summary={leadQuality} />}
+              {metrics.captureQuality && (
+                <CaptureQualityCard counts={metrics.captureQuality} />
+              )}
             </div>
           </section>
         </>
@@ -274,6 +331,18 @@ export default async function ReportsPage({
             <EditorialEyebrow>The moments</EditorialEyebrow>
             <div className="mt-4">
               <ReportHighlights highlights={highlights} />
+            </div>
+          </section>
+        </>
+      )}
+
+      {isInternal && (
+        <>
+          <Hairline className="opacity-60" />
+          <section className="py-8">
+            <EditorialEyebrow>Post-play journey</EditorialEyebrow>
+            <div className="mt-4 max-w-2xl">
+              <JourneyConfigCard eventId={id} journey={journey} />
             </div>
           </section>
         </>

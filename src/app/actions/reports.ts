@@ -2,6 +2,7 @@
 "use server";
 
 import { requireInternalUser } from "@/lib/auth";
+import { showDayCount } from "@/lib/metrics/expected-performance";
 import { canViewCommercial } from "@/lib/roles";
 import { getServiceRoleClient } from "@/lib/supabase/service-role";
 import { generateEventReportInternal } from "@/server/reports";
@@ -85,7 +86,7 @@ export async function updateBenchmarks() {
 
   const { data: events, error: evtErr } = await supabase
     .from("events")
-    .select("id, event_type, machine_type")
+    .select("id, event_type, machine_type, event_date_start, event_date_end")
     .eq("current_stage", "complete");
 
   if (evtErr || !events?.length) {
@@ -95,7 +96,9 @@ export async function updateBenchmarks() {
   const eventIds = events.map((e: Record<string, unknown>) => e.id as string);
   const { data: snapshots } = await supabase
     .from("event_metrics_snapshot")
-    .select("event_id, total_plays, total_leads, total_interactions, avg_dwell_time")
+    .select(
+      "event_id, snapshot_date, total_plays, total_leads, total_interactions, avg_dwell_time",
+    )
     .in("event_id", eventIds);
 
   if (!snapshots?.length) {
@@ -107,27 +110,62 @@ export async function updateBenchmarks() {
     events.map((e: MetricRow) => [e.id as string, e]),
   );
 
-  type Aggregated = { plays: number; leads: number; interactions: number; dwell: number };
+  const latestSnapshotByEvent = new Map<string, MetricRow>();
+  for (const snap of snapshots as MetricRow[]) {
+    const eventId = snap.event_id as string;
+    const date = (snap.snapshot_date as string) ?? "";
+    const existing = latestSnapshotByEvent.get(eventId);
+    if (!existing || date >= ((existing.snapshot_date as string) ?? "")) {
+      latestSnapshotByEvent.set(eventId, snap);
+    }
+  }
+
+  type Aggregated = {
+    plays: number;
+    leads: number;
+    interactions: number;
+    dwell: number;
+    playsPerDay: number;
+    leadsPerDay: number;
+  };
   const groups = new Map<string, Aggregated[]>();
 
-  for (const snap of snapshots as MetricRow[]) {
-    const evt = eventLookup.get(snap.event_id as string);
+  for (const [eventId, snap] of latestSnapshotByEvent) {
+    const evt = eventLookup.get(eventId);
     if (!evt) continue;
     const key = `${evt.event_type ?? "unknown"}::${evt.machine_type ?? ""}`;
+    const days = showDayCount(
+      String(evt.event_date_start),
+      evt.event_date_end ? String(evt.event_date_end) : null,
+    );
+    const plays = Number(snap.total_plays ?? 0);
+    const leads = Number(snap.total_leads ?? 0);
     if (!groups.has(key)) groups.set(key, []);
     groups.get(key)!.push({
-      plays: Number(snap.total_plays ?? 0),
-      leads: Number(snap.total_leads ?? 0),
+      plays,
+      leads,
       interactions: Number(snap.total_interactions ?? 0),
       dwell: Number(snap.avg_dwell_time ?? 0),
+      playsPerDay: plays / days,
+      leadsPerDay: leads / days,
     });
   }
 
-  const median = (vals: number[]) => {
+  const percentile = (vals: number[], p: number) => {
     const sorted = [...vals].sort((a, b) => a - b);
-    const mid = Math.floor(sorted.length / 2);
-    return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+    if (sorted.length === 0) return 0;
+    if (sorted.length === 1) return sorted[0];
+    const index = (p / 100) * (sorted.length - 1);
+    const lower = Math.floor(index);
+    const upper = Math.ceil(index);
+    if (lower === upper) return sorted[lower];
+    const weight = index - lower;
+    return sorted[lower] * (1 - weight) + sorted[upper] * weight;
   };
+
+  const median = (vals: number[]) => percentile(vals, 50);
+
+  const round = (value: number) => Math.round(value * 100) / 100;
 
   const rows: Record<string, unknown>[] = [];
   for (const [key, items] of groups) {
@@ -137,6 +175,8 @@ export async function updateBenchmarks() {
       ["total_leads", (r) => r.leads],
       ["total_interactions", (r) => r.interactions],
       ["avg_dwell_time", (r) => r.dwell],
+      ["plays_per_day", (r) => r.playsPerDay],
+      ["leads_per_day", (r) => r.leadsPerDay],
     ];
     for (const [metricName, accessor] of metrics) {
       const vals = items.map(accessor).filter((v) => v > 0);
@@ -150,8 +190,10 @@ export async function updateBenchmarks() {
         machine_type: machineType || null,
         game_type: null,
         metric_name: metricName,
-        avg_value: Math.round(avg * 100) / 100,
-        median_value: Math.round(median(vals) * 100) / 100,
+        avg_value: round(avg),
+        median_value: round(median(vals)),
+        p25_value: round(percentile(vals, 25)),
+        p75_value: round(percentile(vals, 75)),
         sample_size: vals.length,
         updated_at: new Date().toISOString(),
       });

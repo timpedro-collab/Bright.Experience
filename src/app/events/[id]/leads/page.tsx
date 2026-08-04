@@ -7,6 +7,8 @@ import { EditorialEyebrow, Hairline } from "@/components/brand";
 import { MetricCard } from "@/components/telemetry/MetricCard";
 import { LeadTable } from "@/components/telemetry/LeadTable";
 import { AudienceDemographicsCard } from "@/components/reports/EngagementReport";
+import { LeadQualityCard } from "@/components/leads/LeadQualityCard";
+import { LeadWebhookManager } from "@/components/leads/LeadWebhookManager";
 import { ExportMenu } from "@/components/ui/ExportMenu";
 
 import { getUser } from "@/lib/auth";
@@ -18,6 +20,8 @@ import {
   getLeadCount,
   getLeadAggregates,
 } from "@/lib/queries/leads";
+import { getLeadQualitySummary } from "@/lib/queries/lead-quality";
+import { getLeadWebhooksForEvent } from "@/app/actions/lead-webhooks";
 import { getUnreadCount } from "@/lib/queries/notifications";
 import { parsePage } from "@/lib/pagination";
 import { Pagination } from "@/components/ui/Pagination";
@@ -36,13 +40,16 @@ export default async function LeadsPage({
   const sp = await searchParams;
   const page = parsePage(sp);
 
-  const [event, leadsResult, leadCount, aggregates, unread] = await Promise.all([
-    getEventById(id),
-    getLeadsByEventPaginated(id, page),
-    getLeadCount(id),
-    getLeadAggregates(id),
-    getUnreadCount(user.id),
-  ]);
+  const [event, leadsResult, leadCount, aggregates, unread, quality, webhooks] =
+    await Promise.all([
+      getEventById(id),
+      getLeadsByEventPaginated(id, page),
+      getLeadCount(id),
+      getLeadAggregates(id),
+      getUnreadCount(user.id),
+      getLeadQualitySummary(id),
+      getLeadWebhooksForEvent(id),
+    ]);
   if (!event) return notFound();
 
   const leads = leadsResult.data;
@@ -121,13 +128,16 @@ export default async function LeadsPage({
         </div>
       </section>
 
-      {aggregates.ageBands.length > 0 && (
+      {(aggregates.ageBands.length > 0 || quality.total > 0) && (
         <>
           <Hairline className="opacity-60" />
           <section className="py-8">
-            <EditorialEyebrow>Audience by age</EditorialEyebrow>
+            <EditorialEyebrow>Quality &amp; audience</EditorialEyebrow>
             <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <AudienceDemographicsCard demographics={ageDemographics} />
+              {quality.total > 0 && <LeadQualityCard summary={quality} />}
+              {aggregates.ageBands.length > 0 && (
+                <AudienceDemographicsCard demographics={ageDemographics} />
+              )}
             </div>
           </section>
         </>
@@ -144,6 +154,20 @@ export default async function LeadsPage({
           currentPage={page}
           totalPages={leadsResult.totalPages}
           basePath={`/events/${id}/leads`}
+        />
+      </section>
+
+      <Hairline className="opacity-60" />
+
+      <section className="py-8">
+        <EditorialEyebrow>Real-time delivery</EditorialEyebrow>
+        <p className="mt-1 mb-4 text-sm text-muted-foreground max-w-[58ch]">
+          Send each lead to your CRM the moment it&apos;s captured — signed,
+          instant, before the stand packs down.
+        </p>
+        <LeadWebhookManager
+          eventId={id}
+          webhooks={webhooks.success ? webhooks.data : []}
         />
       </section>
     </EventPageShell>

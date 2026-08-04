@@ -16,6 +16,22 @@ vi.mock("@/lib/notifications/dispatch", () => ({
   dispatchNotification: (...args: unknown[]) => dispatchNotification(...args),
 }));
 
+const deliverLeadToSubscriptions = vi.fn(async (..._args: unknown[]) => ({
+  delivered: 0,
+  failed: 0,
+}));
+vi.mock("@/server/lead-delivery", () => ({
+  deliverLeadToSubscriptions: (...args: unknown[]) =>
+    deliverLeadToSubscriptions(...args),
+}));
+
+const sendPostPlayJourney = vi.fn(async (..._args: unknown[]) => ({
+  sent: false,
+}));
+vi.mock("@/server/journeys", () => ({
+  sendPostPlayJourney: (...args: unknown[]) => sendPostPlayJourney(...args),
+}));
+
 function buildSignedRequest(
   body: Record<string, unknown>,
   secret = TEST_SECRET
@@ -48,6 +64,8 @@ describe("POST /api/webhooks/brightblue", () => {
     mockSupabase = createMockSupabase();
     mockSupabase.setDefaultResponse({ data: null, error: null });
     dispatchNotification.mockClear();
+    deliverLeadToSubscriptions.mockClear();
+    sendPostPlayJourney.mockClear();
   });
 
   afterEach(() => {
@@ -327,6 +345,80 @@ describe("POST /api/webhooks/brightblue", () => {
       .find((c) => c.method === "insert");
     const payload = insert!.args[0] as Record<string, unknown>;
     expect(payload.consented_at).toBeNull();
+  });
+
+  it("stamps the quality verdict on the inserted lead", async () => {
+    mockSupabase.queueTableResponses("leads", [
+      { data: [], error: null }, // prior-email scan
+      { data: { id: "lead-1", captured_at: "2026-08-04T10:00:00Z" }, error: null },
+    ]);
+
+    const { POST } = await import("./route");
+    await POST(
+      buildSignedRequest({
+        event_type: "lead.captured",
+        event_id: "00000000-0000-4000-8000-000000000001",
+        contact: { email: "jane@mailinator.com" },
+      })
+    );
+
+    const insert = mockSupabase
+      .callsFor("leads")
+      .find((c) => c.method === "insert");
+    const payload = insert!.args[0] as Record<string, unknown>;
+    expect(payload.email_status).toBe("disposable");
+    expect(payload.is_repeat_player).toBe(false);
+  });
+
+  it("flags a repeat player when the email was already captured at the event", async () => {
+    mockSupabase.queueTableResponses("leads", [
+      { data: [{ contact_email: "j.ane+expo@gmail.com" }], error: null },
+      { data: { id: "lead-2", captured_at: "2026-08-04T10:00:00Z" }, error: null },
+    ]);
+
+    const { POST } = await import("./route");
+    await POST(
+      buildSignedRequest({
+        event_type: "lead.captured",
+        event_id: "00000000-0000-4000-8000-000000000001",
+        contact: { email: "jane@gmail.com" },
+      })
+    );
+
+    const insert = mockSupabase
+      .callsFor("leads")
+      .find((c) => c.method === "insert");
+    expect((insert!.args[0] as Record<string, unknown>).is_repeat_player).toBe(
+      true
+    );
+  });
+
+  it("fans out to CRM delivery and the post-play journey after storing the lead", async () => {
+    mockSupabase.queueTableResponses("leads", [
+      { data: [], error: null },
+      { data: { id: "lead-3", captured_at: "2026-08-04T10:00:00Z" }, error: null },
+    ]);
+
+    const { POST } = await import("./route");
+    const res = await POST(
+      buildSignedRequest({
+        event_type: "lead.captured",
+        event_id: "00000000-0000-4000-8000-000000000001",
+        contact: { name: "Jane Doe", email: "jane@acme.com" },
+      })
+    );
+
+    expect(res.status).toBe(200);
+    expect(deliverLeadToSubscriptions).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: "lead-3",
+        contactEmail: "jane@acme.com",
+        emailStatus: "verified",
+      })
+    );
+    expect(sendPostPlayJourney).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "lead-3", emailStatus: "verified" })
+    );
   });
 
   /* ─── machine.heartbeat ─── */

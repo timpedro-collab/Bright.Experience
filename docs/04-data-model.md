@@ -732,6 +732,8 @@ detail, RLS notes, and migration provenance, treat
 | `notification_preferences` | Per-user / per-kind in-portal + email mode |
 | `case_studies` | Public portfolio pieces. Aug 2026: + `publication_rights` (`named` / `anonymised` / `aggregate_only`) and `anonymised_label` — public queries route through `applyPublicationRights()` (`src/lib/publication-rights.ts`), which excludes `aggregate_only` rows and scrubs the client's name from name/title/description for `anonymised` ones (Costa Coffee ships anonymised as "A global coffee chain") |
 | `pipedrive_outbox` | Durable CRM write-back queue (hourly drain) |
+| `post_play_journeys` | Aug 2026 (measurement engine). The branded follow-up a verified lead receives on capture: `kind` (`where_to_buy` / `review` / `discount`), headline/body/CTA, optional `discount_code`, `is_active` (one active journey per event drives the send from `src/server/journeys.ts`). Internal-configured; customers read their own via event scoping |
+| `journey_touches` | Per-lead journey funnel: `touch` (`sent` / `opened` / `clicked` / `redeemed`), unique per (journey, lead, touch) — the send-idempotency and repeat-hit guard. Opens/clicks recorded by the public tracking route `/api/journeys/track` (capability = the unguessable UUID pair; redirect target resolved server-side, never from the URL) |
 
 Also changed for organizer shows (Jul 2026): `partners.type` accepts
 `organizer`; `events.organizer_partner_id` links a show to the producer running
@@ -763,6 +765,20 @@ team in, `events.organizer_partner_id`, and `machine_instances.current_event_id`
 (cleared with `zone` and `mission` on release). Writes go through the internal
 session client, since `is_internal_user()` write policies already cover all four
 tables — see `src/app/actions/organizer-admin.ts`.
+
+Aug 2026 measurement-engine column additions (`20260805000000`): `leads` gains
+`email_status` (`unchecked` / `verified` / `disposable` / `invalid` — syntax +
+disposable-domain screen at ingest; "verified leads" are reported separately)
+and `is_repeat_player` (an earlier lead at the same event already carries this
+email). `events` gains `live_share_token` (unique partial index) +
+`live_share_expires_at` for the view-only public live dashboard at
+`/live/:token`. `webhook_subscriptions` gains `event_id` — event-scoped
+real-time lead delivery to a brand's CRM (see `docs/10-integrations.md`).
+`campaigns.aggregate_metrics_json` is now actually written: recomputed by
+`src/server/campaign-rollup.ts` on membership changes and by the reports cron.
+The `telemetry_events.event_type` CHECK now includes the two capture-quality
+types (`capture_rejected_domain`, `capture_duplicate_blocked`) that were being
+streamed but not admitted by the constraint.
 
 Related tables also documented in the cloud handoff (not duplicated here):
 `venue_packages`, `venue_requirements`, `client_compliance_requirements`,

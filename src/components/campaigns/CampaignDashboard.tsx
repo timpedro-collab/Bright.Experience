@@ -5,6 +5,7 @@ import {
   Activity,
   TrendingUp,
   Layers,
+  Timer,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -19,6 +20,8 @@ import type { Stage } from "@/types/core";
 interface CampaignDashboardProps {
   campaign: Record<string, unknown>;
   events: Array<Record<string, unknown>>;
+  /** Latest snapshot totals per event id, for the side-by-side comparison. */
+  metricsByEvent?: Map<string, { totalPlays: number; totalLeads: number }>;
 }
 
 const STATUS_STYLES: Record<string, { label: string; className: string }> = {
@@ -34,11 +37,16 @@ const HEALTH_MAP: Record<string, string> = {
   red: "text-destructive",
 };
 
-export function CampaignDashboard({ campaign, events }: CampaignDashboardProps) {
+export function CampaignDashboard({
+  campaign,
+  events,
+  metricsByEvent,
+}: CampaignDashboardProps) {
   const campaignId = String(campaign.id ?? "");
   const status = String(campaign.status ?? "draft");
   const statusConfig = STATUS_STYLES[status] ?? STATUS_STYLES.draft;
   const metrics = (campaign.aggregate_metrics_json ?? {}) as Record<string, unknown>;
+  const engagedMinutes = Number(metrics.engagedMinutes ?? 0);
 
   return (
     <div className="space-y-6">
@@ -47,15 +55,23 @@ export function CampaignDashboard({ campaign, events }: CampaignDashboardProps) 
         <KpiCard icon={Layers} label="Total events" value={String(events.length)} />
         <KpiCard
           icon={Activity}
-          label="Total interactions"
-          value={formatNumber(metrics.totalInteractions)}
+          label="Total plays"
+          value={formatNumber(metrics.totalPlays)}
         />
         <KpiCard
           icon={TrendingUp}
           label="Total leads"
           value={formatNumber(metrics.totalLeads)}
         />
-        <KpiCard icon={Calendar} label="Status" value={statusConfig.label} />
+        {engagedMinutes > 0 ? (
+          <KpiCard
+            icon={Timer}
+            label="Engaged minutes"
+            value={formatNumber(engagedMinutes)}
+          />
+        ) : (
+          <KpiCard icon={Calendar} label="Status" value={statusConfig.label} />
+        )}
       </KpiGrid>
 
       {/* Lifecycle status control */}
@@ -96,6 +112,7 @@ export function CampaignDashboard({ campaign, events }: CampaignDashboardProps) 
               {events.map((ce) => {
                 const evt = (ce.events ?? ce) as Record<string, unknown>;
                 const health = String(evt.health_status ?? "green");
+                const eventMetrics = metricsByEvent?.get(String(evt.id ?? ""));
                 return (
                   <div
                     key={String(ce.id ?? evt.id)}
@@ -121,6 +138,13 @@ export function CampaignDashboard({ campaign, events }: CampaignDashboardProps) 
                       </div>
                     </div>
                     <div className="flex items-center gap-2 shrink-0 ml-4">
+                      {eventMetrics && (
+                        <span className="hidden sm:inline text-xs tabular-nums text-muted-foreground">
+                          {eventMetrics.totalPlays.toLocaleString("en-GB")} plays
+                          {" · "}
+                          {eventMetrics.totalLeads.toLocaleString("en-GB")} leads
+                        </span>
+                      )}
                       <Badge
                         className={cn(
                           "border-0 text-xs",

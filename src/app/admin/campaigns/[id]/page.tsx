@@ -8,6 +8,7 @@ import { CampaignDashboard } from "@/components/campaigns/CampaignDashboard";
 import { getUser } from "@/lib/auth";
 import { canViewCommercial } from "@/lib/roles";
 import { getCampaignById } from "@/lib/queries/campaigns";
+import { getLatestMetricsForEvents } from "@/lib/queries/event-metrics";
 import { getUnreadCount } from "@/lib/queries/notifications";
 
 const STATUS_STYLES: Record<string, { label: string; className: string }> = {
@@ -38,6 +39,14 @@ export default async function CampaignDetailPage({
   const events =
     (campaign.campaign_events ?? []) as Array<Record<string, unknown>>;
 
+  const eventIds = events
+    .map((ce) => {
+      const evt = (ce.events ?? ce) as Record<string, unknown>;
+      return evt.id ? String(evt.id) : null;
+    })
+    .filter((id): id is string => id !== null);
+  const metricsByEvent = await getLatestMetricsForEvents(eventIds);
+
   return (
     <AdminPageShell
       user={user}
@@ -62,6 +71,7 @@ export default async function CampaignDetailPage({
         <CampaignDashboard
           campaign={campaign as Record<string, unknown>}
           events={events}
+          metricsByEvent={metricsByEvent}
         />
       </div>
     </AdminPageShell>

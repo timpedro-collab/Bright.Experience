@@ -11,6 +11,7 @@ import {
   updateCampaignStatusSchema,
 } from "@/lib/validations/campaigns";
 import { revalidatePath } from "next/cache";
+import { refreshCampaignMetrics } from "@/server/campaign-rollup";
 
 /**
  * Guard: resolve the caller and require a commercial role
@@ -103,6 +104,8 @@ export async function addEventToCampaign(campaignId: string, eventId: string) {
 
   if (error) return { success: false as const, error: "Failed to add event to campaign" };
 
+  await refreshCampaignMetrics(campaignId);
+
   revalidatePath(`/admin/campaigns/${campaignId}`);
   revalidatePath(`/events/${eventId}/campaign`);
   return { success: true as const, data: { campaignId, eventId } };
@@ -124,6 +127,8 @@ export async function removeEventFromCampaign(campaignId: string, eventId: strin
     .eq("event_id", eventId);
 
   if (error) return { success: false as const, error: "Failed to remove event from campaign" };
+
+  await refreshCampaignMetrics(campaignId);
 
   revalidatePath(`/admin/campaigns/${campaignId}`);
   revalidatePath(`/events/${eventId}/campaign`);

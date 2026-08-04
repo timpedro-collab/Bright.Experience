@@ -35,6 +35,7 @@
 /proposal                           → Proposal track entry (intake wizard)
 /proposal/:id                       → Customer-facing narrative proposal (gated pricing)
 /report/:token                      → Public proof-of-performance report (tokened)
+/live/:token                        → View-only live dashboard (tokened, expiring, "Powered by")
 /sponsor/:token                     → Sponsor pitch, then proof of performance (tokened, expiring)
 /p/:code                            → Short-link resolver
 /partners/join                      → Partner signup
@@ -55,7 +56,8 @@ Shared by customers and internal roles; sections filtered per role.
 /events/:id/communications          → Messages
 /events/:id/timeline                → Timeline
 /events/:id/live                    → Live dashboard   (+ /live/print)
-/events/:id/leads                   → Captured leads
+/events/:id/stock                   → Prize/sample stock telemetry + live share-link controls
+/events/:id/leads                   → Captured leads (+ quality screen, real-time CRM delivery)
 /events/:id/reports                 → Reports          (+ /reports/print)
 /events/:id/studio                  → Bright.Studio requests (customer_admin + creative)
 /events/:id/logistics               → Logistics

@@ -512,6 +512,123 @@ Two things to know before touching it:
 
 ---
 
+## 8d. Outbound lead delivery (real-time)
+
+| Field | Value |
+|---|---|
+| **Capability** | Tier 3 / premium — real-time CRM push per event |
+| **Module** | `src/server/lead-delivery.ts` |
+| **UI / actions** | `src/components/leads/LeadWebhookManager.tsx`, `src/app/actions/lead-webhooks.ts` |
+| **Trigger** | Called from the lead-ingest path when a lead is captured (wired separately) |
+
+Brands register an HTTPS endpoint on an event. Each time a lead is captured at
+that event, Bright.Experience POSTs a signed JSON payload to every active
+subscription whose `events` array includes `lead.captured`.
+
+### Payload contract
+
+```json
+{
+  "type": "lead.captured",
+  "sent_at": "2026-08-04T14:32:01.123Z",
+  "data": {
+    "id": "00000000-0000-4000-8000-000000000001",
+    "event_id": "00000000-0000-4000-8000-000000000002",
+    "contact_name": "Jane Doe",
+    "contact_email": "jane@example.com",
+    "contact_phone": "+441234567890",
+    "custom_fields": { "company": "Acme Ltd" },
+    "source": "game",
+    "captured_at": "2026-08-04T14:32:00.000Z",
+    "email_status": "verified",
+    "is_repeat_player": false
+  }
+}
+```
+
+Headers on every delivery:
+
+| Header | Value |
+|---|---|
+| `Content-Type` | `application/json` |
+| `X-BrightBlue-Event` | `lead.captured` |
+| `X-BrightBlue-Signature` | `sha256=<hex HMAC-SHA256 of the raw JSON body>` |
+
+The signing secret is shown once when the endpoint is created; store it in your
+receiver's secrets manager.
+
+### Signature verification (Node.js)
+
+```js
+import { createHmac, timingSafeEqual } from "node:crypto";
+
+function verifyBrightBlueSignature(rawBody, signatureHeader, secret) {
+  if (!signatureHeader?.startsWith("sha256=")) return false;
+  const expected = createHmac("sha256", secret).update(rawBody).digest("hex");
+  const received = signatureHeader.slice("sha256=".length);
+  try {
+    return timingSafeEqual(Buffer.from(expected, "hex"), Buffer.from(received, "hex"));
+  } catch {
+    return false;
+  }
+}
+```
+
+Read the raw request body as a string **before** parsing JSON — the HMAC is
+computed over the exact bytes sent.
+
+### Circuit breaker and retries
+
+- Each failed delivery (non-2xx response or network error) increments
+  `failure_count` on the subscription.
+- After **five consecutive failures**, the subscription is set to `is_active =
+  false` and deliveries stop until an admin re-enables it in the UI.
+- There is **no in-process retry** — the next captured lead is the next delivery
+  attempt. Build idempotency in your receiver using `data.id`.
+
+### CRM recipes
+
+**HubSpot (Operations Hub)** — Point the webhook URL at a HubSpot workflow
+trigger or a serverless function. Map `data.contact_email` → email,
+`data.contact_name` → first/last name, `data.custom_fields` → custom
+properties, then call the CRM Contacts API or Forms API to upsert.
+
+**Salesforce** — Point at a middleware Function (Heroku, AWS Lambda) or
+Salesforce Flow inbound webhook. Map `contact_email`, `contact_name`, and
+`contact_phone` into a Web-to-Lead POST or REST `Lead` create; use
+`custom_fields` for campaign-specific columns.
+
+**Klaviyo** — Point at your server route; verify the signature, then POST to
+Klaviyo's Profiles API (`/api/profiles/`) with `data.contact_email` as the
+identifier and `custom_fields` as profile properties for segmentation.
+
+---
+
+## 8e. Post-play journey email + tracking
+
+When a lead is captured (webhook ingest, §1), `src/server/journeys.ts` sends
+the event's active `post_play_journeys` row as a one-off branded email via
+Resend — **verified addresses only** (leads that fail the quality screen are
+never mailed, which protects sender reputation). Sends are idempotent: the
+`journey_touches` unique constraint on (journey, lead, `sent`) absorbs
+replayed webhook batches.
+
+**Tracking route** — `GET /api/journeys/track?j=<journeyId>&l=<leadId>&t=opened|clicked`
+
+- Expected caller: the lead's email client. No auth is possible; the
+  capability is the unguessable UUID pair, validated in the handler
+  (`src/app/api/journeys/track/route.ts`), and the route is on the middleware
+  allowlist.
+- `t=opened` records the touch and returns a 1×1 GIF (the email's pixel).
+- `t=clicked` records the touch and 302s to the journey's `cta_url`, resolved
+  **server-side from the journey row** — the URL never carries a redirect
+  target, so the route cannot be used as an open redirector.
+- Duplicate touches are ignored (unique constraint); the funnel counts leads,
+  not raw hits. Funnel reads live in `src/lib/queries/journeys.ts` and render
+  on the event report ("The story after the play").
+
+---
+
 ## 9. Environment Variable Checklist
 
 Copy `.env.example` to `.env.local`. ✓ is required everywhere, ✓ᴾ is

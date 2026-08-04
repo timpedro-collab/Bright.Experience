@@ -29,6 +29,9 @@ import {
   telemetryExternalId,
 } from "@/lib/webhooks/telemetry-idempotency";
 import { dispatchNotification } from "@/lib/notifications/dispatch";
+import { assessLead, normaliseEmailForDedupe } from "@/lib/leads/quality";
+import { deliverLeadToSubscriptions } from "@/server/lead-delivery";
+import { sendPostPlayJourney } from "@/server/journeys";
 
 /** Ops get a reload alert when stock first drops to this share of capacity. */
 const LOW_STOCK_THRESHOLD = 0.15;
@@ -241,18 +244,69 @@ async function handleLeadCaptured(
       ? new Date().toISOString()
       : null;
 
-  const { error } = await supabase.from("leads").insert({
-    event_id: eventId,
-    machine_instance_id: machineInstanceId,
-    contact_name: String(contact.name ?? ""),
-    contact_email: String(contact.email),
-    contact_phone: contact.phone ? String(contact.phone) : null,
-    custom_fields_json: (contact.custom_fields as Record<string, unknown>) ?? {},
-    source: "webhook",
-    consented_at: consentedAt,
-  });
+  // Quality screen at the door: syntax + disposable-domain verdict, and a
+  // repeat check against emails already captured at this event (capped —
+  // beyond 10k the marginal dedupe isn't worth the scan).
+  const email = String(contact.email);
+  const { data: priorLeads } = await supabase
+    .from("leads")
+    .select("contact_email")
+    .eq("event_id", eventId)
+    .limit(10_000);
+  const existingEmails = new Set<string>(
+    ((priorLeads ?? []) as Array<{ contact_email: string | null }>)
+      .map((l) => l.contact_email)
+      .filter((e): e is string => Boolean(e))
+      .map(normaliseEmailForDedupe)
+  );
+  const quality = assessLead(email, existingEmails);
+
+  const { data: inserted, error } = await supabase
+    .from("leads")
+    .insert({
+      event_id: eventId,
+      machine_instance_id: machineInstanceId,
+      contact_name: String(contact.name ?? ""),
+      contact_email: email,
+      contact_phone: contact.phone ? String(contact.phone) : null,
+      custom_fields_json: (contact.custom_fields as Record<string, unknown>) ?? {},
+      source: "webhook",
+      consented_at: consentedAt,
+      email_status: quality.emailStatus,
+      is_repeat_player: quality.isRepeatPlayer,
+    })
+    .select("id, captured_at")
+    .single();
 
   if (error) throw new Error(`Lead insert failed: ${error.message}`);
+
+  // Post-capture fan-out: real-time CRM delivery and the post-play journey.
+  // Both are best-effort by design — the lead is already stored, and neither
+  // a slow endpoint nor a mail outage may fail the ingest.
+  if (inserted) {
+    await Promise.allSettled([
+      deliverLeadToSubscriptions({
+        id: inserted.id,
+        eventId,
+        contactName: contact.name ? String(contact.name) : null,
+        contactEmail: email,
+        contactPhone: contact.phone ? String(contact.phone) : null,
+        customFields: (contact.custom_fields as Record<string, unknown>) ?? null,
+        source: "webhook",
+        capturedAt: String(inserted.captured_at ?? new Date().toISOString()),
+        emailStatus: quality.emailStatus,
+        isRepeatPlayer: quality.isRepeatPlayer,
+      }),
+      sendPostPlayJourney({
+        id: inserted.id,
+        eventId,
+        contactEmail: email,
+        contactName: contact.name ? String(contact.name) : null,
+        emailStatus: quality.emailStatus,
+      }),
+    ]);
+  }
+
   return {};
 }
 

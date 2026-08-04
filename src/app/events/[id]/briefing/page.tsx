@@ -14,6 +14,7 @@ import { OpsBriefingForm } from "@/components/briefing/OpsBriefingForm";
 import { BriefingTabs } from "@/components/briefing/BriefingTabs";
 import { BriefingSidebar } from "@/components/briefing/BriefingSidebar";
 import { BriefingFileUpload } from "@/components/briefing/BriefingFileUpload";
+import { WrapPreviewCard } from "@/components/briefing/WrapPreviewCard";
 import { getEventById } from "@/lib/queries/events";
 import { getBriefingResponsesForEvent } from "@/lib/queries/briefing";
 import { getUnreadCount } from "@/lib/queries/notifications";
@@ -152,7 +153,23 @@ export default async function BriefingPage({
           </div>
         </div>
 
-        <BriefingSidebar activeTab={activeTab} eventId={id} isInternal={isInternal} />
+        <div className="space-y-6">
+          <BriefingSidebar activeTab={activeTab} eventId={id} isInternal={isInternal} />
+          {activeTab === "creative" && (
+            <WrapPreviewCard
+              machineType={event.machineType}
+              colorPreferences={String(
+                (creativeBrief?.responses as Record<string, unknown>)
+                  ?.color_preferences ?? "",
+              )}
+              logoUrl={
+                briefingFiles.find((f) =>
+                  /\.(png|jpe?g|svg|webp)$/i.test(f.name),
+                )?.url ?? null
+              }
+            />
+          )}
+        </div>
       </section>
 
       <Hairline className="opacity-40" />

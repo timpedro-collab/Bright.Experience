@@ -93,6 +93,40 @@ export function EventTabNav({
     );
   }
 
+  /** Stock shares the logistics visibility gate — ops lane + customer event day. */
+  function stockTabLink(opts?: { upcoming?: boolean }) {
+    const href = `/events/${eventId}/stock`;
+    const isActive = currentSection === "stock";
+    return (
+      <Link
+        key="stock"
+        href={href}
+        data-tour="tab-stock"
+        title={opts?.upcoming ? "Opens as your event progresses" : undefined}
+        className={cn(
+          "inline-flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+          isActive
+            ? "bg-primary text-primary-foreground shadow-sm"
+            : opts?.upcoming
+              ? "text-muted-foreground/60 hover:bg-muted/40 hover:text-foreground"
+              : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
+        )}
+        aria-current={isActive ? "page" : undefined}
+      >
+        Stock
+      </Link>
+    );
+  }
+
+  function sectionTabs(sections: EventSection[], opts?: { upcoming?: boolean }) {
+    return sections.flatMap((section) => {
+      const links = [tabLink(section, opts)];
+      if (section === "logistics") links.push(stockTabLink(opts));
+      return links;
+    });
+  }
+
   // Internal roles keep the dense tab set, but clustered into labelled groups
   // that WRAP rather than scroll — the whole console is always visible.
   if (internal) {
@@ -112,7 +146,7 @@ export function EventTabNav({
               >
                 {cluster.label}
               </span>
-              {cluster.sections.map((section) => tabLink(section))}
+              {sectionTabs(cluster.sections)}
             </div>
           ))}
         </div>
@@ -126,6 +160,7 @@ export function EventTabNav({
       currentStage={currentStage}
       viewerRole={viewerRole}
       tabLink={tabLink}
+      sectionTabs={sectionTabs}
     />
   );
 }
@@ -141,11 +176,16 @@ function CustomerPhaseNav({
   currentStage,
   viewerRole,
   tabLink,
+  sectionTabs,
 }: {
   currentSection: string;
   currentStage: Stage;
   viewerRole: UserRole;
   tabLink: (section: EventSection, opts?: { upcoming?: boolean }) => React.ReactNode;
+  sectionTabs: (
+    sections: EventSection[],
+    opts?: { upcoming?: boolean },
+  ) => React.ReactNode[];
 }) {
   const { anchor, phases } = customerNavGroups(viewerRole);
   const currentPhaseIndex = phaseForStage(currentStage).index;
@@ -155,8 +195,10 @@ function CustomerPhaseNav({
 
   // Which phase owns the active section? Default the open phase to that, else
   // to the phase the event is currently in.
-  const activePhase = phases.find((p) =>
-    p.sections.some((s) => SECTION_META[s].route === currentSection),
+  const activePhase = phases.find(
+    (p) =>
+      p.sections.some((s) => SECTION_META[s].route === currentSection) ||
+      (currentSection === "stock" && p.sections.includes("logistics")),
   );
   const currentPhase = phases.find(
     (p) => phaseLifecycleIndex(p.id) === currentPhaseIndex,
@@ -225,9 +267,7 @@ function CustomerPhaseNav({
               Coming up
             </span>
           )}
-          {openPhase.sections.map((section) =>
-            tabLink(section, { upcoming: openIsUpcoming }),
-          )}
+          {sectionTabs(openPhase.sections, { upcoming: openIsUpcoming })}
         </div>
       )}
     </nav>

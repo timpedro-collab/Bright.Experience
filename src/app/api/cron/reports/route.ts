@@ -13,6 +13,7 @@ import { getServiceRoleClient } from "@/lib/supabase/service-role";
 import { requireCron } from "@/lib/cron-auth";
 import { recordCronRun } from "@/lib/cron/heartbeat";
 import { generateEventReportSystem } from "@/server/reports";
+import { refreshCampaignsForEvent } from "@/server/campaign-rollup";
 import { dispatchNotification } from "@/lib/notifications/dispatch";
 
 export const runtime = "nodejs";
@@ -70,6 +71,12 @@ export async function GET(request: Request) {
       const result = await generateEventReportSystem(event.id as string);
       if (result.success) {
         generated += 1;
+
+        // Campaign dashboards read a precomputed rollup; a fresh report is
+        // the natural moment to fold this event's finals into it.
+        await refreshCampaignsForEvent(event.id as string).catch((err) =>
+          console.error(`[Cron:reports] campaign rollup failed for ${event.id}`, err)
+        );
 
         try {
           await dispatchNotification(
