@@ -11,6 +11,9 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { createPlacement, updatePlacementStatus } from "@/app/actions/venues";
 import { venueStatusVariant, venueStatusLabel } from "@/components/venues/venue-helpers";
+import { PlacementSkuEditor } from "@/components/venues/PlacementSkuEditor";
+import { RevenueModelConfigurator } from "@/components/venues/RevenueModelConfigurator";
+import type { RevenueModel } from "@/lib/venues/revenue-model";
 
 export interface PlacementRow {
   id: string;
@@ -19,6 +22,12 @@ export interface PlacementRow {
   endDate?: string;
   status: string;
   notes?: string;
+  skuCode: string | null;
+  locationLabel: string | null;
+  footfallEstimate: number | null;
+  maxSlotsPerSponsor: number | null;
+  skuStatus: "draft" | "live";
+  revenueModel: RevenueModel | null;
 }
 
 const STATUS_OPTIONS = ["planned", "active", "completed", "cancelled"];
@@ -144,37 +153,60 @@ export function VenuePlacementBoard({
             {placements.map((p) => (
               <div
                 key={p.id}
-                className="flex items-center justify-between gap-4 rounded-lg border border-border/60 p-4"
+                className="rounded-lg border border-border/60 p-4"
               >
-                <div className="space-y-1">
-                  <p className="text-sm font-medium text-foreground">
-                    {p.machineName ?? "Awaiting machine"}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {formatDate(p.startDate)}
-                    {p.endDate && ` — ${formatDate(p.endDate)}`}
-                  </p>
-                  {p.notes && (
-                    <p className="text-xs text-muted-foreground">{p.notes}</p>
-                  )}
+                <div className="flex items-center justify-between gap-4">
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium text-foreground">
+                      {p.skuCode ? `${p.skuCode} · ` : ""}
+                      {p.machineName ?? "Awaiting machine"}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {formatDate(p.startDate)}
+                      {p.endDate && ` — ${formatDate(p.endDate)}`}
+                      {p.footfallEstimate != null &&
+                        ` · ~${p.footfallEstimate.toLocaleString("en-GB")} footfall/day`}
+                    </p>
+                    {(p.locationLabel ?? p.notes) && (
+                      <p className="text-xs text-muted-foreground">
+                        {p.locationLabel ?? p.notes}
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge variant={venueStatusVariant(p.status)}>
+                      {venueStatusLabel(p.status)}
+                    </Badge>
+                    <select
+                      value={p.status}
+                      onChange={(e) => handleStatusChange(p.id, e.target.value)}
+                      disabled={isPending}
+                      aria-label="Placement status"
+                      className="rounded-md border border-border/40 bg-transparent px-2 py-1 text-xs outline-none focus:border-[var(--color-bb-cobalt)]"
+                    >
+                      {STATUS_OPTIONS.map((s) => (
+                        <option key={s} value={s} className="bg-background">
+                          {s}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Badge variant={venueStatusVariant(p.status)}>
-                    {venueStatusLabel(p.status)}
-                  </Badge>
-                  <select
-                    value={p.status}
-                    onChange={(e) => handleStatusChange(p.id, e.target.value)}
-                    disabled={isPending}
-                    aria-label="Placement status"
-                    className="rounded-md border border-border/40 bg-transparent px-2 py-1 text-xs outline-none focus:border-[var(--color-bb-cobalt)]"
-                  >
-                    {STATUS_OPTIONS.map((s) => (
-                      <option key={s} value={s} className="bg-background">
-                        {s}
-                      </option>
-                    ))}
-                  </select>
+
+                {/* SKU register + revenue model, per placement. */}
+                <div className="mt-3 flex flex-col gap-3 border-t border-border/40 pt-3 lg:flex-row lg:items-start lg:justify-between">
+                  <RevenueModelConfigurator
+                    placementId={p.id}
+                    current={p.revenueModel}
+                  />
+                  <PlacementSkuEditor
+                    placementId={p.id}
+                    skuCode={p.skuCode}
+                    locationLabel={p.locationLabel}
+                    footfallEstimate={p.footfallEstimate}
+                    maxSlotsPerSponsor={p.maxSlotsPerSponsor}
+                    skuStatus={p.skuStatus}
+                  />
                 </div>
               </div>
             ))}

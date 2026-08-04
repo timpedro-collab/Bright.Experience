@@ -18,7 +18,9 @@ export async function getPlacementsByVenue(venueId: string) {
     .from("placements")
     .select(
       `id, venue_id, machine_instance_id, start_date, end_date,
-       status, pricing_model_json, notes, created_at, updated_at,
+       status, pricing_model_json, notes, sku_code, location_label,
+       footfall_estimate, max_slots_per_sponsor, sku_status,
+       created_at, updated_at,
        ${MACHINE_ON_PLACEMENT}`
     )
     .eq("venue_id", venueId)

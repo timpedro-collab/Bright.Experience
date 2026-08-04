@@ -24,6 +24,15 @@ vi.mock("@/lib/rate-limit", () => ({
   getClientIp: async () => "203.0.113.30",
 }));
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
+vi.mock("@/lib/auth/portal", () => ({
+  requireVenueManager: async () => ({ supabase }),
+  requireVenueManagerForPlacement: async () => ({ supabase }),
+  requireVenueManagerForSlot: async () => ({ supabase }),
+}));
+const spawnSlotFulfilmentTasks = vi.fn(async (..._args: unknown[]) => undefined);
+vi.mock("@/server/slot-fulfilment", () => ({
+  spawnSlotFulfilmentTasks: (...args: unknown[]) => spawnSlotFulfilmentTasks(...args),
+}));
 
 const SLOT_ID = "bbbbbbbb-2222-2222-2222-222222222222";
 
@@ -158,5 +167,222 @@ describe("requestVenueSlot", () => {
     expect(result.success).toBe(false);
     if (!result.success) expect(result.error).toMatch(/too many/i);
     expect(supabase.callsFor("sponsorship_slots")).toHaveLength(0);
+  });
+});
+
+const PLACEMENT_ID = "cccccccc-3333-3333-3333-333333333333";
+
+describe("holdSlot", () => {
+  it("reserves the slot under a countdown", async () => {
+    supabase.setTableResponse("sponsorship_slots", {
+      data: { id: SLOT_ID },
+      error: null,
+    });
+
+    const { holdSlot } = await import("./venues");
+    const result = await holdSlot(SLOT_ID, { sponsorName: "Acme", days: 7 });
+
+    expect(result.success).toBe(true);
+    const update = supabase
+      .callsFor("sponsorship_slots")
+      .find((c) => c.method === "update");
+    const payload = update!.args[0] as Record<string, unknown>;
+    expect(payload.status).toBe("reserved");
+    expect(typeof payload.hold_expires_at).toBe("string");
+    expect(payload.sponsor_name).toBe("Acme");
+  });
+
+  it("refuses to hold a slot that is already sold", async () => {
+    // The guarded update matches no rows for an active/completed slot.
+    supabase.setTableResponse("sponsorship_slots", { data: null, error: null });
+
+    const { holdSlot } = await import("./venues");
+    const result = await holdSlot(SLOT_ID);
+
+    expect(result.success).toBe(false);
+    if (!result.success) expect(result.error).toMatch(/open slot/i);
+  });
+});
+
+describe("confirmSlot", () => {
+  it("clears the hold and spawns the fulfilment checklist for a show slot", async () => {
+    supabase.setTableResponse("sponsorship_slots", {
+      data: {
+        id: SLOT_ID,
+        event_id: "eeeeeeee-4444-4444-4444-444444444444",
+        sponsor_name: "Acme",
+        start_date: "2026-09-01",
+      },
+      error: null,
+    });
+
+    const { confirmSlot } = await import("./venues");
+    const result = await confirmSlot(SLOT_ID);
+
+    expect(result.success).toBe(true);
+    const update = supabase
+      .callsFor("sponsorship_slots")
+      .find((c) => c.method === "update");
+    expect(update!.args[0]).toMatchObject({ status: "active", hold_expires_at: null });
+    expect(spawnSlotFulfilmentTasks).toHaveBeenCalledWith(
+      expect.objectContaining({ slotId: SLOT_ID, sponsorName: "Acme" })
+    );
+  });
+
+  it("skips fulfilment for a venue slot with no show attached", async () => {
+    supabase.setTableResponse("sponsorship_slots", {
+      data: { id: SLOT_ID, event_id: null, sponsor_name: null, start_date: "2026-09-01" },
+      error: null,
+    });
+
+    const { confirmSlot } = await import("./venues");
+    const result = await confirmSlot(SLOT_ID);
+
+    expect(result.success).toBe(true);
+    expect(spawnSlotFulfilmentTasks).not.toHaveBeenCalled();
+  });
+
+  it("refuses to confirm a slot that was never reserved", async () => {
+    supabase.setTableResponse("sponsorship_slots", { data: null, error: null });
+
+    const { confirmSlot } = await import("./venues");
+    const result = await confirmSlot(SLOT_ID);
+
+    expect(result.success).toBe(false);
+    if (!result.success) expect(result.error).toMatch(/reserved/i);
+    expect(spawnSlotFulfilmentTasks).not.toHaveBeenCalled();
+  });
+});
+
+describe("reserveSlot", () => {
+  const SPONSOR_ID = "dddddddd-5555-5555-5555-555555555555";
+
+  it("blocks a sponsor who already holds the placement's cap", async () => {
+    supabase.queueTableResponses("sponsorship_slots", [
+      {
+        data: {
+          placement_id: PLACEMENT_ID,
+          game_config_json: {},
+          placements: { max_slots_per_sponsor: 1 },
+        },
+        error: null,
+      },
+      { data: [{ id: "held-slot" }], error: null },
+    ]);
+
+    const { reserveSlot } = await import("./venues");
+    const result = await reserveSlot(SLOT_ID, SPONSOR_ID);
+
+    expect(result.success).toBe(false);
+    if (!result.success) expect(result.error).toMatch(/capped at 1 slot/i);
+    const update = supabase
+      .callsFor("sponsorship_slots")
+      .find((c) => c.method === "update");
+    expect(update).toBeUndefined();
+  });
+
+  it("reserves normally when the placement carries no cap", async () => {
+    supabase.setTableResponse("sponsorship_slots", {
+      data: {
+        placement_id: PLACEMENT_ID,
+        game_config_json: {},
+        placements: { max_slots_per_sponsor: null },
+      },
+      error: null,
+    });
+
+    const { reserveSlot } = await import("./venues");
+    const result = await reserveSlot(SLOT_ID, SPONSOR_ID, "Summer push");
+
+    expect(result.success).toBe(true);
+    const update = supabase
+      .callsFor("sponsorship_slots")
+      .find((c) => c.method === "update");
+    expect(update!.args[0]).toMatchObject({
+      sponsor_account_id: SPONSOR_ID,
+      status: "reserved",
+      game_config_json: { campaign: "Summer push" },
+    });
+  });
+});
+
+describe("updatePlacementSku", () => {
+  it("saves the register fields with an uppercased code", async () => {
+    supabase.setTableResponse("placements", { data: null, error: null });
+
+    const { updatePlacementSku } = await import("./venues");
+    const result = await updatePlacementSku({
+      placementId: PLACEMENT_ID,
+      skuCode: "wes-st-01",
+      locationLabel: "The Street, ground floor",
+      footfallEstimate: 40000,
+      maxSlotsPerSponsor: 2,
+    });
+
+    expect(result.success).toBe(true);
+    const update = supabase.callsFor("placements").find((c) => c.method === "update");
+    expect(update!.args[0]).toMatchObject({
+      sku_code: "WES-ST-01",
+      location_label: "The Street, ground floor",
+      footfall_estimate: 40000,
+      max_slots_per_sponsor: 2,
+    });
+  });
+
+  it("rejects a code with characters that would break links", async () => {
+    const { updatePlacementSku } = await import("./venues");
+    const result = await updatePlacementSku({
+      placementId: PLACEMENT_ID,
+      skuCode: "WES ST/01",
+    });
+
+    expect(result.success).toBe(false);
+    expect(supabase.callsFor("placements")).toHaveLength(0);
+  });
+});
+
+describe("publishPlacementSku", () => {
+  it("flips the approval state to live", async () => {
+    supabase.setTableResponse("placements", { data: null, error: null });
+
+    const { publishPlacementSku } = await import("./venues");
+    const result = await publishPlacementSku(PLACEMENT_ID, true);
+
+    expect(result.success).toBe(true);
+    const update = supabase.callsFor("placements").find((c) => c.method === "update");
+    expect(update!.args[0]).toEqual({ sku_status: "live" });
+  });
+});
+
+describe("updatePlacementPricing", () => {
+  it("writes the typed model whole", async () => {
+    supabase.setTableResponse("placements", { data: null, error: null });
+
+    const { updatePlacementPricing } = await import("./venues");
+    const result = await updatePlacementPricing({
+      placementId: PLACEMENT_ID,
+      pricing: { model: "guarantee_overage", guaranteePence: 400_000, overageRate: 0.25 },
+    });
+
+    expect(result.success).toBe(true);
+    const update = supabase.callsFor("placements").find((c) => c.method === "update");
+    expect(update!.args[0]).toEqual({
+      pricing_model_json: {
+        model: "guarantee_overage",
+        guaranteePence: 400_000,
+        overageRate: 0.25,
+      },
+    });
+  });
+
+  it("rejects a share above 100%", async () => {
+    const { updatePlacementPricing } = await import("./venues");
+    const result = await updatePlacementPricing({
+      placementId: PLACEMENT_ID,
+      pricing: { model: "revenue_share", rate: 1.4 },
+    });
+
+    expect(result.success).toBe(false);
+    expect(supabase.callsFor("placements")).toHaveLength(0);
   });
 });

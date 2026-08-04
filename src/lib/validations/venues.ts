@@ -45,6 +45,59 @@ export const updatePlacementStatusSchema = z.object({
   status: z.enum(["planned", "active", "completed", "cancelled"]),
 });
 
+/** SKU-register fields: what makes a placement a coded, sellable unit. */
+export const updatePlacementSkuSchema = z.object({
+  placementId: uuidLike("Invalid placement ID"),
+  skuCode: z
+    .string()
+    .max(24, "Keep the code under 24 characters")
+    .regex(/^[A-Za-z0-9-]*$/, "Letters, numbers and dashes only")
+    .optional(),
+  locationLabel: z.string().max(200).optional(),
+  footfallEstimate: z
+    .number()
+    .int("Footfall must be a whole number")
+    .nonnegative()
+    .optional(),
+  maxSlotsPerSponsor: z
+    .number()
+    .int()
+    .min(1, "The cap needs at least one slot")
+    .max(20, "A cap over 20 slots isn't a cap")
+    .optional(),
+});
+
+export const publishPlacementSchema = z.object({
+  placementId: uuidLike("Invalid placement ID"),
+  live: z.boolean(),
+});
+
+/** Typed revenue model — mirrors RevenueModel in lib/venues/revenue-model.ts. */
+export const updatePlacementPricingSchema = z.object({
+  placementId: uuidLike("Invalid placement ID"),
+  pricing: z.discriminatedUnion("model", [
+    z.object({
+      model: z.literal("revenue_share"),
+      rate: z
+        .number()
+        .gt(0, "The share must be above zero")
+        .max(1, "The share is a fraction of 1"),
+    }),
+    z.object({
+      model: z.literal("fixed_fee"),
+      feePence: z.number().int().nonnegative(),
+    }),
+    z.object({
+      model: z.literal("guarantee_overage"),
+      guaranteePence: z.number().int().nonnegative(),
+      overageRate: z
+        .number()
+        .gt(0, "The share must be above zero")
+        .max(1, "The share is a fraction of 1"),
+    }),
+  ]),
+});
+
 export const createSponsorshipSlotSchema = z.object({
   placementId: uuidLike("Invalid placement ID"),
   startDate: z.string().min(1, "Start date is required"),

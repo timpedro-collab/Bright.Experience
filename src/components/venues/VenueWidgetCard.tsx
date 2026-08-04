@@ -1,0 +1,76 @@
+/** Compact presentational card for the embeddable venue advertising widget. */
+import { formatMoneyFromPence } from "@/lib/currency";
+import { formatDateShort } from "@/lib/dates";
+
+export interface VenueWidgetCardProps {
+  venueName: string;
+  openSlotCount: number;
+  fromPricePence: number | null;
+  nextWindow: { start: string; end: string | null } | null;
+  advertiseHref: string;
+}
+
+const CTA_CLASS =
+  "inline-flex items-center gap-1.5 rounded-sm bg-[var(--color-bb-cobalt)] px-5 py-2.5 text-sm font-medium text-white transition-opacity hover:opacity-90";
+
+/** Compact venue advertising card for iframe embeds. */
+export function VenueWidgetCard({
+  venueName,
+  openSlotCount,
+  fromPricePence,
+  nextWindow,
+  advertiseHref,
+}: VenueWidgetCardProps) {
+  const fullyBooked = openSlotCount === 0;
+
+  return (
+    <div className="max-w-sm rounded border border-border bg-background p-5">
+      <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+        Advertise here
+      </p>
+      <h2 className="mt-2 text-lg font-bold text-foreground">{venueName}</h2>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Interactive screens against real footfall.
+      </p>
+
+      <div className="mt-4 text-sm text-foreground">
+        {fullyBooked ? (
+          <p>
+            Fully booked right now — join the waitlist for the next window.
+          </p>
+        ) : (
+          <>
+            <p>
+              {openSlotCount} slot{openSlotCount === 1 ? "" : "s"} open
+              {fromPricePence != null && (
+                <>
+                  {" "}
+                  · from {formatMoneyFromPence(fromPricePence)}/wk
+                </>
+              )}
+            </p>
+            {nextWindow && (
+              <p className="mt-1 text-muted-foreground">
+                Next window: {formatDateShort(nextWindow.start)}
+                {nextWindow.end ? ` – ${formatDateShort(nextWindow.end)}` : ""}
+              </p>
+            )}
+          </>
+        )}
+      </div>
+
+      <a
+        href={advertiseHref}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={`${CTA_CLASS} mt-5`}
+      >
+        See open slots
+      </a>
+
+      <p className="mt-4 text-[0.65rem] text-muted-foreground">
+        Powered by Bright.Experience
+      </p>
+    </div>
+  );
+}

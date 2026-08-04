@@ -14,9 +14,12 @@ import {
   createVenuePackageSchema,
   deleteSlotSchema,
   holdSlotSchema,
+  publishPlacementSchema,
   releaseSlotSchema,
   requestVenueSlotSchema,
   reserveSlotSchema,
+  updatePlacementPricingSchema,
+  updatePlacementSkuSchema,
   updatePlacementStatusSchema,
   updateSlotSchema,
 } from "@/lib/validations/venues";
@@ -116,6 +119,99 @@ export async function updatePlacementStatus(id: string, status: string) {
   return { success: true as const, data: { id } };
 }
 
+/**
+ * Update the SKU-register fields that make a placement a coded, sellable
+ * unit: code, location label, footfall estimate, per-sponsor cap.
+ */
+export async function updatePlacementSku(data: {
+  placementId: string;
+  skuCode?: string;
+  locationLabel?: string;
+  footfallEstimate?: number;
+  maxSlotsPerSponsor?: number;
+}) {
+  const parsed = updatePlacementSkuSchema.safeParse(data);
+  if (!parsed.success) {
+    return { success: false as const, error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  }
+
+  const { supabase } = await requireVenueManagerForPlacement(data.placementId);
+
+  const { error } = await supabase
+    .from("placements")
+    .update({
+      sku_code: parsed.data.skuCode?.trim().toUpperCase() || null,
+      location_label: parsed.data.locationLabel?.trim() || null,
+      footfall_estimate: parsed.data.footfallEstimate ?? null,
+      max_slots_per_sponsor: parsed.data.maxSlotsPerSponsor ?? null,
+    })
+    .eq("id", data.placementId);
+
+  if (error) {
+    // The partial unique index turns a duplicated code into a constraint hit.
+    return {
+      success: false as const,
+      error: "Failed to save — is that SKU code already used at this venue?",
+    };
+  }
+
+  revalidatePath("/venues");
+  return { success: true as const, data: { id: data.placementId } };
+}
+
+/**
+ * The venue approval step: only a `live` placement appears on the public
+ * advertise page and the embeddable widget.
+ */
+export async function publishPlacementSku(placementId: string, live: boolean) {
+  const parsed = publishPlacementSchema.safeParse({ placementId, live });
+  if (!parsed.success) {
+    return { success: false as const, error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  }
+
+  const { supabase } = await requireVenueManagerForPlacement(placementId);
+
+  const { error } = await supabase
+    .from("placements")
+    .update({ sku_status: live ? "live" : "draft" })
+    .eq("id", placementId);
+
+  if (error) return { success: false as const, error: "Failed to update publish state" };
+
+  revalidatePath("/venues");
+  return { success: true as const, data: { id: placementId } };
+}
+
+/**
+ * Set the placement's revenue model (typed union — see
+ * lib/venues/revenue-model.ts). Overwrites `pricing_model_json` whole:
+ * the models are alternatives, never layered.
+ */
+export async function updatePlacementPricing(data: {
+  placementId: string;
+  pricing:
+    | { model: "revenue_share"; rate: number }
+    | { model: "fixed_fee"; feePence: number }
+    | { model: "guarantee_overage"; guaranteePence: number; overageRate: number };
+}) {
+  const parsed = updatePlacementPricingSchema.safeParse(data);
+  if (!parsed.success) {
+    return { success: false as const, error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  }
+
+  const { supabase } = await requireVenueManagerForPlacement(data.placementId);
+
+  const { error } = await supabase
+    .from("placements")
+    .update({ pricing_model_json: parsed.data.pricing })
+    .eq("id", data.placementId);
+
+  if (error) return { success: false as const, error: "Failed to save the revenue model" };
+
+  revalidatePath("/venues");
+  return { success: true as const, data: { id: data.placementId } };
+}
+
 /** Create a new sponsorship slot on a placement. `price` is whole dollars from the form; stored as integer cents. */
 export async function createSponsorshipSlot(data: {
   placementId: string;
@@ -166,13 +262,34 @@ export async function reserveSlot(
 
   const { data: existing } = await supabase
     .from("sponsorship_slots")
-    .select("game_config_json")
+    .select("placement_id, game_config_json, placements ( max_slots_per_sponsor )")
     .eq("id", slotId)
     .maybeSingle();
   const gameConfig: Record<string, unknown> = {
     ...((existing?.game_config_json as Record<string, unknown>) ?? {}),
   };
   if (campaign?.trim()) gameConfig.campaign = campaign.trim();
+
+  // Per-sponsor cap from the SKU register: one sponsor can't monopolise a
+  // position the venue deliberately capped.
+  const placement = firstRelated(existing?.placements) as {
+    max_slots_per_sponsor?: number | null;
+  } | null;
+  const cap = placement?.max_slots_per_sponsor;
+  if (cap != null && cap > 0 && existing?.placement_id) {
+    const { data: held } = await supabase
+      .from("sponsorship_slots")
+      .select("id")
+      .eq("placement_id", existing.placement_id)
+      .eq("sponsor_account_id", sponsorAccountId)
+      .in("status", ["reserved", "active"]);
+    if ((held?.length ?? 0) >= cap) {
+      return {
+        success: false as const,
+        error: `This placement is capped at ${cap} slot${cap === 1 ? "" : "s"} per sponsor.`,
+      };
+    }
+  }
 
   const { error } = await supabase
     .from("sponsorship_slots")

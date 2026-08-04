@@ -8,6 +8,7 @@ import { getPlacementsByVenue } from "@/lib/queries/placements";
 import { getUnreadCount } from "@/lib/queries/notifications";
 import { PlacementCalendar } from "@/components/venues/PlacementCalendar";
 import { VenuePlacementBoard } from "@/components/venues/VenuePlacementBoard";
+import { parseRevenueModel } from "@/lib/venues/revenue-model";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -46,6 +47,15 @@ export default async function PlacementsPage({ params }: Props) {
     endDate: p.end_date ?? undefined,
     status: p.status,
     notes: (p.notes as string | null) ?? undefined,
+    skuCode: (p.sku_code as string | null) ?? null,
+    locationLabel: (p.location_label as string | null) ?? null,
+    footfallEstimate:
+      p.footfall_estimate != null ? Number(p.footfall_estimate) : null,
+    maxSlotsPerSponsor:
+      p.max_slots_per_sponsor != null ? Number(p.max_slots_per_sponsor) : null,
+    // Pre-register rows carry no sku_status; they were backfilled live.
+    skuStatus: (p.sku_status === "draft" ? "draft" : "live") as "draft" | "live",
+    revenueModel: parseRevenueModel(p.pricing_model_json),
   }));
 
   return (

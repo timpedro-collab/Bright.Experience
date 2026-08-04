@@ -65,6 +65,8 @@ const PUBLIC_ROUTES = [
 const PUBLIC_PATTERNS = [
   // A venue's public advertiser page, which venues iframe into their own site.
   /^\/venues\/[^/]+\/advertise$/,
+  // The compact embeddable widget — same public-by-path model as /advertise.
+  /^\/venues\/[^/]+\/widget$/,
   // PDF export of the public proposal page — same capability-URL model as
   // /proposal/:id itself (the unguessable quote UUID is the credential).
   /^\/api\/quotes\/[^/]+\/proposal-pdf$/,

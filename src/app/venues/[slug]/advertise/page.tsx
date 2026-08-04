@@ -43,8 +43,12 @@ export default async function VenueAdvertisePage({ params }: Props) {
   if (!venue) notFound();
 
   const placements = await getPlacementsByVenue(venue.id);
+  // The venue approval step: only published SKUs reach the public page.
+  // Rows predating the register (no sku_status) read as live.
   const activePlacements = placements.filter(
-    (p) => p.status === "active" || p.status === "planned",
+    (p) =>
+      (p.status === "active" || p.status === "planned") &&
+      p.sku_status !== "draft",
   );
 
   const slotGroups = await Promise.all(
@@ -60,7 +64,10 @@ export default async function VenueAdvertisePage({ params }: Props) {
           id: s.id,
           unitName,
           format: pricing?.format ?? undefined,
-          locationNote: (p.notes as string | null) ?? undefined,
+          locationNote:
+            (p.location_label as string | null) ??
+            (p.notes as string | null) ??
+            undefined,
           startDate: s.start_date,
           endDate: s.end_date,
           price: s.price != null ? Number(s.price) : undefined,

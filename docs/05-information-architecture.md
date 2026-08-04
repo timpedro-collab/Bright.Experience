@@ -102,8 +102,15 @@ page — it is the `GET /api/events/:id/export` handler
 ### Venue portal (`src/app/venues/[slug]/`)
 ```
 /venues/:slug/dashboard  /packages  /placements  /sponsorships
-/venues/:slug/advertise             → Public advertise landing
-/venues/:slug/embed                 → Embeddable iframe surface
+/venues/:slug/calendar              → Dark-day calendar: uncovered days per
+                                      placement, one-click "open for sponsorship"
+/venues/:slug/earnings              → Venue share of booked slot revenue under
+                                      the per-placement revenue model
+/venues/:slug/earnings/statement    → Printable monthly revenue statement
+/venues/:slug/advertise             → Public advertise landing (only `live`
+                                      SKUs appear — the venue approval step)
+/venues/:slug/widget                → Public compact widget for sidebar iframes
+/venues/:slug/embed                 → Embed-code generator (full page + widget)
 ```
 
 ### Organizer portal (`src/app/organizers/[slug]/`)

@@ -158,6 +158,8 @@ export function venueTabs(slug: string): PortalTab[] {
     { label: "Dashboard", href: `/venues/${slug}/dashboard` },
     { label: "Placements", href: `/venues/${slug}/placements` },
     { label: "Sponsorships", href: `/venues/${slug}/sponsorships` },
+    { label: "Calendar", href: `/venues/${slug}/calendar` },
+    { label: "Earnings", href: `/venues/${slug}/earnings` },
     { label: "Packages", href: `/venues/${slug}/packages` },
     { label: "Embed", href: `/venues/${slug}/embed` },
   ];

@@ -80,6 +80,12 @@ describe("isPublicPath", () => {
     expect(isPublicPath("/venues/kings-cross/advertise/edit")).toBe(false);
   });
 
+  it("treats the embeddable venue widget as public, but nothing beneath it", () => {
+    expect(isPublicPath("/venues/kings-cross/widget")).toBe(true);
+    expect(isPublicPath("/venues/kings-cross/widget/config")).toBe(false);
+    expect(isPublicPath("/venues/kings-cross/earnings")).toBe(false);
+  });
+
   it("ignores a trailing slash", () => {
     expect(isPublicPath("/catalog/")).toBe(true);
     expect(isPublicPath("/events/123/")).toBe(false);

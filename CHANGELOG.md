@@ -4,6 +4,47 @@ All notable changes to the Bright.Experience platform are documented here.
 
 ---
 
+## [Ecosystem build · Stage 4 — venue yield engine] - 2026-08-04
+
+The venue channel gets the machinery that turns a hosted machine into managed,
+sellable inventory (docs/19 §venues): coded SKUs with an approval step, typed
+revenue models with live earnings, a dark-day calendar, and a compact
+white-label embed.
+
+- **Placement-as-SKU register** — migration `20260804000000_venue_yield_engine.sql`
+  adds `sku_code` (venue-scoped unique), `location_label`, `footfall_estimate`,
+  `max_slots_per_sponsor` and `sku_status` (`draft`/`live`) to `placements`
+  (existing rows backfilled `live`). The placements page gains a per-row SKU
+  editor + publish control (`PlacementSkuEditor`, 4 tests); only `live`
+  placements appear on the public advertise page and widget. The per-sponsor
+  cap is enforced in `reserveSlot` (blocked with a plain-English error).
+- **Typed revenue models** — `src/lib/venues/revenue-model.ts` (10 tests)
+  parses `pricing_model_json` into `revenue_share` / `fixed_fee` /
+  `guarantee_overage` (guarantee vs share, whichever is greater), tolerating
+  the legacy ad-hoc shapes. Venues configure it in a live-preview form on the
+  placements page (`RevenueModelConfigurator`, 4 tests → new actions
+  `updatePlacementPricing`, `updatePlacementSku`, `publishPlacementSku` with
+  tests in `actions/venues.test.ts`, now also covering Stage 3's
+  `holdSlot`/`confirmSlot`).
+- **Venue earnings** — `/venues/:slug/earnings` rolls up booked vs open slot
+  revenue per placement and computes the venue's share under its model
+  (`venue-earnings` query, 3 tests), with a print-first monthly statement at
+  `/venues/:slug/earnings/statement`.
+- **Dark-day calendar** — `/venues/:slug/calendar` lists every future run of
+  days inside a placement window with no slot on the market
+  (`src/lib/venues/dark-days.ts`, 11 tests) and opens a gap for sponsorship in
+  one click (`DarkDayBoard`, 4 tests → existing `createSponsorshipSlot`).
+- **White-label embed** — new public `/venues/:slug/widget` (chrome-less
+  360×420 iframe card: open-slot count, from-price, next window, attributed
+  CTA; `VenueWidgetCard`, 5 tests) added to the middleware allowlist; the
+  embed-code generator now offers full-page and compact-widget variants.
+- Venue portal tabs gain Calendar and Earnings.
+- Composer delegation: earnings query + pages, dark-day board + page,
+  configurator + SKU editor, and widget + embed upgrade built by four composer
+  agents against exact contracts; schema, revenue-model and dark-day
+  libraries, actions, cap enforcement, advertise filter, and wiring by the
+  main agent.
+
 ## [Ecosystem build · Stage 3 — organizer sales engine] - 2026-08-04
 
 The organizer channel gets the machinery that lets a show's sales team resell
