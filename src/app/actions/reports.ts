@@ -24,18 +24,27 @@ export async function generateEventReport(eventId: string) {
 }
 
 /** Publish a report: makes it publicly accessible via a generated share token. */
-export async function publishReport(reportId: string) {
+export async function publishReport(
+  reportId: string,
+  opts?: { brandPartnerId?: string | null },
+) {
   const { supabase } = await requireInternalUser();
 
   const shareToken = crypto.randomUUID();
 
+  const updatePayload: Record<string, unknown> = {
+    is_published: true,
+    share_token: shareToken,
+    published_at: new Date().toISOString(),
+  };
+
+  if (opts?.brandPartnerId !== undefined) {
+    updatePayload.brand_partner_id = opts.brandPartnerId;
+  }
+
   const { data: report, error } = await supabase
     .from("event_reports")
-    .update({
-      is_published: true,
-      share_token: shareToken,
-      published_at: new Date().toISOString(),
-    })
+    .update(updatePayload)
     .eq("id", reportId)
     .select("event_id")
     .single();

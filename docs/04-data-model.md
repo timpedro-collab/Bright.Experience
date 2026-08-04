@@ -309,12 +309,13 @@ ScopeChange {
 ```
 
 ### Report
-Post-event reporting data.
+Post-event reporting data (`event_reports` table).
 
 ```
 Report {
   id              UUID
   event_id        UUID → Event
+  brand_partner_id UUID? → Partner  // optional co-brand on published share links
   status          enum            // processing | ready | published
   published_at    timestamp?
 

@@ -34,6 +34,8 @@ const PUBLIC_ROUTES = [
   "/business-case",
   "/faq",
   "/measured-sampling",
+  "/bright-index",
+  "/state-of-play",
   "/llm-info",
   "/llms.txt",
   // Static asset folders under public/ that middleware still sees
@@ -58,6 +60,10 @@ const PUBLIC_ROUTES = [
   // mail client; the capability is the unguessable journey+lead UUID pair,
   // validated in the handler.
   "/api/journeys",
+  // The public MCP server: AI assistants speaking Model Context Protocol.
+  // Read tools expose only already-public marketing data; the write tool
+  // reuses the rate-limited public proposal intake.
+  "/api/mcp",
   // Uptime probe. The public payload is a status summary; the detail is
   // gated on the CRON_SECRET bearer inside the handler.
   "/api/health",

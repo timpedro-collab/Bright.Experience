@@ -3,6 +3,11 @@ import { createClient } from "@/lib/supabase/server";
 import type { EventReport } from "@/types";
 import { logQueryError } from "@/lib/observability/log-query-error";
 
+/** Published report row exposed on the anonymous share page. */
+export type SharedEventReport = EventReport & {
+  brandPartnerId: string | null;
+};
+
 /** Map a database row to a camelCase EventReport. */
 function mapEventReport(row: Record<string, unknown>): EventReport {
   return {
@@ -43,7 +48,7 @@ export async function getEventReports(
 /** Fetch a published report by its public share token. */
 export async function getEventReportByShareToken(
   token: string
-): Promise<EventReport | null> {
+): Promise<SharedEventReport | null> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("event_reports")
@@ -56,5 +61,10 @@ export async function getEventReportByShareToken(
     logQueryError("getEventReportByShareToken", error, { token });
     return null;
   }
-  return mapEventReport(data);
+  return {
+    ...mapEventReport(data),
+    brandPartnerId: data.brand_partner_id
+      ? String(data.brand_partner_id)
+      : null,
+  };
 }

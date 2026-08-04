@@ -177,6 +177,41 @@ export default function LlmInfoPage() {
           </li>
         </ul>
 
+        <h2 className="mt-10 text-xl font-semibold text-foreground">
+          For AI assistants: MCP server
+        </h2>
+        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+          A public Model Context Protocol server runs at{" "}
+          <code className="rounded bg-muted px-1.5 py-0.5 text-xs">
+            /api/mcp
+          </code>{" "}
+          (streamable HTTP, no authentication). Tools:{" "}
+          <code className="rounded bg-muted px-1.5 py-0.5 text-xs">
+            search_catalog
+          </code>
+          ,{" "}
+          <code className="rounded bg-muted px-1.5 py-0.5 text-xs">
+            get_pricing
+          </code>
+          ,{" "}
+          <code className="rounded bg-muted px-1.5 py-0.5 text-xs">
+            get_benchmarks
+          </code>{" "}
+          (the{" "}
+          <Link
+            href="/bright-index"
+            className="text-primary underline underline-offset-4"
+          >
+            Bright Index
+          </Link>
+          ), and{" "}
+          <code className="rounded bg-muted px-1.5 py-0.5 text-xs">
+            request_proposal
+          </code>{" "}
+          — the last creates a real sales enquiry, so call it only with the
+          buyer&apos;s consent.
+        </p>
+
         <p className="mt-10 text-sm leading-relaxed text-muted-foreground">
           {SCARCITY_LINE}
         </p>

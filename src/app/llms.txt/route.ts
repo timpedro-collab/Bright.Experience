@@ -45,6 +45,16 @@ const KEY_PAGES: ReadonlyArray<{ path: string; description: string }> = [
     description: "End-to-end delivery journey from brief to live activation",
   },
   {
+    path: "/bright-index",
+    description:
+      "The Bright Index — published fleet benchmarks (median plays, leads and dwell per day, by venue class)",
+  },
+  {
+    path: "/state-of-play",
+    description:
+      "State of Play — annual ungated report on measured brand activations",
+  },
+  {
     path: "/llm-info",
     description: "Structured product facts for people and AI assistants",
   },
@@ -103,6 +113,12 @@ function buildBody(): string {
   for (const stat of TRUST_STATS) {
     lines.push(`- ${stat.value} — ${stat.label}`);
   }
+  lines.push("");
+  lines.push("## MCP server (for AI assistants)");
+  lines.push("");
+  lines.push(
+    "A public Model Context Protocol server is available at `/api/mcp` (streamable HTTP). Tools: `search_catalog`, `get_pricing`, `get_benchmarks`, `request_proposal`. No authentication required; the proposal tool creates a real sales enquiry, so only call it with the buyer's consent."
+  );
   lines.push("");
   lines.push("## Contact");
   lines.push("");

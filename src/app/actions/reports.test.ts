@@ -173,3 +173,56 @@ describe("updateBenchmarks", () => {
     });
   });
 });
+
+describe("publishReport", () => {
+  it("sets brand_partner_id when a partner id is supplied", async () => {
+    supabase.setTableResponse("event_reports", {
+      data: { event_id: "evt-1" },
+      error: null,
+    });
+
+    const { publishReport } = await import("./reports");
+    const result = await publishReport("rep-1", {
+      brandPartnerId: "partner-1",
+    });
+
+    expect(result.success).toBe(true);
+    const update = supabase
+      .callsFor("event_reports")
+      .find((call) => call.method === "update");
+    expect(update?.args[0]).toMatchObject({
+      is_published: true,
+      brand_partner_id: "partner-1",
+    });
+  });
+
+  it("clears brand_partner_id when null is supplied", async () => {
+    supabase.setTableResponse("event_reports", {
+      data: { event_id: "evt-1" },
+      error: null,
+    });
+
+    const { publishReport } = await import("./reports");
+    await publishReport("rep-1", { brandPartnerId: null });
+
+    const update = supabase
+      .callsFor("event_reports")
+      .find((call) => call.method === "update");
+    expect(update?.args[0]).toMatchObject({ brand_partner_id: null });
+  });
+
+  it("leaves brand_partner_id out of the payload when opts are omitted", async () => {
+    supabase.setTableResponse("event_reports", {
+      data: { event_id: "evt-1" },
+      error: null,
+    });
+
+    const { publishReport } = await import("./reports");
+    await publishReport("rep-1");
+
+    const update = supabase
+      .callsFor("event_reports")
+      .find((call) => call.method === "update");
+    expect(update?.args[0]).not.toHaveProperty("brand_partner_id");
+  });
+});

@@ -56,6 +56,8 @@ const FOOTER_GROUPS = [
     heading: "Company",
     links: [
       { label: "How It Works", href: "/how-it-works" },
+      { label: "The Bright Index", href: "/bright-index" },
+      { label: "State of Play 2026", href: "/state-of-play" },
       { label: "FAQ", href: "/faq" },
       { label: "Packages", href: "/catalog/packages" },
       { label: "Terms", href: "/terms" },

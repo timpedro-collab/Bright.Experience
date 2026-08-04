@@ -19,6 +19,8 @@ describe("isPublicPath", () => {
     expect(isPublicPath("/business-case")).toBe(true);
     expect(isPublicPath("/faq")).toBe(true);
     expect(isPublicPath("/measured-sampling")).toBe(true);
+    expect(isPublicPath("/bright-index")).toBe(true);
+    expect(isPublicPath("/state-of-play")).toBe(true);
     expect(isPublicPath("/llm-info")).toBe(true);
     expect(isPublicPath("/llms.txt")).toBe(true);
   });
@@ -49,6 +51,10 @@ describe("isPublicPath", () => {
 
   it("lets journey email tracking through — a mail client can't hold a session", () => {
     expect(isPublicPath("/api/journeys/track")).toBe(true);
+  });
+
+  it("lets AI assistants reach the MCP server", () => {
+    expect(isPublicPath("/api/mcp")).toBe(true);
   });
 
   it("keeps the authenticated app behind the gate", () => {

@@ -4,6 +4,46 @@ All notable changes to the Bright.Experience platform are documented here.
 
 ---
 
+## [Ecosystem build · Stage 6 — authority & channels] - 2026-08-04
+
+The final stage of the ecosystem build (docs/19 items 35–38): publish the
+numbers nobody else in experiential will print, let partners share results
+under their own lockup, and put the catalog inside AI assistants.
+
+- **The Bright Index** — new ungated public page `/bright-index`: median +
+  middle-50% quartile bands for plays, opted-in leads, samples and dwell per
+  event day, by venue class, straight from the `benchmarks` table (Stage 5's
+  `updateBenchmarks` writes the percentiles). Pure shaping layer
+  `src/lib/bright-index/shape.ts` (14 tests) enforces a publication floor —
+  no segment prints below 5 completed events — and the anon-safe read model
+  `public-benchmarks` (2 tests) applies the same floor in SQL. Daily ISR.
+- **State of Play 2026** — new ungated public page `/state-of-play`: the
+  annual editorial report. Three headline numbers pulled live from the Index
+  data, five findings, methodology, no email wall. Both pages are in the
+  middleware allowlist, the public footer, `/llm-info`, and `/llms.txt`.
+- **Partner white-label reports** — migration `20260806000000` adds
+  `event_reports.brand_partner_id` (theming only; attribution unchanged).
+  Publishing a draft report now offers a co-brand checkbox when the event has
+  a linked partner (organizer link first, latest attribution as fallback —
+  `partner-brand` query, 5 tests). When set, the public `/report/:token` page
+  renders the partner's `PartnerCoBrand` lockup, a brand-colour accent rule,
+  and "Prepared by {partner} · Powered by Bright.Experience"; when unset the
+  page is unchanged (3 publish branch tests, 3 component tests).
+- **Public MCP server** — `/api/mcp` (new deps `mcp-handler` v2 +
+  `@modelcontextprotocol/server`, stateless streamable HTTP, no Redis).
+  Tools: `search_catalog`, `get_pricing` (canonical tier bands per region),
+  `get_benchmarks` (the Bright Index), and `request_proposal`, which reuses
+  the rate-limited, validated `submitProposalIntake` path and warns
+  assistants it creates a real enquiry. Response formatters are pure and
+  tested (`src/lib/mcp/format.ts`, 7 tests). Advertised in `/llms.txt` and
+  `/llm-info`; documented in docs/10 §8f. Precedent: Hire Space / RainFocus
+  (docs/19 §event-tech).
+- Docs: 04 (brand_partner_id), 05 (routes), 10 (§8f MCP). Gates: lint ✓,
+  typecheck ✓, 2,309 unit tests across 281 files ✓, 233 pgTAP ✓, plus a
+  local end-to-end MCP handshake + all four tools exercised over HTTP.
+
+---
+
 ## [Ecosystem build · Stage 5 — measurement & proof engine] - 2026-08-04
 
 The report becomes the product (docs/19 §agencies, §event-tech): a

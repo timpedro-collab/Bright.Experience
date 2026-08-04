@@ -629,6 +629,25 @@ replayed webhook batches.
 
 ---
 
+## 8f. Public MCP server (`/api/mcp`)
+
+A Model Context Protocol server for AI assistants (Claude, ChatGPT, Cursor),
+built on Vercel's `mcp-handler` (v2, stateless streamable HTTP — no Redis or
+session storage). Handler: `src/app/api/mcp/route.ts`; on the middleware
+allowlist; advertised in `/llms.txt` and on `/llm-info`.
+
+- Expected caller: MCP clients over streamable HTTP at `<origin>/api/mcp`.
+- Auth: none by design. The read tools (`search_catalog`, `get_pricing`,
+  `get_benchmarks`) expose only data already public on the marketing site;
+  the write tool (`request_proposal`) calls `submitProposalIntake`, which
+  enforces `quoteLimiter(ip)` and validation internally — identical
+  protections to the public /proposal wizard.
+- Response formatting is pure and tested (`src/lib/mcp/format.ts`).
+- Cursor client config for manual testing:
+  `{ "mcpServers": { "bright-experience": { "url": "https://<host>/api/mcp" } } }`
+
+---
+
 ## 9. Environment Variable Checklist
 
 Copy `.env.example` to `.env.local`. ✓ is required everywhere, ✓ᴾ is

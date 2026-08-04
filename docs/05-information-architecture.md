@@ -34,7 +34,9 @@
 /book/confirmation/:id              → Post-book confirmation
 /proposal                           → Proposal track entry (intake wizard)
 /proposal/:id                       → Customer-facing narrative proposal (gated pricing)
-/report/:token                      → Public proof-of-performance report (tokened)
+/report/:token                      → Public proof-of-performance report (tokened; optional partner co-branding)
+/bright-index                       → The Bright Index — published fleet benchmarks (ungated)
+/state-of-play                      → State of Play — annual measured-activation report (ungated)
 /live/:token                        → View-only live dashboard (tokened, expiring, "Powered by")
 /sponsor/:token                     → Sponsor pitch, then proof of performance (tokened, expiring)
 /p/:code                            → Short-link resolver

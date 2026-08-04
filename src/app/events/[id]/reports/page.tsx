@@ -47,6 +47,10 @@ import { getUser } from "@/lib/auth";
 import { isInternalRole } from "@/lib/roles";
 import { canViewSection } from "@/lib/event-access";
 import {
+  getDefaultBrandPartnerForEvent,
+  getPartnerBrandById,
+} from "@/lib/queries/partner-brand";
+import {
   costPerLeadPence,
   normaliseHighlights,
   normaliseMetrics,
@@ -181,6 +185,17 @@ export default async function ReportsPage({
   };
   const highlights = normaliseHighlights(report.highlightsJson);
 
+  let suggestedPartner: { id: string; name: string } | null = null;
+  if (isInternal && !report.isPublished) {
+    const defaultPartnerId = await getDefaultBrandPartnerForEvent(id);
+    if (defaultPartnerId) {
+      const brand = await getPartnerBrandById(defaultPartnerId);
+      if (brand) {
+        suggestedPartner = { id: brand.id, name: brand.name };
+      }
+    }
+  }
+
   return (
     <EventPageShell
       event={event}
@@ -199,7 +214,10 @@ export default async function ReportsPage({
         </p>
       )}
       {isInternal && !report.isPublished && (
-        <PublishReportBanner reportId={report.id} />
+        <PublishReportBanner
+          reportId={report.id}
+          suggestedPartner={suggestedPartner}
+        />
       )}
 
       {/* Tier 1 — the executive story: what it cost per unit of attention. */}

@@ -13,6 +13,8 @@ import Link from "next/link";
 import { Users, Target, Eye, Star } from "lucide-react";
 
 import { getEventReportByShareToken } from "@/lib/queries/event-reports";
+import { getPartnerBrandById } from "@/lib/queries/partner-brand";
+import { PartnerCoBrand } from "@/components/public/PartnerCoBrand";
 import { MetricCard } from "@/components/reports/MetricCard";
 import { PredictedVsActual } from "@/components/reports/PredictedVsActual";
 import {
@@ -51,6 +53,10 @@ export default async function PublicReportPage({ params }: Props) {
 
   if (!report || !report.isPublished) return notFound();
 
+  const brand = report.brandPartnerId
+    ? await getPartnerBrandById(report.brandPartnerId)
+    : null;
+
   const metrics = normaliseMetrics(report.metricsJson);
   const predictions = normalisePredictions(report.predictionsJson);
   const highlights = normaliseHighlights(report.highlightsJson);
@@ -62,16 +68,34 @@ export default async function PublicReportPage({ params }: Props) {
 
   return (
     <div className="min-h-screen bg-background">
+      {brand && (
+        <div
+          className="h-0.5 w-full"
+          style={{ backgroundColor: brand.brandColor ?? undefined }}
+        />
+      )}
       <div className="mx-auto max-w-5xl px-6 py-12">
         <div className="flex items-center gap-3 mb-10">
-          <Link href="/catalog" className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand text-white font-bold text-sm">
-              B
-            </div>
-            <span className="text-heading text-sm font-semibold text-foreground">
-              Bright.Experience
-            </span>
-          </Link>
+          {brand ? (
+            <Link href="/catalog" className="flex items-center gap-3">
+              <PartnerCoBrand
+                name={brand.name}
+                logoUrl={brand.logoUrl}
+                accent={brand.brandColor}
+                variant="lockup"
+                size="md"
+              />
+            </Link>
+          ) : (
+            <Link href="/catalog" className="flex items-center gap-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand text-white font-bold text-sm">
+                B
+              </div>
+              <span className="text-heading text-sm font-semibold text-foreground">
+                Bright.Experience
+              </span>
+            </Link>
+          )}
           <span className="text-xs text-muted-foreground ml-auto">
             Proof of Performance
           </span>
@@ -174,10 +198,21 @@ export default async function PublicReportPage({ params }: Props) {
             reserved.
           </p>
           <p className="text-xs text-muted-foreground mt-1">
-            Powered by{" "}
-            <Link href="/catalog" className="text-brand hover:underline">
-              Bright.Experience
-            </Link>
+            {brand ? (
+              <>
+                Prepared by {brand.name} · Powered by{" "}
+                <Link href="/catalog" className="text-brand hover:underline">
+                  Bright.Experience
+                </Link>
+              </>
+            ) : (
+              <>
+                Powered by{" "}
+                <Link href="/catalog" className="text-brand hover:underline">
+                  Bright.Experience
+                </Link>
+              </>
+            )}
           </p>
         </footer>
       </div>
