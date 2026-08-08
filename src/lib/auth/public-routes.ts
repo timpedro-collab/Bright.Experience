@@ -50,6 +50,9 @@ const PUBLIC_ROUTES = [
   "/report",
   "/sponsor",
   "/live",
+  // Player result card — the unguessable lead UUID is the credential,
+  // validated by the page's service-role query.
+  "/play",
   // Machine-to-machine endpoints that can never carry a browser session:
   // inbound Cloud/Cal.com webhooks (HMAC) and scheduled crons (CRON_SECRET
   // bearer). Without these the session gate 307s the caller to /login and
@@ -81,6 +84,11 @@ const PUBLIC_PATTERNS = [
   // PDF export of the public proposal page — same capability-URL model as
   // /proposal/:id itself (the unguessable quote UUID is the credential).
   /^\/api\/quotes\/[^/]+\/proposal-pdf$/,
+  // Share exports of the public report — the share token in the path is the
+  // credential, validated in each handler before anything renders.
+  /^\/api\/reports\/[^/]+\/(stat-card|slide-pdf|wrapped-card)$/,
+  // The player result share image — same lead-UUID capability as /play/:id.
+  /^\/api\/play\/[^/]+\/card$/,
 ];
 
 /** Strip a trailing slash so `/catalog/` and `/catalog` behave identically. */

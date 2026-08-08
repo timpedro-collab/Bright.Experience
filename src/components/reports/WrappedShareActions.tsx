@@ -45,7 +45,15 @@ export function WrappedShareActions({
           </>
         )}
       </Button>
-      <Button asChild variant="outline" size="lg">
+      {/* The Wrapped page has a hardcoded dark backdrop, so the outline
+          variant's theme tokens (dark text in light mode) would be
+          unreadable — style the surface explicitly. */}
+      <Button
+        asChild
+        variant="outline"
+        size="lg"
+        className="border-white/25 bg-transparent text-white hover:bg-white/10 hover:text-white"
+      >
         <a href={cardUrl} download>
           <ImageDown size={16} className="mr-2" />
           Download the card (PNG)

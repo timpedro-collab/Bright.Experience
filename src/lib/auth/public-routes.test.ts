@@ -32,9 +32,24 @@ describe("isPublicPath", () => {
 
   it("lets the tokened capability URLs through", () => {
     expect(isPublicPath("/report/abc123")).toBe(true);
+    expect(isPublicPath("/report/abc123/wrapped")).toBe(true);
     expect(isPublicPath("/sponsor/tok_live_1")).toBe(true);
     expect(isPublicPath("/live/some-token")).toBe(true);
     expect(isPublicPath("/p/AB12CD")).toBe(true);
+    expect(isPublicPath("/play/0c725f9b-6d17-4ca0-abc6-4ee06f7c7f6a")).toBe(true);
+  });
+
+  it("lets the report share exports and player card image through, nothing else under those prefixes", () => {
+    const token = "6830ebad-e7dc-47f9-9a52-902b77a6434b";
+    expect(isPublicPath(`/api/reports/${token}/stat-card`)).toBe(true);
+    expect(isPublicPath(`/api/reports/${token}/slide-pdf`)).toBe(true);
+    expect(isPublicPath(`/api/reports/${token}/wrapped-card`)).toBe(true);
+    expect(isPublicPath(`/api/reports/${token}`)).toBe(false);
+    expect(isPublicPath("/api/reports")).toBe(false);
+    expect(isPublicPath(`/api/reports/${token}/stat-card/raw`)).toBe(false);
+    expect(isPublicPath("/api/play/lead-uuid/card")).toBe(true);
+    expect(isPublicPath("/api/play/lead-uuid")).toBe(false);
+    expect(isPublicPath("/api/play/lead-uuid/card/extra")).toBe(false);
   });
 
   it("does not treat /live alone as public, same as /report", () => {
