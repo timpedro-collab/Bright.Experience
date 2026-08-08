@@ -354,6 +354,7 @@ function StaticGroups({ go, isInternal, role, eventId, partnerSlug, venueSlug }:
         {canCreativeProduct && <CommandItem onSelect={() => go("/admin/catalog", "Catalog")}><Sparkles /><span>Catalog</span></CommandItem>}
         {canLocations && <CommandItem onSelect={() => go("/admin/locations", "Locations")}><MapPin /><span>Locations</span></CommandItem>}
         {canCommercial && <CommandItem onSelect={() => go("/admin/benchmarks", "Benchmarks")}><BarChart3 /><span>Benchmarks</span></CommandItem>}
+        {canCommercial && <CommandItem onSelect={() => go("/admin/loop-pulse", "Loop pulse")}><BarChart3 /><span>Loop pulse</span></CommandItem>}
         {canCommercial && <CommandItem onSelect={() => go("/admin/recommendations", "Recommendations")}><Lightbulb /><span>Recommendations</span></CommandItem>}
         {isAdmin && isPublicApiEnabled() && <CommandItem onSelect={() => go("/admin/api", "API & integrations")}><Key /><span>API & integrations</span></CommandItem>}
       </CommandGroup></>)}

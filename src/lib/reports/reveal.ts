@@ -55,6 +55,13 @@ export function pickHeadlineStat(metrics: NormalisedMetrics): HeadlineStat | nul
   return null;
 }
 
+/** "Post-Event Report — Acme Launch" → "Acme Launch". */
+export function eventNameFromReportTitle(title: string | null | undefined): string {
+  const t = (title ?? "").trim();
+  const idx = t.indexOf("—");
+  return idx >= 0 ? t.slice(idx + 1).trim() : t;
+}
+
 export interface CampaignCreditInput {
   contactName?: string | null;
   contactRole?: string | null;

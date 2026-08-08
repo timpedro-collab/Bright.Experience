@@ -3,7 +3,8 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Check, Copy, Link2, Loader2, XCircle } from "lucide-react";
+import Link from "next/link";
+import { Check, Copy, Download, Link2, Loader2, Printer, XCircle } from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -113,6 +114,20 @@ export function LiveShareControls({
             <XCircle size={14} />
           )}
           Revoke
+        </Button>
+      </div>
+      <div className="flex flex-wrap items-center gap-2">
+        <Button variant="secondary" size="sm" asChild className="shrink-0">
+          <a href={`/api/events/${eventId}/live-qr`}>
+            <Download size={14} />
+            Download QR (PNG)
+          </a>
+        </Button>
+        <Button variant="secondary" size="sm" asChild className="shrink-0">
+          <Link href={`/live-qr/${eventId}`} target="_blank" rel="noopener noreferrer">
+            <Printer size={14} />
+            Print QR sheet
+          </Link>
         </Button>
       </div>
       {expiryLabel && (

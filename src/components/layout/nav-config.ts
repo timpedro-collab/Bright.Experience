@@ -23,6 +23,7 @@ import {
   Lightbulb,
   Users,
   Key,
+  Activity,
 } from "lucide-react";
 
 import {
@@ -85,6 +86,7 @@ const INTERNAL_SECTIONS: NavSection[] = [
       { label: "Templates", href: "/admin/templates", icon: FileText, show: canViewCommercial },
       { label: "Locations", href: "/admin/locations", icon: MapPin, show: canViewLocations },
       { label: "Benchmarks", href: "/admin/benchmarks", icon: BarChart3, show: canViewCommercial },
+      { label: "Loop pulse", href: "/admin/loop-pulse", icon: Activity, show: canViewCommercial },
       { label: "Recommendations", href: "/admin/recommendations", icon: Lightbulb, show: canViewCommercial },
     ],
   },

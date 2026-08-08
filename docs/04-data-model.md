@@ -735,6 +735,7 @@ detail, RLS notes, and migration provenance, treat
 | `pipedrive_outbox` | Durable CRM write-back queue (hourly drain) |
 | `post_play_journeys` | Aug 2026 (measurement engine). The branded follow-up a verified lead receives on capture: `kind` (`where_to_buy` / `review` / `discount`), headline/body/CTA, optional `discount_code`, `is_active` (one active journey per event drives the send from `src/server/journeys.ts`). Internal-configured; customers read their own via event scoping |
 | `journey_touches` | Per-lead journey funnel: `touch` (`sent` / `opened` / `clicked` / `redeemed`), unique per (journey, lead, touch) — the send-idempotency and repeat-hit guard. Opens/clicks recorded by the public tracking route `/api/journeys/track` (capability = the unguessable UUID pair; redirect target resolved server-side, never from the URL) |
+| `loop_events` | Aug 2026 (loop pulse). Append-only telemetry for the self-promotion loops: `kind` (`invitation_landing` / `pitch_unlock` / `player_card_view` / `report_view`), optional `artifact` (which public surface), optional `event_id`, `metadata` jsonb. Written service-role only from `src/server/loop-events.ts` (fire-and-forget); RLS grants read to internal roles only. Feeds `/admin/loop-pulse` |
 
 Also changed for organizer shows (Jul 2026): `partners.type` accepts
 `organizer`; `events.organizer_partner_id` links a show to the producer running
@@ -780,6 +781,13 @@ real-time lead delivery to a brand's CRM (see `docs/10-integrations.md`).
 The `telemetry_events.event_type` CHECK now includes the two capture-quality
 types (`capture_rejected_domain`, `capture_duplicate_blocked`) that were being
 streamed but not admitted by the constraint.
+
+Aug 2026 loop additions: `quotes.referral_source`
+(`20260809000000_referral_source.sql`) — the buyer's self-reported discovery
+channel from the intake's optional "How did you hear about us?" question,
+aggregated on `/admin/loop-pulse`. `event_reports.personal_note` /
+`personal_note_author` carry the delivery lead's hand-off note into the report
+reveal.
 
 Related tables also documented in the cloud handoff (not duplicated here):
 `venue_packages`, `venue_requirements`, `client_compliance_requirements`,

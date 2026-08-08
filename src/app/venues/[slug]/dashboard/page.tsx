@@ -31,6 +31,7 @@ import {
 
 import { getUser } from "@/lib/auth";
 import { getPartnerForUser } from "@/lib/queries/partners";
+import { getPartnerSourcedSummary } from "@/lib/queries/partner-attributions";
 import { getVenueBySlug } from "@/lib/queries/venues";
 import { getPlacementsByVenue } from "@/lib/queries/placements";
 import { getSlotsByPlacement } from "@/lib/queries/sponsorship-slots";
@@ -63,8 +64,11 @@ export default async function VenueDashboardPage({ params }: Props) {
   const partner = await getPartnerForUser(user.id);
   if (!partner || venue.partner_id !== partner.id) redirect("/");
 
-  const placements = await getPlacementsByVenue(venue.id);
-  const unread = await getUnreadCount(user.id);
+  const [placements, unread, sourced] = await Promise.all([
+    getPlacementsByVenue(venue.id),
+    getUnreadCount(user.id),
+    getPartnerSourcedSummary(partner.id),
+  ]);
 
   // Pull every slot once, keyed by placement, so we can show money + fill rate
   // and build the action queue without re-querying.
@@ -150,6 +154,23 @@ export default async function VenueDashboardPage({ params }: Props) {
           hint={`${placements.length} total`}
         />
       </div>
+
+      <Card className="mt-3">
+        <CardContent className="p-4">
+          {sourced.total === 0 && sourced.thisQuarter === 0 ? (
+            <p className="text-sm text-foreground">
+              Your embed widget and share links feed inquiries straight to this dashboard.
+            </p>
+          ) : (
+            <>
+              <p className="text-sm text-foreground">
+                Your widget sourced {sourced.thisQuarter} inquiries this quarter
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">{sourced.total} all-time</p>
+            </>
+          )}
+        </CardContent>
+      </Card>
 
       <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">

@@ -98,8 +98,13 @@ export function ShareableReportBanner({
             </div>
 
             {/* One-click share artefacts: a slide for their all-hands, a
-                stat card safe to post. */}
+                stat card safe to post, and the story-format Wrapped. */}
             <div className="flex flex-wrap gap-2">
+              <Button variant="outline" size="sm" asChild>
+                <a href={`/report/${shareToken}/wrapped`} target="_blank" rel="noreferrer">
+                  Event Wrapped
+                </a>
+              </Button>
               <Button variant="outline" size="sm" asChild>
                 <a href={`/api/reports/${shareToken}/slide-pdf`}>
                   All-hands slide (PDF)

@@ -9,6 +9,7 @@
 import "server-only";
 
 import { Resend } from "resend";
+import { getEventMetricTotals } from "@/lib/queries/event-metrics";
 import { getServiceRoleClient } from "@/lib/supabase/service-role";
 import { escapeHtml } from "@/lib/notifications/email-shell";
 
@@ -72,6 +73,22 @@ export async function sendPostPlayJourney(
     const track = (touch: "opened" | "clicked") =>
       `${SITE_URL}/api/journeys/track?j=${journey.id}&l=${lead.id}&t=${touch}`;
 
+    const metricTotals = await getEventMetricTotals(lead.eventId);
+    let performance: { plays: number; leads: number; eventName: string } | null =
+      null;
+    if (metricTotals && metricTotals.totalPlays > 0) {
+      const { data: event } = await supabase
+        .from("events")
+        .select("name")
+        .eq("id", lead.eventId)
+        .maybeSingle();
+      performance = {
+        plays: metricTotals.totalPlays,
+        leads: metricTotals.totalLeads,
+        eventName: event?.name ?? "this event",
+      };
+    }
+
     const firstName = (lead.contactName ?? "").trim().split(/\s+/)[0] || "there";
     const html = renderJourneyEmail({
       firstName,
@@ -81,6 +98,8 @@ export async function sendPostPlayJourney(
       clickUrl: track("clicked"),
       pixelUrl: track("opened"),
       discountCode: journey.discount_code,
+      performance,
+      resultCardUrl: `${SITE_URL}/play/${lead.id}`,
     });
 
     await resend.emails.send({
@@ -138,6 +157,8 @@ function renderJourneyEmail({
   clickUrl,
   pixelUrl,
   discountCode,
+  performance,
+  resultCardUrl,
 }: {
   firstName: string;
   headline: string;
@@ -146,7 +167,25 @@ function renderJourneyEmail({
   clickUrl: string;
   pixelUrl: string;
   discountCode: string | null;
+  performance?: { plays: number; leads: number; eventName: string } | null;
+  resultCardUrl?: string | null;
 }): string {
+  const organiserBlock =
+    performance && performance.plays > 0
+      ? `<div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px 24px; margin: 28px 0 8px;">
+           <p style="font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: #64748b; margin: 0 0 12px;">FOR THE ORGANISER IN THE ROOM</p>
+           <p style="font-size: 14px; color: #111827; margin: 0 0 8px;"><strong>This experience has powered ${performance.plays.toLocaleString("en-GB")} plays and ${performance.leads.toLocaleString("en-GB")} opted-in leads at ${escapeHtml(performance.eventName)} so far.</strong></p>
+           <p style="font-size: 14px; color: #374151; margin: 0 0 12px;">Machines like this one are booked for product launches, exhibitions and venue activations across the UK.</p>
+           <p style="margin: 0;"><a href="${SITE_URL}/book?utm_source=post_play_email&amp;utm_medium=email&amp;utm_campaign=invitation" style="color: #2743EE; text-decoration: underline; font-size: 14px;">Bring this to your event →</a></p>
+         </div>`
+      : "";
+
+  const resultBlock = resultCardUrl
+    ? `<p style="text-align: center; margin: 4px 0 0;">
+         <a href="${resultCardUrl}" style="color: #2743EE; text-decoration: underline; font-size: 13px;">See your result — score, rank, and a card worth bragging with →</a>
+       </p>`
+    : "";
+
   return `
     <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 560px; margin: 0 auto;">
       <div style="background: #0D1137; padding: 24px 32px; border-radius: 16px 16px 0 0;">
@@ -165,6 +204,8 @@ function renderJourneyEmail({
         <p style="text-align: center; margin: 28px 0 8px;">
           <a href="${clickUrl}" style="display: inline-block; background: #246BFD; color: #ffffff; padding: 12px 28px; border-radius: 8px; text-decoration: none; font-size: 14px; font-weight: 600;">${escapeHtml(ctaLabel)}</a>
         </p>
+        ${resultBlock}
+        ${organiserBlock}
         <p style="color: #9ca3af; font-size: 11px; text-align: center; margin-top: 24px;">
           You played a Bright.Experience activation and shared your details. This is a one-off message — there's no list to unsubscribe from.
         </p>

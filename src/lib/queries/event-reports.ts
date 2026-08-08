@@ -1,5 +1,6 @@
 /** Supabase read queries for event reports (proof of performance). */
 import { createClient } from "@/lib/supabase/server";
+import { getServiceRoleClient } from "@/lib/supabase/service-role";
 import type { EventReport } from "@/types";
 import { logQueryError } from "@/lib/observability/log-query-error";
 
@@ -68,5 +69,35 @@ export async function getEventReportByShareToken(
     brandPartnerId: data.brand_partner_id
       ? String(data.brand_partner_id)
       : null,
+  };
+}
+
+/**
+ * Narrow event summary for public report surfaces (Wrapped, share cards).
+ * The visitor is anonymous, so this is a service-role read restricted to
+ * display-safe fields — never the full event row.
+ */
+export async function getEventSummaryForReport(eventId: string): Promise<{
+  name: string;
+  eventType: string;
+  eventDateStart: string;
+  eventDateEnd: string | null;
+} | null> {
+  const supabase = getServiceRoleClient();
+  const { data, error } = await supabase
+    .from("events")
+    .select("name, event_type, event_date_start, event_date_end")
+    .eq("id", eventId)
+    .maybeSingle();
+
+  if (error || !data) {
+    if (error) logQueryError("getEventSummaryForReport", error, { eventId });
+    return null;
+  }
+  return {
+    name: String(data.name),
+    eventType: String(data.event_type ?? "activation"),
+    eventDateStart: String(data.event_date_start),
+    eventDateEnd: data.event_date_end ? String(data.event_date_end) : null,
   };
 }

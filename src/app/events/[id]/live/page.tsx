@@ -217,7 +217,8 @@ export default async function LiveDashboardPage({
       isInternal={isInternalRole(user.role)}
       heroRight={
         <div className="flex items-center gap-3">
-          <ExportMenu eventId={id} view="live" />
+          {/* Exports render only when there's data to export (no snapshots → nothing to download). */}
+          {metricTotals !== null && <ExportMenu eventId={id} view="live" />}
           <LiveBadge status={liveStatus} />
         </div>
       }

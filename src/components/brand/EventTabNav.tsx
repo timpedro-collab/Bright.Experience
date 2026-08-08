@@ -13,7 +13,7 @@ import {
   CUSTOMER_PHASES,
   type EventSection,
 } from "@/lib/event-access";
-import { phaseForStage } from "@/lib/journey";
+import { isStageAtOrAfter, phaseForStage } from "@/lib/journey";
 import type { SectionStatus, SectionStatusMap } from "@/lib/queries/event-section-status";
 import { isInternalRole } from "@/lib/roles";
 
@@ -119,10 +119,17 @@ export function EventTabNav({
     );
   }
 
+  // Stock is on-the-day consumable tracking: a pre-brief customer has no job
+  // there, so the tab only appears once logistics are locked. Internal roles
+  // keep it always (ops preps stock ahead of the confirmation).
+  const showStockTab =
+    internal || isStageAtOrAfter(currentStage, "logistics_confirmed");
+
   function sectionTabs(sections: EventSection[], opts?: { upcoming?: boolean }) {
     return sections.flatMap((section) => {
       const links = [tabLink(section, opts)];
-      if (section === "logistics") links.push(stockTabLink(opts));
+      if (section === "logistics" && showStockTab)
+        links.push(stockTabLink(opts));
       return links;
     });
   }

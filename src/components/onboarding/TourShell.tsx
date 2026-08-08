@@ -59,6 +59,18 @@ function TourAutoStarter({
     }
 
     if (!autoStart) return;
+
+    // Deferred to the second login (UX subtraction audit): the first login
+    // must show the customer their own data, not an overlay — the welcome
+    // page is the real onboarding. We mark the first visit and only
+    // auto-start the tour from the next visit onward. The explicit
+    // `bright_tour_pending` request above bypasses this defer.
+    const firstVisitKey = "bright_first_visit_done";
+    if (localStorage.getItem(firstVisitKey) !== "true") {
+      localStorage.setItem(firstVisitKey, "true");
+      return;
+    }
+
     const key = `bright_tour_completed_${role}`;
     if (typeof window !== "undefined" && localStorage.getItem(key) === "true") {
       return;

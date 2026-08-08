@@ -19,6 +19,7 @@
  */
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { cookies } from "next/headers";
 import { Cpu, MapPin, CalendarDays, Activity, Users, Gift, Percent } from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";
@@ -41,7 +42,13 @@ import {
   buildExpectation,
   showDayCount,
 } from "@/lib/metrics/expected-performance";
-import { pitchTokenDaysRemaining } from "@/lib/sponsor-pitch";
+import {
+  PITCH_UNLOCK_COOKIE,
+  isPitchUnlocked,
+  pitchTokenDaysRemaining,
+} from "@/lib/sponsor-pitch";
+import { PitchDetailGate } from "@/components/sponsors/PitchDetailGate";
+import { InvitationFooter } from "@/components/public/InvitationFooter";
 import { recordPitchView } from "@/server/pitch-views";
 import { formatDateShort } from "@/lib/dates";
 import { formatMoneyFromPence } from "@/lib/currency";
@@ -103,6 +110,14 @@ export default async function SponsorPitchPage({ params }: Props) {
   const startDate = String(slot.start_date);
   const endDate = String(slot.end_date);
   const hasRun = new Date(startDate) <= new Date();
+
+  // Detail gate: the page reads free; the performance figures unlock in
+  // exchange for light identity (recorded for nurture, never a hard sell).
+  const jar = await cookies();
+  const detailsUnlocked = isPitchUnlocked(
+    jar.get(PITCH_UNLOCK_COOKIE)?.value,
+    String(slot.id)
+  );
 
   const performance =
     hasRun && machine?.id
@@ -196,33 +211,42 @@ export default async function SponsorPitchPage({ params }: Props) {
 
       {performance ? (
         <section className="mt-10">
-          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-            <Stat
-              label="Plays"
-              value={performance.plays.toLocaleString("en-US")}
-              icon={<Activity size={20} />}
+          {detailsUnlocked ? (
+            <>
+              <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+                <Stat
+                  label="Plays"
+                  value={performance.plays.toLocaleString("en-US")}
+                  icon={<Activity size={20} />}
+                />
+                <Stat
+                  label="Leads captured"
+                  value={performance.leads.toLocaleString("en-US")}
+                  icon={<Users size={20} />}
+                />
+                <Stat
+                  label="Prizes given"
+                  value={performance.prizes.toLocaleString("en-US")}
+                  icon={<Gift size={20} />}
+                />
+                <Stat
+                  label="Opt-in rate"
+                  value={`${performance.optInRate}%`}
+                  icon={<Percent size={20} />}
+                />
+              </div>
+              <p className="mt-4 text-xs text-muted-foreground">
+                Contact details captured at your machine are delivered to you
+                directly under your own consent notice; they are not shown on
+                this page.
+              </p>
+            </>
+          ) : (
+            <PitchDetailGate
+              token={token}
+              sponsorName={slot.sponsor_name as string | null}
             />
-            <Stat
-              label="Leads captured"
-              value={performance.leads.toLocaleString("en-US")}
-              icon={<Users size={20} />}
-            />
-            <Stat
-              label="Prizes given"
-              value={performance.prizes.toLocaleString("en-US")}
-              icon={<Gift size={20} />}
-            />
-            <Stat
-              label="Opt-in rate"
-              value={`${performance.optInRate}%`}
-              icon={<Percent size={20} />}
-            />
-          </div>
-          <p className="mt-4 text-xs text-muted-foreground">
-            Contact details captured at your machine are delivered to you
-            directly under your own consent notice; they are not shown on this
-            page.
-          </p>
+          )}
         </section>
       ) : (
         <div className="mt-10 space-y-6">
@@ -235,12 +259,19 @@ export default async function SponsorPitchPage({ params }: Props) {
             </section>
           )}
 
-          <ExpectedPerformance
-            plays={expectedPlays}
-            leads={expectedLeads}
-            days={days}
-            title="What a machine like this usually does"
-          />
+          {detailsUnlocked ? (
+            <ExpectedPerformance
+              plays={expectedPlays}
+              leads={expectedLeads}
+              days={days}
+              title="What a machine like this usually does"
+            />
+          ) : (
+            <PitchDetailGate
+              token={token}
+              sponsorName={slot.sponsor_name as string | null}
+            />
+          )}
 
           <WhatYouGet />
 
@@ -268,7 +299,7 @@ export default async function SponsorPitchPage({ params }: Props) {
             </CardContent>
           </Card>
 
-          {slot.price && expectedLeads ? (
+          {detailsUnlocked && slot.price && expectedLeads ? (
             <SlotRoiCalculator
               pricePence={Number(slot.price)}
               leadsLow={expectedLeads.totalLow}
@@ -288,6 +319,13 @@ export default async function SponsorPitchPage({ params }: Props) {
         This link is private to you and expires in {daysLeft}{" "}
         {daysLeft === 1 ? "day" : "days"}. Questions go to your show contact.
       </p>
+
+      {/* An invitation, not a credit — a sponsor here is a future customer. */}
+      <InvitationFooter
+        artifact="sponsor_pitch"
+        fromEvent={String(show.name)}
+        className="mt-8"
+      />
     </main>
   );
 }

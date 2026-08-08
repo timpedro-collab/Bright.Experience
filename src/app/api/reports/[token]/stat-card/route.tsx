@@ -13,15 +13,12 @@ import { ImageResponse } from "next/og";
 import { NextResponse } from "next/server";
 import { getEventReportByShareToken } from "@/lib/queries/event-reports";
 import { normaliseMetrics } from "@/lib/reports/normalise";
-import { pickHeadlineStat } from "@/lib/reports/reveal";
+import {
+  eventNameFromReportTitle,
+  pickHeadlineStat,
+} from "@/lib/reports/reveal";
 
 export const dynamic = "force-dynamic";
-
-/** "Post-Event Report — Acme Launch" → "Acme Launch". */
-function eventNameFromTitle(title: string): string {
-  const idx = title.indexOf("—");
-  return idx >= 0 ? title.slice(idx + 1).trim() : title.trim();
-}
 
 export async function GET(
   _request: Request,
@@ -41,7 +38,7 @@ export async function GET(
     );
   }
 
-  const eventName = eventNameFromTitle(report.title ?? "Event");
+  const eventName = eventNameFromReportTitle(report.title) || "Event";
 
   return new ImageResponse(
     (

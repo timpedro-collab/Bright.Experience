@@ -243,7 +243,15 @@ export default async function ReportsPage({
             Share the public link or export PDF/CSV/Excel — this is the artefact that renews the next buy.
           </p>
           {report.shareToken && (
-            <span className="flex gap-3 text-sm">
+            <span className="flex flex-wrap gap-3 text-sm">
+              <a
+                href={`/report/${report.shareToken}/wrapped`}
+                target="_blank"
+                rel="noreferrer"
+                className="text-primary underline-offset-4 hover:underline"
+              >
+                Event Wrapped
+              </a>
               <a
                 href={`/api/reports/${report.shareToken}/slide-pdf`}
                 className="text-primary underline-offset-4 hover:underline"

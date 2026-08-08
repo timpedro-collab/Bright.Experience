@@ -4,6 +4,59 @@ All notable changes to the Bright.Experience platform are documented here.
 
 ---
 
+## [The loops: Event Wrapped, invitation footers, loop telemetry + pulse dashboard] - 2026-08-08
+
+Experience audit Tier 3 (the loops), Part 3 (subtractions), and Part 5
+(measurement).
+
+- **Event Wrapped (3.C)** — story-format post-event page at
+  `/report/[token]/wrapped` (headline number, Bright Index placement, human
+  moment, pre-written share text) built by `src/lib/reports/wrapped.ts` from
+  report metrics + benchmarks; LinkedIn-ready 1200×627 share card at
+  `/api/reports/[token]/wrapped-card`. Linked from the public report, the
+  customer Reports tab, and `ShareableReportBanner`.
+- **Bright Index placement (3.D)** — `src/lib/bright-index/percentile.ts`
+  places an event's leads-per-day against the pooled public benchmarks
+  (quartile bands only — no "top decile" claims from quartile data);
+  `IndexPlacementChip` renders the badge/band + sample size on the public
+  report; methodology note added to `/bright-index`.
+- **Player result card (3.C)** — public `/play/[leadId]` page + 1080×1080
+  share card (`/api/play/[leadId]/card`): score, day rank, percentile from
+  telemetry (`src/lib/player-result.ts`, `src/lib/queries/player-result.ts`).
+  The post-play email now links each player to their own card.
+- **Invitation footers (3.A)** — `InvitationFooter` ("Want results like this
+  at your event?") on the public report, live dashboard, sponsor pitch,
+  venue widget, and player card; UTM-tagged via `src/lib/loop/invitation.ts`;
+  `/book` personalises its hero from the referring event and records the
+  landing.
+- **Pitch detail gate (3.F)** — sponsor pitch detailed numbers sit behind a
+  light identity form (`PitchDetailGate`, `unlockPitchDetails` action,
+  HTTP-only unlock cookie); viewing the pitch itself stays free.
+- **Loop telemetry** — new `loop_events` table (migration
+  `20260809000001_loop_events.sql`, internal-read RLS + pgTAP test) written
+  via `src/server/loop-events.ts`: invitation landings, pitch unlocks,
+  player-card views, and public report opens.
+- **Loop-pulse dashboard (Part 5)** — `/admin/loop-pulse` (commercial roles):
+  median accepted→workspace time, report published→opened rate, provable
+  rebook rate, invitation CTR by artifact, fleet email-capture rate, and the
+  "how did you hear about us" distribution (`src/lib/loop-pulse.ts`,
+  `src/lib/queries/loop-pulse.ts`).
+- **Same-day report ritual (3.H)** — the reports cron now also runs at 18:00
+  UTC and drafts reports for events ending that day ("the report beats the
+  client back to the office"), creating a same-day review task that
+  auto-completes on publish; playbook entries (same-day publish ritual,
+  QR placement, no-cash-referral policy) added to `OWNER-TODO.md`.
+- **Subtractions (Part 3)** — welcome tour deferred to second login; asset
+  tasks grouped into one "N brand assets · one upload flow" row; pre-event
+  Leads page replaced the zero-wall with anticipation + "wire your CRM";
+  intake wizard cut from five steps to four (fields the walkthrough asks
+  better were removed; footfall only asked when the quiz didn't capture it);
+  customer Stock tab appears only from `logistics_confirmed`; machine PDP
+  hero trimmed to one killer stat + one all-in price line; export controls
+  no longer render on empty tables.
+
+---
+
 ## [Customer campaign naming + planning-month report re-send] - 2026-08-08
 
 Experience audit items 2.F and 2.H.

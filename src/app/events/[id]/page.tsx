@@ -50,6 +50,7 @@ import { getUnreadCount } from "@/lib/queries/notifications";
 import { getRecentAuditEntries } from "@/lib/queries/audit";
 import { getTeamForEvent } from "@/lib/queries/team";
 import { getCustomerActionItems } from "@/lib/queries/deadlines";
+import { getEventMetricTotals } from "@/lib/queries/event-metrics";
 import { getUser } from "@/lib/auth";
 import { isInternalRole, canAdvanceEventStage } from "@/lib/roles";
 import { ownerForTask } from "@/lib/ownership";
@@ -199,7 +200,7 @@ async function OverviewContent({
   days: number;
   delivered: boolean;
 }) {
-  const [milestones, tasks, assets, approvals, recentActivity, teamMembers, customerActionItems] =
+  const [milestones, tasks, assets, approvals, recentActivity, teamMembers, customerActionItems, metricTotals] =
     await Promise.all([
       getMilestonesByEvent(id),
       getTasksByEvent(id),
@@ -209,6 +210,8 @@ async function OverviewContent({
       getTeamForEvent(id),
       // Same source as CustomerDashboard "Needs you" — tasks + assets + briefings.
       isInternal ? Promise.resolve([]) : getCustomerActionItems(id),
+      // Sidebar export gate — only the internal layout renders the sidebar.
+      isInternal ? getEventMetricTotals(id) : Promise.resolve(null),
     ]);
 
   const customerTasks = tasks.filter(
@@ -450,6 +453,7 @@ async function OverviewContent({
             missedMilestonesCount={missedMilestones}
             recentActivity={recentActivity}
             teamMembers={teamMembers}
+            hasMetricsData={metricTotals !== null}
           />
         </section>
       </div>

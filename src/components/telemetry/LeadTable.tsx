@@ -109,15 +109,18 @@ export function LeadTable({ leads }: LeadTableProps) {
             className="pl-9 bg-muted/40 border-glass-border"
           />
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => downloadCSV(filtered)}
-          className="gap-2"
-        >
-          <Download size={14} />
-          Export CSV
-        </Button>
+        {/* Export renders only when there's data to export. */}
+        {leads.length > 0 && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => downloadCSV(filtered)}
+            className="gap-2"
+          >
+            <Download size={14} />
+            Export CSV
+          </Button>
+        )}
       </div>
 
       <div className="rounded-[var(--radius-card)] border border-glass-border overflow-hidden">

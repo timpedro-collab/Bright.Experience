@@ -35,6 +35,8 @@
 /proposal                           → Proposal track entry (intake wizard)
 /proposal/:id                       → Customer-facing narrative proposal (gated pricing)
 /report/:token                      → Public proof-of-performance report (tokened; optional partner co-branding)
+/report/:token/wrapped              → Event Wrapped — story-format share page (+ /api/reports/:token/wrapped-card PNG)
+/play/:leadId                       → Player result card — score/rank, player as hero (+ /api/play/:leadId/card PNG)
 /bright-index                       → The Bright Index — published fleet benchmarks (ungated)
 /state-of-play                      → State of Play — annual measured-activation report (ungated)
 /live/:token                        → View-only live dashboard (tokened, expiring, "Powered by")
@@ -92,6 +94,7 @@ page — it is the `GET /api/events/:id/export` handler
                                       link shows, deploy/release machines
 /admin/locations                    → Pricing tiers / locations
 /admin/benchmarks                   → Report benchmarks
+/admin/loop-pulse                   → Loop pulse — growth-loop vital signs (provisioning time, report views, rebook rate, invitation CTR)
 /admin/recommendations              → Recommendation tuning
 /admin/invoices                     → Invoice mirror (display-only by design)
 /admin/api                          → API key management

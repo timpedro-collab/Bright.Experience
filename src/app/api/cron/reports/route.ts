@@ -1,9 +1,11 @@
 /**
  * Auto-generate post-event reports cron.
  *
- * Finds events whose `event_date_end` has passed by 24+ hours and that
- * have no `event_reports` row yet, generates a draft report for each,
- * and notifies the internal team so they can review before publishing.
+ * Runs twice a day (08:00 and 18:00 UTC, see vercel.json). The evening run
+ * drafts reports for events whose final day is today — the talk trigger is
+ * that the draft beats the client back to the office. The morning run is the
+ * catch-up for anything the evening pass missed. Each draft notifies the
+ * internal team for review before publishing.
  */
 
 import { NextResponse } from "next/server";
@@ -26,7 +28,13 @@ export async function GET(request: Request) {
 
   const supabase = getServiceRoleClient();
 
-  const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  // `event_date_end` is a date. Shifting "now" back 16 hours before taking
+  // the date means the 18:00 run includes events ending today (same-day
+  // draft) while the 08:00 run only reaches back to yesterday — so we never
+  // draft mid-show on the morning of the final day.
+  const cutoff = new Date(Date.now() - 16 * 60 * 60 * 1000)
+    .toISOString()
+    .slice(0, 10);
 
   // Collect event IDs that already have a report so we can exclude them.
   const { data: existingReports } = await supabase
@@ -41,7 +49,7 @@ export async function GET(request: Request) {
     .from("events")
     .select("id, name")
     .not("event_date_end", "is", null)
-    .lt("event_date_end", cutoff);
+    .lte("event_date_end", cutoff);
 
   if (queryErr) {
     console.error("[Cron:reports] query failed", queryErr);
@@ -66,11 +74,44 @@ export async function GET(request: Request) {
   // the batch, but they still have to colour the heartbeat.
   let failures = 0;
 
+  // The talk-trigger ritual: every fresh draft carries a same-day review
+  // task so the delivery lead publishes before the client is back at their
+  // desk. Title doubles as the duplicate guard.
+  const REVIEW_TASK_TITLE = "Review & publish the post-event report (same-day)";
+
   for (const event of events) {
     try {
       const result = await generateEventReportSystem(event.id as string);
       if (result.success) {
         generated += 1;
+
+        const { data: existingTask } = await supabase
+          .from("tasks")
+          .select("id")
+          .eq("event_id", event.id)
+          .eq("title", REVIEW_TASK_TITLE)
+          .maybeSingle();
+        if (!existingTask) {
+          const { error: taskErr } = await supabase.from("tasks").insert({
+            event_id: event.id,
+            title: REVIEW_TASK_TITLE,
+            description:
+              "The draft report is ready. Review the numbers and publish today — the report should beat the client back to the office.",
+            task_type: "internal_action",
+            category: "reporting",
+            priority: "high",
+            assigned_role: "events_lead",
+            target_path: "reports",
+            due_date: new Date().toISOString().slice(0, 10),
+            customer_visible: false,
+          });
+          if (taskErr) {
+            console.error(
+              `[Cron:reports] review task insert failed for ${event.id}`,
+              taskErr
+            );
+          }
+        }
 
         // Campaign dashboards read a precomputed rollup; a fresh report is
         // the natural moment to fold this event's finals into it.

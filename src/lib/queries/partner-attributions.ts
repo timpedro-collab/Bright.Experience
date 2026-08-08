@@ -86,6 +86,39 @@ export async function getPartnerCommissionSummary(partnerId: string) {
   return { totalEarned, totalPending, totalPaid, totalApproved };
 }
 
+/** Count attributions in the calendar quarter containing `ref`. */
+export function summarizePartnerSourcedInquiries(
+  rows: { created_at: string }[],
+  ref: Date = new Date()
+): { total: number; thisQuarter: number } {
+  const year = ref.getFullYear();
+  const quarterStartMonth = Math.floor(ref.getMonth() / 3) * 3;
+  const quarterStart = new Date(year, quarterStartMonth, 1);
+  const quarterEnd = new Date(year, quarterStartMonth + 3, 0, 23, 59, 59, 999);
+
+  let thisQuarter = 0;
+  for (const row of rows) {
+    const created = new Date(String(row.created_at));
+    if (created >= quarterStart && created <= quarterEnd) thisQuarter++;
+  }
+  return { total: rows.length, thisQuarter };
+}
+
+/** How many inquiries this partner's widget and links have sourced. */
+export async function getPartnerSourcedSummary(partnerId: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("partner_attributions")
+    .select("created_at")
+    .eq("partner_id", partnerId);
+
+  if (error || !data) {
+    logQueryError("getPartnerSourcedSummary", error, { partnerId });
+    return { total: 0, thisQuarter: 0 };
+  }
+  return summarizePartnerSourcedInquiries(data);
+}
+
 /**
  * The partner's full book of business with client names, deal values and
  * stages resolved — the single source feeding the dashboard, clients,

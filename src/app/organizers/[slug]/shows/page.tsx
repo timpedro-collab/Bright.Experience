@@ -33,12 +33,13 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { requireOrganizerContext } from "@/lib/auth/organizer-portal";
 import {
   getShowsByOrganizer,
+  getOrganizerPitchTelemetry,
   type OrganizerShow,
 } from "@/lib/queries/organizers";
 import { getUnreadCount } from "@/lib/queries/notifications";
 import { portfolioTotals } from "@/lib/metrics/organizer-portfolio";
 import { countdownLabel, daysToDoors } from "@/lib/metrics/show-schedule";
-import { formatDateShort } from "@/lib/dates";
+import { formatDateShort, formatDateGB } from "@/lib/dates";
 import { formatMoneyFromPence } from "@/lib/currency";
 import { cn } from "@/lib/utils";
 import { STAGE_CONFIG, type Stage } from "@/types";
@@ -67,9 +68,10 @@ export default async function OrganizerShowsPage({ params }: Props) {
   const { slug } = await params;
   const { user, partnerId, partnerName } = await requireOrganizerContext(slug);
 
-  const [shows, unread] = await Promise.all([
+  const [shows, unread, pitchTelemetry] = await Promise.all([
     getShowsByOrganizer(partnerId),
     getUnreadCount(user.id),
+    getOrganizerPitchTelemetry(partnerId),
   ]);
 
   const upcoming = shows.filter(isUpcoming);
@@ -151,6 +153,27 @@ export default async function OrganizerShowsPage({ params }: Props) {
                 }
               />
             </div>
+
+            <Card className="mt-3">
+              <CardContent className="p-4">
+                {pitchTelemetry.totalViews === 0 ? (
+                  <p className="text-sm text-foreground">
+                    Share a sponsor pitch link to start tracking interest.
+                  </p>
+                ) : (
+                  <>
+                    <p className="text-sm text-foreground">
+                      Your pitch links have been opened {pitchTelemetry.totalViews} times
+                    </p>
+                    {pitchTelemetry.lastViewedAt && (
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Most recent open {formatDateGB(pitchTelemetry.lastViewedAt)}
+                      </p>
+                    )}
+                  </>
+                )}
+              </CardContent>
+            </Card>
           </section>
 
           <Hairline className="my-8 opacity-60" />

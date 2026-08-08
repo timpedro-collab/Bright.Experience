@@ -297,6 +297,7 @@ describe("submitProposalIntake", () => {
         contactEmail: "casey@acme.test",
         campaignName: "  Spring launch roadshow  ",
         planningMonth: "2027-01",
+        referralSource: "  social  ",
       })
     );
     expect(result.success).toBe(true);
@@ -306,6 +307,7 @@ describe("submitProposalIntake", () => {
     const row = insert!.args[0] as Record<string, unknown>;
     expect(row.campaign_name).toBe("Spring launch roadshow");
     expect(row.planning_month).toBe("2027-01");
+    expect(row.referral_source).toBe("social");
   });
 
   it("drops a malformed planning month rather than storing junk", async () => {

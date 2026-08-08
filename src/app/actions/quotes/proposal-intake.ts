@@ -32,6 +32,8 @@ export async function submitProposalIntake(data: {
   campaignName?: string;
   /** 'YYYY-MM' — when the customer plans next year's events (2.H nudge). */
   planningMonth?: string;
+  /** Self-reported discovery channel from intake. */
+  referralSource?: string;
   venueName?: string;
   postcode?: string;
   eventDateStart?: string;
@@ -116,6 +118,7 @@ export async function submitProposalIntake(data: {
       planning_month: /^\d{4}-\d{2}$/.test(data.planningMonth ?? "")
         ? data.planningMonth
         : null,
+      referral_source: data.referralSource?.trim() || null,
       venue_name: data.venueName ?? null,
       postcode: data.postcode ?? null,
       event_date_start: data.eventDateStart ?? null,

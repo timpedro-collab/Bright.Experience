@@ -12,6 +12,7 @@ import { Gamepad2, Hand, Target, Trophy } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { MetricCard } from "@/components/reports/MetricCard";
 import { LiveShareAutoRefresh } from "@/components/events/LiveShareAutoRefresh";
+import { InvitationFooter } from "@/components/public/InvitationFooter";
 import { getPublicLiveSnapshot } from "@/lib/queries/public-live";
 
 export const dynamic = "force-dynamic";
@@ -99,12 +100,11 @@ export default async function PublicLivePage({ params }: Props) {
         </p>
 
         <footer className="mt-12 border-t border-border/40 pt-6 text-center">
-          <p className="text-xs text-muted-foreground">
-            Powered by{" "}
-            <Link href="/" className="text-brand hover:underline">
-              Bright.Experience
-            </Link>
-          </p>
+          {/* An invitation, not a credit — the reader is the next buyer. */}
+          <InvitationFooter
+            artifact="live_dashboard"
+            fromEvent={snapshot.eventName}
+          />
         </footer>
       </div>
     </div>

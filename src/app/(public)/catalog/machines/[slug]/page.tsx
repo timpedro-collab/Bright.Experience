@@ -96,6 +96,8 @@ export default async function MachineDetailPage({ params }: PageProps) {
                   </Link>
                 </Button>
               </div>
+              {/* One killer stat, one all-in price line, one link — the
+                  feature list lives further down, not in the hero. */}
               <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-muted-foreground">
                 {plays && (
                   <span className="inline-flex items-baseline gap-1.5">
@@ -107,16 +109,11 @@ export default async function MachineDetailPage({ params }: PageProps) {
                     </span>
                   </span>
                 )}
-                <span className="font-medium text-foreground">
-                  Activations from {fromPrice}
-                </span>
-                <span className="inline-flex items-center gap-1.5">
-                  <Check className="h-3.5 w-3.5 text-[hsl(189,100%,75%)]" aria-hidden />
-                  Custom wrap &amp; game skin included
-                </span>
-                <span className="inline-flex items-center gap-1.5">
-                  <Check className="h-3.5 w-3.5 text-[hsl(189,100%,75%)]" aria-hidden />
-                  Delivery, install &amp; breakdown included
+                <span>
+                  <span className="font-medium text-foreground">
+                    From {fromPrice}
+                  </span>{" "}
+                  — wrap, game, crew and delivery included
                 </span>
                 <Link href="/pricing" className="underline underline-offset-4 hover:text-foreground">
                   See activation tiers

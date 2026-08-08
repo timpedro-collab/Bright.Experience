@@ -85,4 +85,28 @@ describe("LiveShareControls", () => {
     expect(toast.success).toHaveBeenCalledWith("Share link revoked");
     expect(refresh).toHaveBeenCalled();
   });
+
+  it("shows QR download and print actions when a token exists", () => {
+    render(
+      <LiveShareControls eventId={EVENT_ID} token={TOKEN} expiresAt={FUTURE} />,
+    );
+
+    const download = screen.getByRole("link", { name: /download qr \(png\)/i });
+    expect(download).toHaveAttribute("href", `/api/events/${EVENT_ID}/live-qr`);
+
+    const print = screen.getByRole("link", { name: /print qr sheet/i });
+    expect(print).toHaveAttribute("href", `/live-qr/${EVENT_ID}`);
+    expect(print).toHaveAttribute("target", "_blank");
+  });
+
+  it("hides QR download and print actions when no token exists", () => {
+    render(<LiveShareControls eventId={EVENT_ID} token={null} expiresAt={null} />);
+
+    expect(
+      screen.queryByRole("link", { name: /download qr \(png\)/i }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: /print qr sheet/i }),
+    ).not.toBeInTheDocument();
+  });
 });

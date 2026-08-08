@@ -27,7 +27,9 @@ import {
 } from "@/lib/metrics/organizer-portfolio";
 import {
   isPitchTokenValid,
+  rollupPitchTelemetry,
   toSponsorPerformance,
+  type PitchTelemetrySummary,
   type SponsorPerformance,
 } from "@/lib/sponsor-pitch";
 import type { MachineMission } from "@/types";
@@ -633,6 +635,31 @@ export async function getFleetByOrganizer(
         : false,
     };
   });
+}
+
+/** Pitch-link opens rolled up across every slot on an organizer's shows. */
+export async function getOrganizerPitchTelemetry(
+  partnerId: string
+): Promise<PitchTelemetrySummary> {
+  const supabase = await createClient();
+  const { data: shows } = await supabase
+    .from("events")
+    .select("id")
+    .eq("organizer_partner_id", partnerId);
+
+  const showIds = (shows ?? []).map((s) => String((s as { id: string }).id));
+  if (showIds.length === 0) return rollupPitchTelemetry([]);
+
+  const { data, error } = await supabase
+    .from("sponsorship_slots")
+    .select("pitch_view_count, pitch_last_viewed_at")
+    .in("event_id", showIds);
+
+  if (error || !data) {
+    logQueryError("getOrganizerPitchTelemetry", error, { partnerId });
+    return rollupPitchTelemetry([]);
+  }
+  return rollupPitchTelemetry(data);
 }
 
 /** Every slot across an organizer's shows, for the portal-wide sponsor view. */

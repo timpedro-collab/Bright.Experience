@@ -1,4 +1,21 @@
 import { describe, expect, it } from "vitest";
+import { eventNameFromReportTitle } from "./reveal";
+
+describe("eventNameFromReportTitle", () => {
+  it("extracts the event name after the em dash", () => {
+    expect(eventNameFromReportTitle("Post-Event Report — Acme Launch")).toBe(
+      "Acme Launch"
+    );
+  });
+
+  it("returns the whole title when there is no dash", () => {
+    expect(eventNameFromReportTitle("Acme Launch")).toBe("Acme Launch");
+  });
+
+  it("returns an empty string for null input", () => {
+    expect(eventNameFromReportTitle(null)).toBe("");
+  });
+});
 
 import { normaliseMetrics } from "./normalise";
 import { campaignCredit, pickHeadlineStat } from "./reveal";

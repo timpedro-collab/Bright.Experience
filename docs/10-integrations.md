@@ -375,7 +375,7 @@ Auth is **Bearer-only**: `Authorization: Bearer ${CRON_SECRET}` must match
 | `/api/cron/reminders` | `0 9 * * *` (daily 09:00 UTC) | Send pending notification reminders |
 | `/api/cron/digest` | `0 * * * *` (hourly) | Bundle FYI digests for recipients whose local digest hour has arrived |
 | `/api/cron/pipedrive` | `0 * * * *` (hourly) | Drain Pipedrive outbox + time triggers |
-| `/api/cron/reports` | `0 8 * * *` (daily 08:00 UTC) | Auto-draft post-event reports for events ended 24h+ ago; process scheduled exports |
+| `/api/cron/reports` | `0 8 * * *` + `0 18 * * *` (twice daily UTC) | Auto-draft post-event reports — the 18:00 pass drafts same-day for events ending that day (the "report beats the client back to the office" ritual) and files a same-day review task; the 08:00 pass is catch-up. Also processes scheduled exports |
 | `/api/cron/purge-leads` | `30 2 * * *` (daily 02:30 UTC) | GDPR lead retention: hard-delete leads older than each event's `retention_days` (default 60); default sweep for unconfigured events. Each purge is logged |
 
 ### 5a. Heartbeat

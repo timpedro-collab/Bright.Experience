@@ -20,7 +20,6 @@ import { Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { IntakeStepEvent } from "./IntakeStepEvent";
 import { IntakeStepLocation } from "./IntakeStepLocation";
-import { IntakeStepRequirements } from "./IntakeStepRequirements";
 import { IntakeStepCreative } from "./IntakeStepCreative";
 import { IntakeStepContact } from "./IntakeStepContact";
 import { PostIntakeCard } from "./PostIntakeCard";
@@ -32,11 +31,13 @@ import { briefEchoItems } from "@/lib/brief-echo";
 import { RESPONSE_SLA } from "@/lib/marketing/claims";
 import { cn } from "@/lib/utils";
 
+// Four steps, not five (field-discipline audit): the old "brief" and
+// "creative" steps merged — their fields either duplicated the quiz or were
+// questions the walkthrough call asks better.
 const STEP_LABELS = [
   "The moment",
   "Where & when",
   "The brief",
-  "The creative",
   "Your details",
 ];
 
@@ -45,6 +46,7 @@ interface IntakeFormData {
   objective: string;
   campaignName: string;
   planningMonth: string;
+  referralSource: string;
   venueName: string;
   postcode: string;
   eventDateStart: string;
@@ -88,6 +90,7 @@ function makeInitial(searchParams: URLSearchParams): IntakeFormData {
     objective: prefill.objective,
     campaignName: "",
     planningMonth: "",
+    referralSource: "",
     // For experiential, the quiz already named the site — pre-fill the venue.
     venueName: locationName,
     postcode: "",
@@ -190,8 +193,7 @@ export function IntakeWizard() {
     (step === 0 && (addons.length > 0 || data.objective.trim().length > 0 || data.eventType)) ||
     (step === 1 && (data.postcode || data.venueName)) ||
     step === 2 ||
-    step === 3 ||
-    (step === 4 && data.contactName && data.contactEmail);
+    (step === 3 && data.contactName && data.contactEmail);
 
   if (submitted) {
     return (
@@ -270,22 +272,15 @@ export function IntakeWizard() {
         />
       )}
       {step === 2 && (
-        <IntakeStepRequirements
-          machinePreference={data.machinePreference}
-          gamePreference={data.gamePreference}
+        <IntakeStepCreative
+          creativeNeeds={data.creativeNeeds}
+          engagementScope={data.engagementScope}
           footfallEstimate={data.footfallEstimate}
+          showFootfall={!data.attendees}
           onChange={handleChange}
         />
       )}
       {step === 3 && (
-        <IntakeStepCreative
-          creativeNeeds={data.creativeNeeds}
-          specialRequirements={data.specialRequirements}
-          engagementScope={data.engagementScope}
-          onChange={handleChange}
-        />
-      )}
-      {step === 4 && (
         <IntakeStepContact
           contactName={data.contactName}
           contactRole={data.contactRole}
@@ -293,6 +288,7 @@ export function IntakeWizard() {
           contactPhone={data.contactPhone}
           companyName={data.companyName}
           planningMonth={data.planningMonth}
+          referralSource={data.referralSource}
           onChange={handleChange}
         />
       )}
@@ -307,7 +303,7 @@ export function IntakeWizard() {
         <Button variant="outline" onClick={() => setStep((s) => s - 1)} disabled={step === 0}>
           Back
         </Button>
-        {step < 4 ? (
+        {step < 3 ? (
           <Button onClick={() => setStep((s) => s + 1)} disabled={!canProceed}>
             Continue
           </Button>

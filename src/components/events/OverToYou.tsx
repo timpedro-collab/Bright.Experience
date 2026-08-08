@@ -26,7 +26,7 @@ import {
 import { cn } from "@/lib/utils";
 import { formatDateShort } from "@/lib/dates";
 import { GlassCard, GlassCardHeader } from "@/components/cloud";
-import { actionWhyLine } from "@/lib/customer-action-copy";
+import { actionWhyLine, groupAssetActions } from "@/lib/customer-action-copy";
 import type { CustomerActionItem } from "@/lib/queries/deadlines";
 import type { NextStep } from "@/lib/event-next-step";
 
@@ -58,7 +58,7 @@ function EntityIcon({
   }
 }
 
-/** Canonical destination for an action item (mirrors CustomerActionSummary). */
+/** Canonical destination for an action item. */
 function linkForItem(eventId: string, item: CustomerActionItem): string {
   switch (item.entityType) {
     case "asset":
@@ -96,10 +96,13 @@ function DueBadge({ item }: { item: CustomerActionItem }) {
 
 export function OverToYou({
   eventId,
-  items,
+  items: rawItems,
   nextStep,
   nextUp = null,
 }: OverToYouProps) {
+  // Collapse repetitive per-file upload rows into one "N brand assets" row so
+  // the primary CTA, supporting rows, and "N things" count all agree.
+  const items = groupAssetActions(rawItems);
   const count = items.length;
 
   // All-clear state (#7): calm reassurance + a forward-looking "next up".

@@ -7,6 +7,7 @@ import { dispatchNotification } from "@/lib/notifications/dispatch";
 import { canViewCommercial } from "@/lib/roles";
 import { getServiceRoleClient } from "@/lib/supabase/service-role";
 import { generateEventReportInternal } from "@/server/reports";
+import { autoCompleteTaskByPathAndTitle } from "@/server/tasks";
 import { revalidatePath } from "next/cache";
 
 /**
@@ -81,6 +82,13 @@ export async function publishReport(
       entityId: reportId,
     }).catch((e) => {
       console.error(`[publishReport] notification failed for ${reportId}`, e);
+    });
+
+    // Publishing satisfies the cron-created same-day review task.
+    await autoCompleteTaskByPathAndTitle(report.event_id, "reports", [
+      "publish the post-event report",
+    ]).catch((e) => {
+      console.error(`[publishReport] task auto-complete failed`, e);
     });
   }
 

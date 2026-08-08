@@ -204,6 +204,19 @@ export default async function BrightIndexPage() {
                 we print on proposals — so what we promise up front is checked
                 against this page after the event.
               </p>
+              <p>
+                <span className="font-medium text-foreground">
+                  Placements and badges.
+                </span>{" "}
+                Reports and Wrapped pages place an event against these same
+                pooled quartiles — its opted-in leads per day versus comparable
+                events. An event at or above the 75th percentile earns the
+                quarterly &ldquo;Top-Quartile Activation&rdquo; badge; everything
+                else is described by its honest band. Because the Index stores
+                quartiles, the top quartile is the strongest claim we make —
+                we never print &ldquo;top decile&rdquo; from quartile data, and
+                every placement names the sample it was measured against.
+              </p>
             </div>
           </div>
         </Container>

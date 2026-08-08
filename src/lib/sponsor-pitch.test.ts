@@ -3,9 +3,23 @@ import {
   PITCH_TOKEN_DEFAULT_DAYS,
   pitchTokenExpiry,
   isPitchTokenValid,
+  isPitchUnlocked,
   pitchTokenDaysRemaining,
   toSponsorPerformance,
+  rollupPitchTelemetry,
 } from "./sponsor-pitch";
+
+describe("isPitchUnlocked", () => {
+  it("matches a slot id inside the cookie list", () => {
+    expect(isPitchUnlocked("s1,s2", "s2")).toBe(true);
+  });
+
+  it("rejects partial matches and missing cookies", () => {
+    expect(isPitchUnlocked("s11", "s1")).toBe(false);
+    expect(isPitchUnlocked(null, "s1")).toBe(false);
+    expect(isPitchUnlocked("", "s1")).toBe(false);
+  });
+});
 
 const NOW = new Date("2026-09-01T12:00:00Z");
 
@@ -85,5 +99,27 @@ describe("toSponsorPerformance", () => {
       "plays",
       "prizes",
     ]);
+  });
+});
+
+describe("rollupPitchTelemetry", () => {
+  it("sums view counts and picks the most recent open", () => {
+    expect(
+      rollupPitchTelemetry([
+        { pitch_view_count: 6, pitch_last_viewed_at: "2026-06-14T15:20:00Z" },
+        { pitch_view_count: 3, pitch_last_viewed_at: "2026-07-28T11:05:00Z" },
+        { pitch_view_count: 1, pitch_last_viewed_at: "2026-07-20T08:40:00Z" },
+      ])
+    ).toEqual({
+      totalViews: 10,
+      lastViewedAt: "2026-07-28T11:05:00Z",
+    });
+  });
+
+  it("returns zeros when no slots have been opened", () => {
+    expect(rollupPitchTelemetry([])).toEqual({
+      totalViews: 0,
+      lastViewedAt: null,
+    });
   });
 });

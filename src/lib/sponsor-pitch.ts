@@ -14,6 +14,21 @@
 /** How long a pitch link lives when the caller doesn't say. */
 export const PITCH_TOKEN_DEFAULT_DAYS = 30;
 
+/**
+ * Cookie holding the slot ids whose detailed numbers this browser has
+ * unlocked (comma-separated). Set by the unlock action, read by the page.
+ */
+export const PITCH_UNLOCK_COOKIE = "bb_pitch_unlock";
+
+/** Whether a pitch's detail unlock cookie covers a given slot. */
+export function isPitchUnlocked(
+  cookieValue: string | null | undefined,
+  slotId: string
+): boolean {
+  if (!cookieValue) return false;
+  return cookieValue.split(",").includes(slotId);
+}
+
 /** Absolute expiry for a pitch link created now. */
 export function pitchTokenExpiry(
   days: number = PITCH_TOKEN_DEFAULT_DAYS,
@@ -77,4 +92,27 @@ export function toSponsorPerformance(counters: {
     prizes,
     optInRate: plays > 0 ? Math.round((leads / plays) * 100) : 0,
   };
+}
+
+/** Aggregate pitch-link opens across sponsorship slots. */
+export interface PitchTelemetrySummary {
+  totalViews: number;
+  lastViewedAt: string | null;
+}
+
+export function rollupPitchTelemetry(
+  rows: { pitch_view_count?: number | null; pitch_last_viewed_at?: string | null }[]
+): PitchTelemetrySummary {
+  let totalViews = 0;
+  let lastViewedAt: string | null = null;
+
+  for (const row of rows) {
+    totalViews += Number(row.pitch_view_count) || 0;
+    const viewed = row.pitch_last_viewed_at ? String(row.pitch_last_viewed_at) : null;
+    if (viewed && (!lastViewedAt || new Date(viewed) > new Date(lastViewedAt))) {
+      lastViewedAt = viewed;
+    }
+  }
+
+  return { totalViews, lastViewedAt };
 }

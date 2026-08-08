@@ -63,6 +63,34 @@ describe("OverToYou", () => {
     expect(seeAll).toHaveAttribute("href", "/events/e1/actions");
   });
 
+  it("collapses many asset uploads into one grouped row with an honest count", () => {
+    render(
+      <OverToYou
+        eventId="e1"
+        items={[
+          ...[1, 2, 3, 4, 5].map((n) =>
+            assetItem({ id: `asset-${n}`, title: `Upload: Asset ${n}` }),
+          ),
+          { id: "t1", eventId: "e1", entityType: "task", title: "Approve the proof", targetPath: "approvals" },
+        ]}
+        nextStep={nextStep}
+      />,
+    );
+    // One grouped row replaces the five per-file rows…
+    expect(
+      screen.getByText("5 brand assets · one upload flow"),
+    ).toBeInTheDocument();
+    expect(screen.queryByText("Upload: Asset 1")).not.toBeInTheDocument();
+    expect(
+      screen.getByText("Everything uploads in one flow — drag them all in at once."),
+    ).toBeInTheDocument();
+    // …and the counts reflect the grouped list, not the raw one.
+    expect(screen.getByText("2 things")).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: /See all 2 tasks/i }),
+    ).toBeInTheDocument();
+  });
+
   it("reassures and previews the next milestone when nothing is outstanding", () => {
     render(
       <OverToYou

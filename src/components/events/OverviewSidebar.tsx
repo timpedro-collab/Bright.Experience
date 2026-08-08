@@ -28,6 +28,8 @@ interface OverviewSidebarProps {
   missedMilestonesCount: number;
   recentActivity?: AuditRow[];
   teamMembers?: EventTeamMember[];
+  /** Whether any metric snapshots exist — the data the export menu exports. */
+  hasMetricsData?: boolean;
 }
 
 export function OverviewSidebar({
@@ -41,6 +43,7 @@ export function OverviewSidebar({
   missedMilestonesCount,
   recentActivity = [],
   teamMembers = [],
+  hasMetricsData = false,
 }: OverviewSidebarProps) {
   const blockingCount = tasks.filter(
     (t) => t.isBlocking && t.status !== "complete",
@@ -124,7 +127,8 @@ export function OverviewSidebar({
       <div>
         <div className="flex items-center justify-between">
           <EditorialEyebrow>The numbers</EditorialEyebrow>
-          <ExportMenu eventId={eventId} view="overview" hidePdf />
+          {/* Exports render only when there's data to export. */}
+          {hasMetricsData && <ExportMenu eventId={eventId} view="overview" hidePdf />}
         </div>
         <ul className="mt-3 flex flex-col divide-y divide-border/40 border-t border-b border-border/40">
           <MetricRow

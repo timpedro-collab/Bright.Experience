@@ -4,6 +4,13 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface IntakeStepContactProps {
   contactName: string;
@@ -12,6 +19,7 @@ interface IntakeStepContactProps {
   contactPhone: string;
   companyName: string;
   planningMonth: string;
+  referralSource: string;
   onChange: (field: string, value: string) => void;
 }
 
@@ -89,6 +97,30 @@ export function IntakeStepContact(props: IntakeStepContactProps) {
             We&apos;ll resurface your results right when they&apos;re most
             useful for the next budget round.
           </p>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="referralSource">
+            How did you hear about us?{" "}
+            <span className="font-normal text-muted-foreground">(optional)</span>
+          </Label>
+          <Select
+            value={props.referralSource || undefined}
+            onValueChange={(value) => props.onChange("referralSource", value)}
+          >
+            <SelectTrigger id="referralSource">
+              <SelectValue placeholder="Select one…" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="event_saw_machine">Saw a machine at an event</SelectItem>
+              <SelectItem value="report_or_dashboard">
+                Someone shared a results report or live dashboard
+              </SelectItem>
+              <SelectItem value="referral">A colleague or friend recommended you</SelectItem>
+              <SelectItem value="search">Search engine</SelectItem>
+              <SelectItem value="social">LinkedIn or social media</SelectItem>
+              <SelectItem value="other">Other</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </CardContent>
     </Card>

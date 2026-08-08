@@ -240,3 +240,16 @@ Redesign, which also introduced a shared journey spine (`src/lib/journey.ts` +
 never goes stale (Workstream H). See the CHANGELOG entry of the same name.
 
 *Logged by the July 2026 audit pass. Update statuses inline as items land.*
+
+---
+
+## Standing rule: quarterly subtraction review
+
+Every quarter, walk the quiz, intake, pricing surfaces, and portal nav with one
+explicit agenda item on the sheet: **"what did we remove?"** The Nature
+subtraction research is unambiguous — people default to adding and only
+consider removal when the cue is explicit, so if the question isn't written
+down it will not be asked. The first thing to look for is empty-data furniture:
+export buttons sitting above empty tables, columns that render nothing but
+dashes, CTAs that lead nowhere for the viewer's role or stage. The rule those
+findings are judged against: if it can't do anything, it shouldn't render.

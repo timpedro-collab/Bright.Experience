@@ -13,6 +13,7 @@ import { Container } from "@/components/ui/section";
 import { getPackages } from "@/lib/queries/packages";
 import { PackageTierCard } from "@/components/catalog/PackageTierCard";
 import { RidgeArtwork, EditorialEyebrow } from "@/components/brand";
+import { recordLoopEvent } from "@/server/loop-events";
 
 export const metadata: Metadata = {
   title: "Book Now",
@@ -20,8 +21,33 @@ export const metadata: Metadata = {
     "Choose a Bright.Blue package, configure your machine and game, and submit your booking request in minutes.",
 };
 
-export default async function BookPage() {
+export default async function BookPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const params = await searchParams;
   const packages = await getPackages();
+
+  // Invitation-loop landing: a visitor arrived from a public artefact's
+  // "want results like this?" link. Record the touch (loop-pulse dashboard
+  // measures CTR by artefact) and greet them with the referring event.
+  const utmCampaign =
+    typeof params.utm_campaign === "string" ? params.utm_campaign : null;
+  const utmSource =
+    typeof params.utm_source === "string" ? params.utm_source : null;
+  // Query text renders on the page — cap it so a crafted link can't smuggle
+  // a paragraph of copy into the hero.
+  const fromEvent =
+    typeof params.from === "string" && params.from.trim()
+      ? params.from.trim().slice(0, 80)
+      : null;
+  if (utmCampaign === "invitation" && utmSource) {
+    await recordLoopEvent("invitation_landing", {
+      artifact: utmSource,
+      metadata: fromEvent ? { fromEvent } : {},
+    });
+  }
 
   return (
     <>
@@ -56,9 +82,9 @@ export default async function BookPage() {
             Book your activation.
           </h1>
           <p className="mt-4 max-w-2xl mx-auto text-muted-foreground md:text-lg leading-relaxed">
-            Choose a package that fits your event. Configure your machine,
-            game, and add-ons — then send your booking request and we&apos;ll
-            confirm the details.
+            {fromEvent
+              ? `You've seen what a machine did at ${fromEvent}. The same team, the same measurement, at your event — configure it below and we'll confirm the details.`
+              : "Choose a package that fits your event. Configure your machine, game, and add-ons — then send your booking request and we'll confirm the details."}
           </p>
         </Container>
       </section>

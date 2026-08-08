@@ -12,6 +12,7 @@ import { prepareProposal } from "@/app/actions/quotes";
 import { RequestedCapabilities } from "@/components/quotes/RequestedCapabilities";
 import { formatMoneyFromPence, formatNumberUS } from "@/lib/currency";
 import { timelineLabel } from "@/components/catalog/quiz/quiz-data";
+import { referralSourceLabel } from "@/lib/referral-source";
 import { Plus, Trash2, Eye, Users, MapPin } from "lucide-react";
 
 interface LineItem { label: string; amount: string; category: string }
@@ -156,6 +157,7 @@ function IntakeDataCard({ quote }: { quote: Record<string, unknown> }) {
   const attendees = num(quote.attendees);
   const days = num(quote.activation_days);
   const hasReach = impressions || leads || dooh;
+  const referralLabel = referralSourceLabel(quote.referral_source as string);
 
   return (
     <Card>
@@ -212,6 +214,9 @@ function IntakeDataCard({ quote }: { quote: Record<string, unknown> }) {
         <Row label="Email" value={String(quote.contact_email)} />
         <Row label="Phone" value={String(quote.contact_phone ?? "—")} />
         <Row label="Company" value={String(quote.company_name ?? "—")} />
+        {referralLabel && (
+          <Row label="How they heard about us" value={referralLabel} />
+        )}
       </CardContent>
     </Card>
   );

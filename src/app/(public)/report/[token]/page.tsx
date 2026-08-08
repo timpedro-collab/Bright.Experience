@@ -33,8 +33,23 @@ import {
   normaliseMetrics,
   normalisePredictions,
 } from "@/lib/reports/normalise";
-import { campaignCredit, pickHeadlineStat } from "@/lib/reports/reveal";
+import {
+  campaignCredit,
+  eventNameFromReportTitle,
+  pickHeadlineStat,
+} from "@/lib/reports/reveal";
 import { getQuoteContactForEvent } from "@/lib/queries/quotes";
+import { getEventSummaryForReport } from "@/lib/queries/event-reports";
+import { getPublicBenchmarks } from "@/lib/queries/public-benchmarks";
+import {
+  computeIndexPlacement,
+  pickComparisonRow,
+} from "@/lib/bright-index/percentile";
+import { eventTypeLabel } from "@/lib/bright-index/shape";
+import { showDayCount } from "@/lib/metrics/expected-performance";
+import { IndexPlacementChip } from "@/components/reports/IndexPlacementChip";
+import { InvitationFooter } from "@/components/public/InvitationFooter";
+import { recordLoopEvent } from "@/server/loop-events";
 
 interface Props {
   params: Promise<{ token: string }>;
@@ -58,6 +73,13 @@ export default async function PublicReportPage({ params }: Props) {
 
   if (!report || !report.isPublished) return notFound();
 
+  // Loop pulse: every share-link open counts towards the published→viewed
+  // rate on /admin/loop-pulse. Fire-and-forget — never blocks the page.
+  await recordLoopEvent("report_view", {
+    artifact: "report",
+    eventId: report.eventId,
+  });
+
   const brand = report.brandPartnerId
     ? await getPartnerBrandById(report.brandPartnerId)
     : null;
@@ -80,6 +102,27 @@ export default async function PublicReportPage({ params }: Props) {
     ? await getQuoteContactForEvent(report.eventId)
     : null;
   const credit = quoteContact ? campaignCredit(quoteContact) : null;
+
+  // Bright Index placement: quartile band vs the pooled benchmarks, with the
+  // badge when the event earned it. Silent when the comparison isn't credible.
+  const eventSummary =
+    metrics.totalLeads > 0
+      ? await getEventSummaryForReport(report.eventId)
+      : null;
+  const placement = eventSummary
+    ? computeIndexPlacement(
+        metrics.totalLeads /
+          showDayCount(eventSummary.eventDateStart, eventSummary.eventDateEnd),
+        pickComparisonRow(await getPublicBenchmarks(), {
+          eventType: eventSummary.eventType,
+          metricName: "leads_per_day",
+        }),
+        {
+          subjectLabel: eventTypeLabel(eventSummary.eventType).toLowerCase(),
+          metricLabel: "opted-in leads per day",
+        }
+      )
+    : null;
 
   return (
     <div className="min-h-screen bg-background">
@@ -135,6 +178,21 @@ export default async function PublicReportPage({ params }: Props) {
                 : null
             }
           />
+        )}
+
+        {headlineStat && (
+          <div className="mb-8 -mt-4 space-y-2">
+            {placement && <IndexPlacementChip placement={placement} />}
+            <p className="text-sm text-muted-foreground">
+              <Link
+                href={`/report/${token}/wrapped`}
+                className="text-brand hover:underline"
+              >
+                See it wrapped →
+              </Link>{" "}
+              — the story version, ready to post.
+            </p>
+          </div>
         )}
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -219,6 +277,12 @@ export default async function PublicReportPage({ params }: Props) {
         )}
 
         <footer className="mt-12 pt-6 border-t border-glass-border/10 text-center">
+          {/* An invitation, not a credit — the reader is the next buyer. */}
+          <InvitationFooter
+            artifact="report"
+            fromEvent={eventNameFromReportTitle(report.title)}
+            className="mb-6"
+          />
           {/* Public surface has no config access; states the standard window. */}
           <div className="mb-3">
             <RetentionNotice />
@@ -227,23 +291,14 @@ export default async function PublicReportPage({ params }: Props) {
             &copy; {new Date().getFullYear()} Bright.Blue Events. All rights
             reserved.
           </p>
-          <p className="text-xs text-muted-foreground mt-1">
-            {brand ? (
-              <>
-                Prepared by {brand.name} · Powered by{" "}
-                <Link href="/catalog" className="text-brand hover:underline">
-                  Bright.Experience
-                </Link>
-              </>
-            ) : (
-              <>
-                Powered by{" "}
-                <Link href="/catalog" className="text-brand hover:underline">
-                  Bright.Experience
-                </Link>
-              </>
-            )}
-          </p>
+          {brand && (
+            <p className="text-xs text-muted-foreground mt-1">
+              Prepared by {brand.name} · Powered by{" "}
+              <Link href="/catalog" className="text-brand hover:underline">
+                Bright.Experience
+              </Link>
+            </p>
+          )}
         </footer>
       </div>
     </div>

@@ -27,6 +27,7 @@ import { getUnreadCount } from "@/lib/queries/notifications";
 import { parsePage } from "@/lib/pagination";
 import { Pagination } from "@/components/ui/Pagination";
 import { entityTitle, getEventNameForTitle } from "@/lib/queries/page-titles";
+import { formatDateLong } from "@/lib/dates";
 
 export async function generateMetadata({
   params,
@@ -96,48 +97,85 @@ export default async function LeadsPage({
     aggregates.ageBands.map((b) => [b.band, b.pct]),
   );
 
+  // Pre-event, the old page was a wall of zeros plus copy about "sharing the
+  // live link" (which doesn't exist yet). Empty states must sell the future:
+  // say when the machine starts filling this page, and offer the one action
+  // that IS useful now — wiring the CRM before the first lead lands.
+  const startsAhead =
+    event.eventDateStart && new Date(event.eventDateStart) > new Date();
+  const preEvent = leadCount === 0 && Boolean(startsAhead);
+
+  const subtitle = preEvent
+    ? `Your machine starts filling this page on ${formatDateLong(event.eventDateStart)}.`
+    : leadCount === 0
+      ? "No leads captured at this event."
+      : `${leadCount} contacts captured.${todaysLeads > 0 ? ` ${todaysLeads} from today.` : ""}`;
+
   return (
     <EventPageShell
       event={event}
       user={user}
       unreadCount={unread}
       section="Leads"
-      title="Captured leads."
-      subtitle={`${leadCount} contacts captured.${todaysLeads > 0 ? ` ${todaysLeads} from today.` : " Pull in more by sharing the live link."}`}
+      title={preEvent ? "Leads land here." : "Captured leads."}
+      subtitle={subtitle}
       isInternal={isInternalRole(user.role)}
-      heroRight={<ExportMenu eventId={id} view="leads" />}
+      heroRight={leadCount > 0 ? <ExportMenu eventId={id} view="leads" /> : undefined}
     >
-      <section className="py-8">
-        <EditorialEyebrow accent>The headlines</EditorialEyebrow>
-        <div className="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <MetricCard
-            label="Total leads"
-            value={leadCount}
-            icon={<Users size={20} />}
-          />
-          <MetricCard
-            label="Today's leads"
-            value={todaysLeads}
-            icon={<TrendingUp size={20} />}
-          />
-          <MetricCard
-            label="Top source"
-            value={topSource}
-            icon={<Star size={20} />}
-          />
-          <MetricCard
-            label={aggregates.avgAge != null ? "Average age" : "Avg per hour"}
-            value={
-              aggregates.avgAge != null
-                ? `${aggregates.avgAge} yrs`
-                : aggregates.perHour > 0
-                  ? aggregates.perHour
-                  : "—"
-            }
-            icon={<Clock size={20} />}
-          />
-        </div>
-      </section>
+      {leadCount > 0 && (
+        <section className="py-8">
+          <EditorialEyebrow accent>The headlines</EditorialEyebrow>
+          <div className="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <MetricCard
+              label="Total leads"
+              value={leadCount}
+              icon={<Users size={20} />}
+            />
+            <MetricCard
+              label="Today's leads"
+              value={todaysLeads}
+              icon={<TrendingUp size={20} />}
+            />
+            <MetricCard
+              label="Top source"
+              value={topSource}
+              icon={<Star size={20} />}
+            />
+            <MetricCard
+              label={aggregates.avgAge != null ? "Average age" : "Avg per hour"}
+              value={
+                aggregates.avgAge != null
+                  ? `${aggregates.avgAge} yrs`
+                  : aggregates.perHour > 0
+                    ? aggregates.perHour
+                    : "—"
+              }
+              icon={<Clock size={20} />}
+            />
+          </div>
+        </section>
+      )}
+
+      {preEvent && (
+        <section className="py-8">
+          <div className="max-w-[64ch] rounded-2xl border border-[var(--color-bb-cobalt)]/25 bg-[var(--color-bb-cobalt)]/[0.04] p-6">
+            <p className="text-base font-semibold text-foreground">
+              Every play on your machine can become a name in this list.
+            </p>
+            <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
+              From the moment your event opens, consented lead captures stream
+              in here live — name, contact, source, and the quality screening
+              that keeps your CRM clean. Nothing for you to switch on; it
+              starts when the machine does.
+            </p>
+            <p className="mt-3 text-sm text-foreground/85">
+              The one thing worth doing now: connect your CRM below, so the
+              first lead of the day arrives in your pipeline before it&apos;s
+              even shaken hands.
+            </p>
+          </div>
+        </section>
+      )}
 
       {(aggregates.ageBands.length > 0 || quality.total > 0) && (
         <>
@@ -154,24 +192,29 @@ export default async function LeadsPage({
         </>
       )}
 
+      {leadCount > 0 && (
+        <>
+          <Hairline className="opacity-60" />
+          <section className="py-8">
+            <EditorialEyebrow>Every lead</EditorialEyebrow>
+            <div className="mt-4">
+              <LeadTable leads={tableLeads} />
+            </div>
+            <Pagination
+              currentPage={page}
+              totalPages={leadsResult.totalPages}
+              basePath={`/events/${id}/leads`}
+            />
+          </section>
+        </>
+      )}
+
       <Hairline className="opacity-60" />
 
       <section className="py-8">
-        <EditorialEyebrow>Every lead</EditorialEyebrow>
-        <div className="mt-4">
-          <LeadTable leads={tableLeads} />
-        </div>
-        <Pagination
-          currentPage={page}
-          totalPages={leadsResult.totalPages}
-          basePath={`/events/${id}/leads`}
-        />
-      </section>
-
-      <Hairline className="opacity-60" />
-
-      <section className="py-8">
-        <EditorialEyebrow>Real-time delivery</EditorialEyebrow>
+        <EditorialEyebrow>
+          {preEvent ? "Get ahead: wire your CRM" : "Real-time delivery"}
+        </EditorialEyebrow>
         <p className="mt-1 mb-4 text-sm text-muted-foreground max-w-[58ch]">
           Send each lead to your CRM the moment it&apos;s captured — signed,
           instant, before the stand packs down.

@@ -1,4 +1,13 @@
-/** Intake wizard step 4: Creative needs and budget indication */
+/**
+ * Intake wizard step 3: "The brief" — one open field, one scope question,
+ * and footfall only when the quiz didn't already capture the crowd.
+ *
+ * Field discipline (UX subtraction audit): every field here beat the test
+ * "could the walkthrough call ask this better?". Machine preference, game
+ * preference, and special requirements used to be three separate inputs —
+ * the walkthrough asks all of them better, so they folded into the single
+ * open text field (whatever the customer volunteers still reaches the AE).
+ */
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,17 +24,22 @@ const SCOPE_OPTIONS = [
 
 interface IntakeStepCreativeProps {
   creativeNeeds: string;
-  specialRequirements: string;
   engagementScope: string;
+  footfallEstimate: string;
+  /**
+   * When the quiz already captured attendee numbers, asking for footfall
+   * again would be a double-ask — the caller hides it.
+   */
+  showFootfall: boolean;
   onChange: (field: string, value: string) => void;
 }
 
-/** Creative needs, special requirements, and budget indication. */
+/** The brief: open notes, engagement scope, and (sometimes) footfall. */
 export function IntakeStepCreative(props: IntakeStepCreativeProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-lg">The creative side.</CardTitle>
+        <CardTitle className="text-lg">The brief.</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
@@ -33,21 +47,31 @@ export function IntakeStepCreative(props: IntakeStepCreativeProps) {
           <textarea
             id="creativeNeeds"
             rows={3}
-            placeholder="Custom branding, a bespoke game, branded prizes — broad strokes are fine."
+            placeholder="A setup or game you've seen, custom branding, prizes, access or power constraints — broad strokes are fine, the walkthrough covers the detail."
             value={props.creativeNeeds}
             onChange={(e) => props.onChange("creativeNeeds", e.target.value)}
             className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
           />
+          <p className="text-xs text-muted-foreground">
+            Optional — if you leave it blank, we&apos;ll shape it together on
+            the walkthrough call.
+          </p>
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="specialRequirements">Anything else we should know?</Label>
-          <Input
-            id="specialRequirements"
-            placeholder="Wheelchair access, outdoor-rated, power supply, sound limits…"
-            value={props.specialRequirements}
-            onChange={(e) => props.onChange("specialRequirements", e.target.value)}
-          />
-        </div>
+        {props.showFootfall && (
+          <div className="space-y-2">
+            <Label htmlFor="footfallEstimate">Roughly how busy?</Label>
+            <Input
+              id="footfallEstimate"
+              type="number"
+              placeholder="People per day — a rough number is fine."
+              value={props.footfallEstimate}
+              onChange={(e) => props.onChange("footfallEstimate", e.target.value)}
+            />
+            <p className="text-xs text-muted-foreground">
+              We use this to model expected interactions and leads.
+            </p>
+          </div>
+        )}
         <div className="space-y-2">
           <Label>Is this a one-off, or part of something bigger?</Label>
           <p className="text-xs text-muted-foreground">

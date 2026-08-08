@@ -16,6 +16,7 @@
  */
 
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
 
 import { getServiceRoleClient } from "@/lib/supabase/service-role";
 import { getSlotByPitchToken } from "@/lib/queries/organizers";
@@ -23,8 +24,12 @@ import { firstRelated } from "@/lib/queries/embed";
 import { dispatchNotification } from "@/lib/notifications/dispatch";
 import { createRateLimiter, getClientIp } from "@/lib/rate-limit";
 import { logQueryError } from "@/lib/observability/log-query-error";
+import { recordLoopEvent } from "@/server/loop-events";
+import { PITCH_UNLOCK_COOKIE } from "@/lib/sponsor-pitch";
 import {
+  pitchUnlockSchema,
   sponsorInterestSchema,
+  type PitchUnlockInput,
   type SponsorInterestInput,
 } from "@/lib/validations/sponsor-pitch";
 import type { ActionResult } from "@/types/actions";
@@ -143,6 +148,65 @@ export async function expressSponsorInterest(
 
     revalidatePath(`/organizers`);
   }
+
+  revalidatePath(`/sponsor/${token}`);
+  return { success: true, data: { slotId } };
+}
+
+/**
+ * Unlock the detailed numbers on a pitch page in exchange for light identity.
+ *
+ * Viewing the pitch stays free; only the expected/actual performance figures
+ * sit behind this. The identity lands in loop_events for nurture — it does
+ * not reserve the slot or notify anyone.
+ *
+ * @returns the slot id when the unlock is recorded.
+ */
+export async function unlockPitchDetails(
+  input: PitchUnlockInput
+): Promise<ActionResult<{ slotId: string }>> {
+  const parsed = pitchUnlockSchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      success: false,
+      error: parsed.error.issues[0]?.message ?? "Invalid input",
+    };
+  }
+  const { token, contactName, email, company } = parsed.data;
+
+  if (!(await sponsorInterestLimiter(await getClientIp()))) {
+    return {
+      success: false,
+      error: "Too many requests. Please try again in a few minutes.",
+    };
+  }
+
+  const slot = await getSlotByPitchToken(token);
+  if (!slot) {
+    return {
+      success: false,
+      error: "This link has expired. Ask your show contact for a fresh one.",
+    };
+  }
+
+  const slotId = String(slot.id);
+  await recordLoopEvent("pitch_unlock", {
+    artifact: "sponsor_pitch",
+    eventId: slot.event_id ? String(slot.event_id) : null,
+    metadata: { slotId, contactName, email, company: company ?? null },
+  });
+
+  // Remember the unlock per-browser so a returning sponsor isn't re-gated.
+  const jar = await cookies();
+  const existing = jar.get(PITCH_UNLOCK_COOKIE)?.value ?? "";
+  const unlocked = new Set(existing.split(",").filter(Boolean));
+  unlocked.add(slotId);
+  jar.set(PITCH_UNLOCK_COOKIE, [...unlocked].join(","), {
+    httpOnly: true,
+    sameSite: "lax",
+    maxAge: 90 * 24 * 60 * 60,
+    path: "/sponsor",
+  });
 
   revalidatePath(`/sponsor/${token}`);
   return { success: true, data: { slotId } };

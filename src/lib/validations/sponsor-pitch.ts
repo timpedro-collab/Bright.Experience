@@ -33,3 +33,28 @@ export const sponsorInterestSchema = z.object({
 });
 
 export type SponsorInterestInput = z.infer<typeof sponsorInterestSchema>;
+
+/**
+ * The light identity capture that unlocks the pitch page's detailed numbers.
+ * Deliberately smaller than the interest form — viewing stays nearly free.
+ */
+export const pitchUnlockSchema = z.object({
+  token: z.string().min(20, "That link is no longer valid"),
+  contactName: z
+    .string()
+    .trim()
+    .min(2, "Tell us who's reading")
+    .max(120, "Keep the name under 120 characters"),
+  email: z
+    .string()
+    .trim()
+    .email("Enter a work email")
+    .max(320),
+  company: z
+    .string()
+    .trim()
+    .max(160, "Keep the company name under 160 characters")
+    .optional(),
+});
+
+export type PitchUnlockInput = z.infer<typeof pitchUnlockSchema>;

@@ -1,11 +1,20 @@
 /** Tests for the post-play journey send engine. */
 import { describe, it, expect, beforeEach, vi } from "vitest";
+import type { EventMetricTotals } from "@/lib/queries/event-metrics";
 import { createMockSupabase, type MockSupabase } from "@/test/supabase";
 
 let supabase: MockSupabase;
 
 vi.mock("@/lib/supabase/service-role", () => ({
   getServiceRoleClient: () => supabase,
+}));
+
+const getEventMetricTotals = vi.fn(
+  async (_eventId: string): Promise<EventMetricTotals | null> => null,
+);
+vi.mock("@/lib/queries/event-metrics", () => ({
+  getEventMetricTotals: (...args: unknown[]) =>
+    getEventMetricTotals(...(args as [string])),
 }));
 
 const emailSend = vi.fn(async (..._args: unknown[]) => ({
@@ -39,6 +48,8 @@ const LEAD = {
 beforeEach(() => {
   supabase = createMockSupabase();
   emailSend.mockClear();
+  getEventMetricTotals.mockReset();
+  getEventMetricTotals.mockResolvedValue(null);
   vi.stubEnv("RESEND_API_KEY", "test-key");
   vi.resetModules();
 });
@@ -123,6 +134,100 @@ describe("sendPostPlayJourney", () => {
       sent: false,
       skipped: "send error",
     });
+  });
+
+  it("includes the forwardable organiser block when event totals exist", async () => {
+    getEventMetricTotals.mockResolvedValue({
+      totalPlays: 1234,
+      totalLeads: 56,
+      totalInteractions: 0,
+      totalPrizes: 0,
+      avgDwellTime: 0,
+      stockRemaining: null,
+      stockCapacity: null,
+      peakHour: null,
+      snapshotCount: 1,
+    });
+    supabase.setTableResponse("post_play_journeys", {
+      data: JOURNEY,
+      error: null,
+    });
+    supabase.setTableResponse("journey_touches", { data: null, error: null });
+    supabase.setTableResponse("events", {
+      data: { name: "Brand Expo 2026" },
+      error: null,
+    });
+
+    const { sendPostPlayJourney } = await import("./journeys");
+    await sendPostPlayJourney(LEAD);
+
+    const payload = emailSend.mock.calls[0]![0] as unknown as { html: string };
+    expect(payload.html).toContain("FOR THE ORGANISER IN THE ROOM");
+    expect(payload.html).toContain(
+      "This experience has powered 1,234 plays and 56 opted-in leads at Brand Expo 2026 so far.",
+    );
+    expect(payload.html).toContain(
+      "Machines like this one are booked for product launches, exhibitions and venue activations across the UK.",
+    );
+    expect(payload.html).toContain("Bring this to your event →");
+    expect(payload.html).toContain(
+      "/book?utm_source=post_play_email&amp;utm_medium=email&amp;utm_campaign=invitation",
+    );
+  });
+
+  it("links the player to their personal result card", async () => {
+    supabase.setTableResponse("post_play_journeys", {
+      data: JOURNEY,
+      error: null,
+    });
+    supabase.setTableResponse("journey_touches", { data: null, error: null });
+
+    const { sendPostPlayJourney } = await import("./journeys");
+    await sendPostPlayJourney(LEAD);
+
+    const payload = emailSend.mock.calls[0]![0] as unknown as { html: string };
+    expect(payload.html).toContain(`/play/${LEAD.id}`);
+    expect(payload.html).toContain("See your result");
+  });
+
+  it("omits the forwardable block when totals are null", async () => {
+    getEventMetricTotals.mockResolvedValue(null);
+    supabase.setTableResponse("post_play_journeys", {
+      data: JOURNEY,
+      error: null,
+    });
+    supabase.setTableResponse("journey_touches", { data: null, error: null });
+
+    const { sendPostPlayJourney } = await import("./journeys");
+    await sendPostPlayJourney(LEAD);
+
+    const payload = emailSend.mock.calls[0]![0] as unknown as { html: string };
+    expect(payload.html).not.toContain("FOR THE ORGANISER IN THE ROOM");
+  });
+
+  it("omits the forwardable block when plays are zero", async () => {
+    getEventMetricTotals.mockResolvedValue({
+      totalPlays: 0,
+      totalLeads: 10,
+      totalInteractions: 0,
+      totalPrizes: 0,
+      avgDwellTime: 0,
+      stockRemaining: null,
+      stockCapacity: null,
+      peakHour: null,
+      snapshotCount: 1,
+    });
+    supabase.setTableResponse("post_play_journeys", {
+      data: JOURNEY,
+      error: null,
+    });
+    supabase.setTableResponse("journey_touches", { data: null, error: null });
+
+    const { sendPostPlayJourney } = await import("./journeys");
+    await sendPostPlayJourney(LEAD);
+
+    const payload = emailSend.mock.calls[0]![0] as unknown as { html: string };
+    expect(payload.html).not.toContain("FOR THE ORGANISER IN THE ROOM");
   });
 });
 

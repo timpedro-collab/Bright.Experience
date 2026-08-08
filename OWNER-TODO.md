@@ -132,6 +132,30 @@ access needed. Two things are still on you:
   one. It's the standard magic-link invite and lands them on set-password, then
   their show portal — worth reading once as a stranger would.
 
+## Operational playbook (from the 7 Aug exceptional-experience build)
+
+These are habits, not features — the software surfaces exist, but only the
+team can perform them.
+
+- [ ] **"The report beats the client back to the office."** The reports cron
+  now runs a second pass at 18:00 UTC, so a draft report exists on the evening
+  of the event's final day. Make it the delivery lead's wrap ritual: review
+  the draft and hit publish before leaving the venue (or first thing next
+  morning at the latest). A client who lands at their desk to find their
+  results already waiting tells that story for you — a report that arrives
+  three days later is just an attachment.
+- [ ] **On-machine QR placement.** The event workspace generates a printable
+  QR asset for the live-proof page. It only works if the crew actually mounts
+  it on or beside the machine at load-in — add it to the physical load-out
+  checklist.
+- [ ] **No cash-for-referral payments — ever.** When customers, venues or
+  organizers send business our way, the thank-you is in kind: priority
+  booking windows, an upgraded package element, an extra content capture, a
+  genuinely good gift. Cash referral fees turn advocates into commission
+  agents and poison the story they tell ("they pay me to say this"). The
+  attribution stats in the portal exist to *recognise* referrers, not to run
+  a bounty programme.
+
 ## Dev-team handover
 
 - [ ] **Point the incoming dev team at `docs/13-dev-handover-priorities.md`**

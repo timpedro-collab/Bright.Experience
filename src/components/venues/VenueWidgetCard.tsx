@@ -70,9 +70,15 @@ export function VenueWidgetCard({
         See open slots
       </a>
 
-      <p className="mt-4 text-[0.65rem] text-muted-foreground">
-        Powered by Bright.Experience
-      </p>
+      {/* An invitation, not a credit — the reader may be the next buyer. */}
+      <a
+        href="/book?utm_source=venue_widget&utm_medium=referral&utm_campaign=invitation"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="mt-4 block text-[0.65rem] text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+      >
+        Want results like this at your event? →
+      </a>
     </div>
   );
 }
