@@ -14,6 +14,7 @@
  * plan, and RLS reflects that. What they can act on is derived from the
  * machines, configurations and slots they already own.
  */
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import {
@@ -70,6 +71,7 @@ import {
   daysToDoors,
 } from "@/lib/metrics/show-schedule";
 import type { MachineMission } from "@/types";
+import { entityTitle, getEventNameForTitle } from "@/lib/queries/page-titles";
 
 interface Props {
   params: Promise<{ slug: string; eventId: string }>;
@@ -78,6 +80,15 @@ interface Props {
 function firstRelation(value: unknown): Record<string, unknown> | null {
   if (Array.isArray(value)) return (value[0] as Record<string, unknown>) ?? null;
   return (value as Record<string, unknown>) ?? null;
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string; eventId: string }>;
+}): Promise<Metadata> {
+  const { eventId } = await params;
+  return { title: entityTitle("Show", await getEventNameForTitle(eventId)) };
 }
 
 export default async function ShowCommandPage({ params }: Props) {

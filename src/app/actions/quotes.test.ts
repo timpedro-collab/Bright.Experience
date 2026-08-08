@@ -286,6 +286,47 @@ describe("submitProposalIntake", () => {
     // Action still succeeds because the email is fire-and-forget
     expect(result.success).toBe(true);
   });
+
+  it("persists the campaign name and planning month on the quote", async () => {
+    supabase.setTableResponse("quotes", { data: { id: "q1" }, error: null });
+    const { submitProposalIntake } = await import("./quotes");
+    const result = await withClientIp("10.9.0.1", () =>
+      submitProposalIntake({
+        eventType: "trade-show",
+        contactName: "Casey",
+        contactEmail: "casey@acme.test",
+        campaignName: "  Spring launch roadshow  ",
+        planningMonth: "2027-01",
+      })
+    );
+    expect(result.success).toBe(true);
+    const insert = supabase
+      .callsFor("quotes")
+      .find((c) => c.method === "insert");
+    const row = insert!.args[0] as Record<string, unknown>;
+    expect(row.campaign_name).toBe("Spring launch roadshow");
+    expect(row.planning_month).toBe("2027-01");
+  });
+
+  it("drops a malformed planning month rather than storing junk", async () => {
+    supabase.setTableResponse("quotes", { data: { id: "q1" }, error: null });
+    const { submitProposalIntake } = await import("./quotes");
+    const result = await withClientIp("10.9.0.2", () =>
+      submitProposalIntake({
+        eventType: "trade-show",
+        contactName: "Casey",
+        contactEmail: "casey@acme.test",
+        planningMonth: "January next year",
+      })
+    );
+    expect(result.success).toBe(true);
+    const insert = supabase
+      .callsFor("quotes")
+      .find((c) => c.method === "insert");
+    const row = insert!.args[0] as Record<string, unknown>;
+    expect(row.planning_month).toBeNull();
+    expect(row.campaign_name).toBeNull();
+  });
 });
 
 describe("updateQuoteCapabilities", () => {

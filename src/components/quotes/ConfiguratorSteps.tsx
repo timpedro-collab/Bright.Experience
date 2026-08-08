@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import { formatMoneyFromPence } from "@/lib/currency";
+import { spellDateRange } from "@/lib/date-confirm";
 import type {
   AddonForConfig,
   GameForConfig,
@@ -151,31 +152,41 @@ export function DateStep({
   onChangeStart,
   onChangeEnd,
 }: DateStepProps) {
+  const spelled = spellDateRange(dateStart, dateEnd);
   return (
     <Card>
       <CardHeader>
         <CardTitle>When&apos;s the event?</CardTitle>
       </CardHeader>
-      <CardContent className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="dateStart">Start date *</Label>
-          <Input
-            id="dateStart"
-            type="date"
-            value={dateStart}
-            onChange={(e) => onChangeStart(e.target.value)}
-            required
-          />
+      <CardContent className="space-y-4">
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="dateStart">Start date *</Label>
+            <Input
+              id="dateStart"
+              type="date"
+              value={dateStart}
+              onChange={(e) => onChangeStart(e.target.value)}
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="dateEnd">End date</Label>
+            <Input
+              id="dateEnd"
+              type="date"
+              value={dateEnd}
+              onChange={(e) => onChangeEnd(e.target.value)}
+            />
+          </div>
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="dateEnd">End date</Label>
-          <Input
-            id="dateEnd"
-            type="date"
-            value={dateEnd}
-            onChange={(e) => onChangeEnd(e.target.value)}
-          />
-        </div>
+        {/* Locale-proof echo: the native picker displays in the browser's
+            format, so the parsed date is confirmed back in words. */}
+        {spelled && (
+          <p className="text-sm text-muted-foreground" aria-live="polite">
+            Your event: <span className="font-medium text-foreground">{spelled}</span>
+          </p>
+        )}
       </CardContent>
     </Card>
   );

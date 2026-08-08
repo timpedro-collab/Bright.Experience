@@ -5,6 +5,7 @@ import { createMockSupabase, type MockSupabase } from "@/test/supabase";
 
 let supabase: MockSupabase;
 const requireInternalUser = vi.fn();
+const dispatchNotification = vi.fn();
 
 vi.mock("@/lib/auth", () => ({
   requireInternalUser: (...args: unknown[]) => requireInternalUser(...args),
@@ -12,14 +13,19 @@ vi.mock("@/lib/auth", () => ({
 vi.mock("@/lib/supabase/service-role", () => ({
   getServiceRoleClient: () => supabase,
 }));
+vi.mock("@/lib/notifications/dispatch", () => ({
+  dispatchNotification: (...args: unknown[]) => dispatchNotification(...args),
+}));
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 
 beforeEach(() => {
   supabase = createMockSupabase();
   requireInternalUser.mockReset().mockResolvedValue({
     supabase,
+    user: { id: "u1" },
     profile: { id: "u1", role: "events_lead" },
   });
+  dispatchNotification.mockReset().mockResolvedValue([]);
 });
 
 describe("updateBenchmarks", () => {
@@ -161,6 +167,7 @@ describe("updateBenchmarks", () => {
   it("refuses non-commercial roles", async () => {
     requireInternalUser.mockResolvedValue({
       supabase,
+      user: { id: "u2" },
       profile: { id: "u2", role: "creative_lead" },
     });
 
@@ -175,6 +182,40 @@ describe("updateBenchmarks", () => {
 });
 
 describe("publishReport", () => {
+  it("dispatches report.published to the customer on success", async () => {
+    supabase.setTableResponse("event_reports", {
+      data: { event_id: "evt-1", events: { name: "Spring Launch" } },
+      error: null,
+    });
+
+    const { publishReport } = await import("./reports");
+    const result = await publishReport("rep-1");
+
+    expect(result.success).toBe(true);
+    expect(dispatchNotification).toHaveBeenCalledWith(
+      "report.published",
+      expect.objectContaining({
+        eventId: "evt-1",
+        eventName: "Spring Launch",
+        entityType: "event_report",
+        entityId: "rep-1",
+      })
+    );
+  });
+
+  it("does not dispatch a notification when the publish fails", async () => {
+    supabase.setTableResponse("event_reports", {
+      data: null,
+      error: { message: "row not found" },
+    });
+
+    const { publishReport } = await import("./reports");
+    const result = await publishReport("rep-1");
+
+    expect(result.success).toBe(false);
+    expect(dispatchNotification).not.toHaveBeenCalled();
+  });
+
   it("sets brand_partner_id when a partner id is supplied", async () => {
     supabase.setTableResponse("event_reports", {
       data: { event_id: "evt-1" },
@@ -224,5 +265,77 @@ describe("publishReport", () => {
       .callsFor("event_reports")
       .find((call) => call.method === "update");
     expect(update?.args[0]).not.toHaveProperty("brand_partner_id");
+  });
+
+  it("stores a trimmed personal note signed with the publisher's name", async () => {
+    supabase.setTableResponse("event_reports", {
+      data: { event_id: "evt-1" },
+      error: null,
+    });
+    supabase.setTableResponse("profiles", {
+      data: { name: "Tim Pedro" },
+      error: null,
+    });
+
+    const { publishReport } = await import("./reports");
+    await publishReport("rep-1", { personalNote: "  Day two's queue said it all.  " });
+
+    const update = supabase
+      .callsFor("event_reports")
+      .find((call) => call.method === "update");
+    expect(update?.args[0]).toMatchObject({
+      personal_note: "Day two's queue said it all.",
+      personal_note_author: "Tim Pedro",
+    });
+  });
+
+  it("leaves the note columns untouched when no note is written", async () => {
+    supabase.setTableResponse("event_reports", {
+      data: { event_id: "evt-1" },
+      error: null,
+    });
+
+    const { publishReport } = await import("./reports");
+    await publishReport("rep-1", { personalNote: "   " });
+
+    const update = supabase
+      .callsFor("event_reports")
+      .find((call) => call.method === "update");
+    expect(update?.args[0]).not.toHaveProperty("personal_note");
+  });
+
+  it("warns the publisher when no invoice has been issued for the event", async () => {
+    supabase.setTableResponse("event_reports", {
+      data: { event_id: "evt-1" },
+      error: null,
+    });
+    supabase.setTableResponse("invoices", { data: [], error: null });
+
+    const { publishReport } = await import("./reports");
+    const result = await publishReport("rep-1");
+
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.invoiceWarning).toMatch(/invoice/i);
+    }
+  });
+
+  it("does not warn when an invoice is already issued", async () => {
+    supabase.setTableResponse("event_reports", {
+      data: { event_id: "evt-1" },
+      error: null,
+    });
+    supabase.setTableResponse("invoices", {
+      data: [{ id: "inv-1", status: "issued" }],
+      error: null,
+    });
+
+    const { publishReport } = await import("./reports");
+    const result = await publishReport("rep-1");
+
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.invoiceWarning).toBeUndefined();
+    }
   });
 });

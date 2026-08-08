@@ -17,6 +17,10 @@ export interface EventReport {
   generatedAt: string;
   isPublished: boolean;
   publishedAt?: string;
+  /** Optional hand-written note from the delivery lead, set at publish time. */
+  personalNote?: string;
+  /** Display name of whoever wrote the personal note. */
+  personalNoteAuthor?: string;
   createdAt: string;
   updatedAt: string;
 }

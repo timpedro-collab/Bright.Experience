@@ -8,6 +8,10 @@ import { getAccountOptions } from "@/lib/queries/admin";
 import { getUnreadCount } from "@/lib/queries/notifications";
 import { InviteForm } from "./InviteForm";
 
+export const metadata = {
+  title: "Invites",
+};
+
 export default async function AdminInvitesPage() {
   const user = await getUser();
   if (!user) redirect("/login");

@@ -322,6 +322,8 @@ Quote {
   machine_preference string?
   creative_needs    enum               // full_service | enhancements | none
   budget_indication enum?              // range bucket (optional)
+  campaign_name     string?            // customer's own campaign name — flows into the event name + report headline
+  planning_month    string?            // 'YYYY-MM' — when they plan next year; drives the planning-season report re-send
   
   // Proposal data (filled by internal team for Track 2)
   base_price        decimal?

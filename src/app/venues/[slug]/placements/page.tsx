@@ -1,4 +1,5 @@
 /** Placement management page — calendar view and placement board with create + status controls. */
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { PortalPageShell, venueTabs, venueRoleLabel } from "@/components/brand";
 import { getUser } from "@/lib/auth";
@@ -9,9 +10,19 @@ import { getUnreadCount } from "@/lib/queries/notifications";
 import { PlacementCalendar } from "@/components/venues/PlacementCalendar";
 import { VenuePlacementBoard } from "@/components/venues/VenuePlacementBoard";
 import { parseRevenueModel } from "@/lib/venues/revenue-model";
+import { entityTitle, getVenueNameForTitle } from "@/lib/queries/page-titles";
 
 interface Props {
   params: Promise<{ slug: string }>;
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  return { title: entityTitle("Placements", await getVenueNameForTitle(slug)) };
 }
 
 export default async function PlacementsPage({ params }: Props) {

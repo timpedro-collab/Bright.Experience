@@ -2,17 +2,28 @@
  * Print-optimised live dashboard — snapshot of current metrics for PDF export.
  * White background, no navigation chrome, A4 landscape layout.
  */
+import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 
 import { HourlyChart } from "@/components/telemetry/HourlyChart";
 import { hourlyCurveFromTotal } from "@/lib/metrics/drivers";
 import { getEventById } from "@/lib/queries/events";
-import { getLatestEventMetrics } from "@/lib/queries/event-metrics";
+import { getEventMetricTotals } from "@/lib/queries/event-metrics";
 import { getMachineInstanceSummariesByEvent } from "@/lib/queries/machine-instances";
 import { getTelemetryInRange } from "@/lib/queries/telemetry";
 import { getUser } from "@/lib/auth";
 import { canViewSection } from "@/lib/event-access";
 import { Activity, Users, Gift, Clock } from "lucide-react";
+import { entityTitle, getEventNameForTitle } from "@/lib/queries/page-titles";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  return { title: entityTitle("Live print", await getEventNameForTitle(id)) };
+}
 
 export default async function LivePrintPage({
   params,
@@ -34,7 +45,7 @@ export default async function LivePrintPage({
   const endOfDay = `${today}T23:59:59.999Z`;
 
   const [metrics, machines, rawHourly] = await Promise.all([
-    getLatestEventMetrics(id),
+    getEventMetricTotals(id),
     getMachineInstanceSummariesByEvent(id),
     getTelemetryInRange(id, startOfDay, endOfDay),
   ]);
@@ -56,11 +67,8 @@ export default async function LivePrintPage({
   // Fall back to a snapshot-derived curve when no same-day raw telemetry exists
   // (completed events), so the printed report still shows a time-of-day chart.
   const hasHourlyData = hourly.some((h) => h.plays > 0 || h.leads > 0);
-  if (!hasHourlyData && metrics && Number(metrics.total_plays) > 0) {
-    hourly = hourlyCurveFromTotal(
-      Number(metrics.total_plays),
-      Number(metrics.peak_hour ?? 14),
-    );
+  if (!hasHourlyData && metrics && metrics.totalPlays > 0) {
+    hourly = hourlyCurveFromTotal(metrics.totalPlays, metrics.peakHour ?? 14);
   }
 
   const dateStr = new Date().toLocaleDateString("en-US", {
@@ -74,10 +82,14 @@ export default async function LivePrintPage({
   });
 
   const kpis = [
-    { icon: Activity, label: "Total plays", value: metrics?.total_plays ?? 0 },
-    { icon: Users, label: "Total leads", value: metrics?.total_leads ?? 0 },
-    { icon: Gift, label: "Prizes won", value: metrics?.total_prizes ?? 0 },
-    { icon: Clock, label: "Avg dwell (s)", value: metrics?.avg_dwell_time ?? 0 },
+    { icon: Activity, label: "Total plays", value: metrics?.totalPlays ?? 0 },
+    { icon: Users, label: "Total leads", value: metrics?.totalLeads ?? 0 },
+    { icon: Gift, label: "Prizes won", value: metrics?.totalPrizes ?? 0 },
+    {
+      icon: Clock,
+      label: "Avg dwell (s)",
+      value: Math.round(metrics?.avgDwellTime ?? 0),
+    },
   ];
 
   return (

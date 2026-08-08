@@ -130,10 +130,13 @@ const ROLE_SECTIONS: Partial<Record<UserRole, EventSection[]>> = {
   // Operations Lead: the physical-delivery lane only — what the customer
   // inputted (product mix / prize config), the delivery details (dates,
   // slots, location, onsite contact), the machine build, compliance, and
-  // QA readiness. NO creative surfaces (briefing/assets/approvals): ops
-  // doesn't act on creative, so it isn't shown.
+  // QA readiness. Tasks are included because ops own work items whose
+  // deep-links land on /events/[id]/actions. NO creative surfaces
+  // (briefing/assets/approvals): ops doesn't act on creative, so it isn't
+  // shown.
   operations_lead: [
     "overview",
+    "actions",
     "logistics",
     "configuration",
     "machine",

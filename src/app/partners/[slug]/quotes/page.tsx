@@ -1,4 +1,5 @@
 /** Partner quote pipeline — open proposals to chase and the ones you've won. */
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { FileText } from "lucide-react";
 
@@ -11,9 +12,19 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PartnerQuoteForm } from "@/components/partners/PartnerQuoteForm";
 import { PartnerDealList } from "@/components/partners/PartnerPipeline";
+import { entityTitle, getPartnerNameForTitle } from "@/lib/queries/page-titles";
 
 interface QuotesPageProps {
   params: Promise<{ slug: string }>;
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  return { title: entityTitle("Quotes", await getPartnerNameForTitle(slug)) };
 }
 
 export default async function PartnerQuotesPage({ params }: QuotesPageProps) {

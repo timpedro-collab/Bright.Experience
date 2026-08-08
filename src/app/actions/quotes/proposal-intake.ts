@@ -28,6 +28,10 @@ import { PARTNER_ATTRIBUTION_COOKIE } from "./constants";
 export async function submitProposalIntake(data: {
   eventType: string;
   objective?: string;
+  /** Customer's own name for the campaign — flows into the event + report. */
+  campaignName?: string;
+  /** 'YYYY-MM' — when the customer plans next year's events (2.H nudge). */
+  planningMonth?: string;
   venueName?: string;
   postcode?: string;
   eventDateStart?: string;
@@ -107,6 +111,11 @@ export async function submitProposalIntake(data: {
       status: "submitted",
       event_type: data.eventType,
       objective: data.objective ?? null,
+      campaign_name: data.campaignName?.trim() || null,
+      // Only persist a well-formed 'YYYY-MM' — anything else is dropped.
+      planning_month: /^\d{4}-\d{2}$/.test(data.planningMonth ?? "")
+        ? data.planningMonth
+        : null,
       venue_name: data.venueName ?? null,
       postcode: data.postcode ?? null,
       event_date_start: data.eventDateStart ?? null,

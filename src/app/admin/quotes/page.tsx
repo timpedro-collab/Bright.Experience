@@ -15,6 +15,10 @@ interface QuotesPageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
+export const metadata = {
+  title: "Quote queue",
+};
+
 export default async function QuotesPage({ searchParams }: QuotesPageProps) {
   const user = await getUser();
   if (!user) redirect("/login");

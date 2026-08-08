@@ -43,6 +43,8 @@ const STEP_LABELS = [
 interface IntakeFormData {
   eventType: string;
   objective: string;
+  campaignName: string;
+  planningMonth: string;
   venueName: string;
   postcode: string;
   eventDateStart: string;
@@ -84,6 +86,8 @@ function makeInitial(searchParams: URLSearchParams): IntakeFormData {
   return {
     eventType: prefill.eventType,
     objective: prefill.objective,
+    campaignName: "",
+    planningMonth: "",
     // For experiential, the quiz already named the site — pre-fill the venue.
     venueName: locationName,
     postcode: "",
@@ -251,6 +255,7 @@ export function IntakeWizard() {
         <IntakeStepEvent
           selectedAddons={addons}
           objective={data.objective}
+          campaignName={data.campaignName}
           onToggleAddon={toggleAddon}
           onChange={handleChange}
         />
@@ -287,6 +292,7 @@ export function IntakeWizard() {
           contactEmail={data.contactEmail}
           contactPhone={data.contactPhone}
           companyName={data.companyName}
+          planningMonth={data.planningMonth}
           onChange={handleChange}
         />
       )}

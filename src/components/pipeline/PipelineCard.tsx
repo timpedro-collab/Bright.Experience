@@ -1,6 +1,6 @@
 /** Single kanban card for an event in the pipeline board. */
 import Link from "next/link";
-import { HealthBadge } from "@/components/ui/StatusBadge";
+import { EventHealthBadge } from "@/components/ui/StatusBadge";
 import type { PipelineEvent } from "@/lib/queries/pipeline";
 import { daysUntilDate } from "@/lib/dates";
 
@@ -42,7 +42,7 @@ export function PipelineCard({ event }: { event: PipelineEvent }) {
         {event.accountName}
       </p>
       <div className="flex items-center justify-between gap-2">
-        <HealthBadge status={event.healthStatus} />
+        <EventHealthBadge event={event} />
         <span className="text-overline text-muted-foreground tabular-nums whitespace-nowrap">
           {daysLabel(event.eventDateStart)}
         </span>

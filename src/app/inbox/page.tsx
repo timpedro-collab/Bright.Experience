@@ -50,7 +50,7 @@ import { Pagination } from "@/components/ui/Pagination";
 import type { TaskCategory } from "@/types";
 
 export const metadata = {
-  title: "Inbox · Bright.Experience",
+  title: "Inbox",
 };
 
 const ALL_CATEGORIES: TaskCategory[] = [

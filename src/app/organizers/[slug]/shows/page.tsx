@@ -7,6 +7,7 @@
  * Anything needing the organizer's attention is named on the card rather than
  * left for them to find by opening each show in turn.
  */
+import type { Metadata } from "next";
 import Link from "next/link";
 import {
   CalendarDays,
@@ -41,6 +42,7 @@ import { formatDateShort } from "@/lib/dates";
 import { formatMoneyFromPence } from "@/lib/currency";
 import { cn } from "@/lib/utils";
 import { STAGE_CONFIG, type Stage } from "@/types";
+import { entityTitle, getPartnerNameForTitle } from "@/lib/queries/page-titles";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -50,6 +52,15 @@ interface Props {
 function isUpcoming(show: { eventDateEnd: string | null; eventDateStart: string }): boolean {
   const end = new Date(show.eventDateEnd ?? show.eventDateStart);
   return end.getTime() >= new Date().setHours(0, 0, 0, 0);
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  return { title: entityTitle("Shows", await getPartnerNameForTitle(slug)) };
 }
 
 export default async function OrganizerShowsPage({ params }: Props) {

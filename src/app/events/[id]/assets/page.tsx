@@ -1,5 +1,6 @@
 /** Customer asset review — every asset the customer needs to upload or approve. */
 
+import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { Upload } from "lucide-react";
 
@@ -22,6 +23,16 @@ import { getUser } from "@/lib/auth";
 import { isInternalRole, canReviewCreativeAssets } from "@/lib/roles";
 import { canViewSection } from "@/lib/event-access";
 import { resolveMachineSlugForEvent } from "@/lib/asset-requirements/machine-placements";
+import { entityTitle, getEventNameForTitle } from "@/lib/queries/page-titles";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  return { title: entityTitle("Assets", await getEventNameForTitle(id)) };
+}
 
 export default async function AssetsPage({
   params,

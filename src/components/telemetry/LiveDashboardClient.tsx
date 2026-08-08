@@ -20,6 +20,7 @@ import { EditorialEyebrow, Hairline } from "@/components/brand";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import type { LiveStatus } from "@/lib/live-status";
 import { Radio } from "lucide-react";
 
 const POLL_INTERVAL_MS = 10_000;
@@ -70,6 +71,7 @@ interface LiveData {
 
 interface LiveDashboardClientProps {
   eventId: string;
+  liveStatus: LiveStatus;
   initialMetrics: Metrics;
   initialHourly: HourlyPoint[];
   initialFeed: FeedItem[];
@@ -79,6 +81,7 @@ interface LiveDashboardClientProps {
 
 export function LiveDashboardClient({
   eventId,
+  liveStatus,
   initialMetrics,
   initialHourly,
   initialFeed,
@@ -93,7 +96,9 @@ export function LiveDashboardClient({
   const [breakdown, setBreakdown] = useState<MachineBreakdown[]>([]);
   const [zones, setZones] = useState<ZoneBreakdown[]>([]);
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
-  const [isPolling, setIsPolling] = useState(true);
+  // Ended events show final totals — no polling loop, no "Live" chrome.
+  const ended = liveStatus.state === "ended";
+  const [isPolling, setIsPolling] = useState(!ended);
   const [source, setSource] = useState<string>("local");
   const [selectedMachineId, setSelectedMachineId] = useState<string | null>(null);
 
@@ -177,6 +182,8 @@ export function LiveDashboardClient({
     machines.length === 0 ||
     machines.every((m) => m.status === "offline" || m.status === "disconnected");
   const showWaiting = allZero && noMachinesConnected;
+  const showHourlyChart =
+    liveStatus.state === "live" || liveStatus.state === "standby";
 
   return (
     <>
@@ -194,38 +201,42 @@ export function LiveDashboardClient({
 
       <section className="py-8">
         <div className="flex items-center justify-between mb-4">
-          <EditorialEyebrow accent>Right now</EditorialEyebrow>
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setIsPolling((p) => !p)}
-              className={cn(
-                "flex items-center gap-1.5 text-xs transition-colors",
-                isPolling
-                  ? "text-success"
-                  : "text-muted-foreground hover:text-foreground"
+          <EditorialEyebrow accent>
+            {ended ? "The final numbers" : "Right now"}
+          </EditorialEyebrow>
+          {!ended && (
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setIsPolling((p) => !p)}
+                className={cn(
+                  "flex items-center gap-1.5 text-xs transition-colors",
+                  isPolling
+                    ? "text-success"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                <RefreshCw
+                  size={12}
+                  className={isPolling ? "animate-spin" : ""}
+                  style={isPolling ? { animationDuration: "3s" } : undefined}
+                />
+                {isPolling ? "Live" : "Paused"}
+              </button>
+              {source === "cloud" && (
+                <Badge variant="outline" className="text-[0.6rem] gap-1">
+                  <span className="size-1.5 rounded-full bg-cyan-400" />
+                  Cloud
+                </Badge>
               )}
-            >
-              <RefreshCw
-                size={12}
-                className={isPolling ? "animate-spin" : ""}
-                style={isPolling ? { animationDuration: "3s" } : undefined}
-              />
-              {isPolling ? "Live" : "Paused"}
-            </button>
-            {source === "cloud" && (
-              <Badge variant="outline" className="text-[0.6rem] gap-1">
-                <span className="size-1.5 rounded-full bg-cyan-400" />
-                Cloud
-              </Badge>
-            )}
-            <span className="text-xs text-muted-foreground tabular-nums">
-              {freshness}
-            </span>
-          </div>
+              <span className="text-xs text-muted-foreground tabular-nums">
+                {freshness}
+              </span>
+            </div>
+          )}
         </div>
         {/* Screen readers hear the totals once per poll, not every tick. */}
         <p aria-live="polite" className="sr-only">
-          {`Live totals: ${metrics.total_plays} plays, ${metrics.total_leads} leads, ${metrics.total_prizes} prizes won.`}
+          {`${ended ? "Final" : "Live"} totals: ${metrics.total_plays} plays, ${metrics.total_leads} leads, ${metrics.total_prizes} prizes won.`}
         </p>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <LiveCounter
@@ -281,14 +292,18 @@ export function LiveDashboardClient({
         </>
       )}
 
-      <Hairline className="opacity-60" />
+      {showHourlyChart ? (
+        <>
+          <Hairline className="opacity-60" />
 
-      <section className="py-8">
-        <EditorialEyebrow>By the hour</EditorialEyebrow>
-        <div className="mt-4">
-          <HourlyChart data={hourly} />
-        </div>
-      </section>
+          <section className="py-8">
+            <EditorialEyebrow>By the hour</EditorialEyebrow>
+            <div className="mt-4">
+              <HourlyChart data={hourly} />
+            </div>
+          </section>
+        </>
+      ) : null}
 
       <Hairline className="opacity-60" />
 

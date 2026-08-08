@@ -13,6 +13,10 @@ import { getUser } from "@/lib/auth";
 import { canViewCommercial } from "@/lib/roles";
 import { getUnreadCount } from "@/lib/queries/notifications";
 
+export const metadata = {
+  title: "Templates",
+};
+
 export default async function TemplatesPage() {
   const user = await getUser();
   if (!user) redirect("/login");

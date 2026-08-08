@@ -55,7 +55,37 @@ describe("PublishReportBanner", () => {
     await waitFor(() =>
       expect(publishReport).toHaveBeenCalledWith("rep-1", {
         brandPartnerId: null,
+        personalNote: null,
       }),
     );
+  });
+
+  it("sends the personal note along with the publish", async () => {
+    const user = userEvent.setup();
+    render(<PublishReportBanner reportId="rep-1" />);
+
+    await user.type(
+      screen.getByLabelText(/personal note/i),
+      "Day two's queue said it all.",
+    );
+    await user.click(
+      screen.getByRole("button", { name: /review & publish/i }),
+    );
+
+    await waitFor(() =>
+      expect(publishReport).toHaveBeenCalledWith("rep-1", {
+        personalNote: "Day two's queue said it all.",
+      }),
+    );
+  });
+
+  it("nudges the publisher to invoice first when none has been issued", () => {
+    render(<PublishReportBanner reportId="rep-1" invoiceIssued={false} />);
+    expect(screen.getByText(/no invoice issued/i)).toBeInTheDocument();
+  });
+
+  it("shows no invoice nudge by default", () => {
+    render(<PublishReportBanner reportId="rep-1" />);
+    expect(screen.queryByText(/no invoice issued/i)).not.toBeInTheDocument();
   });
 });

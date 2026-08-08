@@ -9,6 +9,7 @@ import {
   formatEngagedMinutes,
   costPerEngagedMinutePence,
 } from "@/lib/metrics/engaged-minutes";
+import { cn } from "@/lib/utils";
 
 interface ExecutiveSummaryProps {
   totalPlays: number;
@@ -50,7 +51,7 @@ export function ExecutiveSummary({
       sub: formatEngagedMinutes(minutes),
     });
   }
-  if (cpl != null) {
+  if (cpl != null && totalCostPence > 0 && totalLeads > 0) {
     stats.push({
       label: "Cost per lead",
       value: formatPence(cpl),
@@ -70,7 +71,14 @@ export function ExecutiveSummary({
   return (
     <Card className="border-primary/20 bg-primary/[0.03]">
       <CardContent className="pt-6">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <div
+          className={cn(
+            "grid gap-6",
+            stats.length === 1 && "grid-cols-1",
+            stats.length === 2 && "grid-cols-1 sm:grid-cols-2",
+            stats.length >= 3 && "grid-cols-1 sm:grid-cols-3",
+          )}
+        >
           {stats.map((stat) => (
             <div key={stat.label}>
               <p className="text-xs uppercase tracking-wide text-muted-foreground">

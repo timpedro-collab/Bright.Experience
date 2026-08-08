@@ -25,6 +25,15 @@ function formatLabel(key: string): string {
   return key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
+function formatVenueClass(tier?: string | null): string {
+  if (!tier) return "All";
+  return tier.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+export const metadata = {
+  title: "Benchmarks",
+};
+
 export default async function BenchmarksPage() {
   const user = await getUser();
   if (!user) redirect("/login");
@@ -82,6 +91,7 @@ export default async function BenchmarksPage() {
                     <TableHeader>
                       <TableRow>
                         <TableHead>Machine</TableHead>
+                        <TableHead>Venue class</TableHead>
                         <TableHead>Game</TableHead>
                         <TableHead>Metric</TableHead>
                         <TableHead className="text-right">Average</TableHead>
@@ -94,6 +104,9 @@ export default async function BenchmarksPage() {
                         <TableRow key={b.id}>
                           <TableCell>{b.machineType ?? "All"}</TableCell>
                           <TableCell className="text-muted-foreground">
+                            {formatVenueClass(b.locationTier)}
+                          </TableCell>
+                          <TableCell className="text-muted-foreground">
                             {b.gameType ?? "All"}
                           </TableCell>
                           <TableCell className="font-medium">
@@ -101,12 +114,12 @@ export default async function BenchmarksPage() {
                           </TableCell>
                           <TableCell className="text-right tabular-nums">
                             {b.avgValue != null
-                              ? b.avgValue.toLocaleString("en-US")
+                              ? b.avgValue.toLocaleString("en-GB")
                               : "—"}
                           </TableCell>
                           <TableCell className="text-right tabular-nums text-muted-foreground">
                             {b.medianValue != null
-                              ? b.medianValue.toLocaleString("en-US")
+                              ? b.medianValue.toLocaleString("en-GB")
                               : "—"}
                           </TableCell>
                           <TableCell className="text-right tabular-nums text-muted-foreground">

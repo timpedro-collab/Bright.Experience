@@ -23,7 +23,7 @@ import { PipedriveSetupForm } from "@/components/admin/PipedriveSetupForm";
 import { PipedriveOutboxTail } from "@/components/admin/PipedriveOutboxTail";
 
 export const metadata = {
-  title: "Pipedrive integration · Bright.Experience",
+  title: "Pipedrive integration",
 };
 
 export type OutboxEntry = PipedriveOutboxEntry;

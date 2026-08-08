@@ -1,4 +1,5 @@
 /** Venue operator earnings — revenue share and booked sponsorship revenue. */
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Ticket, Wallet } from "lucide-react";
@@ -15,9 +16,19 @@ import { getVenueBySlug } from "@/lib/queries/venues";
 import { getEarningsByVenue } from "@/lib/queries/venue-earnings";
 import { getUnreadCount } from "@/lib/queries/notifications";
 import { formatMoneyFromPence } from "@/lib/currency";
+import { entityTitle, getVenueNameForTitle } from "@/lib/queries/page-titles";
 
 interface Props {
   params: Promise<{ slug: string }>;
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  return { title: entityTitle("Earnings", await getVenueNameForTitle(slug)) };
 }
 
 export default async function VenueEarningsPage({ params }: Props) {

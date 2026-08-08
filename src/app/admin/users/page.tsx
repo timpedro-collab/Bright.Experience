@@ -17,6 +17,10 @@ interface UsersPageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
+export const metadata = {
+  title: "Users",
+};
+
 export default async function AdminUsersPage({ searchParams }: UsersPageProps) {
   const user = await getUser();
   if (!user) redirect("/login");

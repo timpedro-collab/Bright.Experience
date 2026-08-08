@@ -9,6 +9,10 @@ import { canViewCreativeProduct } from "@/lib/roles";
 import { getAllPackages, getAllMachines } from "@/lib/queries/admin-catalog";
 import { getUnreadCount } from "@/lib/queries/notifications";
 
+export const metadata = {
+  title: "Pricing packages",
+};
+
 export default async function PackagesAdminPage() {
   const user = await getUser();
   if (!user) redirect("/login");

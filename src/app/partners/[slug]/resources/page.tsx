@@ -1,10 +1,12 @@
 /** Partner sales collateral and resources library */
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getUser } from "@/lib/auth";
 import { getPartnerForUser } from "@/lib/queries/partners";
 import { getUnreadCount } from "@/lib/queries/notifications";
 import { PortalPageShell, partnerTabs } from "@/components/brand";
 import { PartnerResourceCard } from "@/components/partners/PartnerResourceCard";
+import { entityTitle, getPartnerNameForTitle } from "@/lib/queries/page-titles";
 
 interface ResourcesPageProps {
   params: Promise<{ slug: string }>;
@@ -57,6 +59,15 @@ const RESOURCES: ResourceItem[] = [
     fileUrl: "/api/partner-resources/demo-reel",
   },
 ];
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  return { title: entityTitle("Resources", await getPartnerNameForTitle(slug)) };
+}
 
 export default async function PartnerResourcesPage({ params }: ResourcesPageProps) {
   const { slug } = await params;

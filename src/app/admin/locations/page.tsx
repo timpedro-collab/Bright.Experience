@@ -15,6 +15,10 @@ interface LocationsPageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
+export const metadata = {
+  title: "Location tiers",
+};
+
 export default async function LocationsPage({ searchParams }: LocationsPageProps) {
   const user = await getUser();
   if (!user) redirect("/login");

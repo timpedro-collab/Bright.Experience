@@ -53,6 +53,7 @@ export type NotificationKind =
   // System lifecycle
   | "booking.provisioned"
   | "report.draft_ready"
+  | "report.published"
   // Invoicing
   | "invoice.overdue"
   // Compliance
@@ -63,11 +64,13 @@ export type NotificationKind =
   | "deadline.escalation"
   // Reporting
   | "report.scheduled_export_ready"
+  | "report.planning_resend"
   // Time-driven
   | "event.t_minus_30"
   | "event.t_minus_14"
   | "event.t_minus_7"
-  | "event.t_minus_3";
+  | "event.t_minus_3"
+  | "event.post_wrap_rebook";
 
 /** Slug pointing into `../resolve-owners.ts`. */
 export type OwnerResolverKey =

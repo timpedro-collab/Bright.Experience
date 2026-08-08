@@ -1,4 +1,5 @@
 /** Campaign context page — linked campaigns, rebook options, and campaign picker. */
+import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect, notFound } from "next/navigation";
 import { Layers, Plus, MessageSquare } from "lucide-react";
@@ -16,6 +17,7 @@ import { canViewSection } from "@/lib/event-access";
 import { getEventById } from "@/lib/queries/events";
 import { getCampaignsForEvent, getCampaigns } from "@/lib/queries/campaigns";
 import { getUnreadCount } from "@/lib/queries/notifications";
+import { entityTitle, getEventNameForTitle } from "@/lib/queries/page-titles";
 
 const STATUS_VARIANTS: Record<
   string,
@@ -26,6 +28,15 @@ const STATUS_VARIANTS: Record<
   completed: { label: "Completed", variant: "success" },
   archived: { label: "Archived", variant: "muted" },
 };
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  return { title: entityTitle("Campaign", await getEventNameForTitle(id)) };
+}
 
 export default async function EventCampaignPage({
   params,

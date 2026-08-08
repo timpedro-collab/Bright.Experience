@@ -7,6 +7,7 @@
  * page rarely admits — the slot is worth nothing the day after the doors
  * close — so the page is built around the clock, not around the alphabet.
  */
+import type { Metadata } from "next";
 import { Handshake, AlertTriangle } from "lucide-react";
 
 import { PortalPageShell, organizerTabs, organizerRoleLabel } from "@/components/brand";
@@ -29,6 +30,7 @@ import {
   doorsLabel,
 } from "@/lib/metrics/sponsor-book";
 import type { MachineMission } from "@/types";
+import { entityTitle, getPartnerNameForTitle } from "@/lib/queries/page-titles";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -37,6 +39,15 @@ interface Props {
 function first(value: unknown): Record<string, unknown> | null {
   if (Array.isArray(value)) return (value[0] as Record<string, unknown>) ?? null;
   return (value as Record<string, unknown>) ?? null;
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  return { title: entityTitle("Sponsors", await getPartnerNameForTitle(slug)) };
 }
 
 export default async function OrganizerSponsorsPage({ params }: Props) {

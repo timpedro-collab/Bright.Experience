@@ -4,6 +4,154 @@ All notable changes to the Bright.Experience platform are documented here.
 
 ---
 
+## [Customer campaign naming + planning-month report re-send] - 2026-08-08
+
+Experience audit items 2.F and 2.H.
+
+- **Campaign naming (2.F)** — new `quotes.campaign_name` column (migration
+  `20260808000001_campaign_naming_planning_month.sql`). The intake wizard's
+  first step gains an optional "Name your campaign" input
+  (`IntakeStepEvent`), persisted by `submitProposalIntake`.
+  `provisionEventFromQuote` (`src/server/provisioning.ts`) now prefers the
+  campaign name over the generated "{company} — {package}" event name; the
+  report headline already derives from the event name, so the customer's
+  name flows through to the report with no report-side change. New
+  `renameEvent` server action (`src/app/actions/events.ts`, 3–80 chars,
+  customers limited to their own account's events) behind a new inline
+  pencil-edit control on the customer event overview title
+  (`src/components/events/RenameEventControl.tsx`).
+- **Planning-month re-send (2.H)** — new `quotes.planning_month` column
+  ('YYYY-MM', same migration), captured via an optional month input on the
+  intake contact step (`IntakeStepContact`). New lifecycle nudge
+  `nudgePlanningMonthReport` (`src/lib/notifications/reminders/lifecycle.ts`,
+  wired into the daily reminders cron): when a quote's planning month is the
+  current month, its event is complete, and a published report exists, the
+  customer gets the new `report.planning_resend` archetype ("Planning
+  season? Your {event} results, one click away") — once per event, deduped
+  via the notifications table like the sibling nudges.
+- Tests: lifecycle nudge (5 cases), intake field persistence, `renameEvent`
+  RBAC/validation, `RenameEventControl` Testing Library spec, provisioning
+  name preference.
+
+---
+
+## [Admin quality-of-life batch: partner invites, venue creation, live-share move, ops tasks access, API empty state] - 2026-08-08
+
+Five small independent fixes across admin and event surfaces.
+
+- **Generic partner email invites** — new `invitePartnerUser`
+  (`src/app/actions/partner-admin.ts`, admin-gated) clones the organizer
+  invite flow for any partner type; `InvitePartnerUserForm`
+  (`src/components/partners/`) replaces the paste-a-profile-UUID card on
+  `/admin/partners/[id]`. Tests for both.
+- **`createVenue` action + New venue dialog** — the previously dead
+  `createVenueSchema` is now used by `createVenue`
+  (`src/app/actions/venues.ts`, admin-gated), which mints a unique slug and
+  inserts a `venues` row. `NewVenueDialog` on `/admin/partners` (admin-only
+  button) drives it. Action + dialog tests added.
+- **Live share controls moved** — the view-only stakeholder link manager
+  moved from `/events/[id]/stock` to `/events/[id]/live` (below the live
+  dashboard), along with its share-token fetch.
+- **Ops task deep-links fixed** — `operations_lead` now has the `actions`
+  section in `src/lib/event-access.ts`, so their task CTAs to
+  `/events/[id]/actions` no longer bounce.
+- **/admin/api no longer 404s when the public API flag is off** — admins see
+  the page chrome with a "request access" empty state instead; flag-on
+  behaviour unchanged.
+
+---
+
+## [Report-published notification + post-wrap rebook nudge] - 2026-08-08
+
+Two customer-facing notification spine additions.
+
+- **`report.published` archetype** (`catalogue.customer.ts`) — when an
+  internal user publishes a post-event report, `publishReport`
+  (`src/app/actions/reports.ts`) now dispatches "Your results are ready" to
+  the event's customer admins (portal bell + immediate email via the existing
+  dispatcher lanes), deep-linking to `/events/{eventId}/reports`. A failed
+  dispatch never rolls back the publish.
+- **`event.post_wrap_rebook` archetype + cron nudge** — new
+  `nudgePostWrapRebook` in `src/lib/notifications/reminders/lifecycle.ts`
+  (wired into the daily reminders cron) fires once per event, ~14 days after
+  completion (anchored on `event_date_end`, falling back to
+  `event_date_start`), inviting the customer back to their still-live results.
+  De-duplicated via the existing `notifications` row check, same as the
+  t-minus nudges.
+- Tests: `publishReport` dispatch coverage in `reports.test.ts`, catalogue
+  assertions in `archetypes.test.ts`, and a new
+  `reminders/lifecycle.test.ts` covering fires-at-14-days, no-double-send,
+  still-in-delivery, too-recent, and the `event_date_start` fallback.
+
+---
+
+## [Distinct browser-tab titles] - 2026-08-08
+
+Every authenticated page now sets a distinct `<title>`, so multiple open tabs
+are tellable apart. The root layout's `%s · Bright.Experience` template
+appends the brand suffix exactly once.
+
+- **New** `src/lib/queries/page-titles.ts` (+ tests) — React-`cache`d,
+  RLS-scoped name lookups (`events`/`venues`/`partners`, name column only)
+  plus the `entityTitle("Live", name)` → `"Live — <name>"` formatter used by
+  `generateMetadata`. Missing/inaccessible entities fall back to the plain
+  section name.
+- **Dynamic titles** on all 22 `/events/[id]/**` pages ("Live — <event>"),
+  7 `/venues/[slug]/**` pages ("Earnings — <venue>"), all 5
+  `/partners/[slug]/**` pages, and 7 `/organizers/[slug]/**` pages (list
+  pages use the organizer name; show/unit pages use the show name).
+- **Static titles** on `/` ("Home"), `/pipeline`, `/studio`, `/events/new`,
+  and 26 `/admin/**` pages named after their on-screen headings ("Quote
+  queue", "Location tiers", "Game library", …).
+- **Double-suffix fix** — 12 pages hardcoded "· Bright.Experience" inside
+  their title (inbox, notifications, settings ×5, admin ×5), which the layout
+  template doubled; the suffix is stripped so the template applies once.
+- Skipped (cannot export metadata or never render): the five `"use client"`
+  auth/checkout pages, the `/ops` and `/organizers/[slug]` pure redirects,
+  and the public booking confirmation page.
+
+---
+
+## [Exceptional-experience audit] - 2026-08-07
+
+Four parallel deep dives (codebase journey-stitching gap analysis, live
+production friction crawl across four personas, sales/human-psychology
+research, self-promoting product-loop research) synthesized into
+`docs/22-exceptional-experience-audit.md`: a tiered program of trust repairs,
+loop-closing stitches, psychology-driven moments, growth loops, and explicit
+subtractions. No code changes in this entry — the document is the deliverable.
+
+---
+
+## [Housekeeping — performance & security hardening] - 2026-08-07
+
+Advisor-driven hardening pass on the live database, plus a timezone bug fix.
+
+- **Timezone bug in slot fulfilment due dates** — `computeSlotTaskDueDate` in
+  `src/server/slot-fulfilment.ts` built dates at local midnight but formatted
+  them with `toISOString()` (UTC), so every task due date came out one day
+  early in any timezone east of UTC (including the UK in summer). Now formats
+  from local date parts. Audited the rest of the codebase for the same
+  pattern — all other date helpers are UTC-consistent.
+- **Migration `20260807000000_performance_hardening`** (applied to production):
+  covering indexes for all 50 foreign keys the performance advisor flagged as
+  unindexed; rewrote 13 RLS policies to evaluate `auth.uid()` once per
+  statement via a scalar subquery instead of per row; pinned `search_path` on
+  `update_updated_at`; revoked client EXECUTE on `handle_new_auth_user` and
+  `schema_migration_version`.
+- **Leaked-password protection enabled** in Supabase Auth (HaveIBeenPwned
+  check on signup/password change).
+- **Dependency fix** — `npm audit fix` resolved the high-severity `pdfjs-dist`
+  arbitrary-JS-execution advisory (GHSA-hq66-cqwq-w95j); 0 vulnerabilities
+  remain.
+- Advisor counts after the pass: security 16 → 10 warnings (the remaining 10
+  are RLS helper functions that must stay executable by signed-in users — by
+  design); performance errors on unindexed FKs and per-row auth calls cleared.
+  The 618 "multiple permissive policies" warnings are a known structural
+  refactor, tracked separately.
+
+---
+
 ## [Ecosystem build · Stage 6 — authority & channels] - 2026-08-04
 
 The final stage of the ecosystem build (docs/19 items 35–38): publish the

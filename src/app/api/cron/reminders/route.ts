@@ -24,6 +24,8 @@ import { recordCronRun } from "@/lib/cron/heartbeat";
 import {
   runStaleReminders,
   nudgeTimeDriven,
+  nudgePostWrapRebook,
+  nudgePlanningMonthReport,
   escalateOverdueDeadlines,
   transitionOverdueInvoices,
   warnExpiringCompliance,
@@ -52,11 +54,15 @@ export async function GET(request: Request) {
   const invoiceOverdue = await transitionOverdueInvoices(supabase);
   const complianceExpiry = await warnExpiringCompliance(supabase);
   const timeDriven = await nudgeTimeDriven(supabase);
+  const postWrapRebook = await nudgePostWrapRebook(supabase);
+  const planningMonthReport = await nudgePlanningMonthReport(supabase);
   const deadlineEscalation = await escalateOverdueDeadlines(supabase);
 
   await recordCronRun(supabase, "reminders", "ok", {
     reminders,
     timeDriven,
+    postWrapRebook,
+    planningMonthReport,
     deadlineEscalation,
     invoiceOverdue,
     complianceExpiry,
@@ -67,6 +73,8 @@ export async function GET(request: Request) {
     ranAt: new Date().toISOString(),
     reminders,
     timeDriven,
+    postWrapRebook,
+    planningMonthReport,
     deadlineEscalation,
     invoiceOverdue,
     complianceExpiry,

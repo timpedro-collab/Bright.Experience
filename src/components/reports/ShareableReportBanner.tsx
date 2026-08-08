@@ -97,6 +97,21 @@ export function ShareableReportBanner({
               </Button>
             </div>
 
+            {/* One-click share artefacts: a slide for their all-hands, a
+                stat card safe to post. */}
+            <div className="flex flex-wrap gap-2">
+              <Button variant="outline" size="sm" asChild>
+                <a href={`/api/reports/${shareToken}/slide-pdf`}>
+                  All-hands slide (PDF)
+                </a>
+              </Button>
+              <Button variant="outline" size="sm" asChild>
+                <a href={`/api/reports/${shareToken}/stat-card`} download>
+                  LinkedIn stat card (PNG)
+                </a>
+              </Button>
+            </div>
+
             <Button
               variant="ghost"
               size="sm"

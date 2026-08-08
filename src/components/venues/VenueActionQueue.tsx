@@ -8,7 +8,7 @@ import { ArrowRight, CheckCircle2, Monitor, Ticket } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatMoneyFromPence } from "@/lib/currency";
-import { formatDateShort } from "@/lib/dates";
+import { formatDateGB, formatDateRangeGB } from "@/lib/dates";
 
 export interface VenueActionItem {
   id: string;
@@ -136,7 +136,5 @@ export function VenueActionQueue({
 
 /** Convenience formatter used by callers when building detail strings. */
 export function slotWindow(start: string, end: string | null): string {
-  return end
-    ? `${formatDateShort(start)} – ${formatDateShort(end)}`
-    : formatDateShort(start);
+  return end ? formatDateRangeGB(start, end) : formatDateGB(start);
 }

@@ -60,6 +60,27 @@ describe("ARCHETYPES catalogue", () => {
     expect(ARCHETYPES["asset.review_approved"].classOf).toBe("fyi");
     expect(ARCHETYPES["lead.captured_live"].classOf).toBe("fyi");
     expect(ARCHETYPES["event.metrics_daily"].classOf).toBe("fyi");
+    expect(ARCHETYPES["report.published"].classOf).toBe("fyi");
+    expect(ARCHETYPES["event.post_wrap_rebook"].classOf).toBe("fyi");
+  });
+
+  it("report.published tells the customer their results are live", () => {
+    const a = ARCHETYPES["report.published"];
+    expect(a.audience).toBe("customer");
+    expect(a.ownerResolver).toBe("customer_admins");
+    expect(a.subjectTemplate).toBe("Your results are ready");
+    expect(a.bodyTemplate).toContain("{eventName}");
+    expect(a.linkTemplate).toBe("/events/{eventId}/reports");
+    expect(a.defaults.emailMode).toBe("immediate");
+  });
+
+  it("event.post_wrap_rebook nudges the customer back to their results", () => {
+    const a = ARCHETYPES["event.post_wrap_rebook"];
+    expect(a.audience).toBe("customer");
+    expect(a.ownerResolver).toBe("customer_admins");
+    expect(a.subjectTemplate).toBe("Ready for your next one?");
+    expect(a.bodyTemplate).toContain("{eventName}");
+    expect(a.linkTemplate).toBe("/events/{eventId}/reports");
   });
 
   it("audience scoping is set on every archetype", () => {

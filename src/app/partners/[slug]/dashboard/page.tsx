@@ -1,4 +1,5 @@
 /** Partner home — what needs you, what you'll get paid, and your live book. */
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Sparkles, Share2, ArrowRight, TrendingUp } from "lucide-react";
@@ -23,9 +24,19 @@ import {
 } from "@/lib/queries/partner-attributions";
 import { getUnreadCount } from "@/lib/queries/notifications";
 import { formatMoneyFromPence } from "@/lib/currency";
+import { entityTitle, getPartnerNameForTitle } from "@/lib/queries/page-titles";
 
 interface DashboardPageProps {
   params: Promise<{ slug: string }>;
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  return { title: entityTitle("Dashboard", await getPartnerNameForTitle(slug)) };
 }
 
 export default async function PartnerDashboardPage({ params }: DashboardPageProps) {

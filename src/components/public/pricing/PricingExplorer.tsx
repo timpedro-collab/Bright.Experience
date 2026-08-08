@@ -16,7 +16,7 @@ import { ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { TierCard } from "@/components/public/pricing/TierCard";
-import { tiersForDisplay, type PriceRegion } from "@/lib/pricing/tiers";
+import { TIERS, tiersForDisplay, type PriceRegion } from "@/lib/pricing/tiers";
 import { PRICING_PERSONAS, type PricingPersona } from "@/lib/pricing/personas";
 
 const REGIONS: ReadonlyArray<{ id: PriceRegion; label: string }> = [
@@ -107,9 +107,25 @@ export function PricingExplorer({ initialPersona = "brand" }: PricingExplorerPro
           )}
 
           <div className="mt-8 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-            {tiers.map((tier) => (
-              <TierCard key={tier.slug} tier={tier} region={region} />
-            ))}
+            {tiers.map((tier, displayIdx) => {
+              // Premium-first order means a card's ladder predecessor may
+              // appear later in the grid. Those cards list their full stack
+              // instead of "Everything in X, plus" so the reader never hits
+              // a reference to a tier they haven't been introduced to yet.
+              const ladderIdx = TIERS.findIndex((t) => t.slug === tier.slug);
+              const predecessor = ladderIdx > 0 ? TIERS[ladderIdx - 1] : null;
+              const predecessorShown =
+                predecessor !== null &&
+                tiers.findIndex((t) => t.slug === predecessor.slug) < displayIdx;
+              return (
+                <TierCard
+                  key={tier.slug}
+                  tier={tier}
+                  region={region}
+                  selfContained={predecessor !== null && !predecessorShown}
+                />
+              );
+            })}
           </div>
 
           <p className="mt-6 text-xs text-muted-foreground">

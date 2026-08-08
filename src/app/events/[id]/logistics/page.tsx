@@ -1,4 +1,5 @@
 /** Event logistics — delivery, setup, and collection tracking. */
+import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { Truck, Package, ArrowDownToLine, CalendarDays } from "lucide-react";
 
@@ -34,6 +35,7 @@ import { canViewSection } from "@/lib/event-access";
 import { isStageAtOrAfter } from "@/lib/journey";
 import { RequestChangePanel } from "@/components/briefing/RequestChangePanel";
 import type { LogisticsEntry } from "@/types";
+import { entityTitle, getEventNameForTitle } from "@/lib/queries/page-titles";
 
 const TYPE_META: Record<string, { label: string; icon: React.ElementType }> = {
   delivery: { label: "Delivery", icon: Truck },
@@ -49,6 +51,15 @@ function groupByType(entries: LogisticsEntry[]) {
     groups[key].push(entry);
   }
   return groups;
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  return { title: entityTitle("Logistics", await getEventNameForTitle(id)) };
 }
 
 export default async function LogisticsPage({

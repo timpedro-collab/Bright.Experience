@@ -1,4 +1,5 @@
 /** Per-event Bright.Studio storefront — tiers, existing requests, and pricing. */
+import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { Sparkles, ImageIcon, Film, AlertTriangle, Palette } from "lucide-react";
 
@@ -19,6 +20,7 @@ import { isInternalRole, canReviewCreativeAssets } from "@/lib/roles";
 import { canViewSection } from "@/lib/event-access";
 import type { StudioRequest } from "@/types";
 import { TimeAgo } from "@/components/ui/TimeAgo";
+import { entityTitle, getEventNameForTitle } from "@/lib/queries/page-titles";
 
 const STATUS_VARIANTS: Record<
   string,
@@ -33,6 +35,15 @@ const STATUS_VARIANTS: Record<
   delivered: { label: "Delivered", variant: "success" },
   cancelled: { label: "Cancelled", variant: "muted" },
 };
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  return { title: entityTitle("Bright.Studio", await getEventNameForTitle(id)) };
+}
 
 export default async function StudioEventPage({
   params,

@@ -6,6 +6,7 @@
  * only receipt-safe fields — never the full quote row.
  */
 import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { CheckCircle2, ArrowRight } from "lucide-react";
 
@@ -13,6 +14,9 @@ import { Button } from "@/components/ui/button";
 import { EditorialEyebrow, RidgeArtwork } from "@/components/brand";
 import { getBookingReceipt } from "@/app/actions/quotes";
 import { formatMoneyFromPence } from "@/lib/currency";
+import { formatDateLong } from "@/lib/dates";
+import { machineRenderFor } from "@/lib/machine-renders";
+import { DEFAULT_ACCOUNT_MANAGER } from "@/lib/team";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -76,6 +80,33 @@ export default async function ConfirmationPage({
       </section>
 
       <section className="mx-auto max-w-2xl px-6 py-12">
+        {/* The thing they just bought, made visible — a machine, not a form. */}
+        <div className="mb-10 flex items-center gap-5 rounded-2xl border border-border/60 bg-muted/20 p-5">
+          <div className="relative h-28 w-24 shrink-0">
+            <Image
+              src={machineRenderFor(machine?.name)}
+              alt="Your machine"
+              fill
+              sizes="8rem"
+              className="object-contain"
+            />
+          </div>
+          <div>
+            <p className="text-overline text-muted-foreground">
+              What&apos;s coming
+            </p>
+            <p className="mt-1 text-base font-semibold text-foreground">
+              {machine?.name ?? "Your Experience Portal"} — soon wearing your
+              brand
+            </p>
+            <p className="mt-1 text-sm text-muted-foreground leading-relaxed">
+              Wrapped, loaded with your game and prizes, and delivered with a
+              crew. You&apos;ll see the wrap render in your portal before it
+              ships.
+            </p>
+          </div>
+        </div>
+
         <div className="space-y-1 text-sm">
           <div className="text-overline text-muted-foreground mb-2">Receipt</div>
           <div className="h-px bg-border/60" />
@@ -83,10 +114,16 @@ export default async function ConfirmationPage({
           {pkg?.name && <Row label="Package" value={pkg.name} />}
           {machine?.name && <Row label="Machine" value={machine.name} />}
           {receipt.event_date_start && (
-            <Row label="Event start" value={receipt.event_date_start} />
+            <Row
+              label="Event start"
+              value={formatDateLong(receipt.event_date_start)}
+            />
           )}
           {receipt.event_date_end && (
-            <Row label="Event end" value={receipt.event_date_end} />
+            <Row
+              label="Event end"
+              value={formatDateLong(receipt.event_date_end)}
+            />
           )}
           {typeof receipt.total_amount === "number" && (
             <Row
@@ -125,6 +162,20 @@ export default async function ConfirmationPage({
               starts on your wrap and game.
             </li>
           </ol>
+          <p className="pt-3 text-sm text-muted-foreground">
+            You&apos;re in {DEFAULT_ACCOUNT_MANAGER.firstName}&apos;s hands —{" "}
+            <span className="text-foreground">
+              {DEFAULT_ACCOUNT_MANAGER.fullName}, {DEFAULT_ACCOUNT_MANAGER.title}
+            </span>
+            . Reach him any time at{" "}
+            <a
+              href={`mailto:${DEFAULT_ACCOUNT_MANAGER.email}`}
+              className="text-primary underline-offset-4 hover:underline"
+            >
+              {DEFAULT_ACCOUNT_MANAGER.email}
+            </a>
+            .
+          </p>
         </div>
 
         <div className="mt-10 flex flex-col gap-3">

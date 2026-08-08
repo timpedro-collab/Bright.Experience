@@ -3,11 +3,17 @@ import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { RotateCcw, ArrowRight } from "lucide-react";
+import { RebookNowButton } from "@/components/reports/RebookNowButton";
 
 interface RebookCTAProps {
   eventType?: string;
   machineSlug?: string;
   gameSlug?: string;
+  /**
+   * When set, a signed-in viewer gets the one-click authenticated path
+   * (pre-filled quote on their account) instead of the public /book funnel.
+   */
+  authenticatedEventId?: string;
 }
 
 /** Builds booking URL with pre-filled query params from the current event */
@@ -51,15 +57,19 @@ export function RebookCTA(props: RebookCTAProps) {
             or date — your configuration is ready to go.
           </p>
 
-          <Button asChild variant="brand" className="w-full group">
-            <Link href={href}>
-              Rebook this activation
-              <ArrowRight
-                size={14}
-                className="transition-transform group-hover:translate-x-0.5"
-              />
-            </Link>
-          </Button>
+          {props.authenticatedEventId ? (
+            <RebookNowButton eventId={props.authenticatedEventId} />
+          ) : (
+            <Button asChild variant="brand" className="w-full group">
+              <Link href={href}>
+                Rebook this activation
+                <ArrowRight
+                  size={14}
+                  className="transition-transform group-hover:translate-x-0.5"
+                />
+              </Link>
+            </Button>
+          )}
         </CardContent>
       </Card>
     </div>

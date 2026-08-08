@@ -6,6 +6,7 @@
  * board is organised around the two clocks that matter: how long until we
  * answer (24h SLA) and how long the window has left.
  */
+import type { Metadata } from "next";
 import { Handshake } from "lucide-react";
 
 import { PortalPageShell, organizerTabs, organizerRoleLabel } from "@/components/brand";
@@ -25,6 +26,7 @@ import { formatDateShort } from "@/lib/dates";
 import { getDealsByPartner } from "@/lib/queries/deal-registrations";
 import { getShowsByOrganizer } from "@/lib/queries/organizers";
 import { getUnreadCount } from "@/lib/queries/notifications";
+import { entityTitle, getPartnerNameForTitle } from "@/lib/queries/page-titles";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -37,6 +39,15 @@ const STATUS_BADGE_CLASSES: Record<DealRegistration["status"], string> = {
   converted: "border-0 bg-success/10 text-success",
   expired: "text-muted-foreground",
 };
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  return { title: entityTitle("Deals", await getPartnerNameForTitle(slug)) };
+}
 
 export default async function OrganizerDealsPage({ params }: Props) {
   const { slug } = await params;

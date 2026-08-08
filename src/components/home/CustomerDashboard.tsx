@@ -78,6 +78,18 @@ export function CustomerDashboard({
   featuredMilestones = [],
   recentActivity = [],
 }: CustomerDashboardProps) {
+  // Derived status pill (never the stored chip): calm customer-safe copy,
+  // with wrapped events reading as a finished state instead of "On track".
+  const featuredHealth = featured ? healthLabel(featured) : null;
+  const featuredPill =
+    featuredHealth === null
+      ? null
+      : featuredHealth.tone === "wrap"
+        ? "All wrapped"
+        : healthLabelFor(
+            featuredHealth.tone === "warning" ? "amber" : "green",
+            true,
+          );
   return (
     <TourShell role={user.role} autoStart={false}>
       <EditionShell>
@@ -115,13 +127,13 @@ export function CustomerDashboard({
                   <span className="flex items-center gap-2">
                     <span
                       className={
-                        healthLabel(featured).tone === "active"
-                          ? "size-1.5 rounded-full bg-[var(--color-bb-cyan)]"
-                          : "size-1.5 rounded-full bg-[hsl(43_90%_56%)]"
+                        featuredHealth?.tone === "warning"
+                          ? "size-1.5 rounded-full bg-[hsl(43_90%_56%)]"
+                          : "size-1.5 rounded-full bg-[var(--color-bb-cyan)]"
                       }
                       aria-hidden
                     />
-                    {healthLabelFor(featured.healthStatus, true)}
+                    {featuredPill}
                   </span>
                 </>
               }

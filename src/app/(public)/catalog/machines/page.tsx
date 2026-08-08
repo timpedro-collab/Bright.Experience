@@ -96,7 +96,7 @@ export default async function MachinesIndexPage() {
         </Container>
       </Section>
 
-      <Section className="border-t border-white/[0.06] bg-[hsl(233,66%,5%,0.5)]" spacing="md">
+      <Section className="border-t border-border/60 bg-muted/30" spacing="md">
         <Container className="text-center">
           <h2 className="text-heading text-2xl font-semibold md:text-3xl">
             Not sure which machine fits?

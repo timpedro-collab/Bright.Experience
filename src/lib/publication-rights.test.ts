@@ -93,4 +93,59 @@ describe("applyPublicationRights", () => {
     const [result] = applyPublicationRights([legacy]);
     expect(result).toEqual(legacy);
   });
+
+  it("withholds photography from anonymised studies", () => {
+    const [result] = applyPublicationRights([
+      {
+        ...anonymisedStudy,
+        hero_image_url: "/catalog/case-studies/costa-matcha/07-giant-cup.png",
+        gallery_urls: ["/catalog/case-studies/costa-matcha/08-sign.png"],
+      },
+    ]);
+    expect(result.hero_image_url).toBeNull();
+    expect(result.gallery_urls).toEqual([]);
+  });
+
+  it("keeps photography on named studies", () => {
+    const [result] = applyPublicationRights([
+      { ...namedStudy, hero_image_url: "/hero.png", gallery_urls: ["/a.png"] },
+    ]);
+    expect(result.hero_image_url).toBe("/hero.png");
+    expect(result.gallery_urls).toEqual(["/a.png"]);
+  });
+
+  it("scrubs the client name from details_json strings and drops the report link", () => {
+    const [result] = applyPublicationRights([
+      {
+        ...anonymisedStudy,
+        details_json: {
+          reportUrl: "/resources/costa-case-study.html",
+          insight: "Sited directly outside a Costa Coffee store in each city.",
+          performance: [{ value: "3,270", label: "Costa Coffee samples" }],
+        },
+      },
+    ]);
+    const details = result.details_json as {
+      reportUrl?: string;
+      insight: string;
+      performance: Array<{ label: string }>;
+    };
+    expect(details.reportUrl).toBeUndefined();
+    expect(details.insight).toBe(
+      "Sited directly outside a global coffee chain store in each city."
+    );
+    expect(details.performance[0].label).toBe("A global coffee chain samples");
+  });
+
+  it("scrubs the client name from the testimonial quote", () => {
+    const [result] = applyPublicationRights([
+      {
+        ...anonymisedStudy,
+        testimonial_quote: "Costa Coffee saw queues around the block.",
+      },
+    ]);
+    expect(result.testimonial_quote).toBe(
+      "A global coffee chain saw queues around the block."
+    );
+  });
 });

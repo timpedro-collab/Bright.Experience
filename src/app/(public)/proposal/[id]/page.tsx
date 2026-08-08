@@ -18,11 +18,14 @@ import { formatPriceBand } from "@/lib/proposals/price-band";
 import { formatGBP } from "@/lib/roi";
 import { formatNumberUS } from "@/lib/currency";
 import { ProposalDocumentView } from "@/components/quotes/proposal/ProposalDocumentView";
+import { ProposalJourney } from "@/components/quotes/proposal/ProposalJourney";
 import { PrintProposalButton } from "@/components/quotes/proposal/PrintProposalButton";
 import { ShareProposalButton } from "@/components/quotes/proposal/ShareProposalButton";
 import { ChampionSummaryCard } from "@/components/quotes/proposal/ChampionSummaryCard";
+import { buildProposalJourney } from "@/lib/proposals/proposal-extras";
 import { AcceptedAddOns } from "@/components/quotes/proposal/AcceptedAddOns";
 import { PostAcceptBanner } from "@/components/quotes/PostAcceptBanner";
+import { shouldAutoProvisionQuote } from "@/lib/booking-flags";
 import { walkthroughUrlFor } from "@/lib/calcom";
 
 export const metadata: Metadata = {
@@ -102,6 +105,9 @@ export default async function ProposalDetailPage({ params }: PageProps) {
     ? quote.addons.map(String)
     : [];
 
+  // Endowed progress: the reader arrives at step 2 of 4, not at zero.
+  const journey = buildProposalJourney(quote);
+
   return (
     <Section className="relative" spacing="md">
       <Container size="md" className="proposal-brochure">
@@ -110,13 +116,22 @@ export default async function ProposalDetailPage({ params }: PageProps) {
             proposalUrl={proposalUrl}
             companyName={quote.company_name ?? undefined}
           />
+          <a
+            href={`/api/quotes/${quote.id}/one-pager-pdf`}
+            className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-1.5 text-sm font-medium text-muted-foreground transition hover:bg-muted/60 hover:text-foreground"
+          >
+            One-pager (PDF)
+          </a>
           <PrintProposalButton />
         </div>
+
+        <ProposalJourney journey={journey} />
 
         {quote.status === "accepted" && (
           <PostAcceptBanner
             contactName={quote.contact_name}
             eventDateStart={quote.event_date_start}
+            portalInviteSent={shouldAutoProvisionQuote()}
           />
         )}
 
@@ -138,7 +153,30 @@ export default async function ProposalDetailPage({ params }: PageProps) {
           </div>
         )}
 
+        {/* Share with your team — deliberately prominent, no login needed. */}
         <div className="mt-16">
+          <div className="mb-4 text-center">
+            <h2 className="text-heading text-xl font-bold text-foreground">
+              Share this with your team
+            </h2>
+            <p className="mx-auto mt-1.5 max-w-[48ch] text-sm text-muted-foreground">
+              No login needed — anyone with the link can read the full
+              proposal. Forward it, or grab the one-page PDF for whoever signs
+              it off.
+            </p>
+            <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+              <ShareProposalButton
+                proposalUrl={proposalUrl}
+                companyName={quote.company_name ?? undefined}
+              />
+              <a
+                href={`/api/quotes/${quote.id}/one-pager-pdf`}
+                className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-1.5 text-sm font-medium text-muted-foreground transition hover:bg-muted/60 hover:text-foreground"
+              >
+                Download the one-pager (PDF)
+              </a>
+            </div>
+          </div>
           <ChampionSummaryCard lines={summaryLines} />
         </div>
 

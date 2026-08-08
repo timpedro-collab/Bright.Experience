@@ -13,7 +13,7 @@ import { YourTeamWidget } from "@/components/events/YourTeamWidget";
 import { isInternalRole } from "@/lib/roles";
 import { canViewSection } from "@/lib/event-access";
 import { ownerForTask } from "@/lib/ownership";
-import { formatDueProximity } from "@/lib/dates";
+import { formatDueProximity, formatEventDayCount } from "@/lib/dates";
 import type { Milestone, Task, Approval, EventTeamMember, UserRole } from "@/types";
 import type { AuditRow } from "@/lib/queries/audit";
 
@@ -48,6 +48,7 @@ export function OverviewSidebar({
   const pendingApprovals = approvals.filter(
     (a) => a.status === "pending",
   ).length;
+  const eventDayCount = formatEventDayCount(daysToEvent);
 
   const upcomingTasks = tasks
     .filter(
@@ -127,14 +128,8 @@ export function OverviewSidebar({
         </div>
         <ul className="mt-3 flex flex-col divide-y divide-border/40 border-t border-b border-border/40">
           <MetricRow
-            label="Days to event"
-            value={
-              daysToEvent === 0
-                ? "Today"
-                : daysToEvent > 0
-                  ? `${daysToEvent}`
-                  : `${Math.abs(daysToEvent)} ago`
-            }
+            label={eventDayCount.label}
+            value={eventDayCount.value}
           />
           <MetricRow
             label="Pending actions"

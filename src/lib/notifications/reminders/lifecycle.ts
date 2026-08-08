@@ -130,6 +130,137 @@ export async function nudgeTimeDriven(
   return { sent };
 }
 
+/**
+ * Post-wrap rebook nudge — fires once per event, ~14 days after the event
+ * completed, inviting the customer to plan their next activation while the
+ * results are still live. Anchored on `event_date_end` (falling back to
+ * `event_date_start` for single-day events) because events carry no
+ * completed_at timestamp. De-duplicated the same way as the t-minus nudges:
+ * an existing `notifications` row for the event + kind means we already sent.
+ */
+export async function nudgePostWrapRebook(
+  supabase: ReminderClient
+): Promise<{ sent: number }> {
+  const cutoff = new Date();
+  cutoff.setUTCDate(cutoff.getUTCDate() - 14);
+  const cutoffDate = cutoff.toISOString().slice(0, 10);
+
+  // event_date_start <= event_date_end always, so this server-side filter is
+  // a safe superset; the coalesced anchor is re-checked per row below.
+  const { data: events } = await supabase
+    .from("events")
+    .select("id, name, current_stage, event_date_start, event_date_end")
+    .eq("current_stage", "complete")
+    .lte("event_date_start", cutoffDate);
+
+  let sent = 0;
+  for (const e of events ?? []) {
+    const row = e as Record<string, unknown>;
+    if (row.current_stage !== "complete") continue;
+    const anchor = (row.event_date_end ?? row.event_date_start) as
+      | string
+      | null;
+    if (!anchor || anchor > cutoffDate) continue;
+
+    const eventId = String(row.id);
+    const eventName = String(row.name);
+
+    const { data: alreadySent } = await supabase
+      .from("notifications")
+      .select("id")
+      .eq("event_id", eventId)
+      .eq("kind", "event.post_wrap_rebook")
+      .limit(1)
+      .maybeSingle();
+    if (alreadySent) continue;
+
+    await dispatchNotification(
+      "event.post_wrap_rebook",
+      {
+        eventId,
+        eventName,
+        entityType: "event",
+        entityId: eventId,
+      },
+      { supabaseClient: supabase }
+    ).catch(() => {
+      // dispatch failures shouldn't block the rest
+    });
+    sent += 1;
+  }
+  return { sent };
+}
+
+/**
+ * Planning-month report re-send — when the month the customer told us they
+ * plan next year's events arrives, resurface their published post-event
+ * report. Matches quotes whose `planning_month` equals the current month
+ * (joined to their provisioned event via `quotes.event_id`), where the event
+ * is complete and a published report exists. De-duplicated like the other
+ * nudges: an existing `notifications` row for the event + kind means sent.
+ */
+export async function nudgePlanningMonthReport(
+  supabase: ReminderClient
+): Promise<{ sent: number }> {
+  const currentMonth = new Date().toISOString().slice(0, 7);
+
+  const { data: quotes } = await supabase
+    .from("quotes")
+    .select("id, event_id, planning_month, events(id, name, current_stage)")
+    .eq("planning_month", currentMonth)
+    .not("event_id", "is", null);
+
+  let sent = 0;
+  for (const q of quotes ?? []) {
+    const row = q as Record<string, unknown>;
+    const event = row.events as {
+      id?: string;
+      name?: string;
+      current_stage?: string;
+    } | null;
+    if (!row.event_id || !event) continue;
+    // Only wrapped events have results worth resurfacing.
+    if (event.current_stage !== "complete") continue;
+
+    const eventId = String(row.event_id);
+    const eventName = event.name ?? "your event";
+
+    // The report link is only worth sending if a published report exists.
+    const { data: report } = await supabase
+      .from("event_reports")
+      .select("id")
+      .eq("event_id", eventId)
+      .eq("is_published", true)
+      .limit(1)
+      .maybeSingle();
+    if (!report) continue;
+
+    const { data: alreadySent } = await supabase
+      .from("notifications")
+      .select("id")
+      .eq("event_id", eventId)
+      .eq("kind", "report.planning_resend")
+      .limit(1)
+      .maybeSingle();
+    if (alreadySent) continue;
+
+    await dispatchNotification(
+      "report.planning_resend",
+      {
+        eventId,
+        eventName,
+        entityType: "event",
+        entityId: eventId,
+      },
+      { supabaseClient: supabase }
+    ).catch(() => {
+      // dispatch failures shouldn't block the rest
+    });
+    sent += 1;
+  }
+  return { sent };
+}
+
 /** Auto-transition invoices from `issued` to `overdue` and notify. */
 export async function transitionOverdueInvoices(
   supabase: ReminderClient

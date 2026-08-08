@@ -13,6 +13,10 @@ import { getAccountOptions } from "@/lib/queries/admin";
 import { getUnreadCount } from "@/lib/queries/notifications";
 import { createEventFromForm } from "@/app/actions/events";
 
+export const metadata = {
+  title: "New event",
+};
+
 export default async function NewEventPage() {
   const user = await getUser();
   if (!user) redirect("/login");

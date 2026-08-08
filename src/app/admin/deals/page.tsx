@@ -29,6 +29,10 @@ import {
   type AdminDealRow,
 } from "@/lib/queries/deal-registrations";
 
+export const metadata = {
+  title: "Deal registrations",
+};
+
 export default async function AdminDealsPage() {
   const user = await getUser();
   if (!user) redirect("/login");

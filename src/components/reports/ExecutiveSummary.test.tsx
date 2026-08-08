@@ -39,6 +39,30 @@ describe("ExecutiveSummary", () => {
     ).toBeInTheDocument();
   });
 
+  it("omits cost per lead when spend is zero even if cpl prop is passed", () => {
+    render(
+      <ExecutiveSummary
+        {...BASE}
+        totalCostPence={0}
+        costPerLeadPence={3000}
+      />,
+    );
+    expect(screen.queryByText("Cost per lead")).not.toBeInTheDocument();
+    expect(screen.queryByText("£30.00")).not.toBeInTheDocument();
+  });
+
+  it("omits cost per lead when leads are zero even if cpl prop is passed", () => {
+    render(
+      <ExecutiveSummary
+        {...BASE}
+        totalLeads={0}
+        costPerLeadPence={3000}
+      />,
+    );
+    expect(screen.queryByText("Cost per lead")).not.toBeInTheDocument();
+    expect(screen.queryByText("£30.00")).not.toBeInTheDocument();
+  });
+
   it("omits cost stats when there is no cost basis", () => {
     render(
       <ExecutiveSummary

@@ -7,6 +7,7 @@
  * behind a Suspense boundary so first paint isn't gated on eight queries.
  */
 
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
@@ -31,7 +32,7 @@ import {
   KpiGrid,
   KpiCard,
 } from "@/components/cloud";
-import { HealthBadge, StageBadge } from "@/components/ui/StatusBadge";
+import { EventHealthBadge, StageBadge } from "@/components/ui/StatusBadge";
 import { OverviewNextStep } from "@/components/events/OverviewNextStep";
 import { OverviewSidebar } from "@/components/events/OverviewSidebar";
 import { IntegrationStatus } from "@/components/ui/IntegrationStatus";
@@ -39,7 +40,10 @@ import { SaveAsTemplateButton } from "@/components/admin/SaveAsTemplateButton";
 
 import { getEventById } from "@/lib/queries/events";
 import { getMilestonesByEvent } from "@/lib/queries/milestones";
-import { getTasksByEvent } from "@/lib/queries/tasks";
+import {
+  getTasksByEvent,
+  getOverdueTaskCountsForEvents,
+} from "@/lib/queries/tasks";
 import { getAssetsByEvent } from "@/lib/queries/assets";
 import { getApprovalsByEvent } from "@/lib/queries/approvals";
 import { getUnreadCount } from "@/lib/queries/notifications";
@@ -53,11 +57,22 @@ import { RemindCustomerButton } from "@/components/events/RemindCustomerButton";
 import { EventHealthControl } from "@/components/events/EventHealthControl";
 import { stageLabelFor, customerStatusLine } from "@/lib/customer-copy";
 import { CustomerEventBody } from "@/components/events/CustomerEventBody";
+import { RenameEventControl } from "@/components/events/RenameEventControl";
 import { STAGE_CONFIG } from "@/types";
 import type { Event } from "@/types";
 import { formatDateLong, formatDateShort, daysUntilDate, isOverdue } from "@/lib/dates";
 import { resolveEventNextStep } from "@/lib/event-next-step";
 import { canAdvanceStage } from "@/app/actions/stages";
+import { entityTitle, getEventNameForTitle } from "@/lib/queries/page-titles";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  return { title: entityTitle("Overview", await getEventNameForTitle(id)) };
+}
 
 export default async function EventOverviewPage({
   params,
@@ -67,11 +82,15 @@ export default async function EventOverviewPage({
   const user = await getUser();
   if (!user) redirect("/login");
   const { id } = await params;
-  const [event, unread] = await Promise.all([
+  const [event, unread, overdueCounts] = await Promise.all([
     getEventById(id),
     getUnreadCount(user.id),
+    // Health is derived from reality (dates + task lateness), never read
+    // straight off the stored column — see deriveEventHealth.
+    getOverdueTaskCountsForEvents([id]),
   ]);
   if (!event) return notFound();
+  const overdueTaskCount = overdueCounts[id] ?? 0;
 
   const isInternal = isInternalRole(user.role);
   const days = daysUntilDate(event.eventDateStart);
@@ -106,13 +125,28 @@ export default async function EventOverviewPage({
       section="Overview"
       slug="overview"
       eyebrow={event.account.name}
-      title={event.name}
+      // Customers named this campaign at booking — give them a quiet inline
+      // rename affordance right on the title. Internal users use admin tools.
+      title={
+        isInternal ? (
+          event.name
+        ) : (
+          <>
+            {event.name}{" "}
+            <RenameEventControl eventId={id} name={event.name} />
+          </>
+        )
+      }
       subtitle={heroSubtitle}
       isInternal={isInternal}
       viewerRole={user.role}
       heroRight={
         <div className="flex items-center gap-2 flex-wrap justify-end">
-          <HealthBadge status={event.healthStatus} isCustomer={!isInternal} />
+          <EventHealthBadge
+            event={event}
+            overdueTaskCount={overdueTaskCount}
+            isCustomer={!isInternal}
+          />
           {/* Stage now lives in the customer status line; internal keeps the badge. */}
           {isInternal && <StageBadge stage={event.currentStage} isCustomer={false} />}
           <Link

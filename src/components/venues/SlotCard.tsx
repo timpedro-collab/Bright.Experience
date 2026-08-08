@@ -17,11 +17,9 @@ import {
   deleteSlot,
 } from "@/app/actions/venues";
 import { formatMoneyFromPence } from "@/lib/currency";
-import { formatDateShort } from "@/lib/dates";
+import { formatDateRangeGB } from "@/lib/dates";
 import { venueStatusVariant, venueStatusLabel } from "@/components/venues/venue-helpers";
 import type { Slot, SponsorOption } from "./sponsorship-types";
-
-const formatDate = formatDateShort;
 
 export function SlotCard({
   slot,
@@ -70,7 +68,7 @@ export function SlotCard({
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <Calendar size={12} />
           <span>
-            {formatDate(slot.startDate)} — {formatDate(slot.endDate)}
+            {formatDateRangeGB(slot.startDate, slot.endDate)}
           </span>
         </div>
 

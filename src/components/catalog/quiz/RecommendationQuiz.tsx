@@ -9,8 +9,8 @@
  *    and DOOH media value off the site's real footfall.
  *
  * Answers are keyed by stable step id, so the branch can grow/shrink the step
- * list without scrambling stored answers. The terminal state hands off to
- * `QuizMatchCard`.
+ * list without scrambling stored answers. The terminal state plays a short
+ * `QuizWorkingTransition` beat, then hands off to `QuizMatchCard`.
  */
 "use client";
 
@@ -25,6 +25,10 @@ import {
   type QuizAnswers,
 } from "./quiz-data";
 import { QuizMatchCard } from "../QuizMatchCard";
+import {
+  QuizWorkingTransition,
+  prefersReducedMotion,
+} from "./QuizWorkingTransition";
 import { OptionGrid } from "./OptionGrid";
 import { NumberStep } from "./NumberStep";
 import { DurationStep } from "./DurationStep";
@@ -58,6 +62,9 @@ export function RecommendationQuiz({
     return seeded;
   });
   const [stepIndex, setStepIndex] = useState(() => (initialEventType ? 1 : 0));
+  // Flips true once the post-answer "working" transition has played, so it
+  // runs exactly once per quiz completion and never on unrelated re-renders.
+  const [revealed, setRevealed] = useState(false);
 
   const steps = getQuizSteps(answers);
   const done = stepIndex >= steps.length;
@@ -92,9 +99,15 @@ export function RecommendationQuiz({
   function reset() {
     setStepIndex(0);
     setAnswers({});
+    setRevealed(false);
   }
 
   if (done) {
+    // Labor-illusion beat between the last answer and the reveal.
+    // Reduced-motion visitors see the result immediately.
+    if (!revealed && !prefersReducedMotion()) {
+      return <QuizWorkingTransition onDone={() => setRevealed(true)} />;
+    }
     const rec = getRecommendation(answers);
     return (
       <QuizMatchCard

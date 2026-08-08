@@ -1,4 +1,5 @@
 /** Venue operator dashboard — revenue, what's awaiting you, and your placements. */
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import {
@@ -35,10 +36,20 @@ import { getPlacementsByVenue } from "@/lib/queries/placements";
 import { getSlotsByPlacement } from "@/lib/queries/sponsorship-slots";
 import { getUnreadCount } from "@/lib/queries/notifications";
 import { formatMoneyFromPence } from "@/lib/currency";
-import { formatDateShort } from "@/lib/dates";
+import { formatDateGB, formatDateRangeGB } from "@/lib/dates";
+import { entityTitle, getVenueNameForTitle } from "@/lib/queries/page-titles";
 
 interface Props {
   params: Promise<{ slug: string }>;
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  return { title: entityTitle("Dashboard", await getVenueNameForTitle(slug)) };
 }
 
 export default async function VenueDashboardPage({ params }: Props) {
@@ -87,7 +98,7 @@ export default async function VenueDashboardPage({ params }: Props) {
       id: `pl-${p.id}`,
       kind: "placement" as const,
       title: "Placement needs a machine",
-      detail: `${formatDateShort(String(p.start_date))} — confirm the hardware to lock it in`,
+      detail: `${formatDateGB(String(p.start_date))} — confirm the hardware to lock it in`,
     }));
   const actionItems = [...openSlotItems, ...machinelessItems];
 
@@ -193,10 +204,12 @@ export default async function VenueDashboardPage({ params }: Props) {
                             </Badge>
                           </div>
                           <p className="mt-0.5 text-xs text-tertiary">
-                            {formatDateShort(String(p.start_date))}
                             {p.end_date
-                              ? ` – ${formatDateShort(String(p.end_date))}`
-                              : ""}
+                              ? formatDateRangeGB(
+                                  String(p.start_date),
+                                  String(p.end_date),
+                                )
+                              : formatDateGB(String(p.start_date))}
                             {s.total > 0
                               ? ` · ${s.reserved}/${s.total} slots filled`
                               : " · no slots yet"}

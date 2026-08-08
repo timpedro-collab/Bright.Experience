@@ -8,7 +8,7 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
-import { HealthBadge, StageBadge } from "@/components/ui/StatusBadge";
+import { EventHealthBadge, StageBadge } from "@/components/ui/StatusBadge";
 import { EventProgressRing } from "@/components/dashboard/EventProgressRing";
 import { formatDateMedium } from "@/lib/dates";
 import type { Event, Stage } from "@/types";
@@ -85,7 +85,7 @@ export function PortfolioStrip({
 
               <div className="mt-4 flex flex-wrap items-center gap-2">
                 <StageBadge stage={event.currentStage as Stage} />
-                <HealthBadge status={event.healthStatus} />
+                <EventHealthBadge event={event} />
               </div>
 
               {open > 0 && (

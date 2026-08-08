@@ -14,7 +14,7 @@ import { SecurityForm } from "@/components/settings/SecurityForm";
 import { getUser } from "@/lib/auth";
 import { getUnreadCount } from "@/lib/queries/notifications";
 
-export const metadata = { title: "Security · Bright.Experience" };
+export const metadata = { title: "Security" };
 
 export default async function SecuritySettingsPage() {
   const user = await getUser();

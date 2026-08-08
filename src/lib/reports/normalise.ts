@@ -210,10 +210,55 @@ export function normalisePredictions(input: unknown): NormalisedPredictions {
   };
 }
 
-/** Cost per lead in pence, or null when there are no leads. */
+/** Which headline-tier KPIs have real underlying data (never £0.00 / 0 / —). */
+export interface HeadlineMetricPresence {
+  costPerLead: boolean;
+  footfallImpressions: boolean;
+  satisfaction: boolean;
+}
+
+/** True when both spend and captured leads exist — CPL is meaningful. */
+export function isRenderableCostPerLead(metrics: NormalisedMetrics): boolean {
+  return metrics.totalCostPence > 0 && metrics.totalLeads > 0;
+}
+
+/** True when footfall impressions were actually measured (> 0). */
+export function isRenderableFootfallImpressions(
+  metrics: NormalisedMetrics
+): boolean {
+  return metrics.mediaImpressions > 0;
+}
+
+/** True when a satisfaction score was recorded (not absent/null). */
+export function isRenderableSatisfaction(metrics: NormalisedMetrics): boolean {
+  return metrics.npsScore != null;
+}
+
+/** Single read for pages deciding which headline tiles to render. */
+export function headlineMetricPresence(
+  metrics: NormalisedMetrics
+): HeadlineMetricPresence {
+  return {
+    costPerLead: isRenderableCostPerLead(metrics),
+    footfallImpressions: isRenderableFootfallImpressions(metrics),
+    satisfaction: isRenderableSatisfaction(metrics),
+  };
+}
+
+/** Cost per lead in pence, or null when spend or leads are missing. */
 export function costPerLeadPence(metrics: NormalisedMetrics): number | null {
-  if (metrics.totalLeads <= 0) return null;
+  if (!isRenderableCostPerLead(metrics)) return null;
   return Math.round(metrics.totalCostPence / metrics.totalLeads);
+}
+
+/** Formatted satisfaction headline value, or null when not measured. */
+export function formatSatisfactionScore(
+  metrics: NormalisedMetrics
+): string | null {
+  if (!isRenderableSatisfaction(metrics) || metrics.npsScore == null) {
+    return null;
+  }
+  return `${metrics.npsScore.toFixed(1)} / 5`;
 }
 
 /**

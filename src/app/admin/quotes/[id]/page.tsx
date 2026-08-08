@@ -17,6 +17,10 @@ import { getQuoteById } from "@/lib/queries/quotes";
 import { getOrganizerPartners } from "@/lib/queries/organizer-admin";
 import { getUnreadCount } from "@/lib/queries/notifications";
 
+export const metadata = {
+  title: "Quote detail",
+};
+
 export default async function QuoteDetailPage({
   params,
 }: {

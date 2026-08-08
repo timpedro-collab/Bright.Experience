@@ -1,8 +1,8 @@
-/** Animates a marketing stat string on scroll — parses prefix/number/suffix and count-ups when in view. */
+/** Animates a marketing stat when it enters the viewport — SSR and pre-animation show the final value. */
 "use client";
 
 import * as React from "react";
-import { useInView, useReducedMotion } from "framer-motion";
+import { useReducedMotion } from "framer-motion";
 import { parseStatValue } from "@/lib/stat-value";
 
 interface StatCountUpProps {
@@ -39,13 +39,39 @@ export function StatCountUp({
   const parsed = React.useMemo(() => parseStatValue(raw), [raw]);
   const prefersReduced = useReducedMotion();
   const ref = React.useRef<HTMLSpanElement>(null);
-  const isInView = useInView(ref, { once: true, margin: "-10% 0px" });
+  const [isInView, setIsInView] = React.useState(false);
+  const [isAnimating, setIsAnimating] = React.useState(false);
   const [display, setDisplay] = React.useState(0);
 
   const hasDecimals = parsed !== null && parsed.value % 1 !== 0;
+  const finalFormatted =
+    parsed !== null ? formatAnimatedValue(parsed.value, hasDecimals) : raw;
+
+  React.useEffect(() => {
+    if (prefersReduced || !parsed) return;
+
+    const el = ref.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsInView(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.3 }
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [parsed, prefersReduced]);
 
   React.useEffect(() => {
     if (!parsed || prefersReduced || !isInView) return;
+
+    setIsAnimating(true);
+    setDisplay(0);
 
     const target = parsed.value;
     let raf = 0;
@@ -67,10 +93,10 @@ export function StatCountUp({
     return <span className={className}>{raw}</span>;
   }
 
-  const finalFormatted = formatAnimatedValue(parsed.value, hasDecimals);
-  const numberShown = prefersReduced
-    ? finalFormatted
-    : formatAnimatedValue(isInView ? display : 0, hasDecimals);
+  const numberShown =
+    prefersReduced || !isAnimating
+      ? finalFormatted
+      : formatAnimatedValue(display, hasDecimals);
 
   return (
     <span ref={prefersReduced ? undefined : ref} className={className}>

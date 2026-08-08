@@ -67,6 +67,7 @@ secondary growth surfaces.
 | [`19-market-ecosystem-research.md`](19-market-ecosystem-research.md) | Deep-dive market/ecosystem research (~110 orgs) → gap analysis, messaging architecture, phased build plan; raw evidence in [`research/2026-08-market/`](research/2026-08-market/) |
 | [`20-pricing-and-packaging.md`](20-pricing-and-packaging.md) | Three-tier + bespoke pricing model: evidence, fences, channel structure, audience-aware display; code source of truth `src/lib/pricing/tiers.ts` |
 | [`21-deposit-to-hold-design.md`](21-deposit-to-hold-design.md) | Deposit-to-hold + pay-later design (deliberately unbuilt; blocked on owner terms) |
+| [`22-exceptional-experience-audit.md`](22-exceptional-experience-audit.md) | Four-stream audit (journey gaps, live friction crawl, sales/human psychology, growth loops) → tiered program of trust repairs, loop-closing, moments, loops, and subtractions |
 
 ### Operations runbooks (`docs/ops/`)
 

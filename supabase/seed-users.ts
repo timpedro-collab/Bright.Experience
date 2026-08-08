@@ -62,6 +62,12 @@ const users = [
     email: "daniel@westfield-stratford.com",
     password: "demo-password-123",
   },
+  // Organizer persona — Informa Tech Shows (partner e5e5…, shows e7777…).
+  {
+    id: "b5b5b5b5-b5b5-4b5b-8b5b-b5b5b5b5b5b5",
+    email: "nadia@informatech.events",
+    password: "demo-password-123",
+  },
 ];
 
 async function seed() {

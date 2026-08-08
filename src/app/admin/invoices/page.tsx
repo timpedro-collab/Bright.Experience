@@ -19,7 +19,7 @@ import { formatDateShort } from "@/lib/dates";
 import { formatMoneyFromPence } from "@/lib/currency";
 
 export const metadata = {
-  title: "Invoices · Bright.Experience",
+  title: "Invoices",
 };
 
 function agingBadge(invoice: Invoice) {

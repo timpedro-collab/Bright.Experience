@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { formatDateShort } from "@/lib/dates";
+import { formatDateGB, formatDateRangeGB } from "@/lib/dates";
 import { totalDarkDays, type DarkDayGap } from "@/lib/venues/dark-days";
 import { createSponsorshipSlot } from "@/app/actions/venues";
 
@@ -25,8 +25,8 @@ function gapKey(placementId: string, gap: DarkDayGap) {
 }
 
 function formatGapRange(gap: DarkDayGap) {
-  if (gap.start === gap.end) return formatDateShort(gap.start);
-  return `${formatDateShort(gap.start)} – ${formatDateShort(gap.end)}`;
+  if (gap.start === gap.end) return formatDateGB(gap.start);
+  return formatDateRangeGB(gap.start, gap.end);
 }
 
 export function DarkDayBoard({ placements }: { placements: DarkDayPlacement[] }) {

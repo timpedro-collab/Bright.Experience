@@ -23,13 +23,18 @@ import {
   DigitalFollowThroughCard,
 } from "@/components/reports/EngagementReport";
 import { ReportHighlights } from "@/components/reports/ReportHighlights";
+import { ReportRevealHero } from "@/components/reports/ReportRevealHero";
 import { CaptureQualityCard } from "@/components/reports/CaptureQualityCard";
 import { RetentionNotice } from "@/components/reports/RetentionNotice";
 import {
+  formatSatisfactionScore,
+  headlineMetricPresence,
   normaliseHighlights,
   normaliseMetrics,
   normalisePredictions,
 } from "@/lib/reports/normalise";
+import { campaignCredit, pickHeadlineStat } from "@/lib/reports/reveal";
+import { getQuoteContactForEvent } from "@/lib/queries/quotes";
 
 interface Props {
   params: Promise<{ token: string }>;
@@ -60,11 +65,21 @@ export default async function PublicReportPage({ params }: Props) {
   const metrics = normaliseMetrics(report.metricsJson);
   const predictions = normalisePredictions(report.predictionsJson);
   const highlights = normaliseHighlights(report.highlightsJson);
+  const headlineMetrics = headlineMetricPresence(metrics);
+  const satisfactionScore = formatSatisfactionScore(metrics);
 
   const conversion =
     metrics.totalPlays > 0
       ? `${((metrics.totalLeads / metrics.totalPlays) * 100).toFixed(0)}% opt-in`
       : undefined;
+
+  // Headline-first reveal: the biggest number, the champion's credit, and
+  // the delivery lead's note come before any table or chart.
+  const headlineStat = pickHeadlineStat(metrics);
+  const quoteContact = headlineStat
+    ? await getQuoteContactForEvent(report.eventId)
+    : null;
+  const credit = quoteContact ? campaignCredit(quoteContact) : null;
 
   return (
     <div className="min-h-screen bg-background">
@@ -107,6 +122,21 @@ export default async function PublicReportPage({ params }: Props) {
           </h1>
         </div>
 
+        {headlineStat && (
+          <ReportRevealHero
+            stat={headlineStat}
+            credit={credit}
+            note={
+              report.personalNote
+                ? {
+                    text: report.personalNote,
+                    author: report.personalNoteAuthor ?? "The Bright.Blue team",
+                  }
+                : null
+            }
+          />
+        )}
+
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <MetricCard
             icon={Users}
@@ -120,20 +150,20 @@ export default async function PublicReportPage({ params }: Props) {
             delta={conversion}
             positive
           />
-          <MetricCard
-            icon={Eye}
-            label="Footfall impressions"
-            value={metrics.mediaImpressions.toLocaleString("en-US")}
-          />
-          <MetricCard
-            icon={Star}
-            label="Satisfaction"
-            value={
-              metrics.npsScore != null
-                ? `${metrics.npsScore.toFixed(1)} / 5`
-                : "—"
-            }
-          />
+          {headlineMetrics.footfallImpressions && (
+            <MetricCard
+              icon={Eye}
+              label="Footfall impressions"
+              value={metrics.mediaImpressions.toLocaleString("en-US")}
+            />
+          )}
+          {headlineMetrics.satisfaction && satisfactionScore && (
+            <MetricCard
+              icon={Star}
+              label="Satisfaction"
+              value={satisfactionScore}
+            />
+          )}
         </div>
 
         {(predictions.estimatedInteractions !== null ||

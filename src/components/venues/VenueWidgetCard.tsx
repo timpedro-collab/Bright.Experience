@@ -1,6 +1,6 @@
 /** Compact presentational card for the embeddable venue advertising widget. */
 import { formatMoneyFromPence } from "@/lib/currency";
-import { formatDateShort } from "@/lib/dates";
+import { formatDateGB, formatDateRangeGB } from "@/lib/dates";
 
 export interface VenueWidgetCardProps {
   venueName: string;
@@ -51,8 +51,10 @@ export function VenueWidgetCard({
             </p>
             {nextWindow && (
               <p className="mt-1 text-muted-foreground">
-                Next window: {formatDateShort(nextWindow.start)}
-                {nextWindow.end ? ` – ${formatDateShort(nextWindow.end)}` : ""}
+                Next window:{" "}
+                {nextWindow.end
+                  ? formatDateRangeGB(nextWindow.start, nextWindow.end)
+                  : formatDateGB(nextWindow.start)}
               </p>
             )}
           </>

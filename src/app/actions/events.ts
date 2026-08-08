@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
+import { getServiceRoleClient } from "@/lib/supabase/service-role";
 import { getUser } from "@/lib/auth";
 import { isInternalRole } from "@/lib/roles";
 import { enqueueDealKickoff } from "@/lib/pipedrive/triggers";
@@ -14,6 +15,7 @@ import { writeAudit } from "@/lib/audit";
 import { logQueryError } from "@/lib/observability/log-query-error";
 import {
   createEventSchema,
+  renameEventSchema,
   setEventHealthSchema,
   type CreateEventInput,
   type SetEventHealthInput,
@@ -189,6 +191,74 @@ export async function setEventHealth(
   revalidatePath("/pipeline");
   revalidatePath("/ops");
   return { success: true, data: { status } };
+}
+
+/**
+ * Rename an event — the customer edit affordance for their campaign name.
+ *
+ * Authorisation follows `createRebookQuote`: the cookie-bound read enforces
+ * RLS (a customer can only see events on their own account), then an explicit
+ * account check guards the write. The write itself runs on the service role
+ * because the events UPDATE policy is internal-only.
+ */
+export async function renameEvent(
+  eventId: string,
+  name: string,
+): Promise<ActionResult<{ name: string }>> {
+  const user = await getUser();
+  if (!user) {
+    return { success: false, error: "Not signed in" };
+  }
+
+  const parsed = renameEventSchema.safeParse({ eventId, name });
+  if (!parsed.success) {
+    return {
+      success: false,
+      error: parsed.error.issues[0]?.message ?? "Invalid input.",
+    };
+  }
+  const newName = parsed.data.name;
+
+  // RLS-scoped read: a foreign eventId comes back empty for a customer.
+  const supabase = await createClient();
+  const { data: event, error: readErr } = await supabase
+    .from("events")
+    .select("id, account_id")
+    .eq("id", parsed.data.eventId)
+    .maybeSingle();
+
+  if (readErr || !event) {
+    return { success: false, error: "Event not found" };
+  }
+  if (!isInternalRole(user.role) && event.account_id !== user.accountId) {
+    return { success: false, error: "Not authorised" };
+  }
+
+  const service = getServiceRoleClient();
+  const { data: updated, error: updateErr } = await service
+    .from("events")
+    .update({ name: newName })
+    .eq("id", parsed.data.eventId)
+    .select("id")
+    .maybeSingle();
+
+  if (updateErr || !updated) {
+    logQueryError("renameEvent", updateErr, { eventId, userId: user.id });
+    return { success: false, error: "Could not rename the event. Please try again." };
+  }
+
+  await writeAudit({
+    eventId: parsed.data.eventId,
+    actorId: user.id,
+    action: "event_renamed",
+    entityType: "event",
+    entityId: parsed.data.eventId,
+    metadata: { name: newName, actorRole: user.role },
+  });
+
+  revalidatePath(`/events/${parsed.data.eventId}`);
+  revalidatePath("/");
+  return { success: true, data: { name: newName } };
 }
 
 /** Server-action wrapper used by progressive-enhancement forms. */

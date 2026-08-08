@@ -55,6 +55,10 @@ interface HomePageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
+export const metadata = {
+  title: "Home",
+};
+
 export default async function HomePage({ searchParams }: HomePageProps) {
   const user = await getUser();
   if (!user) {

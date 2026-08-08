@@ -5,6 +5,8 @@ export type { NudgeOutcome } from "./nudge";
 export {
   escalateOverdueDeadlines,
   nudgeTimeDriven,
+  nudgePostWrapRebook,
+  nudgePlanningMonthReport,
   transitionOverdueInvoices,
   warnExpiringCompliance,
 } from "./lifecycle";

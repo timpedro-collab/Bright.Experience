@@ -93,6 +93,13 @@ export interface RecommendedAddon {
   reason: string;
 }
 
+export interface ProposalPathway {
+  /** Card eyebrow ("Our recommendation" / "The alternative"). */
+  tag: string;
+  title: string;
+  body: string;
+}
+
 export interface ProposalReach {
   track: string;
   /** e.g. "London Waterloo · 3 days" or "2,500 attendees". */
@@ -144,6 +151,11 @@ export interface ProposalDocument {
     rows: InvestmentRow[];
     note: string;
   };
+  /**
+   * One clear recommendation plus exactly one alternative — a decision
+   * between two shapes, not a menu of twelve.
+   */
+  pathways: { recommended: ProposalPathway; alternative: ProposalPathway };
   timeline: {
     headline: string;
     intro: string;
@@ -374,6 +386,28 @@ export function buildProposalDocument(quote: ProposalQuoteInput): ProposalDocume
       ? lineItems.map((li) => ({ label: li.label, status: "Included" }))
       : brightBlueItems.map((i) => ({ label: i.title, status: "Included" }));
 
+  // ---- One recommendation, one alternative --------------------------------
+  // Deliberately a choice between two shapes rather than a menu: the config
+  // in this proposal is the recommendation; the alternative flexes the one
+  // lever (duration) that most changes cost and risk.
+  const recommended: ProposalPathway = {
+    tag: "Our recommendation",
+    title: `${device} · ${days} day${days === 1 ? "" : "s"}, fully managed`,
+    body: `Everything in this proposal — wrap, game, data capture, logistics and on-site support — sized to the brief you gave us. This is the shape we'd run for ${company}.`,
+  };
+  const alternative: ProposalPathway =
+    days > 1
+      ? {
+          tag: "The alternative",
+          title: "Start with a one-day pilot",
+          body: "Run day one only, watch the queue form, then extend on the spot. Same wrap, same game — you just commit to less up front. Ask on your walkthrough and we'll price both.",
+        }
+      : {
+          tag: "The alternative",
+          title: "Add a second live day",
+          body: "The wrap and game are already built, so extra days cost logistics and support, not production. If footfall runs over more than one day, this is the better value. Ask on your walkthrough and we'll price both.",
+        };
+
   // ---- Timeline (works backwards from the event) -------------------------
   const milestones: TimelineMilestone[] = start
     ? [
@@ -461,6 +495,7 @@ export function buildProposalDocument(quote: ProposalQuoteInput): ProposalDocume
       rows,
       note: "All amounts exclude VAT. Bespoke creative design (handled end-to-end by Bright.Blue rather than supplied) and giveaway products are scoped separately.",
     },
+    pathways: { recommended, alternative },
     timeline: {
       headline: "Working backwards from the event",
       intro:

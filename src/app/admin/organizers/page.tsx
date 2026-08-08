@@ -24,6 +24,10 @@ import {
   type OrganizerAdminRow,
 } from "@/lib/queries/organizer-admin";
 
+export const metadata = {
+  title: "Organizers",
+};
+
 export default async function AdminOrganizersPage() {
   const user = await getUser();
   if (!user) redirect("/login");

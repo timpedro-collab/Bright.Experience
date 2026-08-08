@@ -9,6 +9,10 @@ import { canViewCreativeProduct } from "@/lib/roles";
 import { getAllCaseStudies } from "@/lib/queries/admin-catalog";
 import { getUnreadCount } from "@/lib/queries/notifications";
 
+export const metadata = {
+  title: "Case studies",
+};
+
 export default async function CaseStudiesAdminPage() {
   const user = await getUser();
   if (!user) redirect("/login");

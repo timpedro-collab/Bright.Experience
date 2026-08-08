@@ -36,6 +36,10 @@ const SECTIONS = [
   },
 ] as const;
 
+export const metadata = {
+  title: "Catalog",
+};
+
 export default async function CatalogAdminPage() {
   const user = await getUser();
   if (!user) redirect("/login");

@@ -12,6 +12,7 @@
  * is editable here; the game configuration is read-only because it belongs to
  * the delivery team and the brand whose activation it is.
  */
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Handshake, ArrowRight } from "lucide-react";
@@ -68,6 +69,7 @@ import {
   showDayCount,
 } from "@/lib/metrics/expected-performance";
 import type { MachineBreakdown } from "@/lib/metrics/fleet";
+import { entityTitle, getEventNameForTitle } from "@/lib/queries/page-titles";
 
 interface Props {
   params: Promise<{ slug: string; eventId: string; machineId: string }>;
@@ -89,6 +91,15 @@ function emptyStats(machineId: string): MachineBreakdown {
     prizes: 0,
     rejected: 0,
   };
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string; eventId: string; machineId: string }>;
+}): Promise<Metadata> {
+  const { eventId } = await params;
+  return { title: entityTitle("Unit", await getEventNameForTitle(eventId)) };
 }
 
 export default async function ShowMachinePage({ params }: Props) {

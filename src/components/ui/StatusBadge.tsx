@@ -1,4 +1,5 @@
 /** Domain-specific status badge variants built on shadcn Badge */
+import { CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type {
   HealthStatus,
@@ -12,6 +13,10 @@ import {
   stageShortLabelFor,
   healthLabelFor,
 } from "@/lib/customer-copy";
+import {
+  deriveEventHealth,
+  type EventHealthInput,
+} from "@/lib/event-health";
 
 type BadgeVariant = "green" | "amber" | "red" | "blue" | "muted";
 
@@ -107,6 +112,35 @@ export function HealthBadge({
       {healthLabelFor(status, isCustomer)}
     </StatusBadge>
   );
+}
+
+/** Muted wrap chip — replaces delivery-health chrome once an event ends. */
+export function WrappedBadge({ isCustomer = false }: { isCustomer?: boolean }) {
+  return (
+    <StatusBadge variant="muted">
+      <CheckCircle2 className="h-3 w-3" />
+      {isCustomer ? "All wrapped" : "Wrapped"}
+    </StatusBadge>
+  );
+}
+
+/**
+ * The status chip every event surface should render: health derived from
+ * stage, dates and task lateness (see `deriveEventHealth`), with wrapped
+ * events swapping delivery chrome for a calm wrap state.
+ */
+export function EventHealthBadge({
+  event,
+  overdueTaskCount,
+  isCustomer = false,
+}: {
+  event: Omit<EventHealthInput, "overdueTaskCount" | "now">;
+  overdueTaskCount?: number;
+  isCustomer?: boolean;
+}) {
+  const chip = deriveEventHealth({ ...event, overdueTaskCount });
+  if (chip.kind === "wrapped") return <WrappedBadge isCustomer={isCustomer} />;
+  return <HealthBadge status={chip.status} isCustomer={isCustomer} />;
 }
 
 export function StageBadge({

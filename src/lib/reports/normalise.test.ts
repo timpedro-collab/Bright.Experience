@@ -2,6 +2,11 @@ import { describe, expect, it } from "vitest";
 
 import {
   costPerLeadPence,
+  formatSatisfactionScore,
+  headlineMetricPresence,
+  isRenderableCostPerLead,
+  isRenderableFootfallImpressions,
+  isRenderableSatisfaction,
   normaliseHighlights,
   normaliseMetrics,
   normalisePredictions,
@@ -104,6 +109,91 @@ describe("costPerLeadPence", () => {
 
   it("returns null when there are no leads", () => {
     expect(costPerLeadPence(normaliseMetrics({ totalCost: 60_000, totalLeads: 0 }))).toBeNull();
+  });
+
+  it("returns null when there is no spend", () => {
+    expect(costPerLeadPence(normaliseMetrics({ totalCost: 0, totalLeads: 100 }))).toBeNull();
+  });
+});
+
+describe("headlineMetricPresence", () => {
+  it("marks all headline metrics present when data exists", () => {
+    const metrics = normaliseMetrics({
+      totalCost: 60_000,
+      totalLeads: 100,
+      mediaImpressions: 25_000,
+      npsScore: 4.2,
+    });
+    expect(headlineMetricPresence(metrics)).toEqual({
+      costPerLead: true,
+      footfallImpressions: true,
+      satisfaction: true,
+    });
+  });
+
+  it("suppresses cost per lead when spend or leads are zero", () => {
+    expect(
+      headlineMetricPresence(
+        normaliseMetrics({ totalCost: 0, totalLeads: 100, mediaImpressions: 1 })
+      ).costPerLead
+    ).toBe(false);
+    expect(
+      headlineMetricPresence(
+        normaliseMetrics({ totalCost: 60_000, totalLeads: 0, mediaImpressions: 1 })
+      ).costPerLead
+    ).toBe(false);
+  });
+
+  it("suppresses footfall impressions when zero", () => {
+    expect(
+      headlineMetricPresence(normaliseMetrics({ mediaImpressions: 0 }))
+        .footfallImpressions
+    ).toBe(false);
+    expect(
+      headlineMetricPresence(normaliseMetrics({ mediaImpressions: 42 }))
+        .footfallImpressions
+    ).toBe(true);
+  });
+
+  it("suppresses satisfaction when score is absent", () => {
+    expect(
+      headlineMetricPresence(normaliseMetrics({})).satisfaction
+    ).toBe(false);
+    expect(
+      headlineMetricPresence(normaliseMetrics({ npsScore: 3.8 })).satisfaction
+    ).toBe(true);
+  });
+});
+
+describe("isRenderableCostPerLead", () => {
+  it("requires both spend and leads", () => {
+    expect(isRenderableCostPerLead(normaliseMetrics({ totalCost: 1, totalLeads: 1 }))).toBe(true);
+    expect(isRenderableCostPerLead(normaliseMetrics({ totalCost: 0, totalLeads: 1 }))).toBe(false);
+    expect(isRenderableCostPerLead(normaliseMetrics({ totalCost: 1, totalLeads: 0 }))).toBe(false);
+  });
+});
+
+describe("isRenderableFootfallImpressions", () => {
+  it("is true only when impressions are greater than zero", () => {
+    expect(isRenderableFootfallImpressions(normaliseMetrics({ mediaImpressions: 0 }))).toBe(false);
+    expect(isRenderableFootfallImpressions(normaliseMetrics({ mediaImpressions: 1 }))).toBe(true);
+  });
+});
+
+describe("isRenderableSatisfaction", () => {
+  it("is true only when npsScore is present", () => {
+    expect(isRenderableSatisfaction(normaliseMetrics({}))).toBe(false);
+    expect(isRenderableSatisfaction(normaliseMetrics({ npsScore: 4.5 }))).toBe(true);
+  });
+});
+
+describe("formatSatisfactionScore", () => {
+  it("formats a score when present", () => {
+    expect(formatSatisfactionScore(normaliseMetrics({ npsScore: 4.25 }))).toBe("4.3 / 5");
+  });
+
+  it("returns null when satisfaction was not measured", () => {
+    expect(formatSatisfactionScore(normaliseMetrics({}))).toBeNull();
   });
 });
 

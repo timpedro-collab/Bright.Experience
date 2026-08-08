@@ -1,4 +1,5 @@
 /** Proof of Performance — post-event reporting with metrics, benchmarks, and sharing. */
+import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import {
   BarChart3,
@@ -20,6 +21,7 @@ import {
   DigitalFollowThroughCard,
 } from "@/components/reports/EngagementReport";
 import { ReportHighlights } from "@/components/reports/ReportHighlights";
+import { ReportRevealHero } from "@/components/reports/ReportRevealHero";
 import { ExecutiveSummary } from "@/components/reports/ExecutiveSummary";
 import { BenchmarkContextCard } from "@/components/reports/BenchmarkContext";
 import { LeadQualityCard } from "@/components/leads/LeadQualityCard";
@@ -34,7 +36,7 @@ import { getUnreadCount } from "@/lib/queries/notifications";
 import { getEventById } from "@/lib/queries/events";
 import { getRebookSlugsForEvent } from "@/lib/queries/rebook";
 import { getEventReports } from "@/lib/queries/event-reports";
-import { getLatestEventMetrics } from "@/lib/queries/event-metrics";
+import { getEventMetricTotals } from "@/lib/queries/event-metrics";
 import { getJourneyForEvent, getJourneyFunnel } from "@/lib/queries/journeys";
 import { getBenchmarkContext } from "@/lib/queries/benchmark-context";
 import { getLeadQualitySummary } from "@/lib/queries/lead-quality";
@@ -52,9 +54,15 @@ import {
 } from "@/lib/queries/partner-brand";
 import {
   costPerLeadPence,
+  formatSatisfactionScore,
+  headlineMetricPresence,
   normaliseHighlights,
   normaliseMetrics,
 } from "@/lib/reports/normalise";
+import { campaignCredit, pickHeadlineStat } from "@/lib/reports/reveal";
+import { getQuoteContactForEvent } from "@/lib/queries/quotes";
+import { hasIssuedInvoiceForEvent } from "@/lib/queries/invoices";
+import { entityTitle, getEventNameForTitle } from "@/lib/queries/page-titles";
 
 /**
  * Whether the event's end (or start, if no end) is in the past. Kept as a
@@ -66,6 +74,15 @@ function hasEventEnded(event: {
 }): boolean {
   const ref = event.eventDateEnd ?? event.eventDateStart;
   return new Date(ref).getTime() < Date.now();
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  return { title: entityTitle("Reports", await getEventNameForTitle(id)) };
 }
 
 export default async function ReportsPage({
@@ -146,9 +163,9 @@ export default async function ReportsPage({
     );
   }
 
-  const [latestMetrics, gameConfig, journey, benchmarkContext, leadQuality] =
+  const [metricTotals, gameConfig, journey, benchmarkContext, leadQuality] =
     await Promise.all([
-      getLatestEventMetrics(id),
+      getEventMetricTotals(id),
       getGameConfiguration(id),
       getJourneyForEvent(id),
       getBenchmarkContext(id),
@@ -164,11 +181,10 @@ export default async function ReportsPage({
     []
   ).map((v) => `${v.label}: ${v.sentence}`);
 
-  // Use the higher of the live snapshot vs the report blob for each metric.
-  // The latest daily snapshot is only the final day's reading, whereas the
-  // report blob holds the cumulative event total — taking the max keeps an
-  // in-flight event fresh while never under-reporting a completed one's totals.
-  const liveMetrics = normaliseMetrics(latestMetrics ?? {});
+  // Use the higher of the live totals vs the report blob for each metric —
+  // keeps an in-flight event fresh while never under-reporting a completed
+  // one's totals if the report blob was generated mid-show.
+  const liveMetrics = normaliseMetrics(metricTotals ?? {});
   const reportMetrics = normaliseMetrics(report.metricsJson);
   const metrics = {
     ...reportMetrics,
@@ -184,10 +200,17 @@ export default async function ReportsPage({
     ),
   };
   const highlights = normaliseHighlights(report.highlightsJson);
+  const headlineMetrics = headlineMetricPresence(metrics);
+  const satisfactionScore = formatSatisfactionScore(metrics);
 
   let suggestedPartner: { id: string; name: string } | null = null;
+  let invoiceIssued = true;
   if (isInternal && !report.isPublished) {
-    const defaultPartnerId = await getDefaultBrandPartnerForEvent(id);
+    const [defaultPartnerId, invoiced] = await Promise.all([
+      getDefaultBrandPartnerForEvent(id),
+      hasIssuedInvoiceForEvent(id),
+    ]);
+    invoiceIssued = invoiced;
     if (defaultPartnerId) {
       const brand = await getPartnerBrandById(defaultPartnerId);
       if (brand) {
@@ -195,6 +218,12 @@ export default async function ReportsPage({
       }
     }
   }
+
+  // The reveal: one enormous number before any chrome, with the champion's
+  // name on it and (when written) a signed note from the delivery lead.
+  const headlineStat = pickHeadlineStat(metrics);
+  const quoteContact = headlineStat ? await getQuoteContactForEvent(id) : null;
+  const credit = quoteContact ? campaignCredit(quoteContact) : null;
 
   return (
     <EventPageShell
@@ -209,14 +238,49 @@ export default async function ReportsPage({
       heroRight={<ExportMenu eventId={id} view="reports" />}
     >
       {!isInternal && report.isPublished && (
-        <p className="mb-2 text-sm text-muted-foreground">
-          Share the public link or export PDF/CSV/Excel — this is the artefact that renews the next buy.
-        </p>
+        <div className="mb-2 flex flex-wrap items-center gap-x-4 gap-y-1">
+          <p className="text-sm text-muted-foreground">
+            Share the public link or export PDF/CSV/Excel — this is the artefact that renews the next buy.
+          </p>
+          {report.shareToken && (
+            <span className="flex gap-3 text-sm">
+              <a
+                href={`/api/reports/${report.shareToken}/slide-pdf`}
+                className="text-primary underline-offset-4 hover:underline"
+              >
+                All-hands slide (PDF)
+              </a>
+              <a
+                href={`/api/reports/${report.shareToken}/stat-card`}
+                download
+                className="text-primary underline-offset-4 hover:underline"
+              >
+                LinkedIn stat card (PNG)
+              </a>
+            </span>
+          )}
+        </div>
       )}
       {isInternal && !report.isPublished && (
         <PublishReportBanner
           reportId={report.id}
           suggestedPartner={suggestedPartner}
+          invoiceIssued={invoiceIssued}
+        />
+      )}
+
+      {headlineStat && (
+        <ReportRevealHero
+          stat={headlineStat}
+          credit={credit}
+          note={
+            report.personalNote
+              ? {
+                  text: report.personalNote,
+                  author: report.personalNoteAuthor ?? "The Bright.Blue team",
+                }
+              : null
+          }
         />
       )}
 
@@ -260,20 +324,38 @@ export default async function ReportsPage({
                 }
                 positive={true}
               />
-              <MetricCard
-                icon={Eye}
-                label="Footfall impressions"
-                value={metrics.mediaImpressions.toLocaleString("en-US")}
-              />
-              <MetricCard
-                icon={Star}
-                label="Satisfaction"
-                value={
-                  metrics.npsScore != null
-                    ? `${metrics.npsScore.toFixed(1)} / 5`
-                    : "—"
-                }
-              />
+              {headlineMetrics.footfallImpressions ? (
+                <MetricCard
+                  icon={Eye}
+                  label="Footfall impressions"
+                  value={metrics.mediaImpressions.toLocaleString("en-US")}
+                />
+              ) : (
+                <div className="rounded-xl border border-border/60 bg-card p-5">
+                  <p className="text-overline text-muted-foreground">
+                    Footfall impressions
+                  </p>
+                  <p className="mt-3 text-sm text-muted-foreground">
+                    Not measured at this event
+                  </p>
+                </div>
+              )}
+              {headlineMetrics.satisfaction && satisfactionScore ? (
+                <MetricCard
+                  icon={Star}
+                  label="Satisfaction"
+                  value={satisfactionScore}
+                />
+              ) : (
+                <div className="rounded-xl border border-border/60 bg-card p-5">
+                  <p className="text-overline text-muted-foreground">
+                    Satisfaction
+                  </p>
+                  <p className="mt-3 text-sm text-muted-foreground">
+                    Not measured at this event
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </DashboardTabs>
@@ -385,6 +467,7 @@ export default async function ReportsPage({
             eventType={event.eventType}
             machineSlug={rebookSlugs.machineSlug}
             gameSlug={rebookSlugs.gameSlug}
+            authenticatedEventId={id}
           />
         )}
       </section>

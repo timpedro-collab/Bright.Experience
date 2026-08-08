@@ -18,6 +18,10 @@ const STATUS_STYLES: Record<string, { label: string; className: string }> = {
   archived: { label: "Archived", className: "bg-muted text-muted-foreground" },
 };
 
+export const metadata = {
+  title: "Campaign detail",
+};
+
 export default async function CampaignDetailPage({
   params,
 }: {

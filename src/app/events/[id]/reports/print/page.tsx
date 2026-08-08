@@ -2,6 +2,7 @@
  * Print-optimised report page — rendered by Puppeteer for PDF export.
  * White background, no navigation chrome, perfect A4 portrait layout.
  */
+import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 
 import { MetricCard } from "@/components/reports/MetricCard";
@@ -11,17 +12,29 @@ import { ReportHighlights } from "@/components/reports/ReportHighlights";
 
 import { getEventById } from "@/lib/queries/events";
 import { getEventReports } from "@/lib/queries/event-reports";
-import { getLatestEventMetrics } from "@/lib/queries/event-metrics";
+import { getEventMetricTotals } from "@/lib/queries/event-metrics";
 import { getBenchmarkForComparison } from "@/lib/queries/benchmarks";
 import { getUser } from "@/lib/auth";
 import { isInternalRole } from "@/lib/roles";
 import { canViewSection } from "@/lib/event-access";
 import {
+  formatSatisfactionScore,
+  headlineMetricPresence,
   normaliseHighlights,
   normaliseMetrics,
   normalisePredictions,
 } from "@/lib/reports/normalise";
 import { Users, Target, Eye, Star } from "lucide-react";
+import { entityTitle, getEventNameForTitle } from "@/lib/queries/page-titles";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  return { title: entityTitle("Report print", await getEventNameForTitle(id)) };
+}
 
 export default async function ReportPrintPage({
   params,
@@ -45,12 +58,12 @@ export default async function ReportPrintPage({
   // able to reach them via the print route, which the PDF export renders.
   if (!isInternalRole(user.role) && !report.isPublished) return notFound();
 
-  const [latestMetrics, benchmarkList] = await Promise.all([
-    getLatestEventMetrics(id),
+  const [metricTotals, benchmarkList] = await Promise.all([
+    getEventMetricTotals(id),
     getBenchmarkForComparison(event.eventType ?? "experiential"),
   ]);
 
-  const liveMetrics = normaliseMetrics(latestMetrics ?? {});
+  const liveMetrics = normaliseMetrics(metricTotals ?? {});
   const reportMetrics = normaliseMetrics(report.metricsJson);
   const metrics = {
     ...reportMetrics,
@@ -67,6 +80,8 @@ export default async function ReportPrintPage({
   };
   const predictions = normalisePredictions(report.predictionsJson);
   const highlights = normaliseHighlights(report.highlightsJson);
+  const headlineMetrics = headlineMetricPresence(metrics);
+  const satisfactionScore = formatSatisfactionScore(metrics);
 
   const metricsRecord: Record<string, number> = {
     interactions: metrics.totalInteractions,
@@ -139,20 +154,20 @@ export default async function ReportPrintPage({
             }
             positive
           />
-          <MetricCard
-            icon={Eye}
-            label="Footfall impressions"
-            value={metrics.mediaImpressions.toLocaleString("en-US")}
-          />
-          <MetricCard
-            icon={Star}
-            label="Satisfaction"
-            value={
-              metrics.npsScore != null
-                ? `${metrics.npsScore.toFixed(1)} / 5`
-                : "—"
-            }
-          />
+          {headlineMetrics.footfallImpressions && (
+            <MetricCard
+              icon={Eye}
+              label="Footfall impressions"
+              value={metrics.mediaImpressions.toLocaleString("en-US")}
+            />
+          )}
+          {headlineMetrics.satisfaction && satisfactionScore && (
+            <MetricCard
+              icon={Star}
+              label="Satisfaction"
+              value={satisfactionScore}
+            />
+          )}
         </div>
       </section>
 

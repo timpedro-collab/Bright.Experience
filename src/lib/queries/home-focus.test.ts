@@ -6,7 +6,24 @@
 import { describe, it, expect } from "vitest";
 import { buildFocusItems, type FocusItem } from "./home-focus";
 import type { PortfolioStats } from "@/lib/queries/portfolio";
+import type { InternalQueueCounts } from "@/lib/queries/admin-queues";
 import type { Event, UserRole } from "@/types";
+
+function makeQueueCounts(
+  overrides: Partial<InternalQueueCounts> = {},
+): InternalQueueCounts {
+  return {
+    newQuotes: 0,
+    newStudioOrders: 0,
+    pendingPartnerApps: 0,
+    blockedEvents: 0,
+    assetReviews: 0,
+    overdueAssetReviews: 0,
+    stuckCustomerActions: 0,
+    acceptedNeedingWorkspace: 0,
+    ...overrides,
+  };
+}
 
 function makeEvent(overrides: Partial<Event>): Event {
   return {
@@ -76,6 +93,53 @@ describe("QA sign-off queue", () => {
   it("does not show the QA queue to the creative lead", () => {
     const items = build("creative_lead", [qaGateEvent]);
     expect(items.some((i) => i.kind === "qa_signoff")).toBe(false);
+  });
+});
+
+describe("accepted-quote workspace safety net", () => {
+  it("surfaces accepted quotes without a workspace as critical for orchestrators", () => {
+    const items = buildFocusItems({
+      role: "events_lead",
+      portfolio: makePortfolio([]),
+      queueCounts: makeQueueCounts({ acceptedNeedingWorkspace: 2 }),
+      taskGroups: [],
+    });
+    const item = items.find((i) => i.id === "accepted-unprovisioned");
+    expect(item).toBeDefined();
+    expect(item!.tone).toBe("critical");
+    expect(item!.title).toBe("2 accepted quotes need a workspace");
+    expect(item!.href).toBe("/admin/quotes");
+  });
+
+  it("uses singular copy for one accepted quote", () => {
+    const items = buildFocusItems({
+      role: "admin",
+      portfolio: makePortfolio([]),
+      queueCounts: makeQueueCounts({ acceptedNeedingWorkspace: 1 }),
+      taskGroups: [],
+    });
+    const item = items.find((i) => i.id === "accepted-unprovisioned");
+    expect(item!.title).toBe("1 accepted quote needs a workspace");
+  });
+
+  it("shows nothing when every accepted quote has its event", () => {
+    const items = buildFocusItems({
+      role: "events_lead",
+      portfolio: makePortfolio([]),
+      queueCounts: makeQueueCounts(),
+      taskGroups: [],
+    });
+    expect(items.some((i) => i.id === "accepted-unprovisioned")).toBe(false);
+  });
+
+  it("never surfaces the queue to non-orchestrator roles", () => {
+    const items = buildFocusItems({
+      role: "creative_lead",
+      portfolio: makePortfolio([]),
+      queueCounts: makeQueueCounts({ acceptedNeedingWorkspace: 3 }),
+      taskGroups: [],
+    });
+    expect(items.some((i) => i.id === "accepted-unprovisioned")).toBe(false);
   });
 });
 

@@ -75,6 +75,105 @@ describe("CustomerEventBody", () => {
     );
     expect(screen.getByText("The numbers")).toBeInTheDocument();
     expect(screen.getByText("Days to event")).toBeInTheDocument();
+    expect(screen.getByText("12 days")).toBeInTheDocument();
     expect(screen.getByText("Approvals pending")).toBeInTheDocument();
+  });
+
+  it("shows Wrapped copy for past events", () => {
+    render(
+      <CustomerEventBody
+        eventId="e1"
+        event={makeEvent({ id: "e1" })}
+        milestones={[]}
+        items={[]}
+        nextStep={nextStep}
+        teamMembers={[]}
+        metrics={{
+          daysToEvent: -140,
+          delivered: true,
+          pendingActions: 0,
+          approvalsPending: 0,
+          missedMilestones: 0,
+        }}
+      />,
+    );
+    expect(screen.getByText("Wrapped")).toBeInTheDocument();
+    expect(screen.getByText("140 days ago")).toBeInTheDocument();
+    expect(screen.queryByText("Days to event")).not.toBeInTheDocument();
+  });
+
+  it("invites a rebook once the event has wrapped", () => {
+    render(
+      <CustomerEventBody
+        eventId="e1"
+        event={makeEvent({ id: "e1", currentStage: "complete" })}
+        milestones={[]}
+        items={[]}
+        nextStep={null}
+        teamMembers={[]}
+      />,
+    );
+    expect(screen.getByText("Run this again?")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /rebook this activation/i }),
+    ).toBeInTheDocument();
+  });
+
+  it("never shows the rebook card while the event is still in delivery", () => {
+    render(
+      <CustomerEventBody
+        eventId="e1"
+        event={makeEvent({ id: "e1", currentStage: "creative_assets" })}
+        milestones={[]}
+        items={[]}
+        nextStep={nextStep}
+        teamMembers={[]}
+      />,
+    );
+    expect(screen.queryByText("Run this again?")).not.toBeInTheDocument();
+  });
+
+  it("shows the delivery feed for an upcoming event in the delivery window", () => {
+    const futureStart = new Date(Date.now() + 10 * 86_400_000)
+      .toISOString()
+      .slice(0, 10);
+    render(
+      <CustomerEventBody
+        eventId="e1"
+        event={makeEvent({
+          id: "e1",
+          currentStage: "build_configuration",
+          eventDateStart: futureStart,
+          eventDateEnd: futureStart,
+        })}
+        milestones={[]}
+        items={[]}
+        nextStep={nextStep}
+        teamMembers={[]}
+      />,
+    );
+    expect(screen.getByText("Behind the scenes right now")).toBeInTheDocument();
+    expect(
+      screen.getByText("Machine wrapped in your brand"),
+    ).toBeInTheDocument();
+    // 10 days out: the wrap reveal is open, the game preview still gated.
+    expect(screen.getByText("Your machine, in your brand")).toBeInTheDocument();
+    expect(screen.getByText("Unlocks 7 days out")).toBeInTheDocument();
+  });
+
+  it("hides the delivery feed once the event has wrapped", () => {
+    render(
+      <CustomerEventBody
+        eventId="e1"
+        event={makeEvent({ id: "e1", currentStage: "complete" })}
+        milestones={[]}
+        items={[]}
+        nextStep={null}
+        teamMembers={[]}
+      />,
+    );
+    expect(
+      screen.queryByText("Behind the scenes right now"),
+    ).not.toBeInTheDocument();
   });
 });

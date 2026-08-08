@@ -3,11 +3,12 @@
  * stage callout. Uses EventPageShell for consistent chrome.
  */
 
+import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 
 import { EventPageShell } from "@/components/brand/event-page-shell";
 import { EditorialEyebrow, Hairline } from "@/components/brand";
-import { HealthBadge } from "@/components/ui/StatusBadge";
+import { EventHealthBadge } from "@/components/ui/StatusBadge";
 import { MilestoneTimeline } from "@/components/timeline/MilestoneTimeline";
 import { StageProgressBar } from "@/components/events/StageProgressBar";
 import { AdvanceStageButton } from "@/components/events/AdvanceStageButton";
@@ -28,6 +29,16 @@ import { stageLabelFor, stageDescriptionFor } from "@/lib/customer-copy";
 import { phaseForStage } from "@/lib/journey";
 import { STAGE_CONFIG } from "@/types";
 import { isOverdue } from "@/lib/dates";
+import { entityTitle, getEventNameForTitle } from "@/lib/queries/page-titles";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  return { title: entityTitle("Timeline", await getEventNameForTitle(id)) };
+}
 
 export default async function TimelinePage({
   params,
@@ -68,6 +79,13 @@ export default async function TimelinePage({
   const stageConfig = STAGE_CONFIG[event.currentStage];
   const stageLabel = stageLabelFor(event.currentStage, !isInternal);
   const journeyPhase = phaseForStage(event.currentStage);
+  const overdueTaskCount = tasks.filter(
+    (t) =>
+      t.status !== "complete" &&
+      t.status !== "skipped" &&
+      !!t.dueDate &&
+      isOverdue(t.dueDate),
+  ).length;
 
   return (
     <EventPageShell
@@ -80,7 +98,11 @@ export default async function TimelinePage({
       subtitle={isInternal ? `Currently in ${stageLabel}.` : `${stageLabel}.`}
       isInternal={isInternal}
       viewerRole={user.role}
-      heroRight={isInternal ? <HealthBadge status={event.healthStatus} /> : undefined}
+      heroRight={
+        isInternal ? (
+          <EventHealthBadge event={event} overdueTaskCount={overdueTaskCount} />
+        ) : undefined
+      }
     >
       {!isInternal && (
         <section className="pt-10">

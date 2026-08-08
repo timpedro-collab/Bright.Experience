@@ -7,7 +7,10 @@ import type { Metadata } from "next";
 
 import { Container, Section } from "@/components/ui/section";
 import { PricingExplorer } from "@/components/public/pricing/PricingExplorer";
+import { FleetAvailability } from "@/components/public/pricing/FleetAvailability";
 import { isPricingPersona } from "@/lib/pricing/personas";
+import { upcomingMonths } from "@/lib/pricing/fleet-availability";
+import { getFleetMonthAvailability } from "@/lib/queries/fleet-availability";
 
 export const metadata: Metadata = {
   title: "Pricing",
@@ -22,6 +25,10 @@ interface PageProps {
 export default async function PricingPage({ searchParams }: PageProps) {
   const { for: personaParam } = await searchParams;
   const initialPersona = isPricingPersona(personaParam) ? personaParam : "brand";
+
+  // Real scarcity only: derived from the booking calendar for the next
+  // three months; the module simply doesn't render if the read fails.
+  const availability = await getFleetMonthAvailability(upcomingMonths(3));
 
   return (
     <>
@@ -46,6 +53,9 @@ export default async function PricingPage({ searchParams }: PageProps) {
       <Section>
         <Container>
           <PricingExplorer initialPersona={initialPersona} />
+          <div className="mt-12">
+            <FleetAvailability months={availability} />
+          </div>
         </Container>
       </Section>
     </>

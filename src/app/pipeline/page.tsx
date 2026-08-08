@@ -9,12 +9,18 @@ import { AutoRefresh } from "@/components/system/AutoRefresh";
 import { getUser } from "@/lib/auth";
 import { isInternalRole, canAdvanceEventStage } from "@/lib/roles";
 import { getPipelineEvents } from "@/lib/queries/pipeline";
+import { getOverdueTaskCountsForEvents } from "@/lib/queries/tasks";
 import { getUnreadCount } from "@/lib/queries/notifications";
+import { deriveEventHealth, isEventWrapped } from "@/lib/event-health";
 import type { EventFilters } from "@/lib/queries/events";
 
 interface PipelinePageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
+
+export const metadata = {
+  title: "Pipeline",
+};
 
 export default async function PipelinePage({ searchParams }: PipelinePageProps) {
   const user = await getUser();
@@ -29,16 +35,30 @@ export default async function PipelinePage({ searchParams }: PipelinePageProps) 
     account: typeof params.account === "string" ? params.account : undefined,
   };
 
-  const [events, unread] = await Promise.all([
+  const [rawEvents, unread] = await Promise.all([
     getPipelineEvents(filters),
     getUnreadCount(user.id),
   ]);
 
+  // Health is derived from reality (dates + overdue tasks), not the stored
+  // chip — a date-passed kickoff event must never read "On track" here.
+  const overdueCounts = await getOverdueTaskCountsForEvents(
+    rawEvents.map((e) => e.id),
+  );
+  const events = rawEvents.map((e) => {
+    const chip = deriveEventHealth({
+      ...e,
+      overdueTaskCount: overdueCounts[e.id] ?? 0,
+    });
+    return chip.kind === "health" ? { ...e, healthStatus: chip.status } : e;
+  });
+
   const owners = [...new Set(events.map((e) => e.ownerName).filter(Boolean))] as string[];
+  const inFlight = events.filter((e) => !isEventWrapped(e));
   const healthCounts = {
-    green: events.filter((e) => e.healthStatus === "green").length,
-    amber: events.filter((e) => e.healthStatus === "amber").length,
-    red: events.filter((e) => e.healthStatus === "red").length,
+    green: inFlight.filter((e) => e.healthStatus === "green").length,
+    amber: inFlight.filter((e) => e.healthStatus === "amber").length,
+    red: inFlight.filter((e) => e.healthStatus === "red").length,
   };
 
   return (
@@ -47,7 +67,7 @@ export default async function PipelinePage({ searchParams }: PipelinePageProps) 
       unreadCount={unread}
       section="Pipeline"
       title="The pipeline."
-      subtitle={`${events.length} ${events.length === 1 ? "event" : "events"} in flight · ${healthCounts.green} on track · ${healthCounts.amber} at risk · ${healthCounts.red} blocked.`}
+      subtitle={`${inFlight.length} ${inFlight.length === 1 ? "event" : "events"} in flight · ${healthCounts.green} on track · ${healthCounts.amber} at risk · ${healthCounts.red} blocked.`}
     >
       <AutoRefresh />
       <div className="py-8">

@@ -80,6 +80,40 @@ describe("getOpenTaskCountsForUser", () => {
   });
 });
 
+describe("getOverdueTaskCountsForEvents", () => {
+  it("returns an empty object without querying when no ids are given", async () => {
+    const { getOverdueTaskCountsForEvents } = await import("./tasks");
+    expect(await getOverdueTaskCountsForEvents([])).toEqual({});
+    expect(supabase.callsFor("tasks")).toHaveLength(0);
+  });
+
+  it("counts overdue open tasks per event", async () => {
+    supabase.setTableResponse("tasks", {
+      data: [
+        { event_id: "evt-1" },
+        { event_id: "evt-1" },
+        { event_id: "evt-2" },
+      ],
+      error: null,
+    });
+    const { getOverdueTaskCountsForEvents } = await import("./tasks");
+    const result = await getOverdueTaskCountsForEvents(["evt-1", "evt-2"]);
+    expect(result).toEqual({ "evt-1": 2, "evt-2": 1 });
+
+    const calls = supabase.callsFor("tasks");
+    const dueFilter = calls.find(
+      (c) => c.method === "lt" && c.args[0] === "due_date",
+    );
+    expect(dueFilter).toBeDefined();
+  });
+
+  it("returns an empty object on a Supabase error", async () => {
+    supabase.setTableResponse("tasks", { data: null, error: { message: "boom" } });
+    const { getOverdueTaskCountsForEvents } = await import("./tasks");
+    expect(await getOverdueTaskCountsForEvents(["evt-1"])).toEqual({});
+  });
+});
+
 describe("getTasksAssignedToUser", () => {
   it("returns the mapped rows in camelCase shape", async () => {
     supabase.setTableResponse("tasks", {

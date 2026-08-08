@@ -1,4 +1,5 @@
 /** Partner clients — every referred company, grouped, with what you've earned. */
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { Users } from "lucide-react";
 
@@ -15,9 +16,19 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PartnerDealList } from "@/components/partners/PartnerPipeline";
 import { formatMoneyFromPence } from "@/lib/currency";
+import { entityTitle, getPartnerNameForTitle } from "@/lib/queries/page-titles";
 
 interface ClientsPageProps {
   params: Promise<{ slug: string }>;
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  return { title: entityTitle("Clients", await getPartnerNameForTitle(slug)) };
 }
 
 export default async function PartnerClientsPage({ params }: ClientsPageProps) {

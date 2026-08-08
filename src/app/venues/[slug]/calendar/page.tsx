@@ -1,4 +1,5 @@
 /** Venue dark-day calendar — idle days with no sponsorship on the market. */
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { CalendarDays } from "lucide-react";
 
@@ -13,9 +14,19 @@ import { getPlacementsByVenue } from "@/lib/queries/placements";
 import { getSlotsByPlacement } from "@/lib/queries/sponsorship-slots";
 import { getUnreadCount } from "@/lib/queries/notifications";
 import { darkDayGaps, totalDarkDays } from "@/lib/venues/dark-days";
+import { entityTitle, getVenueNameForTitle } from "@/lib/queries/page-titles";
 
 interface Props {
   params: Promise<{ slug: string }>;
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  return { title: entityTitle("Calendar", await getVenueNameForTitle(slug)) };
 }
 
 export default async function VenueCalendarPage({ params }: Props) {

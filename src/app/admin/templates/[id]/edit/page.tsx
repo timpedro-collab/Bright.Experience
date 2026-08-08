@@ -8,6 +8,10 @@ import { getUnreadCount } from "@/lib/queries/notifications";
 import { getTemplateById } from "@/lib/queries/templates";
 import { TemplateEditor } from "@/components/admin/TemplateEditor";
 
+export const metadata = {
+  title: "Edit template",
+};
+
 export default async function TemplateEditPage({
   params,
 }: {

@@ -124,6 +124,33 @@ export const customerArchetypes = {
     defaults: { inPortal: true, emailMode: "immediate" },
     audience: "internal",
   },
+  "report.published": {
+    kind: "report.published",
+    classOf: "fyi",
+    priority: "normal",
+    eyebrow: "Results ready",
+    subjectTemplate: "Your results are ready",
+    bodyTemplate:
+      "The post-event report for {eventName} is published and live in your portal. Take a look at how the activation performed.",
+    linkTemplate: "/events/{eventId}/reports",
+    ownerResolver: "customer_admins",
+    defaults: { inPortal: true, emailMode: "immediate" },
+    audience: "customer",
+  },
+  "report.planning_resend": {
+    kind: "report.planning_resend",
+    classOf: "fyi",
+    priority: "normal",
+    eyebrow: "Results ready",
+    subjectTemplate:
+      "Planning season? Your {eventName} results, one click away",
+    bodyTemplate:
+      "You told us this is around when you plan next year's events — so here's your {eventName} report, one click away. The numbers make a strong case for the next one.",
+    linkTemplate: "/events/{eventId}/reports",
+    ownerResolver: "customer_admins",
+    defaults: { inPortal: true, emailMode: "immediate" },
+    audience: "customer",
+  },
   "proposal.delivered": {
     kind: "proposal.delivered",
     classOf: "action_required",

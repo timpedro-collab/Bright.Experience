@@ -51,6 +51,16 @@ describe("LeadWebhookManager", () => {
     expect(screen.getByRole("button", { name: /disable/i })).toBeInTheDocument();
   });
 
+  it("shows setup copy when no webhooks are configured", () => {
+    render(<LeadWebhookManager eventId={EVENT_ID} webhooks={[]} />);
+
+    expect(
+      screen.getByText(
+        "Add an endpoint and we deliver signed payloads in real time.",
+      ),
+    ).toBeInTheDocument();
+  });
+
   it("shows the signing secret once after creating an endpoint", async () => {
     createLeadWebhook.mockResolvedValue({
       success: true,

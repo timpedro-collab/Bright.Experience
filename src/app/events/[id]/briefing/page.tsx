@@ -3,6 +3,7 @@
  * Uses EventPageShell for consistent chrome.
  */
 
+import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
 import { FileText } from "lucide-react";
@@ -23,6 +24,16 @@ import { isInternalRole } from "@/lib/roles";
 import { canViewSection } from "@/lib/event-access";
 import { isStageAtOrAfter } from "@/lib/journey";
 import { getBriefingFiles } from "@/app/actions/briefing";
+import { entityTitle, getEventNameForTitle } from "@/lib/queries/page-titles";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  return { title: entityTitle("Briefing", await getEventNameForTitle(id)) };
+}
 
 export default async function BriefingPage({
   params,

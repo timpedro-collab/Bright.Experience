@@ -1,4 +1,5 @@
 /** Embed code generator page — provides venue operators with widget code. */
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { PortalPageShell, venueTabs, venueRoleLabel } from "@/components/brand";
 import { getUser } from "@/lib/auth";
@@ -6,9 +7,19 @@ import { getPartnerForUser } from "@/lib/queries/partners";
 import { getVenueBySlug } from "@/lib/queries/venues";
 import { getUnreadCount } from "@/lib/queries/notifications";
 import { EmbedCodeGenerator } from "@/components/venues/EmbedCodeGenerator";
+import { entityTitle, getVenueNameForTitle } from "@/lib/queries/page-titles";
 
 interface Props {
   params: Promise<{ slug: string }>;
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  return { title: entityTitle("Embed", await getVenueNameForTitle(slug)) };
 }
 
 export default async function EmbedPage({ params }: Props) {

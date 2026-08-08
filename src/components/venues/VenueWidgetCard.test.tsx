@@ -53,7 +53,7 @@ describe("VenueWidgetCard", () => {
       />,
     );
 
-    expect(screen.getByText(/Next window: 10 Aug – 20 Aug/)).toBeInTheDocument();
+    expect(screen.getByText(/Next window: 10–20 Aug 2026/)).toBeInTheDocument();
   });
 
   it("renders next window without an end date", () => {
@@ -64,7 +64,7 @@ describe("VenueWidgetCard", () => {
       />,
     );
 
-    expect(screen.getByText(/Next window: 1 Sep/)).toBeInTheDocument();
+    expect(screen.getByText(/Next window: 1 Sep 2026/)).toBeInTheDocument();
     expect(screen.queryByText(/–/)).not.toBeInTheDocument();
   });
 });

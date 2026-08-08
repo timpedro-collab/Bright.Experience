@@ -114,7 +114,7 @@ export function LeadWebhookManager({ eventId, webhooks }: LeadWebhookManagerProp
     <div className="space-y-4">
       {webhooks.length === 0 && !formOpen ? (
         <p className="text-sm text-muted-foreground">
-          Deliver each lead to your CRM the moment it&apos;s captured.
+          Add an endpoint and we deliver signed payloads in real time.
         </p>
       ) : null}
 

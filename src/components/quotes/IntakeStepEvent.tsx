@@ -103,14 +103,16 @@ const CAPABILITY_OPTIONS: {
 interface IntakeStepEventProps {
   selectedAddons: string[];
   objective: string;
+  campaignName: string;
   onToggleAddon: (slug: string) => void;
   onChange: (field: string, value: string) => void;
 }
 
-/** Multi-select capability picker + free-text objective. */
+/** Multi-select capability picker + free-text objective + campaign name. */
 export function IntakeStepEvent({
   selectedAddons = [],
   objective = "",
+  campaignName = "",
   onToggleAddon,
   onChange,
 }: IntakeStepEventProps) {
@@ -217,6 +219,23 @@ export function IntakeStepEvent({
             value={objective}
             onChange={(e) => onChange("objective", e.target.value)}
           />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="campaignName">
+            Name your campaign{" "}
+            <span className="font-normal text-muted-foreground">(optional)</span>
+          </Label>
+          <Input
+            id="campaignName"
+            placeholder="Spring launch roadshow"
+            value={campaignName}
+            onChange={(e) => onChange("campaignName", e.target.value)}
+          />
+          <p className="text-xs text-muted-foreground">
+            This is how it&apos;ll appear on your report and dashboard — you can
+            change it later.
+          </p>
         </div>
       </CardContent>
     </Card>

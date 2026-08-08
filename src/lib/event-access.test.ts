@@ -68,10 +68,12 @@ describe("event-access matrix", () => {
   });
 
   describe("operations_lead", () => {
-    it("sees the physical-delivery lane only — logistics, config, machine, compliance, qa — never creative", () => {
+    it("sees the physical-delivery lane plus tasks — never creative", () => {
       const role: UserRole = "operations_lead";
       for (const s of [
         "overview",
+        // Ops own work items whose deep-links land on the Tasks page.
+        "actions",
         "logistics",
         "configuration",
         "machine",

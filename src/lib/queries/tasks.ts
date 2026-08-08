@@ -65,6 +65,37 @@ export async function getOpenTaskCountsForUser(
 }
 
 /**
+ * Open tasks past their due date, counted per event in one round-trip.
+ * Feeds the derived event-health chip (`deriveEventHealth`), so "On track"
+ * can never sit above a pile of overdue work.
+ */
+export async function getOverdueTaskCountsForEvents(
+  eventIds: string[],
+): Promise<Record<string, number>> {
+  if (eventIds.length === 0) return {};
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("tasks")
+    .select("event_id")
+    .in("event_id", eventIds)
+    .not("status", "in", '("complete","skipped")')
+    .lt("due_date", new Date().toISOString());
+
+  if (error || !data) {
+    logQueryError("getOverdueTaskCountsForEvents", error, {
+      eventCount: eventIds.length,
+    });
+    return {};
+  }
+
+  const counts: Record<string, number> = {};
+  for (const row of data as { event_id: string }[]) {
+    counts[row.event_id] = (counts[row.event_id] ?? 0) + 1;
+  }
+  return counts;
+}
+
+/**
  * Per-event task progress: { completed, total } for each event in one round-trip.
  * Used by the dashboard progress rings.
  */

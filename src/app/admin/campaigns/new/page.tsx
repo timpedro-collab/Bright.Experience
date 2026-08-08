@@ -8,6 +8,10 @@ import { getUser } from "@/lib/auth";
 import { canViewCommercial } from "@/lib/roles";
 import { getUnreadCount } from "@/lib/queries/notifications";
 
+export const metadata = {
+  title: "New campaign",
+};
+
 export default async function NewCampaignPage() {
   const user = await getUser();
   if (!user) redirect("/login");

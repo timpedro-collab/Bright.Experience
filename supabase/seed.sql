@@ -254,7 +254,7 @@ insert into case_studies (id, title, slug, client_name, event_type, location, de
     'BIBA', 'exhibition', 'Manchester',
     'A branded Experience Portal on the exhibition floor at the BIBA Conference — a memorable, on-brand draw amongst hundreds of stands that turned footfall into conversations and clean opt-in data.',
     null, '[]'::jsonb,
-    '{}'::jsonb, -- stats intentionally empty until real activation figures are supplied
+    '{"marketingOptIns":486}'::jsonb, -- illustrative demo figure; replace with the real activation numbers when supplied
     'It gave delegates a reason to stop, and gave our team a natural way to start a conversation.', 'Events Team, BIBA',
     'named', null,
     true, '2026-03-20T10:00:00Z'),
@@ -278,7 +278,7 @@ insert into case_studies (id, title, slug, client_name, event_type, location, de
     'Adyen', 'corporate', 'London',
     'A fully customised, unattended Experience Portal vending branded gifts across an Adyen business event — delivery, setup, and restocking all handled by Bright.Blue.',
     null, '[]'::jsonb,
-    '{}'::jsonb, -- stats intentionally empty until real activation figures are supplied
+    '{"giftsVended":1150}'::jsonb, -- illustrative demo figure; replace with the real activation numbers when supplied
     'We vended gifts from their unattended machine and saw fantastic attendee engagement. The team handled everything from delivery and setup to restocking — it let me focus on the event itself.', 'Brigitte Brown, Senior Event Marketing Manager, Adyen',
     'named', null,
     true, '2026-03-18T10:00:00Z'),
@@ -309,7 +309,9 @@ on conflict (postcode_prefix) do nothing;
 -- ============================================================
 insert into events (id, account_id, name, event_type, package_type, machine_type, venue_name, venue_address, event_date_start, event_date_end, setup_date, collection_date, current_stage, health_status, created_by, created_at) values
   ('e1111111-1111-1111-1111-111111111111', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'Coca-Cola Summer Festival 2026', 'vending', 'premium', 'Bright.Vend Pro', 'Hyde Park', 'London W2 2UH', '2026-07-15', '2026-07-17', '2026-07-14', '2026-07-18', 'creative_assets', 'green', '11111111-1111-1111-1111-111111111111', '2026-03-01T10:00:00Z'),
-  ('e2222222-2222-2222-2222-222222222222', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'Samsung Galaxy Launch Experience', 'activation', 'custom', 'Bright.Play', 'Westfield London', 'Ariel Way, London W12 7GF', '2026-05-20', '2026-05-22', null, null, 'approvals', 'amber', '11111111-1111-1111-1111-111111111111', '2026-02-15T09:00:00Z'),
+  -- Future event mid-pipeline (approvals): dated after the seed anchor
+  -- (2026-06-18) so its stage and its dates tell the same story.
+  ('e2222222-2222-2222-2222-222222222222', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'Samsung Galaxy Launch Experience', 'activation', 'custom', 'Bright.Play', 'Westfield London', 'Ariel Way, London W12 7GF', '2026-07-20', '2026-07-22', null, null, 'approvals', 'amber', '11111111-1111-1111-1111-111111111111', '2026-02-15T09:00:00Z'),
   ('e3333333-3333-3333-3333-333333333333', 'cccccccc-cccc-cccc-cccc-cccccccccccc', 'Guinness Six Nations Fan Zone', 'sampling', 'standard', 'Bright.Vend', 'Twickenham Stadium', 'Whitton Rd, Twickenham TW2 7BA', '2026-06-10', null, null, null, 'kickoff_complete', 'green', '11111111-1111-1111-1111-111111111111', '2026-03-20T11:00:00Z'),
   ('e4444444-4444-4444-4444-444444444444', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'Coca-Cola Notting Hill Carnival', 'vending', 'premium', 'Bright.Vend Pro', 'Notting Hill Carnival', 'Notting Hill, London W11', '2026-08-14', '2026-08-16', '2026-08-13', '2026-08-17', 'confirmed', 'amber', '11111111-1111-1111-1111-111111111111', '2026-04-01T10:00:00Z'),
   ('e5555555-5555-5555-5555-555555555555', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'Samsung Unpacked Pop-Up', 'activation', 'premium', 'Bright.Play', 'Battersea Power Station', 'Circus Rd W, London SW11 8DD', '2026-04-10', '2026-04-12', null, null, 'qa_readiness', 'red', '11111111-1111-1111-1111-111111111111', '2026-01-10T08:00:00Z'),
@@ -454,24 +456,11 @@ insert into benchmarks (event_type, location_tier, machine_type, metric_name, av
   ('sampling',    'tier_1', 'Bright.Vend Pro', 'samples_per_day',    270,  265,  245,  295, 22),
   ('sampling',    'tier_2', 'Bright.Vend Pro', 'samples_per_day',    200,  195,  170,  230, 17);
 
--- ============================================================
--- TELEMETRY (live dashboard demo data for evt-2)
--- ============================================================
-insert into telemetry_events (machine_instance_id, event_id, event_type, payload_json, "timestamp") values
-  ('1c1c1c1c-1c1c-4c1c-8c1c-1c1c1c1c1c1c', 'e2222222-2222-2222-2222-222222222222', 'play_started',   '{"session":"s1"}'::jsonb, now() - interval '30 minutes'),
-  ('1c1c1c1c-1c1c-4c1c-8c1c-1c1c1c1c1c1c', 'e2222222-2222-2222-2222-222222222222', 'play_completed', '{"session":"s1","score":820}'::jsonb, now() - interval '29 minutes'),
-  ('1c1c1c1c-1c1c-4c1c-8c1c-1c1c1c1c1c1c', 'e2222222-2222-2222-2222-222222222222', 'lead_captured',  '{"session":"s1"}'::jsonb, now() - interval '28 minutes'),
-  ('1c1c1c1c-1c1c-4c1c-8c1c-1c1c1c1c1c1c', 'e2222222-2222-2222-2222-222222222222', 'play_started',   '{"session":"s2"}'::jsonb, now() - interval '14 minutes'),
-  ('1c1c1c1c-1c1c-4c1c-8c1c-1c1c1c1c1c1c', 'e2222222-2222-2222-2222-222222222222', 'play_completed', '{"session":"s2","score":640}'::jsonb, now() - interval '13 minutes'),
-  ('1c1c1c1c-1c1c-4c1c-8c1c-1c1c1c1c1c1c', 'e2222222-2222-2222-2222-222222222222', 'prize_awarded',  '{"session":"s2","prize":"sample"}'::jsonb, now() - interval '12 minutes');
-
--- ============================================================
--- LEADS (live demo for evt-2)
--- ============================================================
-insert into leads (event_id, machine_instance_id, contact_name, contact_email, custom_fields_json, source, captured_at, consented_at) values
-  ('e2222222-2222-2222-2222-222222222222', '1c1c1c1c-1c1c-4c1c-8c1c-1c1c1c1c1c1c', 'Casey Morgan', 'casey.morgan@example.com', '{"interest":"galaxy"}'::jsonb, 'game', now() - interval '28 minutes', now() - interval '28 minutes'),
-  ('e2222222-2222-2222-2222-222222222222', '1c1c1c1c-1c1c-4c1c-8c1c-1c1c1c1c1c1c', 'Reece Ellis',  'reece.ellis@example.com',  '{"interest":"trade"}'::jsonb, 'game', now() - interval '12 minutes', now() - interval '12 minutes'),
-  ('e1111111-1111-1111-1111-111111111111', '1a1a1a1a-1a1a-4a1a-8a1a-1a1a1a1a1a1a', 'Olivia Hart',  'olivia.hart@example.com',  '{}'::jsonb, 'game', now() - interval '6 hours', now() - interval '6 hours');
+-- TELEMETRY + LEADS: live-feed demo data lives on the organizer world's
+-- Tech Live London show (below), which runs "now" in the anchor frame.
+-- Completed-event leads and reports are generated by run-seed.ts so every
+-- surface (Live, Leads, Reports) reconciles to the same numbers — future
+-- events deliberately carry no activity rows here.
 
 -- ============================================================
 -- QUOTES + LINE ITEMS (one of each track)
@@ -498,16 +487,9 @@ insert into partner_attributions (partner_id, quote_id, event_id, commission_amo
   ('e0e0e0e0-e0e0-4e0e-8e0e-e0e0e0e0e0e0', '22222222-2222-4222-8222-222222222220', 'e5555555-5555-5555-5555-555555555555', 275000, 'pending'),
   ('e2e2e2e2-e2e2-4e2e-8e2e-e2e2e2e2e2e2', '21212121-2121-4121-8121-212121212121', 'e6666666-6666-6666-6666-666666666666', 120000, 'paid');
 
--- ============================================================
--- EVENT REPORTS
--- ============================================================
-insert into event_reports (id, event_id, report_type, title, metrics_json, predictions_json, comparison_json, highlights_json, share_token, is_published, published_at, generated_at) values
-  ('30303030-3030-4030-8030-303030303030', 'e2222222-2222-2222-2222-222222222222', 'post_event', 'Samsung Galaxy Launch — Post-Event',
-    '{"totalPlays":1672,"totalInteractions":2174,"totalLeads":1588,"totalPrizes":1639,"mediaImpressions":83600,"avgDwellTime":29,"totalCost":1190000,"snapshotCount":3,"npsScore":4.8,"totalSamples":1311,"survey":[{"question":"Brand favourability after playing","score":4.8,"responses":746},{"question":"Likelihood to consider Galaxy","score":4.7,"responses":683},{"question":"Enjoyed the experience","score":4.9,"responses":858}],"socialShares":873,"qrScans":1318,"demographics":{"18-24":29,"25-34":40,"35-44":20,"45-54":8,"55+":3},"peakHours":[18,19,17]}'::jsonb,
-    '{"estimatedInteractions":1941,"estimatedLeads":1418,"estimatedImpressions":74643}'::jsonb,
-    '{"interactions":{"predicted":1941,"actual":2174,"delta":233},"leads":{"predicted":1418,"actual":1588,"delta":170},"impressions":{"predicted":74643,"actual":83600,"delta":8957}}'::jsonb,
-    '["Interactions beat the forecast by 12%","95% of players opted in as qualified leads","NPS of 4.8 across the launch weekend"]'::jsonb,
-    'share-samsung-launch', true, '2026-05-26T11:00:00Z', '2026-05-25T17:00:00Z');
+-- EVENT REPORTS: generated by run-seed.ts on the two completed events so the
+-- report numbers always reconcile with the lead rows behind them. A future
+-- event never carries a post-event report.
 
 -- ============================================================
 -- BRIEFING + QA + LOGISTICS for evt-1 to make every internal
@@ -534,3 +516,91 @@ insert into logistics_entries (event_id, entry_type, title, description, schedul
 insert into studio_requests (id, event_id, service_type, title, description, status, estimated_days, estimated_cost, created_by, created_at) values
   ('40404040-4040-4040-8040-404040404040', 'e2222222-2222-2222-2222-222222222222', 'video', 'Hype reel for Galaxy Launch',
     'Pre-event hype reel for the social rollout. 30s, 9:16.', 'submitted', 5, 145000, '22222222-2222-2222-2222-222222222222', '2026-03-25T11:00:00Z');
+
+-- ============================================================
+-- ORGANIZER WORLD (mirrors src/lib/supabase/mock/extra.ts)
+-- ============================================================
+-- One show producer (Informa Tech Shows) running a live multi-machine
+-- conference plus a second edition still selling. Same fixed UUIDs as the
+-- mock so both environments demo identically. Nadia's auth user is created
+-- by seed-users.ts; her profile row lands here.
+
+insert into accounts (id, name, slug) values
+  ('ad000000-0000-4000-8000-000000000007', 'Informa Tech Shows', 'informa-tech-shows')
+on conflict (id) do nothing;
+
+-- Upsert (not do-nothing): the auth trigger creates a bare customer_user
+-- profile the moment seed-users.ts registers Nadia, and it must be corrected.
+insert into profiles (id, name, email, role, account_id, has_completed_onboarding) values
+  ('b5b5b5b5-b5b5-4b5b-8b5b-b5b5b5b5b5b5', 'Nadia Okafor', 'nadia@informatech.events', 'partner_admin', null, true)
+on conflict (id) do update
+  set name = excluded.name, role = excluded.role,
+      has_completed_onboarding = excluded.has_completed_onboarding;
+
+insert into partners (id, name, slug, type, contact_name, contact_email, brand_color, partner_code, status, onboarded_at) values
+  ('e5e5e5e5-e5e5-4e5e-8e5e-e5e5e5e5e5e5', 'Informa Tech Shows', 'informa-tech-shows', 'organizer', 'Nadia Okafor', 'nadia@informatech.events', '#1E47F0', 'BB-INFRM001', 'active', '2026-04-08T10:00:00Z')
+on conflict (id) do nothing;
+
+insert into partner_users (partner_id, profile_id, role) values
+  ('e5e5e5e5-e5e5-4e5e-8e5e-e5e5e5e5e5e5', 'b5b5b5b5-b5b5-4b5b-8b5b-b5b5b5b5b5b5', 'admin')
+on conflict (partner_id, profile_id) do nothing;
+
+-- Tech Live London runs "now" in the seed's authored frame (2026-06-18);
+-- scripts/shift-live-dates.mjs keeps that alignment true on the live DB.
+insert into events (id, account_id, organizer_partner_id, name, event_type, package_type, machine_type, venue_name, venue_address, event_date_start, event_date_end, setup_date, collection_date, current_stage, health_status, created_by, created_at) values
+  ('e7777777-7777-7777-7777-777777777777', 'ad000000-0000-4000-8000-000000000007', 'e5e5e5e5-e5e5-4e5e-8e5e-e5e5e5e5e5e5', 'Tech Live London 2026', 'activation', 'custom', 'Bright.Play', 'ExCeL London', 'One Western Gateway, Royal Victoria Dock, London E16 1XL', '2026-06-17', '2026-06-19', '2026-06-16', '2026-06-20', 'event_live', 'green', '11111111-1111-1111-1111-111111111111', '2026-04-10T10:00:00Z'),
+  ('e7777777-7777-7777-7777-777777777778', 'ad000000-0000-4000-8000-000000000007', 'e5e5e5e5-e5e5-4e5e-8e5e-e5e5e5e5e5e5', 'Tech Live North 2026', 'activation', 'custom', 'Bright.Play', 'Manchester Central', 'Petersfield, Manchester M2 3GX', '2026-11-04', '2026-11-05', '2026-11-03', '2026-11-06', 'confirmed', 'green', '11111111-1111-1111-1111-111111111111', '2026-06-20T10:00:00Z')
+on conflict (id) do nothing;
+
+-- Five units at the live show (BV-SHOW04 deliberately stale for the fleet
+-- board's "needs attention" path) and three staging for the North edition.
+insert into machine_instances (id, machine_type_id, serial_number, nickname, current_event_id, zone, mission, status, last_heartbeat, firmware_version) values
+  ('e7000000-0000-4000-8000-000000000001', 'a3a3a3a3-a3a3-4a3a-8a3a-a3a3a3a3a3a3', 'BV-SHOW01', 'Registration North',   'e7777777-7777-7777-7777-777777777777', 'Registration',   'welcome_gift',       'deployed', now() - interval '2 minutes',  '3.1.0'),
+  ('e7000000-0000-4000-8000-000000000002', 'a3a3a3a3-a3a3-4a3a-8a3a-a3a3a3a3a3a3', 'BV-SHOW02', 'Registration South',   'e7777777-7777-7777-7777-777777777777', 'Registration',   'welcome_gift',       'deployed', now() - interval '1 minute',   '3.1.0'),
+  ('e7000000-0000-4000-8000-000000000003', 'a3a3a3a3-a3a3-4a3a-8a3a-a3a3a3a3a3a3', 'BV-SHOW03', 'Hall 3 Sponsor Stand', 'e7777777-7777-7777-7777-777777777777', 'Hall 3',         'sponsor_activation', 'deployed', now() - interval '3 minutes',  '3.1.0'),
+  ('e7000000-0000-4000-8000-000000000004', 'a3a3a3a3-a3a3-4a3a-8a3a-a3a3a3a3a3a3', 'BV-SHOW04', 'Hall 5 Sponsor Stand', 'e7777777-7777-7777-7777-777777777777', 'Hall 5',         'sponsor_activation', 'deployed', now() - interval '5 hours',    '3.1.0'),
+  ('e7000000-0000-4000-8000-000000000005', 'a2a2a2a2-a2a2-4a2a-8a2a-a2a2a2a2a2a2', 'BV-SHOW05', 'Rebooking Desk',       'e7777777-7777-7777-7777-777777777777', 'Rebooking desk', 'rebook_reward',      'deployed', now() - interval '4 minutes',  '2.3.1'),
+  ('e7000000-0000-4000-8000-000000000006', 'a3a3a3a3-a3a3-4a3a-8a3a-a3a3a3a3a3a3', 'BV-SHOW06', 'Manchester unit 1',    'e7777777-7777-7777-7777-777777777778', 'Registration',   null,                 'deployed', null, '3.1.0'),
+  ('e7000000-0000-4000-8000-000000000007', 'a3a3a3a3-a3a3-4a3a-8a3a-a3a3a3a3a3a3', 'BV-SHOW07', 'Manchester unit 2',    'e7777777-7777-7777-7777-777777777778', null,             null,                 'deployed', null, '3.1.0'),
+  ('e7000000-0000-4000-8000-000000000008', 'a2a2a2a2-a2a2-4a2a-8a2a-a2a2a2a2a2a2', 'BV-SHOW08', 'Hall A Sponsor Stand', 'e7777777-7777-7777-7777-777777777778', 'Hall A',         'sponsor_activation', 'deployed', null, '3.1.0')
+on conflict (id) do nothing;
+
+-- Sponsor artwork the slots below attach.
+insert into assets (id, event_id, name, description, asset_type, required_format, file_url, file_name, file_size, version, status, customer_visible, created_at) values
+  ('a7000000-0000-4000-8000-000000000001', 'e7777777-7777-7777-7777-777777777777', 'Sponsor wrap — Hall 3', 'Machine wrap artwork supplied by the Hall 3 sponsor.', 'wrap', 'PDF (CMYK)', '/catalog/case-studies/costa-matcha/01-machine-hero.png', 'hall3-sponsor-wrap.pdf', 2280400, 1, 'accepted', true, '2026-05-28T09:00:00Z'),
+  ('a7000000-0000-4000-8000-000000000002', 'e7777777-7777-7777-7777-777777777777', 'Sponsor attract screen', 'Idle-screen loop for sponsored units.', 'imagery', 'PNG 1080x1920', '/catalog/case-studies/costa-matcha/02-winner-qr-scan.png', 'sponsor-attract-loop.png', 640200, 1, 'uploaded', true, '2026-06-02T09:00:00Z'),
+  ('a7000000-0000-4000-8000-000000000003', 'e7777777-7777-7777-7777-777777777778', 'Sponsor wrap — Hall A', 'Machine wrap artwork supplied by the Hall A sponsor.', 'wrap', 'PDF (CMYK)', '/catalog/case-studies/costa-matcha/01-machine-hero.png', 'halla-sponsor-wrap.pdf', 1980400, 1, 'accepted', true, '2026-07-02T09:00:00Z')
+on conflict (id) do nothing;
+
+-- Show-scoped sponsor inventory: two sold at the live show, one open; the
+-- North edition selling months out with a hold under countdown.
+insert into sponsorship_slots (id, placement_id, event_id, machine_instance_id, sponsor_account_id, sponsor_name, start_date, end_date, price, wholesale_price, status, hold_expires_at, creative_asset_ids, game_config_json, pitch_token, pitch_token_expires_at, pitch_view_count, pitch_last_viewed_at, created_at) values
+  ('b2000000-0000-4000-8000-000000000201', null, 'e7777777-7777-7777-7777-777777777777', 'e7000000-0000-4000-8000-000000000003', null, 'Vitality',   '2026-06-17', '2026-06-19', 1800000, 1350000, 'active',    null, '["a7000000-0000-4000-8000-000000000001"]'::jsonb, '{}'::jsonb, '9f2c41e8-77b4-4a1d-9d0e-3c6b21af5510', '2026-07-18T09:00:00Z', 6, '2026-06-14T15:20:00Z', '2026-05-02T09:00:00Z'),
+  ('b2000000-0000-4000-8000-000000000202', null, 'e7777777-7777-7777-7777-777777777777', 'e7000000-0000-4000-8000-000000000004', null, 'EE',         '2026-06-17', '2026-06-19', 1600000, 1200000, 'active',    null, '[]'::jsonb, '{}'::jsonb, null, null, 0, null, '2026-05-02T09:00:00Z'),
+  ('b2000000-0000-4000-8000-000000000203', null, 'e7777777-7777-7777-7777-777777777777', 'e7000000-0000-4000-8000-000000000005', null, null,         '2026-06-17', '2026-06-19', 1200000,  900000, 'available', null, '[]'::jsonb, '{}'::jsonb, null, null, 0, null, '2026-05-02T09:00:00Z'),
+  ('b2000000-0000-4000-8000-000000000204', null, 'e7777777-7777-7777-7777-777777777778', 'e7000000-0000-4000-8000-000000000008', null, 'Salesforce', '2026-11-04', '2026-11-05', 1500000, 1150000, 'reserved',  '2026-07-01T09:00:00Z', '["a7000000-0000-4000-8000-000000000003"]'::jsonb, '{}'::jsonb, '5b7d92a4-13ce-4f60-8a72-6d1e04bc9f83', '2026-08-31T09:00:00Z', 3, '2026-06-12T11:05:00Z', '2026-06-02T09:00:00Z'),
+  ('b2000000-0000-4000-8000-000000000205', null, 'e7777777-7777-7777-7777-777777777778', 'e7000000-0000-4000-8000-000000000006', null, null,         '2026-11-04', '2026-11-05', 1400000, 1050000, 'available', null, '[]'::jsonb, '{}'::jsonb, 'c41f6802-9ab5-4d3e-91c7-2f80ae5b7d16', '2026-08-31T09:00:00Z', 1, '2026-06-10T08:40:00Z', '2026-06-02T09:00:00Z')
+on conflict (id) do nothing;
+
+-- Deal registrations: one pending our 24h review, one approved mid-window,
+-- one reverse-pushed lead matched to their show. Feeds /admin/deals too.
+insert into deal_registrations (id, partner_id, event_id, quote_id, sponsor_company, sponsor_contact_name, sponsor_contact_email, estimated_value, notes, status, exclusivity_expires_at, source, rejected_reason, approved_at, created_at) values
+  ('d3000000-0000-4000-8000-000000000001', 'e5e5e5e5-e5e5-4e5e-8e5e-e5e5e5e5e5e5', 'e7777777-7777-7777-7777-777777777778', null, 'Duracell', 'Priya Shah', 'priya.shah@duracell.test', 1600000, 'Met at Spring Fair — wants the entrance unit for Tech Live North.', 'pending', null, 'organizer', null, null, '2026-06-16T14:00:00Z'),
+  ('d3000000-0000-4000-8000-000000000002', 'e5e5e5e5-e5e5-4e5e-8e5e-e5e5e5e5e5e5', 'e7777777-7777-7777-7777-777777777778', null, 'Gymshark', 'Tom Ellery', 'tom.e@gymshark.test', 1400000, null, 'approved', '2026-06-29T09:00:00Z', 'organizer', null, '2026-06-15T09:00:00Z', '2026-06-14T16:00:00Z'),
+  ('d3000000-0000-4000-8000-000000000003', 'e5e5e5e5-e5e5-4e5e-8e5e-e5e5e5e5e5e5', 'e7777777-7777-7777-7777-777777777777', null, 'Oatly', 'Freja Lindqvist', 'freja@oatly.test', 1100000, 'Came to Bright.Blue direct; their audience is at Informa''s shows.', 'approved', '2026-06-27T09:00:00Z', 'reverse', null, '2026-06-13T09:00:00Z', '2026-06-13T09:00:00Z')
+on conflict (id) do nothing;
+
+-- Show-floor activity for the live edition ("today" relative to now()).
+insert into telemetry_events (machine_instance_id, event_id, event_type, payload_json, "timestamp") values
+  ('e7000000-0000-4000-8000-000000000001', 'e7777777-7777-7777-7777-777777777777', 'play_started',   '{"session":"t1"}'::jsonb, now() - interval '4 hours'),
+  ('e7000000-0000-4000-8000-000000000001', 'e7777777-7777-7777-7777-777777777777', 'lead_captured',  '{"session":"t1","source":"badge_scan"}'::jsonb, now() - interval '4 hours' + interval '1 minute'),
+  ('e7000000-0000-4000-8000-000000000001', 'e7777777-7777-7777-7777-777777777777', 'prize_awarded',  '{"session":"t1","prize":"Show tote bag"}'::jsonb, now() - interval '4 hours' + interval '2 minutes'),
+  ('e7000000-0000-4000-8000-000000000001', 'e7777777-7777-7777-7777-777777777777', 'play_started',   '{"session":"t2"}'::jsonb, now() - interval '3 hours'),
+  ('e7000000-0000-4000-8000-000000000001', 'e7777777-7777-7777-7777-777777777777', 'lead_captured',  '{"session":"t2","source":"badge_scan"}'::jsonb, now() - interval '3 hours' + interval '1 minute'),
+  ('e7000000-0000-4000-8000-000000000002', 'e7777777-7777-7777-7777-777777777777', 'play_started',   '{"session":"t3"}'::jsonb, now() - interval '2 hours'),
+  ('e7000000-0000-4000-8000-000000000002', 'e7777777-7777-7777-7777-777777777777', 'lead_captured',  '{"session":"t3","source":"badge_scan"}'::jsonb, now() - interval '2 hours' + interval '1 minute'),
+  ('e7000000-0000-4000-8000-000000000003', 'e7777777-7777-7777-7777-777777777777', 'play_started',   '{"session":"t4"}'::jsonb, now() - interval '90 minutes'),
+  ('e7000000-0000-4000-8000-000000000003', 'e7777777-7777-7777-7777-777777777777', 'play_completed', '{"session":"t4","score":710}'::jsonb, now() - interval '88 minutes'),
+  ('e7000000-0000-4000-8000-000000000003', 'e7777777-7777-7777-7777-777777777777', 'lead_captured',  '{"session":"t4","source":"game"}'::jsonb, now() - interval '87 minutes'),
+  ('e7000000-0000-4000-8000-000000000005', 'e7777777-7777-7777-7777-777777777777', 'play_started',   '{"session":"t5"}'::jsonb, now() - interval '45 minutes'),
+  ('e7000000-0000-4000-8000-000000000005', 'e7777777-7777-7777-7777-777777777777', 'prize_awarded',  '{"session":"t5","prize":"Rebook voucher"}'::jsonb, now() - interval '43 minutes');

@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Table,
   TableHeader,
@@ -24,15 +23,14 @@ import {
   Globe,
   Copy,
   UserPlus,
-  Loader2,
 } from "lucide-react";
 import {
   approvePartner,
   suspendPartner,
   approveCommission,
   markCommissionPaid,
-  addPartnerUser,
 } from "@/app/actions/partners";
+import { InvitePartnerUserForm } from "@/components/partners/InvitePartnerUserForm";
 import { formatMoneyFromPence } from "@/lib/currency";
 import { useState } from "react";
 
@@ -133,7 +131,7 @@ export function PartnerDetailView({ partner, attributions }: PartnerDetailViewPr
             </CardContent>
           </Card>
 
-          <AddTeamMemberCard partnerId={partnerId} />
+          <InviteTeamMemberCard partnerId={partnerId} />
         </div>
       </div>
 
@@ -215,67 +213,17 @@ export function PartnerDetailView({ partner, attributions }: PartnerDetailViewPr
   );
 }
 
-/** Simple form to add a team member to this partner organisation. */
-function AddTeamMemberCard({ partnerId }: { partnerId: string }) {
-  const [profileId, setProfileId] = useState("");
-  const [role, setRole] = useState("member");
-  const [pending, setPending] = useState(false);
-  const [result, setResult] = useState<{ ok: boolean; msg: string } | null>(null);
-
-  async function handleAdd(e: React.FormEvent) {
-    e.preventDefault();
-    if (!profileId.trim()) return;
-    setPending(true);
-    setResult(null);
-    const res = await addPartnerUser(partnerId, profileId.trim(), role);
-    setPending(false);
-    if (res.success) {
-      setResult({ ok: true, msg: "Team member added" });
-      setProfileId("");
-    } else {
-      setResult({ ok: false, msg: res.error });
-    }
-  }
-
+/** Email-invite a team member into this partner organisation's portal. */
+function InviteTeamMemberCard({ partnerId }: { partnerId: string }) {
   return (
     <Card className="border-glass-border/10 bg-card">
       <CardHeader>
         <CardTitle className="text-heading text-lg flex items-center gap-2">
-          <UserPlus size={16} /> Add Team Member
+          <UserPlus size={16} /> Invite Team Member
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleAdd} className="space-y-3">
-          <div className="space-y-1.5">
-            <Label htmlFor="tm-profile">Profile ID</Label>
-            <Input
-              id="tm-profile"
-              value={profileId}
-              onChange={(e) => setProfileId(e.target.value)}
-              placeholder="User profile UUID"
-              required
-            />
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="tm-role">Role</Label>
-            <select
-              id="tm-role"
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
-              className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground"
-            >
-              <option value="member">Member</option>
-              <option value="admin">Admin</option>
-            </select>
-          </div>
-          {result && (
-            <p className={cn("text-sm", result.ok ? "text-emerald-400" : "text-destructive")}>{result.msg}</p>
-          )}
-          <Button type="submit" size="sm" disabled={pending} className="w-full">
-            {pending && <Loader2 size={14} className="animate-spin mr-1" />}
-            Add Member
-          </Button>
-        </form>
+        <InvitePartnerUserForm partnerId={partnerId} />
       </CardContent>
     </Card>
   );

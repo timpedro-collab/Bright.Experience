@@ -79,6 +79,7 @@ export async function provisionEventFromQuote(
     .select(
       `id, contact_name, contact_email, company_name, package_id,
        event_date_start, event_date_end, venue_name, event_type, track,
+       campaign_name,
        packages ( name, tier )`
     )
     .eq("id", quoteId)
@@ -117,7 +118,11 @@ export async function provisionEventFromQuote(
 
   type PkgJoin = { name?: string; tier?: string };
   const pkg = (quote as { packages?: PkgJoin }).packages;
-  const eventName = `${companyName} — ${pkg?.name ?? "Event"}`;
+  // The customer's own campaign name (from intake) wins over the generated
+  // "{company} — {package}" fallback; the report headline derives from the
+  // event name, so their name carries all the way through to the report.
+  const campaignName = (quote.campaign_name as string | null)?.trim();
+  const eventName = campaignName || `${companyName} — ${pkg?.name ?? "Event"}`;
   const eventType = (quote.event_type as string) || "activation";
   const packageTier = (pkg?.tier as string) || "standard";
 

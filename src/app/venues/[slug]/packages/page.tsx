@@ -1,4 +1,5 @@
 /** Venue package management page — create and manage event packages. */
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { PortalPageShell, venueTabs, venueRoleLabel } from "@/components/brand";
 import { getUser } from "@/lib/auth";
@@ -7,9 +8,19 @@ import { getVenueBySlug } from "@/lib/queries/venues";
 import { getUnreadCount } from "@/lib/queries/notifications";
 import { getVenuePackagesByVenueId } from "@/lib/queries/venue-packages";
 import { VenuePackageBuilder } from "@/components/venues/VenuePackageBuilder";
+import { entityTitle, getVenueNameForTitle } from "@/lib/queries/page-titles";
 
 interface Props {
   params: Promise<{ slug: string }>;
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  return { title: entityTitle("Packages", await getVenueNameForTitle(slug)) };
 }
 
 export default async function PackagesPage({ params }: Props) {

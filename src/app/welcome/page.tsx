@@ -4,6 +4,7 @@
  */
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { CalendarCheck, Sparkles, BarChart3, ArrowRight } from "lucide-react";
 
 import {
@@ -35,6 +36,8 @@ import { getApprovalsByEvent } from "@/lib/queries/approvals";
 import { resolveEventNextStep } from "@/lib/event-next-step";
 import { isInternalRole } from "@/lib/roles";
 import { DEFAULT_ACCOUNT_MANAGER } from "@/lib/team";
+import { machineRenderFor } from "@/lib/machine-renders";
+import { formatDateLong } from "@/lib/dates";
 import type { Event } from "@/types";
 
 export const metadata = { title: "Welcome" };
@@ -108,10 +111,11 @@ export default async function WelcomePage() {
   // grounded in actual account state (event opened, first asset uploaded).
   let nextStep: ReturnType<typeof resolveEventNextStep> = null;
   let checklist: ChecklistStep[] = [];
+  let featured: Event | null = null;
 
   if (!isInternal) {
     const { data: events } = await getEventsPaginated(1);
-    const featured = pickFeaturedEvent(events);
+    featured = pickFeaturedEvent(events);
 
     let hasUploadedAsset = false;
     if (featured) {
@@ -191,11 +195,51 @@ export default async function WelcomePage() {
           subtitle={
             isInternal
               ? "Everything you need to deliver Bright.Blue activations lives here."
-              : "Everything you need to manage your Bright.Blue activations lives here."
+              : featured
+                ? `${featured.name} is in motion — this is where you'll watch it come together.`
+                : "Everything you need to manage your Bright.Blue activations lives here."
           }
         />
         <EditionBody>
           <div className="max-w-2xl mx-auto py-10 space-y-10">
+            {/* First-login moment: their event and their machine, never an
+                empty dashboard. */}
+            {!isInternal && featured && (
+              <Card className="overflow-hidden p-0">
+                <div className="flex items-stretch gap-0">
+                  <div className="relative w-32 shrink-0 bg-muted/40 sm:w-40">
+                    <Image
+                      src={machineRenderFor(featured.machineType)}
+                      alt="Your machine"
+                      fill
+                      sizes="10rem"
+                      className="object-contain p-3"
+                    />
+                  </div>
+                  <CardContent className="flex-1 p-5">
+                    <p className="text-overline text-[var(--color-bb-cobalt)]">
+                      Your event
+                    </p>
+                    <p className="mt-1 text-lg font-semibold text-foreground">
+                      {featured.name}
+                    </p>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {formatDateLong(featured.eventDateStart)}
+                      {featured.venueName ? ` · ${featured.venueName}` : ""}
+                    </p>
+                    <div className="mt-4">
+                      <Button asChild variant="brand" size="sm">
+                        <Link href={`/events/${featured.id}`}>
+                          Open your workspace
+                          <ArrowRight size={14} className="ml-1.5" />
+                        </Link>
+                      </Button>
+                    </div>
+                  </CardContent>
+                </div>
+              </Card>
+            )}
+
             {!isInternal && nextStep && (
               <div className="space-y-4">
                 <EditorialEyebrow accent>Your next step</EditorialEyebrow>

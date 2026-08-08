@@ -24,7 +24,7 @@ import { getUnreadCount } from "@/lib/queries/notifications";
 import { isInternalRole } from "@/lib/roles";
 
 export const metadata = {
-  title: "Settings · Bright.Experience",
+  title: "Settings",
 };
 
 const SETTINGS_SECTIONS = [

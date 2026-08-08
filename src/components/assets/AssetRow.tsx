@@ -246,19 +246,15 @@ export function AssetRow({ asset, comments = [], commentCount = 0, annotations =
             </div>
           )}
 
-          {needsAction && canUpload ? (
+          {(needsAction || asset.reviewStatus === "approved") && canUpload ? (
             <AssetUploadZone
               asset={asset}
               machineSlug={machineSlug}
               asCreative={isInternal}
             />
-          ) : asset.reviewStatus === "approved" && canUpload ? (
-            <AssetUploadZone
-              asset={asset}
-              machineSlug={machineSlug}
-              asCreative={isInternal}
-            />
-          ) : isInternal ? (
+          ) : isInternal && needsAction && asset.status !== "accepted" ? (
+            // Only when the asset genuinely awaits the customer — an accepted
+            // or in-review asset must never carry "waiting to upload" copy.
             <p className="mt-3 inline-flex items-center gap-1.5 text-overline text-muted-foreground">
               <Clock className="size-3" />
               {asset.reviewStatus === "revision_requested"

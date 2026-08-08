@@ -9,6 +9,7 @@ import {
   venueStatusLabel,
   venueStatusBarClass,
 } from "@/components/venues/venue-helpers";
+import { formatDateGB } from "@/lib/dates";
 
 interface PlacementEntry {
   id: string;
@@ -20,14 +21,6 @@ interface PlacementEntry {
 
 interface PlacementCalendarProps {
   placements: PlacementEntry[];
-}
-
-function formatDate(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString("en-US", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
 }
 
 function daysBetween(start: string, end: string) {
@@ -102,10 +95,10 @@ export function PlacementCalendar({ placements }: PlacementCalendarProps) {
               </div>
 
               <div className="flex justify-between text-xs text-muted-foreground">
-                <span>{formatDate(placement.startDate)}</span>
+                <span>{formatDateGB(placement.startDate)}</span>
                 <span>
                   {placement.endDate
-                    ? formatDate(placement.endDate)
+                    ? formatDateGB(placement.endDate)
                     : "Ongoing"}
                 </span>
               </div>

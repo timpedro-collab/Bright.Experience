@@ -15,6 +15,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getLiveSnapshot } from "@/lib/brightblue/client";
+import { getEventMetricTotals } from "@/lib/queries/event-metrics";
 import { hourlyCurveFromTotal } from "@/lib/metrics/drivers";
 import {
   buildMachineBreakdown,
@@ -82,14 +83,10 @@ export async function GET(
   const startOfDay = `${today}T00:00:00.000Z`;
   const endOfDay = `${today}T23:59:59.999Z`;
 
-  const [metricsRes, telemetryRes, machinesRes, hourlyRes] = await Promise.all([
-    supabase
-      .from("event_metrics_snapshot")
-      .select("*")
-      .eq("event_id", eventId)
-      .order("snapshot_date", { ascending: false })
-      .limit(1)
-      .maybeSingle(),
+  const [metrics, telemetryRes, machinesRes, hourlyRes] = await Promise.all([
+    // Event-to-date totals summed across daily snapshots — the same number
+    // the report and the leads list carry, never one day's figures alone.
+    getEventMetricTotals(eventId),
 
     // `machine_instance_id` travels with each row so a per-machine view can
     // filter this feed instead of asking for its own endpoint.
@@ -119,7 +116,6 @@ export async function GET(
       .order("timestamp"),
   ]);
 
-  const metrics = metricsRes.data;
   const telemetry = telemetryRes.data ?? [];
   const machines = machinesRes.data ?? [];
   const rawHourly = hourlyRes.data ?? [];
@@ -147,11 +143,8 @@ export async function GET(
   // post-event view still shows a believable time-of-day breakdown that totals
   // to the headline metrics.
   const hasHourlyData = hourly.some((h) => h.plays > 0 || h.leads > 0);
-  if (!hasHourlyData && metrics && Number(metrics.total_plays) > 0) {
-    hourly = hourlyCurveFromTotal(
-      Number(metrics.total_plays),
-      Number(metrics.peak_hour ?? 14),
-    );
+  if (!hasHourlyData && metrics && metrics.totalPlays > 0) {
+    hourly = hourlyCurveFromTotal(metrics.totalPlays, metrics.peakHour ?? 14);
   }
 
   // Per-machine roll-up over today's telemetry. Machines with no rows still
@@ -167,10 +160,8 @@ export async function GET(
 
   // Reload estimate: stock depletes roughly one unit per play (a completed
   // game ≈ a prize), so the recent play pace projects minutes until empty.
-  const stockRemaining =
-    metrics?.stock_remaining != null ? Number(metrics.stock_remaining) : null;
-  const stockCapacity =
-    metrics?.stock_capacity != null ? Number(metrics.stock_capacity) : null;
+  const stockRemaining = metrics?.stockRemaining ?? null;
+  const stockCapacity = metrics?.stockCapacity ?? null;
   let reloadEtaMinutes: number | null = null;
   if (stockRemaining != null && stockRemaining > 0) {
     const nowHour = new Date().getUTCHours();
@@ -187,11 +178,11 @@ export async function GET(
     source: "local",
     metrics: metrics
       ? {
-          total_plays: metrics.total_plays ?? 0,
-          total_leads: metrics.total_leads ?? 0,
-          total_interactions: metrics.total_interactions ?? 0,
-          total_prizes: metrics.total_prizes ?? 0,
-          avg_dwell_time: metrics.avg_dwell_time ?? 0,
+          total_plays: metrics.totalPlays,
+          total_leads: metrics.totalLeads,
+          total_interactions: metrics.totalInteractions,
+          total_prizes: metrics.totalPrizes,
+          avg_dwell_time: metrics.avgDwellTime,
           stock_remaining: stockRemaining,
           stock_capacity: stockCapacity,
           reload_eta_minutes: reloadEtaMinutes,

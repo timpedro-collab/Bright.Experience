@@ -23,7 +23,7 @@ import { getUnreadCount } from "@/lib/queries/notifications";
 import { getAccountNameSlug } from "@/lib/queries/admin";
 
 export const metadata = {
-  title: "Profile · Bright.Experience",
+  title: "Profile",
 };
 
 export default async function ProfileSettingsPage() {

@@ -698,8 +698,8 @@ export const MOCK_TABLES: Record<string, MockRow[]> = {
       description:
         "A branded Experience Portal on the exhibition floor at the BIBA Conference — a memorable, on-brand draw amongst hundreds of stands that turned footfall into conversations and clean opt-in data.",
       hero_image_url: null, // drop photo at /catalog/case-studies/biba-conference/01-hero.jpg then set this
-      // Stats intentionally empty until real activation figures are supplied.
-      stats_json: {},
+      // Illustrative demo figure; replace with the real activation numbers when supplied.
+      stats_json: { marketingOptIns: 486 },
       testimonial_quote:
         "It gave delegates a reason to stop, and gave our team a natural way to start a conversation.",
       testimonial_author: "Events Team, BIBA",
@@ -758,8 +758,8 @@ export const MOCK_TABLES: Record<string, MockRow[]> = {
       description:
         "A fully customised, unattended Experience Portal vending branded gifts across an Adyen business event — delivery, setup, and restocking all handled by Bright.Blue.",
       hero_image_url: null, // drop photo at /catalog/case-studies/adyen-event-gifting/01-hero.jpg then set this
-      // Stats intentionally empty until real activation figures are supplied.
-      stats_json: {},
+      // Illustrative demo figure; replace with the real activation numbers when supplied.
+      stats_json: { giftsVended: 1150 },
       testimonial_quote:
         "We vended gifts from their unattended machine and saw fantastic attendee engagement. The team handled everything from delivery and setup to restocking — it let me focus on the event itself.",
       testimonial_author: "Brigitte Brown, Senior Event Marketing Manager, Adyen",
@@ -1603,6 +1603,8 @@ export const MOCK_TABLES: Record<string, MockRow[]> = {
       contact_name: "Aisha Khan",
       contact_email: "aisha@samsung.example",
       company_name: "Samsung Electronics",
+      campaign_name: "Galaxy Autumn Roadshow",
+      planning_month: "2027-01",
       event_type: "activation",
       postcode: "M1",
       event_date_start: "2026-10-03",
@@ -1667,6 +1669,8 @@ export const MOCK_TABLES: Record<string, MockRow[]> = {
       contact_email: "priya.nair@magnum.example",
       contact_phone: "+44 7700 900484",
       company_name: "Magnum (Unilever)",
+      campaign_name: "Take Pleasure Seriously — Waterloo Takeover",
+      planning_month: "2026-11",
       event_type: "experiential-activation",
       reach_track: "experiential",
       objective: "sampling",

@@ -174,4 +174,17 @@ export const operationsArchetypes = {
     defaults: { inPortal: true, emailMode: "immediate" },
     audience: "both",
   },
+  "event.post_wrap_rebook": {
+    kind: "event.post_wrap_rebook",
+    classOf: "fyi",
+    priority: "normal",
+    eyebrow: "FYI",
+    subjectTemplate: "Ready for your next one?",
+    bodyTemplate:
+      "It's been a couple of weeks since {eventName} wrapped. Your results are still live in the portal — worth a look when you start planning the next activation.",
+    linkTemplate: "/events/{eventId}/reports",
+    ownerResolver: "customer_admins",
+    defaults: { inPortal: true, emailMode: "immediate" },
+    audience: "customer",
+  },
 } satisfies ArchetypeSection;

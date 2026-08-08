@@ -19,7 +19,7 @@ import { MACHINE_VARIANTS } from "@/lib/asset-requirements/slot-registry";
 import { slotsForMachine } from "@/lib/asset-requirements/machine-placements";
 
 export const metadata = {
-  title: "Machine placements · Bright.Experience",
+  title: "Machine placements",
 };
 
 export default async function MachinePlacementsPage() {

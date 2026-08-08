@@ -16,6 +16,10 @@ interface AccountsPageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
+export const metadata = {
+  title: "Accounts",
+};
+
 export default async function AdminAccountsPage({
   searchParams,
 }: AccountsPageProps) {

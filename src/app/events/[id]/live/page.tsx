@@ -6,27 +6,32 @@
  * 10 seconds. If Bright.Blue Cloud API is configured, the polling
  * endpoint will prefer Cloud data; otherwise it uses local webhook data.
  */
+import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { Info } from "lucide-react";
 
 import { EventPageShell } from "@/components/brand/event-page-shell";
+import { EditorialEyebrow } from "@/components/brand";
 import { Badge } from "@/components/ui/badge";
 import { ExportMenu } from "@/components/ui/ExportMenu";
 import { LiveDashboardClient } from "@/components/telemetry/LiveDashboardClient";
+import { LiveShareControls } from "@/components/events/LiveShareControls";
 
 import { getUser } from "@/lib/auth";
 import { isInternalRole } from "@/lib/roles";
 import { canViewSection } from "@/lib/event-access";
 import { getEventById } from "@/lib/queries/events";
-import { getLatestEventMetrics } from "@/lib/queries/event-metrics";
+import { getEventMetricTotals } from "@/lib/queries/event-metrics";
 import { getTelemetryByEvent } from "@/lib/queries/telemetry";
 import { getMachineInstancesByEvent } from "@/lib/queries/machine-instances";
 import { getUnreadCount } from "@/lib/queries/notifications";
 import { deriveLiveStatus, type LiveStatus } from "@/lib/live-status";
+import { createClient } from "@/lib/supabase/server";
 import { hourlyCurveFromTotal } from "@/lib/metrics/drivers";
 import { feedItemFromTelemetry } from "@/lib/metrics/feed-labels";
 import type { UserRole } from "@/types";
+import { entityTitle, getEventNameForTitle } from "@/lib/queries/page-titles";
 
 function LiveBadge({ status }: { status: LiveStatus }) {
   if (status.state === "live") {
@@ -109,6 +114,15 @@ function LiveContextBanner({
   return null;
 }
 
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  return { title: entityTitle("Live", await getEventNameForTitle(id)) };
+}
+
 export default async function LiveDashboardPage({
   params,
 }: {
@@ -119,15 +133,25 @@ export default async function LiveDashboardPage({
   const { id } = await params;
   if (!canViewSection(user.role, "live")) redirect(`/events/${id}`);
 
-  const [event, latestMetrics, telemetry, machines, unread] =
+  const [event, metricTotals, telemetry, machines, unread] =
     await Promise.all([
       getEventById(id),
-      getLatestEventMetrics(id),
+      // Event-to-date sums across daily snapshots — matches the report and
+      // the leads list, never one day's figures alone.
+      getEventMetricTotals(id),
       getTelemetryByEvent(id, 30),
       getMachineInstancesByEvent(id),
       getUnreadCount(user.id),
     ]);
   if (!event) return notFound();
+
+  // Token for the view-only stakeholder link managed below the dashboard.
+  const supabase = await createClient();
+  const { data: shareRow } = await supabase
+    .from("events")
+    .select("live_share_token, live_share_expires_at")
+    .eq("id", id)
+    .maybeSingle();
 
   const liveStatus = deriveLiveStatus(event);
 
@@ -166,7 +190,7 @@ export default async function LiveDashboardPage({
   }
   const hasHourlyData = initialHourly.some((h) => h.plays > 0 || h.leads > 0);
   if (!hasHourlyData) {
-    const plays = Number(latestMetrics?.total_plays ?? 0);
+    const plays = metricTotals?.totalPlays ?? 0;
     if (plays > 0) {
       const curve = hourlyCurveFromTotal(plays);
       for (let i = 0; i < initialHourly.length; i++) {
@@ -201,20 +225,15 @@ export default async function LiveDashboardPage({
       <LiveContextBanner status={liveStatus} eventId={id} viewerRole={user.role} />
       <LiveDashboardClient
         eventId={id}
+        liveStatus={liveStatus}
         initialMetrics={{
-          total_plays: Number(latestMetrics?.total_plays ?? 0),
-          total_leads: Number(latestMetrics?.total_leads ?? 0),
-          total_interactions: Number(latestMetrics?.total_interactions ?? 0),
-          total_prizes: Number(latestMetrics?.total_prizes ?? 0),
-          avg_dwell_time: Number(latestMetrics?.avg_dwell_time ?? 0),
-          stock_remaining:
-            latestMetrics?.stock_remaining != null
-              ? Number(latestMetrics.stock_remaining)
-              : null,
-          stock_capacity:
-            latestMetrics?.stock_capacity != null
-              ? Number(latestMetrics.stock_capacity)
-              : null,
+          total_plays: metricTotals?.totalPlays ?? 0,
+          total_leads: metricTotals?.totalLeads ?? 0,
+          total_interactions: metricTotals?.totalInteractions ?? 0,
+          total_prizes: metricTotals?.totalPrizes ?? 0,
+          avg_dwell_time: metricTotals?.avgDwellTime ?? 0,
+          stock_remaining: metricTotals?.stockRemaining ?? null,
+          stock_capacity: metricTotals?.stockCapacity ?? null,
           // The pace-based reload estimate needs hourly data; the polling
           // endpoint computes it on the first refresh after mount.
           reload_eta_minutes: null,
@@ -224,6 +243,19 @@ export default async function LiveDashboardPage({
         initialMachines={initialMachines}
         isCustomer={!isInternalRole(user.role)}
       />
+
+      <section className="mt-8">
+        <EditorialEyebrow className="mb-3">Live dashboard link</EditorialEyebrow>
+        <p className="mb-4 max-w-[58ch] text-sm text-muted-foreground">
+          Share headline metrics with stakeholders who do not have portal
+          access. The link is view-only and expires automatically.
+        </p>
+        <LiveShareControls
+          eventId={id}
+          token={(shareRow?.live_share_token as string | null) ?? null}
+          expiresAt={(shareRow?.live_share_expires_at as string | null) ?? null}
+        />
+      </section>
     </EventPageShell>
   );
 }

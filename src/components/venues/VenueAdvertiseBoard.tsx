@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { requestVenueSlot } from "@/app/actions/venues";
 import { formatMoneyFromPence } from "@/lib/currency";
-import { formatDateMedium } from "@/lib/dates";
+import { formatDateRangeGB } from "@/lib/dates";
 
 export interface AdvertiseSlot {
   id: string;
@@ -146,7 +146,7 @@ function SlotCard({ slot }: { slot: AdvertiseSlot }) {
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <Calendar size={12} />
           <span>
-            {formatDateMedium(slot.startDate)} — {formatDateMedium(slot.endDate)}
+            {formatDateRangeGB(slot.startDate, slot.endDate)}
           </span>
         </div>
 

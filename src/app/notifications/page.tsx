@@ -42,7 +42,7 @@ import { parsePage } from "@/lib/pagination";
 import { Pagination } from "@/components/ui/Pagination";
 
 export const metadata = {
-  title: "Notifications · Bright.Experience",
+  title: "Notifications",
 };
 
 interface NotificationsPageProps {

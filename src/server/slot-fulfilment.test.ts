@@ -37,7 +37,12 @@ function expectedDueDate(startDate: string, daysBeforeDoors: number): string {
   floor.setHours(0, 0, 0, 0);
   due.setHours(0, 0, 0, 0);
   const chosen = due.getTime() < floor.getTime() ? floor : due;
-  return chosen.toISOString().slice(0, 10);
+  // Local date parts, matching the source: toISOString() would shift local
+  // midnight back a day in timezones east of UTC.
+  const y = chosen.getFullYear();
+  const m = String(chosen.getMonth() + 1).padStart(2, "0");
+  const d = String(chosen.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
 }
 
 describe("spawnSlotFulfilmentTasks", () => {

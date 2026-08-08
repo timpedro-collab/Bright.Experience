@@ -96,6 +96,52 @@ describe("provisionEventFromQuote", () => {
     );
   });
 
+  it("prefers the customer's campaign name for the event", async () => {
+    supabase.setTableResponse("quotes", {
+      data: {
+        id: "q1",
+        contact_name: "Jane",
+        contact_email: "jane@acme.com",
+        company_name: "Acme",
+        campaign_name: "Spring Launch Roadshow",
+        event_type: "activation",
+        packages: { name: "Pro", tier: "premium" },
+      },
+      error: null,
+    });
+    supabase.setTableResponse("accounts", { data: { id: "acc1" }, error: null });
+
+    const { provisionEventFromQuote } = await import("./provisioning");
+    await provisionEventFromQuote("q1");
+
+    expect(createEventInternal).toHaveBeenCalledWith(
+      expect.objectContaining({ name: "Spring Launch Roadshow" }),
+    );
+  });
+
+  it("falls back to '{company} — {package}' when no campaign name was given", async () => {
+    supabase.setTableResponse("quotes", {
+      data: {
+        id: "q1",
+        contact_name: "Jane",
+        contact_email: "jane@acme.com",
+        company_name: "Acme",
+        campaign_name: "   ",
+        event_type: "activation",
+        packages: { name: "Pro", tier: "premium" },
+      },
+      error: null,
+    });
+    supabase.setTableResponse("accounts", { data: { id: "acc1" }, error: null });
+
+    const { provisionEventFromQuote } = await import("./provisioning");
+    await provisionEventFromQuote("q1");
+
+    expect(createEventInternal).toHaveBeenCalledWith(
+      expect.objectContaining({ name: "Acme — Pro" }),
+    );
+  });
+
   it("fails cleanly when event creation fails", async () => {
     supabase.setTableResponse("quotes", {
       data: {

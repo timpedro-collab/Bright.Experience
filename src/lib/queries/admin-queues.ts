@@ -10,6 +10,11 @@ export interface InternalQueueCounts {
   /** Asset reviews sitting past the reviewer SLA — a subset of assetReviews. */
   overdueAssetReviews: number;
   stuckCustomerActions: number;
+  /**
+   * Accepted quotes with no linked event — the customer said yes but has no
+   * workspace yet. Safety net for when auto-provisioning is off or failed.
+   */
+  acceptedNeedingWorkspace: number;
 }
 
 /**
@@ -75,7 +80,16 @@ export async function getInternalQueueCounts(): Promise<InternalQueueCounts> {
   const supabase = await createClient();
 
   const reviewerCutoff = stuckCutoffIso(REVIEWER_SLA_DAYS);
-  const [quotes, studio, partners, events, assetReviews, overdueReviews, stuck] =
+  const [
+    quotes,
+    studio,
+    partners,
+    events,
+    assetReviews,
+    overdueReviews,
+    stuck,
+    acceptedUnprovisioned,
+  ] =
     await Promise.all([
       supabase
         .from("quotes")
@@ -103,6 +117,11 @@ export async function getInternalQueueCounts(): Promise<InternalQueueCounts> {
         .eq("review_status", "pending_review")
         .lt("updated_at", reviewerCutoff),
       countStuckCustomerActions(),
+      supabase
+        .from("quotes")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "accepted")
+        .is("event_id", null),
     ]);
 
   return {
@@ -113,6 +132,7 @@ export async function getInternalQueueCounts(): Promise<InternalQueueCounts> {
     assetReviews: assetReviews.count ?? 0,
     overdueAssetReviews: overdueReviews.count ?? 0,
     stuckCustomerActions: stuck,
+    acceptedNeedingWorkspace: acceptedUnprovisioned.count ?? 0,
   };
 }
 

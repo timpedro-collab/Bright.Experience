@@ -1,4 +1,5 @@
 /** Unified deadline view — every due date across tasks, assets, and milestones. */
+import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { CalendarClock } from "lucide-react";
 
@@ -15,6 +16,16 @@ import { getUnreadCount } from "@/lib/queries/notifications";
 import { getUser } from "@/lib/auth";
 import { isInternalRole } from "@/lib/roles";
 import { canViewSection } from "@/lib/event-access";
+import { entityTitle, getEventNameForTitle } from "@/lib/queries/page-titles";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  return { title: entityTitle("Deadlines", await getEventNameForTitle(id)) };
+}
 
 export default async function DeadlinesPage({
   params,

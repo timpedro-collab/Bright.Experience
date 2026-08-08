@@ -19,7 +19,7 @@ import { parsePage } from "@/lib/pagination";
 import { Pagination } from "@/components/ui/Pagination";
 
 export const metadata = {
-  title: "Asset reviews · Bright.Experience",
+  title: "Asset reviews",
 };
 
 interface AssetReviewsPageProps {

@@ -1,4 +1,5 @@
 /** Event actions — full task list with progress & smart grouping. */
+import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { CheckCircle2, AlertCircle } from "lucide-react";
 
@@ -17,6 +18,16 @@ import { getUser } from "@/lib/auth";
 import { isInternalRole } from "@/lib/roles";
 import { canViewSection } from "@/lib/event-access";
 import { ownerForTask } from "@/lib/ownership";
+import { entityTitle, getEventNameForTitle } from "@/lib/queries/page-titles";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  return { title: entityTitle("Actions", await getEventNameForTitle(id)) };
+}
 
 export default async function ActionsPage({
   params,

@@ -1,4 +1,5 @@
 /** Sponsorship slot management — slots grouped by placement. */
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { PortalPageShell, venueTabs, venueRoleLabel } from "@/components/brand";
 import { getUser } from "@/lib/auth";
@@ -16,9 +17,19 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { summariseSlots } from "@/components/venues/venue-helpers";
 import { formatMoneyFromPence } from "@/lib/currency";
+import { entityTitle, getVenueNameForTitle } from "@/lib/queries/page-titles";
 
 interface Props {
   params: Promise<{ slug: string }>;
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  return { title: entityTitle("Sponsorships", await getVenueNameForTitle(slug)) };
 }
 
 export default async function SponsorshipsPage({ params }: Props) {

@@ -29,6 +29,10 @@ vi.mock("@/lib/auth/portal", () => ({
   requireVenueManagerForPlacement: async () => ({ supabase }),
   requireVenueManagerForSlot: async () => ({ supabase }),
 }));
+const internalProfile = { id: "u1", role: "admin" };
+vi.mock("@/lib/auth", () => ({
+  requireInternalUser: vi.fn(async () => ({ supabase, profile: internalProfile })),
+}));
 const spawnSlotFulfilmentTasks = vi.fn(async (..._args: unknown[]) => undefined);
 vi.mock("@/server/slot-fulfilment", () => ({
   spawnSlotFulfilmentTasks: (...args: unknown[]) => spawnSlotFulfilmentTasks(...args),
@@ -59,6 +63,85 @@ beforeEach(() => {
   supabase = createMockSupabase();
   dispatchNotification.mockClear();
   rateLimitAllows.mockReturnValue(true);
+  internalProfile.role = "admin";
+});
+
+describe("createVenue", () => {
+  const VENUE_ID = "aaaaaaaa-9999-9999-9999-999999999999";
+
+  it("refuses a user without admin rights", async () => {
+    internalProfile.role = "qa_lead";
+    const { createVenue } = await import("./venues");
+    const result = await createVenue({ name: "Riverside Arena" });
+    expect(result.success).toBe(false);
+    if (!result.success) expect(result.error).toMatch(/admin access only/);
+    expect(supabase.callsFor("venues")).toHaveLength(0);
+  });
+
+  it("rejects a venue without a name before touching the database", async () => {
+    const { createVenue } = await import("./venues");
+    const result = await createVenue({ name: "" });
+    expect(result.success).toBe(false);
+    expect(supabase.callsFor("venues")).toHaveLength(0);
+  });
+
+  it("rejects a name with nothing to build a web address from", async () => {
+    const { createVenue } = await import("./venues");
+    const result = await createVenue({ name: "!!!!" });
+    expect(result.success).toBe(false);
+    if (!result.success) expect(result.error).toMatch(/web address/);
+  });
+
+  it("creates an active venue with a slug taken from the name", async () => {
+    supabase.queueTableResponses("venues", [
+      { data: [], error: null },
+      { data: { id: VENUE_ID, slug: "riverside-arena" }, error: null },
+    ]);
+    const { createVenue } = await import("./venues");
+    const result = await createVenue({
+      name: "Riverside Arena",
+      address: "1 Riverside Way",
+      postcode: "SE1 9PX",
+      venueType: "arena",
+      capacity: 12000,
+    });
+
+    expect(result.success).toBe(true);
+    if (result.success) expect(result.data.slug).toBe("riverside-arena");
+    const insert = supabase.callsFor("venues").find((c) => c.method === "insert");
+    expect(insert!.args[0]).toMatchObject({
+      name: "Riverside Arena",
+      slug: "riverside-arena",
+      address: "1 Riverside Way",
+      postcode: "SE1 9PX",
+      venue_type: "arena",
+      capacity: 12000,
+      is_active: true,
+      partner_id: null,
+    });
+  });
+
+  it("suffixes the slug when another venue already holds it", async () => {
+    supabase.queueTableResponses("venues", [
+      { data: [{ slug: "riverside-arena" }], error: null },
+      { data: { id: VENUE_ID, slug: "riverside-arena-2" }, error: null },
+    ]);
+    const { createVenue } = await import("./venues");
+    await createVenue({ name: "Riverside Arena" });
+
+    const insert = supabase.callsFor("venues").find((c) => c.method === "insert");
+    expect((insert!.args[0] as Record<string, unknown>).slug).toBe("riverside-arena-2");
+  });
+
+  it("reports a failed insert rather than claiming success", async () => {
+    supabase.queueTableResponses("venues", [
+      { data: [], error: null },
+      { data: null, error: { message: "duplicate key" } },
+    ]);
+    const { createVenue } = await import("./venues");
+    const result = await createVenue({ name: "Riverside Arena" });
+    expect(result.success).toBe(false);
+  });
 });
 
 describe("requestVenueSlot", () => {

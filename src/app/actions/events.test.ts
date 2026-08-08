@@ -17,6 +17,11 @@ const enqueueDealKickoff = vi.fn();
 vi.mock("@/lib/supabase/server", () => ({
   createClient: vi.fn(async () => supabase),
 }));
+// renameEvent writes via the service role (events UPDATE RLS is
+// internal-only) — point it at the same recorder.
+vi.mock("@/lib/supabase/service-role", () => ({
+  getServiceRoleClient: () => supabase,
+}));
 vi.mock("@/lib/auth", () => ({
   getUser: (...args: unknown[]) => getUser(...args),
 }));
@@ -331,5 +336,89 @@ describe("setEventHealth", () => {
 
     expect(result.success).toBe(false);
     expect(writeAudit).not.toHaveBeenCalled();
+  });
+});
+
+describe("renameEvent", () => {
+  const EVENT_ID = "00000000-0000-4000-8000-0000000000e1";
+  const ACCOUNT_ID = "00000000-0000-4000-8000-0000000000a1";
+
+  function asCustomer(accountId: string | null = ACCOUNT_ID) {
+    getUser.mockResolvedValue({
+      id: "u1",
+      name: "Casey Customer",
+      email: "casey@acme.test",
+      role: "customer_admin",
+      accountId,
+    });
+  }
+
+  it("lets a customer rename their own event", async () => {
+    asCustomer();
+    // Read returns the owned event; the same row satisfies the update's
+    // select-back (all it needs is a non-null id).
+    supabase.setTableResponse("events", {
+      data: { id: EVENT_ID, account_id: ACCOUNT_ID },
+      error: null,
+    });
+
+    const { renameEvent } = await import("./events");
+    const result = await renameEvent(EVENT_ID, "  Spring Launch Roadshow  ");
+
+    expect(result).toEqual({
+      success: true,
+      data: { name: "Spring Launch Roadshow" },
+    });
+    const update = supabase.callsFor("events").find((c) => c.method === "update");
+    expect(update?.args[0]).toEqual({ name: "Spring Launch Roadshow" });
+    expect(writeAudit).toHaveBeenCalledWith(
+      expect.objectContaining({ action: "event_renamed", eventId: EVENT_ID })
+    );
+  });
+
+  it("rejects a name shorter than 3 characters", async () => {
+    asCustomer();
+    const { renameEvent } = await import("./events");
+    const result = await renameEvent(EVENT_ID, "ab");
+
+    expect(result.success).toBe(false);
+    if (!result.success) expect(result.error).toMatch(/at least 3/i);
+    expect(supabase.callsFor("events")).toHaveLength(0);
+  });
+
+  it("rejects a name longer than 80 characters", async () => {
+    asCustomer();
+    const { renameEvent } = await import("./events");
+    const result = await renameEvent(EVENT_ID, "x".repeat(81));
+
+    expect(result.success).toBe(false);
+    if (!result.success) expect(result.error).toMatch(/under 80/i);
+    expect(supabase.callsFor("events")).toHaveLength(0);
+  });
+
+  it("rejects a customer renaming an event they don't own", async () => {
+    asCustomer("00000000-0000-4000-8000-0000000000a2");
+    supabase.setTableResponse("events", {
+      data: { id: EVENT_ID, account_id: ACCOUNT_ID },
+      error: null,
+    });
+
+    const { renameEvent } = await import("./events");
+    const result = await renameEvent(EVENT_ID, "Someone else's event");
+
+    expect(result.success).toBe(false);
+    if (!result.success) expect(result.error).toMatch(/not authorised/i);
+    const update = supabase.callsFor("events").find((c) => c.method === "update");
+    expect(update).toBeUndefined();
+    expect(writeAudit).not.toHaveBeenCalled();
+  });
+
+  it("fails when not signed in", async () => {
+    getUser.mockResolvedValue(null);
+    const { renameEvent } = await import("./events");
+    const result = await renameEvent(EVENT_ID, "A perfectly fine name");
+
+    expect(result.success).toBe(false);
+    if (!result.success) expect(result.error).toMatch(/not signed in/i);
   });
 });

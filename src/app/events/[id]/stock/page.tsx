@@ -1,19 +1,28 @@
-/** Prize and sample stock telemetry — capacity, remaining units, and live sharing. */
+/** Prize and sample stock telemetry — capacity and remaining units. */
+import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { Package } from "lucide-react";
 
 import { EventPageShell } from "@/components/brand/event-page-shell";
 import { EditorialEyebrow } from "@/components/brand";
-import { LiveShareControls } from "@/components/events/LiveShareControls";
 import { StockTelemetryCard } from "@/components/events/StockTelemetryCard";
 
 import { getUnreadCount } from "@/lib/queries/notifications";
 import { getEventById } from "@/lib/queries/events";
-import { getLatestEventMetrics } from "@/lib/queries/event-metrics";
+import { getEventMetricTotals } from "@/lib/queries/event-metrics";
 import { getUser } from "@/lib/auth";
 import { isInternalRole } from "@/lib/roles";
 import { canViewSection } from "@/lib/event-access";
-import { createClient } from "@/lib/supabase/server";
+import { entityTitle, getEventNameForTitle } from "@/lib/queries/page-titles";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  return { title: entityTitle("Stock", await getEventNameForTitle(id)) };
+}
 
 export default async function StockPage({
   params,
@@ -25,30 +34,18 @@ export default async function StockPage({
   const { id } = await params;
   if (!canViewSection(user.role, "logistics")) redirect(`/events/${id}`);
 
-  const [event, unread, latestMetrics] = await Promise.all([
+  const [event, unread, metricTotals] = await Promise.all([
     getEventById(id),
     getUnreadCount(user.id),
-    getLatestEventMetrics(id),
+    // Stock levels come from the latest day; prize counts sum across days.
+    getEventMetricTotals(id),
   ]);
   const isInternal = isInternalRole(user.role);
   if (!event) return notFound();
 
-  const supabase = await createClient();
-  const { data: shareRow } = await supabase
-    .from("events")
-    .select("live_share_token, live_share_expires_at")
-    .eq("id", id)
-    .maybeSingle();
-
-  const stockRemaining =
-    latestMetrics?.stock_remaining != null
-      ? Number(latestMetrics.stock_remaining)
-      : null;
-  const stockCapacity =
-    latestMetrics?.stock_capacity != null
-      ? Number(latestMetrics.stock_capacity)
-      : null;
-  const totalPrizes = Number(latestMetrics?.total_prizes ?? 0);
+  const stockRemaining = metricTotals?.stockRemaining ?? null;
+  const stockCapacity = metricTotals?.stockCapacity ?? null;
+  const totalPrizes = metricTotals?.totalPrizes ?? 0;
 
   return (
     <EventPageShell
@@ -57,7 +54,7 @@ export default async function StockPage({
       unreadCount={unread}
       section="Stock"
       title="Stock on the floor."
-      subtitle="Prize and sample capacity — what's left, what's gone, and a view-only link for stakeholders."
+      subtitle="Prize and sample capacity — what's left and what's gone."
       isInternal={isInternal}
       viewerRole={user.role}
     >
@@ -71,19 +68,6 @@ export default async function StockPage({
             stockRemaining={stockRemaining}
             stockCapacity={stockCapacity}
             totalPrizes={totalPrizes}
-          />
-        </div>
-
-        <div>
-          <EditorialEyebrow className="mb-3">Live dashboard link</EditorialEyebrow>
-          <p className="mb-4 max-w-[58ch] text-sm text-muted-foreground">
-            Share headline metrics with stakeholders who do not have portal
-            access. The link is view-only and expires automatically.
-          </p>
-          <LiveShareControls
-            eventId={id}
-            token={(shareRow?.live_share_token as string | null) ?? null}
-            expiresAt={(shareRow?.live_share_expires_at as string | null) ?? null}
           />
         </div>
       </section>

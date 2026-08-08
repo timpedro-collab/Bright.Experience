@@ -3,10 +3,11 @@ import { redirect } from "next/navigation";
 
 import { AdminPageShell } from "@/components/brand";
 import { AdminPartnerTable } from "./AdminPartnerTable";
+import { NewVenueDialog } from "./NewVenueDialog";
 import { Pagination } from "@/components/ui/Pagination";
 
 import { getUser } from "@/lib/auth";
-import { canViewCommercial } from "@/lib/roles";
+import { canViewCommercial, isAdminRole } from "@/lib/roles";
 import { getPartnersPaginated } from "@/lib/queries/partners";
 import { getUnreadCount } from "@/lib/queries/notifications";
 import { parsePage } from "@/lib/pagination";
@@ -14,6 +15,10 @@ import { parsePage } from "@/lib/pagination";
 interface AdminPartnersPageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
+
+export const metadata = {
+  title: "Partners",
+};
 
 export default async function AdminPartnersPage({ searchParams }: AdminPartnersPageProps) {
   const user = await getUser();
@@ -36,14 +41,17 @@ export default async function AdminPartnersPage({ searchParams }: AdminPartnersP
       title="Partner management."
       subtitle="Review, approve, and manage partner accounts."
       heroRight={
-        result.totalCount > 0 ? (
-          <div className="text-overline text-muted-foreground tabular-nums">
-            <span className="text-foreground text-base font-semibold">
-              {result.totalCount}
-            </span>{" "}
-            partners
-          </div>
-        ) : null
+        <div className="flex items-center gap-4">
+          {result.totalCount > 0 && (
+            <div className="text-overline text-muted-foreground tabular-nums">
+              <span className="text-foreground text-base font-semibold">
+                {result.totalCount}
+              </span>{" "}
+              partners
+            </div>
+          )}
+          {isAdminRole(user.role) && <NewVenueDialog />}
+        </div>
       }
     >
       <div className="py-8">

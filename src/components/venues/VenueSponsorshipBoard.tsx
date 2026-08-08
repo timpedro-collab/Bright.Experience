@@ -6,7 +6,7 @@ import { Plus } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { formatDateMedium } from "@/lib/dates";
+import { formatDateGB, formatDateRangeGB } from "@/lib/dates";
 import { SlotCard } from "./SlotCard";
 import { AddSlotForm } from "./AddSlotForm";
 import type { PlacementWithSlots, SponsorOption } from "./sponsorship-types";
@@ -48,9 +48,9 @@ export function VenueSponsorshipBoard({
                   variant="outline"
                   className="text-xs text-muted-foreground"
                 >
-                  {formatDateMedium(placement.startDate)}
-                  {placement.endDate &&
-                    ` — ${formatDateMedium(placement.endDate)}`}
+                  {placement.endDate
+                    ? formatDateRangeGB(placement.startDate, placement.endDate)
+                    : formatDateGB(placement.startDate)}
                 </Badge>
                 {addingFor !== placement.id && (
                   <Button

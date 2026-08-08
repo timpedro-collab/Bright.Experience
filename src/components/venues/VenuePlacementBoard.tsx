@@ -14,6 +14,7 @@ import { venueStatusVariant, venueStatusLabel } from "@/components/venues/venue-
 import { PlacementSkuEditor } from "@/components/venues/PlacementSkuEditor";
 import { RevenueModelConfigurator } from "@/components/venues/RevenueModelConfigurator";
 import type { RevenueModel } from "@/lib/venues/revenue-model";
+import { formatDateGB, formatDateRangeGB } from "@/lib/dates";
 
 export interface PlacementRow {
   id: string;
@@ -31,10 +32,6 @@ export interface PlacementRow {
 }
 
 const STATUS_OPTIONS = ["planned", "active", "completed", "cancelled"];
-
-function formatDate(value: string) {
-  return new Date(value).toLocaleDateString("en-US");
-}
 
 export function VenuePlacementBoard({
   venueId,
@@ -162,8 +159,9 @@ export function VenuePlacementBoard({
                       {p.machineName ?? "Awaiting machine"}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {formatDate(p.startDate)}
-                      {p.endDate && ` — ${formatDate(p.endDate)}`}
+                      {p.endDate
+                        ? formatDateRangeGB(p.startDate, p.endDate)
+                        : formatDateGB(p.startDate)}
                       {p.footfallEstimate != null &&
                         ` · ~${p.footfallEstimate.toLocaleString("en-GB")} footfall/day`}
                     </p>

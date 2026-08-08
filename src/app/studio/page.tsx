@@ -42,6 +42,10 @@ const STATUS_CONFIG: Record<
   cancelled: { label: "Cancelled", variant: "muted", Icon: XCircle },
 };
 
+export const metadata = {
+  title: "Studio",
+};
+
 export default async function StudioDashboardPage() {
   const user = await getUser();
   if (!user) redirect("/login");

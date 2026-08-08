@@ -27,7 +27,7 @@ import {
 } from "@/lib/queries/admin-queues";
 
 export const metadata = {
-  title: "Customer queue · Bright.Experience",
+  title: "Customer queue",
 };
 
 const STALE_DAYS = STUCK_CUSTOMER_DAYS;

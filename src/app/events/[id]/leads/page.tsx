@@ -1,4 +1,5 @@
 /** Leads — list of all captured leads for an event with metrics summary. */
+import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { Users, TrendingUp, Star, Clock } from "lucide-react";
 
@@ -25,6 +26,16 @@ import { getLeadWebhooksForEvent } from "@/app/actions/lead-webhooks";
 import { getUnreadCount } from "@/lib/queries/notifications";
 import { parsePage } from "@/lib/pagination";
 import { Pagination } from "@/components/ui/Pagination";
+import { entityTitle, getEventNameForTitle } from "@/lib/queries/page-titles";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  return { title: entityTitle("Leads", await getEventNameForTitle(id)) };
+}
 
 export default async function LeadsPage({
   params,

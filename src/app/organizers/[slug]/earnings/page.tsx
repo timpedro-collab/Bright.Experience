@@ -4,6 +4,7 @@
  * Accrued margin on sold slots and pipeline on reserved holds, with a
  * printable statement the organizer can keep as a payout record.
  */
+import type { Metadata } from "next";
 import { Wallet } from "lucide-react";
 
 import { PortalPageShell, organizerTabs, organizerRoleLabel } from "@/components/brand";
@@ -19,6 +20,7 @@ import { getUnreadCount } from "@/lib/queries/notifications";
 import { formatMoneyFromPence } from "@/lib/currency";
 import { formatDateShort } from "@/lib/dates";
 import { formatMarginRatio } from "@/lib/pricing/slot-economics";
+import { entityTitle, getPartnerNameForTitle } from "@/lib/queries/page-titles";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -59,6 +61,15 @@ function groupSlotsByShow(slots: EarningsSlot[]) {
   }
 
   return groups;
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  return { title: entityTitle("Earnings", await getPartnerNameForTitle(slug)) };
 }
 
 export default async function OrganizerEarningsPage({ params }: Props) {

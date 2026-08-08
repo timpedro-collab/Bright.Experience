@@ -6,10 +6,26 @@
  * is complete we show a "book your 15-minute walkthrough" card instead of the
  * price, so pricing is always discussed on a call first.
  */
-import { CalendarClock, Check, Sparkles, Eye, Users, MapPin, Timer, Gamepad2 } from "lucide-react";
+import {
+  ArrowDown,
+  CalendarClock,
+  Check,
+  Sparkles,
+  Eye,
+  Users,
+  MapPin,
+  ShieldCheck,
+  Timer,
+  Gamepad2,
+} from "lucide-react";
 
 import { Card } from "@/components/ui/card";
 import { Hairline } from "@/components/brand";
+import { cn } from "@/lib/utils";
+import {
+  ROLE_ANCHORS,
+  buildDeRiskItems,
+} from "@/lib/proposals/proposal-extras";
 import { formatGBP } from "@/lib/roi";
 import { formatNumberUS, formatMoneyFromPence } from "@/lib/currency";
 import { formatPriceBand } from "@/lib/proposals/price-band";
@@ -107,10 +123,10 @@ export function ProposalDocumentView({
           <a href="#creative" className="hover:text-foreground">03 Creative</a>
           <a href="#data" className="hover:text-foreground">04 Data</a>
           <a href="#included" className="hover:text-foreground">05 Included</a>
-          <a href="#investment" className="hover:text-foreground">06 Investment</a>
-          <a href="#timeline" className="hover:text-foreground">07 Timeline</a>
-          <a href="#next" className="hover:text-foreground">08 Next steps</a>
-          <a href="#addons" className="hover:text-foreground">09 Add-ons</a>
+          <a href="#derisk" className="hover:text-foreground">06 De-risked</a>
+          <a href="#investment" className="hover:text-foreground">07 Investment</a>
+          <a href="#timeline" className="hover:text-foreground">08 Timeline</a>
+          <a href="#next" className="hover:text-foreground">09 Next steps</a>
         </div>
       </nav>
 
@@ -140,6 +156,25 @@ export function ProposalDocumentView({
               <p className="text-display text-xl font-bold text-foreground">{f.value}</p>
               <p className="mt-1 text-overline text-muted-foreground">{f.label}</p>
             </div>
+          ))}
+        </div>
+        {/* Per-role anchors: route each stakeholder straight to their section. */}
+        <div className="mx-auto mt-10 grid max-w-3xl gap-3 text-left sm:grid-cols-3">
+          {ROLE_ANCHORS.map((a) => (
+            <a
+              key={a.href}
+              href={a.href}
+              className="group rounded-[var(--radius-card)] border border-border/60 bg-card/40 p-4 transition hover:border-[var(--color-bb-cobalt)]/40"
+            >
+              <p className="text-overline text-muted-foreground">{a.role}</p>
+              <p className="mt-1.5 text-xs leading-relaxed text-foreground/90">
+                {a.body}
+              </p>
+              <span className="mt-2.5 inline-flex items-center gap-1 text-xs font-medium text-[var(--color-bb-cobalt)]">
+                {a.label}
+                <ArrowDown className="size-3 transition-transform group-hover:translate-y-0.5" aria-hidden />
+              </span>
+            </a>
           ))}
         </div>
       </section>
@@ -360,11 +395,69 @@ export function ProposalDocumentView({
         </div>
       </section>
 
-      {/* ---- 06 Investment (gated) ---- */}
+      {/* ---- 06 How we de-risk this ---- */}
+      <section id="derisk">
+        <SectionHead
+          number="06"
+          eyebrow="How we de-risk this"
+          headline="If it goes wrong, it goes wrong on us"
+          intro="Booking an activation means putting your name on it internally. These are the three commitments that bound your downside — the same ones we put in the agreement."
+        />
+        <div className="grid gap-6 md:grid-cols-3">
+          {buildDeRiskItems().map((item) => (
+            <Card key={item.title} tone="subtle" className="p-6">
+              <ShieldCheck className="size-5 text-[var(--color-bb-cobalt)]" aria-hidden />
+              <p className="mt-3 text-sm font-semibold text-foreground">
+                {item.title}
+              </p>
+              <p className="mt-1.5 text-sm text-muted-foreground leading-relaxed">
+                {item.body}
+              </p>
+            </Card>
+          ))}
+        </div>
+      </section>
+
+      {/* ---- 07 Investment (gated) ---- */}
       <section id="investment">
+        {/* One recommendation, one alternative — visible whether or not the
+            price is revealed, so the decision shape is clear before the call. */}
+        <div className="mb-10 grid gap-4 md:grid-cols-2">
+          {[doc.pathways.recommended, doc.pathways.alternative].map(
+            (p, i) => (
+              <div
+                key={p.tag}
+                className={cn(
+                  "rounded-[var(--radius-card)] border p-6",
+                  i === 0
+                    ? "border-[var(--color-bb-cobalt)]/40 bg-[var(--color-bb-cobalt)]/[0.05]"
+                    : "border-border/60 bg-card/40",
+                )}
+              >
+                <p
+                  className={cn(
+                    "text-overline",
+                    i === 0
+                      ? "text-[var(--color-bb-cobalt)]"
+                      : "text-muted-foreground",
+                  )}
+                >
+                  {p.tag}
+                </p>
+                <p className="mt-2 text-sm font-semibold text-foreground">
+                  {p.title}
+                </p>
+                <p className="mt-1.5 text-sm text-muted-foreground leading-relaxed">
+                  {p.body}
+                </p>
+              </div>
+            ),
+          )}
+        </div>
+
         {priceRevealed ? (
           <>
-            <SectionHead number="06" eyebrow="Investment" headline={doc.investment.headline} />
+            <SectionHead number="07" eyebrow="Investment" headline={doc.investment.headline} />
             <div className="grid gap-6 md:grid-cols-[auto_1fr] md:items-start">
               <Card tone="subtle" className="p-8 md:min-w-[16rem]">
                 <p className="text-overline text-muted-foreground">{doc.investment.feeLabel}</p>
@@ -425,7 +518,7 @@ export function ProposalDocumentView({
       {/* ---- 07 Timeline ---- */}
       {doc.timeline.milestones.length > 0 && (
         <section id="timeline">
-          <SectionHead number="07" eyebrow="Timeline" headline={doc.timeline.headline} intro={doc.timeline.intro} />
+          <SectionHead number="08" eyebrow="Timeline" headline={doc.timeline.headline} intro={doc.timeline.intro} />
           <div className="overflow-hidden rounded-[var(--radius-card)] border border-border/60">
             <table className="w-full text-left text-sm">
               <thead>
@@ -454,7 +547,7 @@ export function ProposalDocumentView({
 
       {/* ---- 08 Next steps ---- */}
       <section id="next">
-        <SectionHead number="08" eyebrow="Next steps" headline={doc.nextSteps.headline} intro={doc.nextSteps.intro} />
+        <SectionHead number="09" eyebrow="Next steps" headline={doc.nextSteps.headline} intro={doc.nextSteps.intro} />
         <ol className="space-y-2">
           {doc.nextSteps.actions.map((a) => (
             <li key={a.n} className="flex items-start gap-3 rounded-[var(--radius-control)] border border-border/40 px-4 py-3">

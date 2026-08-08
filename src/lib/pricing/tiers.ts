@@ -52,6 +52,11 @@ export interface PricingTier {
   serviceFeatures: ReadonlyArray<string>;
   /** One line describing the reporting deliverable at this tier. */
   reporting: string;
+  /**
+   * Ladder framing shown on the card ("pilot here, step up next time").
+   * Only the entry tier carries one today.
+   */
+  ladderNote?: string;
   /** Published 1–3 day activation bands per region. */
   bands: Record<PriceRegion, RegionBand>;
 }
@@ -69,6 +74,8 @@ export const TIERS: ReadonlyArray<PricingTier> = [
     includedCapabilitySlugs: [],
     serviceFeatures: [],
     reporting: "Post-event summary — plays, dwell, peak hours",
+    ladderNote:
+      "The pilot rung — most brands prove the format here at one event, then step up to Lead Engine with the first summary in hand.",
     bands: {
       uk: { currency: "GBP", lowMinor: 950_000, highMinor: 1_350_000 },
       us: { currency: "USD", lowMinor: 1_800_000, highMinor: 2_800_000 },

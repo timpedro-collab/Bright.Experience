@@ -11,7 +11,10 @@ import {
   formatDateShort,
   formatDateMedium,
   formatDateLong,
+  formatDateGB,
+  formatDateRangeGB,
   daysUntilDate,
+  formatEventDayCount,
   isOverdue,
   timeSince,
   formatTimestamp,
@@ -35,6 +38,32 @@ describe("formatDateShort", () => {
 describe("formatDateMedium", () => {
   it("includes the year", () => {
     expect(formatDateMedium("2026-06-05")).toBe("5 Jun 2026");
+  });
+});
+
+describe("formatDateGB", () => {
+  it("formats ISO date as en-GB day month year", () => {
+    expect(formatDateGB("2026-09-01")).toBe("1 Sep 2026");
+  });
+});
+
+describe("formatDateRangeGB", () => {
+  it("collapses same month and year", () => {
+    expect(formatDateRangeGB("2026-09-01", "2026-09-30")).toBe("1–30 Sep 2026");
+  });
+
+  it("shows both months when year matches", () => {
+    expect(formatDateRangeGB("2026-09-01", "2026-10-03")).toBe("1 Sep – 3 Oct 2026");
+  });
+
+  it("shows both years when they differ", () => {
+    expect(formatDateRangeGB("2026-09-01", "2027-01-03")).toBe(
+      "1 Sep 2026 – 3 Jan 2027",
+    );
+  });
+
+  it("returns a single date when start and end match", () => {
+    expect(formatDateRangeGB("2026-08-20", "2026-08-20")).toBe("20 Aug 2026");
   });
 });
 
@@ -63,6 +92,37 @@ describe("daysUntilDate", () => {
 
   it("returns negative days for past dates", () => {
     expect(daysUntilDate("2026-05-30")).toBe(-2);
+  });
+});
+
+describe("formatEventDayCount", () => {
+  it("labels future events and pluralises day counts", () => {
+    expect(formatEventDayCount(12)).toEqual({
+      label: "Days to event",
+      value: "12 days",
+    });
+  });
+
+  it("handles today and a single future day", () => {
+    expect(formatEventDayCount(0)).toEqual({
+      label: "Days to event",
+      value: "Today",
+    });
+    expect(formatEventDayCount(1)).toEqual({
+      label: "Days to event",
+      value: "1 day",
+    });
+  });
+
+  it("labels past events as Wrapped with days ago copy", () => {
+    expect(formatEventDayCount(-140)).toEqual({
+      label: "Wrapped",
+      value: "140 days ago",
+    });
+    expect(formatEventDayCount(-1)).toEqual({
+      label: "Wrapped",
+      value: "1 day ago",
+    });
   });
 });
 

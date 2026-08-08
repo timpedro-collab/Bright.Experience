@@ -49,3 +49,20 @@ export const setEventHealthSchema = z
   );
 
 export type SetEventHealthInput = z.infer<typeof setEventHealthSchema>;
+
+/**
+ * Renaming an event (customer campaign naming, audit 2.F).
+ *
+ * 3–80 characters: long enough to mean something, short enough to fit the
+ * hero, breadcrumbs, and the report headline it flows into.
+ */
+export const renameEventSchema = z.object({
+  eventId: uuidLike("Invalid event"),
+  name: z
+    .string()
+    .trim()
+    .min(3, "Give it at least 3 characters")
+    .max(80, "Keep the name under 80 characters"),
+});
+
+export type RenameEventInput = z.infer<typeof renameEventSchema>;

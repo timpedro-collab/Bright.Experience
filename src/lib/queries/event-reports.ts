@@ -23,6 +23,8 @@ function mapEventReport(row: Record<string, unknown>): EventReport {
     generatedAt: row.generated_at as string,
     isPublished: row.is_published as boolean,
     publishedAt: row.published_at as string | undefined,
+    personalNote: (row.personal_note as string | null) ?? undefined,
+    personalNoteAuthor: (row.personal_note_author as string | null) ?? undefined,
     createdAt: row.created_at as string,
     updatedAt: row.updated_at as string,
   };

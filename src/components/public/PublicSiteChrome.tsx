@@ -120,8 +120,10 @@ export function PublicSiteChrome({
 
       <main id="main-content" className="flex-1 scroll-mt-6">{children}</main>
 
-      {/* Editorial footer — bright.blue lockup, locations strip, link columns */}
-      <footer className="border-t border-border/40 bg-[hsl(233,66%,5%)]">
+      {/* Editorial footer — bright.blue lockup, locations strip, link columns.
+          Always the dark ink surface: `theme-dark` scopes the token remap so
+          text/borders stay legible when the site theme is light. */}
+      <footer className="theme-dark border-t border-border/40 bg-[hsl(233,66%,5%)] text-foreground">
         <Container className="py-16">
           <div className="grid gap-10 sm:grid-cols-2 md:grid-cols-[1.4fr_1fr_1fr_1fr_1fr]">
             <div>

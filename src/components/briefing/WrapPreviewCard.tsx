@@ -10,6 +10,7 @@ import { useState } from "react";
 import Image from "next/image";
 import { Card } from "@/components/ui/card";
 import { parseColors } from "@/components/briefing/BrandColorsField";
+import { machineRenderFor } from "@/lib/machine-renders";
 
 const HEX6 = /^#?[0-9a-f]{6}$/i;
 const HEX3 = /^#?[0-9a-f]{3}$/i;
@@ -27,14 +28,6 @@ export function firstBrandHex(colorPreferences: string): string | null {
   return null;
 }
 
-/** Machine-type → placeholder render used across the creative slot system. */
-const RENDER_BY_TYPE: Record<string, string> = {
-  "experience-portal-compact": "/machine/placeholders/compact.png",
-  "experience-portal": "/machine/placeholders/portal.png",
-  "experience-portal-xl": "/machine/placeholders/xl.png",
-};
-const DEFAULT_RENDER = "/machine/placeholders/portal.png";
-
 interface WrapPreviewCardProps {
   machineType?: string | null;
   /** The saved `color_preferences` brief value ("#E61A27, #111111"). */
@@ -50,7 +43,7 @@ export function WrapPreviewCard({
 }: WrapPreviewCardProps) {
   const briefHex = firstBrandHex(colorPreferences);
   const [color, setColor] = useState(briefHex ?? "#246BFD");
-  const render = RENDER_BY_TYPE[machineType ?? ""] ?? DEFAULT_RENDER;
+  const render = machineRenderFor(machineType);
 
   return (
     <Card tone="subtle" className="p-5">

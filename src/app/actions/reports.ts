@@ -3,6 +3,7 @@
 
 import { requireInternalUser } from "@/lib/auth";
 import { showDayCount } from "@/lib/metrics/expected-performance";
+import { dispatchNotification } from "@/lib/notifications/dispatch";
 import { canViewCommercial } from "@/lib/roles";
 import { getServiceRoleClient } from "@/lib/supabase/service-role";
 import { generateEventReportInternal } from "@/server/reports";
@@ -23,12 +24,16 @@ export async function generateEventReport(eventId: string) {
   return generateEventReportInternal(eventId, supabase);
 }
 
-/** Publish a report: makes it publicly accessible via a generated share token. */
+/**
+ * Publish a report: makes it publicly accessible via a generated share token
+ * and notifies the customer that their results are live (portal bell + email
+ * via the notification spine).
+ */
 export async function publishReport(
   reportId: string,
-  opts?: { brandPartnerId?: string | null },
+  opts?: { brandPartnerId?: string | null; personalNote?: string | null },
 ) {
-  const { supabase } = await requireInternalUser();
+  const { supabase, user } = await requireInternalUser();
 
   const shareToken = crypto.randomUUID();
 
@@ -42,21 +47,66 @@ export async function publishReport(
     updatePayload.brand_partner_id = opts.brandPartnerId;
   }
 
+  // A personal note turns the reveal into a hand-off from a named human.
+  const note = opts?.personalNote?.trim();
+  if (note) {
+    const { data: author } = await supabase
+      .from("profiles")
+      .select("name")
+      .eq("id", user.id)
+      .single();
+    updatePayload.personal_note = note.slice(0, 600);
+    updatePayload.personal_note_author =
+      (author?.name as string | undefined) ?? "The Bright.Blue team";
+  }
+
   const { data: report, error } = await supabase
     .from("event_reports")
     .update(updatePayload)
     .eq("id", reportId)
-    .select("event_id")
+    .select("event_id, events(name)")
     .single();
 
   if (error) {
     return { success: false as const, error: "Failed to publish report" };
   }
 
+  if (report?.event_id) {
+    const events = report.events as { name?: string } | null;
+    // A failed notification should never roll back the publish itself.
+    await dispatchNotification("report.published", {
+      eventId: report.event_id,
+      eventName: events?.name ?? "your event",
+      entityType: "event_report",
+      entityId: reportId,
+    }).catch((e) => {
+      console.error(`[publishReport] notification failed for ${reportId}`, e);
+    });
+  }
+
+  // Sequencing check, not a gate: the results moment should land after the
+  // invoice, so the wow doesn't precede the ask. Publishing still succeeds —
+  // we just tell the publisher.
+  let invoiceWarning: string | undefined;
+  if (report?.event_id) {
+    const { data: invoices } = await supabase
+      .from("invoices")
+      .select("id, status")
+      .eq("event_id", report.event_id)
+      .limit(10);
+    const hasIssued = (invoices ?? []).some((inv) =>
+      ["issued", "paid", "overdue"].includes(String(inv.status)),
+    );
+    if (!hasIssued) {
+      invoiceWarning =
+        "No invoice has been issued for this event yet. Best practice: invoice first, so the results land after the ask.";
+    }
+  }
+
   revalidatePath("/admin/reports");
   if (report?.event_id) revalidatePath(`/events/${report.event_id}/reports`);
   revalidatePath(`/report/${shareToken}`);
-  return { success: true as const, data: { shareToken } };
+  return { success: true as const, data: { shareToken, invoiceWarning } };
 }
 
 /** Unpublish a report: removes public access. */

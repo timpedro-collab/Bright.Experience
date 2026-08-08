@@ -10,6 +10,7 @@ interface Props {
 }
 
 export const metadata: Metadata = {
+  title: "Venue widget",
   robots: { index: false, follow: false },
 };
 

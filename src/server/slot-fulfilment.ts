@@ -88,7 +88,12 @@ function computeSlotTaskDueDate(
   due.setHours(0, 0, 0, 0);
 
   const chosen = due.getTime() < floor.getTime() ? floor : due;
-  return chosen.toISOString().slice(0, 10);
+  // Format from local date parts: toISOString() converts to UTC, which shifts
+  // local midnight to the previous day in any timezone east of UTC.
+  const y = chosen.getFullYear();
+  const m = String(chosen.getMonth() + 1).padStart(2, "0");
+  const d = String(chosen.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
 }
 
 /**

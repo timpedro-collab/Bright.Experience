@@ -53,6 +53,17 @@ export const addPartnerUserSchema = z.object({
   role: z.enum(["member", "admin"]),
 });
 
+/** Profile roles a partner's own people can hold in their portal. */
+const PARTNER_USER_ROLES = ["partner_admin", "partner_member"] as const;
+export type PartnerUserRole = (typeof PARTNER_USER_ROLES)[number];
+
+/** Input for `invitePartnerUser`. */
+export const invitePartnerUserSchema = z.object({
+  partnerId: uuidLike("Invalid partner ID"),
+  email: z.string().trim().email("Enter a valid email address").max(320),
+  role: z.enum(PARTNER_USER_ROLES),
+});
+
 /**
  * Input for `recordAttribution`. Callers pass either a partner id or the
  * short partner code from the referral cookie — the action itself enforces

@@ -20,13 +20,16 @@ import {
 } from "lucide-react";
 
 import { CollapsibleSection } from "@/components/ui/CollapsibleSection";
+import { DeliveryFeed } from "@/components/events/DeliveryFeed";
 import { MetricRow } from "@/components/events/MetricRow";
 import { OverToYou } from "@/components/events/OverToYou";
 import { EventJourney } from "@/components/events/EventJourney";
 import { YourTeamWidget } from "@/components/events/YourTeamWidget";
 import { TeamRequestButton } from "@/components/events/TeamRequestButton";
+import { RebookCTA } from "@/components/reports/RebookCTA";
 import { nextCustomerMilestone } from "@/lib/journey";
-import { formatDateLong } from "@/lib/dates";
+import { isEventWrapped } from "@/lib/event-health";
+import { formatDateLong, formatEventDayCount } from "@/lib/dates";
 import type {
   Event,
   EventTeamMember,
@@ -65,6 +68,7 @@ export function CustomerEventBody({
   metrics,
 }: CustomerEventBodyProps) {
   const nextUp = nextCustomerMilestone(event.currentStage, milestones);
+  const eventDayCount = metrics ? formatEventDayCount(metrics.daysToEvent) : null;
 
   return (
     <div className="space-y-6 py-6">
@@ -82,10 +86,20 @@ export function CustomerEventBody({
         variant="steps"
       />
 
+      {/* Pre-event only: the work happening off-stage, plus time-gated
+          reveals. Renders nothing outside the delivery window. */}
+      <DeliveryFeed event={event} />
+
       <div className="space-y-3">
         <YourTeamWidget eventId={eventId} members={teamMembers} />
         <TeamRequestButton eventId={eventId} />
       </div>
+
+      {/* Wrapped events invite the natural next step: run it again. The
+          one-click path pre-fills a quote on the customer's own account. */}
+      {isEventWrapped(event) && (
+        <RebookCTA eventType={event.eventType} authenticatedEventId={eventId} />
+      )}
 
       <div className="space-y-3">
         <CollapsibleSection title="Event details">
@@ -96,16 +110,8 @@ export function CustomerEventBody({
           <CollapsibleSection title="The numbers">
             <ul className="divide-y divide-border/60">
               <MetricRow
-                label="Days to event"
-                value={
-                  metrics.delivered
-                    ? "Wrapped"
-                    : metrics.daysToEvent > 0
-                      ? `${metrics.daysToEvent}d`
-                      : metrics.daysToEvent === 0
-                        ? "Today"
-                        : "Live"
-                }
+                label={eventDayCount!.label}
+                value={eventDayCount!.value}
               />
               <MetricRow
                 label="Pending actions"

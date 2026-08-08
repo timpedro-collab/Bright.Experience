@@ -1,17 +1,21 @@
 /** Server actions for venue and runway management. */
 "use server";
 
+import { requireInternalUser } from "@/lib/auth";
 import {
   requireVenueManager,
   requireVenueManagerForPlacement,
   requireVenueManagerForSlot,
 } from "@/lib/auth/portal";
+import { isAdminRole } from "@/lib/roles";
+import { nextAvailableSlug, slugifyPartnerName } from "@/lib/partner-identity";
 import {
   completeSlotSchema,
   confirmSlotSchema,
   createPlacementSchema,
   createSponsorshipSlotSchema,
   createVenuePackageSchema,
+  createVenueSchema,
   deleteSlotSchema,
   holdSlotSchema,
   publishPlacementSchema,
@@ -29,6 +33,71 @@ import { applicationLimiter, getClientIp } from "@/lib/rate-limit";
 import { holdExpiry } from "@/lib/slot-holds";
 import { spawnSlotFulfilmentTasks } from "@/server/slot-fulfilment";
 import { revalidatePath } from "next/cache";
+
+/**
+ * Create a venue on the estate. Internal-admin only — venues carry inventory
+ * tooling, so they're never self-service (see `applyAsPartner`).
+ *
+ * A venue is its own `venues` row; `partnerId` optionally links it to the
+ * partner organisation (type `venue`) whose people manage it in the portal.
+ * The slug is minted here the same way partner slugs are: URL-safe, unique,
+ * suffixed rather than rejected on a clash.
+ */
+export async function createVenue(data: {
+  name: string;
+  partnerId?: string;
+  address?: string;
+  postcode?: string;
+  venueType?: string;
+  capacity?: number;
+}) {
+  const parsed = createVenueSchema.safeParse(data);
+  if (!parsed.success) {
+    return { success: false as const, error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  }
+
+  const { supabase, profile } = await requireInternalUser();
+  if (!isAdminRole(profile.role)) {
+    return { success: false as const, error: "Forbidden: admin access only" };
+  }
+
+  const base = slugifyPartnerName(parsed.data.name);
+  if (!base) {
+    return { success: false as const, error: "That name has no letters or numbers to build a web address from." };
+  }
+
+  const { data: existing } = await supabase
+    .from("venues")
+    .select("slug")
+    .like("slug", `${base}%`);
+  const slug = nextAvailableSlug(
+    base,
+    ((existing ?? []) as { slug: string }[]).map((row) => row.slug)
+  );
+
+  const { data: venue, error } = await supabase
+    .from("venues")
+    .insert({
+      name: parsed.data.name.trim(),
+      slug,
+      partner_id: parsed.data.partnerId ?? null,
+      address: parsed.data.address?.trim() || null,
+      postcode: parsed.data.postcode?.trim() || null,
+      venue_type: parsed.data.venueType || null,
+      capacity: parsed.data.capacity ?? null,
+      is_active: true,
+    })
+    .select("id, slug")
+    .single();
+
+  if (error || !venue) {
+    return { success: false as const, error: "Failed to create the venue" };
+  }
+
+  revalidatePath("/admin/partners");
+  revalidatePath("/venues", "layout");
+  return { success: true as const, data: { id: venue.id, slug: venue.slug } };
+}
 
 /** Create a new venue event package. `price` is whole dollars from the form; stored as integer cents. */
 export async function createVenuePackage(data: {

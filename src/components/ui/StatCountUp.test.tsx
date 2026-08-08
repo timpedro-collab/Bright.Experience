@@ -1,4 +1,4 @@
-/** Tests for StatCountUp scroll-triggered count-up and reduced-motion behaviour. */
+/** Tests for StatCountUp viewport-triggered count-up and reduced-motion behaviour. */
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { render, screen } from "@/test/render";
 import { StatCountUp } from "./StatCountUp";
@@ -66,6 +66,14 @@ afterEach(() => {
 });
 
 describe("StatCountUp", () => {
+  it("renders the final value in the initial render before animation starts", () => {
+    mockMatchMedia(false);
+    motionMocks.useReducedMotion.mockReturnValue(false);
+    mockIntersectionObserver(false);
+    const { container } = render(<StatCountUp raw="92%" />);
+    expect(container.querySelector("span")?.textContent).toBe("92%");
+  });
+
   it("renders the final value immediately when prefers-reduced-motion is set", () => {
     mockMatchMedia(true);
     motionMocks.useReducedMotion.mockReturnValue(true);

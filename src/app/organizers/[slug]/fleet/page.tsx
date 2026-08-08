@@ -6,6 +6,7 @@
  * for units that are still unassigned or standing quiet, without opening each
  * show in turn.
  */
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Cpu, ChevronRight, MapPin, Handshake } from "lucide-react";
 
@@ -19,9 +20,19 @@ import { getFleetByOrganizer } from "@/lib/queries/organizers";
 import { getUnreadCount } from "@/lib/queries/notifications";
 import { missionLabel } from "@/lib/fleet-labels";
 import { cn } from "@/lib/utils";
+import { entityTitle, getPartnerNameForTitle } from "@/lib/queries/page-titles";
 
 interface Props {
   params: Promise<{ slug: string }>;
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  return { title: entityTitle("Fleet", await getPartnerNameForTitle(slug)) };
 }
 
 export default async function OrganizerFleetPage({ params }: Props) {

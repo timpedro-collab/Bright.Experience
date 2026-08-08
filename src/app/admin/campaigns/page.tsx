@@ -12,6 +12,10 @@ import { canViewCommercial } from "@/lib/roles";
 import { getCampaigns, getCampaignEventCount } from "@/lib/queries/campaigns";
 import { getUnreadCount } from "@/lib/queries/notifications";
 
+export const metadata = {
+  title: "Campaigns",
+};
+
 export default async function CampaignsAdminPage() {
   const user = await getUser();
   if (!user) redirect("/login");

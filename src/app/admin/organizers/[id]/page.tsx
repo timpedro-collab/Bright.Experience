@@ -31,6 +31,10 @@ interface Props {
   params: Promise<{ id: string }>;
 }
 
+export const metadata = {
+  title: "Organizer detail",
+};
+
 export default async function OrganizerSetupPage({ params }: Props) {
   const { id } = await params;
 

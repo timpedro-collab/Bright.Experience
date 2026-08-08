@@ -21,15 +21,37 @@ import {
 interface TierCardProps {
   tier: PricingTier;
   region: PriceRegion;
+  /**
+   * When true, list the tier's full stack instead of the "Everything in X,
+   * plus" delta. Used when the ladder predecessor hasn't been displayed yet
+   * (premium-first order), so the card never references a tier the reader
+   * hasn't met.
+   */
+  selfContained?: boolean;
 }
 
 /** The ladder: base tier shows the always-on set, higher tiers show only their delta. */
-function tierBullets(tier: PricingTier): { lead: string | null; items: string[] } {
+function tierBullets(
+  tier: PricingTier,
+  selfContained: boolean,
+): { lead: string | null; items: string[] } {
   const idx = TIERS.findIndex((t) => t.slug === tier.slug);
   if (idx <= 0) {
     return {
       lead: null,
       items: [...ALWAYS_ON.map((c) => c.outcome), tier.reporting],
+    };
+  }
+  if (selfContained) {
+    return {
+      lead: null,
+      items: [
+        ...tier.includedCapabilitySlugs.map(
+          (slug) => getCapability(slug)?.outcome ?? slug,
+        ),
+        ...tier.serviceFeatures,
+        tier.reporting,
+      ],
     };
   }
   const prev = TIERS[idx - 1];
@@ -44,10 +66,10 @@ function tierBullets(tier: PricingTier): { lead: string | null; items: string[] 
   return { lead: `Everything in ${prev.displayName}, plus:`, items };
 }
 
-export function TierCard({ tier, region }: TierCardProps) {
+export function TierCard({ tier, region, selfContained = false }: TierCardProps) {
   const featured = tier.badge === "most-popular";
   const bespoke = tier.slug === "bespoke";
-  const bullets = tierBullets(tier);
+  const bullets = tierBullets(tier, selfContained);
 
   return (
     <div
@@ -93,6 +115,12 @@ export function TierCard({ tier, region }: TierCardProps) {
           </li>
         ))}
       </ul>
+
+      {tier.ladderNote && (
+        <p className="mt-4 rounded-[var(--radius-control)] bg-muted/60 px-3 py-2.5 text-xs leading-relaxed text-muted-foreground">
+          {tier.ladderNote}
+        </p>
+      )}
 
       <Button
         variant={featured ? "brand" : "glass"}

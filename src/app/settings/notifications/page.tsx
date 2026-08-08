@@ -36,7 +36,7 @@ import {
 } from "@/lib/queries/notifications";
 
 export const metadata = {
-  title: "Notification settings · Bright.Experience",
+  title: "Notification settings",
 };
 
 export default async function NotificationSettingsPage() {

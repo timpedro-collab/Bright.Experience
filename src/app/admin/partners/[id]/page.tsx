@@ -14,6 +14,10 @@ interface PartnerDetailPageProps {
   params: Promise<{ id: string }>;
 }
 
+export const metadata = {
+  title: "Partner detail",
+};
+
 export default async function AdminPartnerDetailPage({
   params,
 }: PartnerDetailPageProps) {

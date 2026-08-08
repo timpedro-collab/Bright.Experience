@@ -4,6 +4,7 @@
  * EditionShell + RidgeHero + hairline-grouped rows, no glass cards.
  */
 
+import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import {
   CheckCircle2,
@@ -34,6 +35,16 @@ import { canViewSection } from "@/lib/event-access";
 import { formatDateMedium } from "@/lib/dates";
 import { TimeAgo } from "@/components/ui/TimeAgo";
 import type { Approval } from "@/types";
+import { entityTitle, getEventNameForTitle } from "@/lib/queries/page-titles";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  return { title: entityTitle("Approvals", await getEventNameForTitle(id)) };
+}
 
 export default async function ApprovalsPage({
   params,

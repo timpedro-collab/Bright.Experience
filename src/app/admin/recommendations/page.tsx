@@ -23,6 +23,10 @@ const CATEGORY_LABELS: Record<string, string> = {
   location_performance: "Location Performance Insights",
 };
 
+export const metadata = {
+  title: "Recommendations",
+};
+
 export default async function RecommendationsPage() {
   const user = await getUser();
   if (!user) redirect("/login");

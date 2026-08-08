@@ -9,10 +9,11 @@ import {
 import type { Event } from "@/types";
 import { STAGE_CONFIG } from "@/types";
 import { HealthDot } from "@/components/ui/HealthIndicator";
-import { StageBadge, HealthBadge } from "@/components/ui/StatusBadge";
+import { StageBadge, EventHealthBadge } from "@/components/ui/StatusBadge";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { cn } from "@/lib/utils";
 import { formatDateMedium } from "@/lib/dates";
+import { deriveEventHealth } from "@/lib/event-health";
 
 function getStageProgress(stage: string): number {
   const order = STAGE_CONFIG[stage as keyof typeof STAGE_CONFIG]?.order ?? 0;
@@ -36,6 +37,9 @@ export function EventCard({
 }) {
   const href = `/events/${event.id}`;
   const progress = getStageProgress(event.currentStage);
+  // Derived from stage + dates so a date-passed event can never read as a
+  // calm green dot. Wrapped events show a quiet success state.
+  const chip = deriveEventHealth(event);
 
   return (
     <Link
@@ -49,7 +53,11 @@ export function EventCard({
     >
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">
-          <HealthDot status={event.healthStatus} pulse size="md" />
+          {chip.kind === "wrapped" ? (
+            <CheckCircle2 size={14} className="text-success shrink-0" />
+          ) : (
+            <HealthDot status={chip.status} pulse size="md" />
+          )}
           <div>
             <h3 className="text-heading text-base font-semibold text-foreground group-hover:text-brand transition-colors">
               {event.name}
@@ -72,7 +80,7 @@ export function EventCard({
 
       <div className="flex flex-wrap gap-2 mb-4">
         <StageBadge stage={event.currentStage} isCustomer={!isInternal} />
-        <HealthBadge status={event.healthStatus} isCustomer={!isInternal} />
+        <EventHealthBadge event={event} isCustomer={!isInternal} />
       </div>
 
       <div className="space-y-2 mb-4">

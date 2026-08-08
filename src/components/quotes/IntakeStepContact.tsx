@@ -11,6 +11,7 @@ interface IntakeStepContactProps {
   contactEmail: string;
   contactPhone: string;
   companyName: string;
+  planningMonth: string;
   onChange: (field: string, value: string) => void;
 }
 
@@ -72,6 +73,22 @@ export function IntakeStepContact(props: IntakeStepContactProps) {
               onChange={(e) => props.onChange("contactRole", e.target.value)}
             />
           </div>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="planningMonth">
+            When do you plan next year&apos;s events?{" "}
+            <span className="font-normal text-muted-foreground">(optional)</span>
+          </Label>
+          <Input
+            id="planningMonth"
+            type="month"
+            value={props.planningMonth}
+            onChange={(e) => props.onChange("planningMonth", e.target.value)}
+          />
+          <p className="text-xs text-muted-foreground">
+            We&apos;ll resurface your results right when they&apos;re most
+            useful for the next budget round.
+          </p>
         </div>
       </CardContent>
     </Card>

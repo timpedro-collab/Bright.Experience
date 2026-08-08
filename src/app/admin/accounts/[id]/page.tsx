@@ -5,7 +5,7 @@ import { Building2, Users, CalendarCheck, ArrowLeft } from "lucide-react";
 
 import { AdminPageShell, EditorialEyebrow, Hairline } from "@/components/brand";
 import { KpiGrid, KpiCard } from "@/components/cloud";
-import { HealthBadge, StageBadge } from "@/components/ui/StatusBadge";
+import { EventHealthBadge, StageBadge } from "@/components/ui/StatusBadge";
 
 import { getUser } from "@/lib/auth";
 import { isAdminRole } from "@/lib/roles";
@@ -19,6 +19,10 @@ function formatRole(role: string): string {
     .replace(/_/g, " ")
     .replace(/\b\w/g, (c) => c.toUpperCase());
 }
+
+export const metadata = {
+  title: "Account detail",
+};
 
 export default async function AdminAccountDetailPage({
   params,
@@ -134,7 +138,13 @@ export default async function AdminAccountDetailPage({
                   </span>
                 </span>
                 <StageBadge stage={e.currentStage as Stage} />
-                <HealthBadge status={e.healthStatus as HealthStatus} />
+                <EventHealthBadge
+                  event={{
+                    healthStatus: e.healthStatus as HealthStatus,
+                    currentStage: e.currentStage as Stage,
+                    eventDateStart: e.eventDateStart,
+                  }}
+                />
               </Link>
             ))}
             {account.events.length === 0 && (

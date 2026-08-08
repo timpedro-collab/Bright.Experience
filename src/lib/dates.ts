@@ -29,6 +29,38 @@ export function formatDateMedium(dateStr: string): string {
   return `${day} ${MONTHS_SHORT[month]} ${year}`;
 }
 
+/** en-GB single date for venue partner portal, e.g. "1 Sep 2026". */
+export function formatDateGB(iso: string): string {
+  return formatDateMedium(iso);
+}
+
+/**
+ * en-GB date range for venue partner portal.
+ * Same month/year → "1–30 Sep 2026"; different months → "1 Sep – 3 Oct 2026";
+ * different years → "1 Sep 2026 – 3 Jan 2027".
+ */
+export function formatDateRangeGB(startIso: string, endIso: string): string {
+  const start = parseDate(startIso);
+  const end = parseDate(endIso);
+
+  if (start.year === end.year && start.month === end.month && start.day === end.day) {
+    return formatDateGB(startIso);
+  }
+
+  const startMonth = MONTHS_SHORT[start.month];
+  const endMonth = MONTHS_SHORT[end.month];
+
+  if (start.year !== end.year) {
+    return `${start.day} ${startMonth} ${start.year} – ${end.day} ${endMonth} ${end.year}`;
+  }
+
+  if (start.month !== end.month) {
+    return `${start.day} ${startMonth} – ${end.day} ${endMonth} ${end.year}`;
+  }
+
+  return `${start.day}–${end.day} ${startMonth} ${end.year}`;
+}
+
 export function formatDateLong(dateStr: string): string {
   const { year, month, day } = parseDate(dateStr);
   const d = new Date(year, month, day);
@@ -41,6 +73,27 @@ export function daysUntilDate(dateStr: string): number {
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   return Math.ceil((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+}
+
+/** Label + value for the event overview "Days to event" / "Wrapped" metric row. */
+export function formatEventDayCount(daysToEvent: number): {
+  label: string;
+  value: string;
+} {
+  if (daysToEvent < 0) {
+    const elapsed = Math.abs(daysToEvent);
+    return {
+      label: "Wrapped",
+      value: elapsed === 1 ? "1 day ago" : `${elapsed} days ago`,
+    };
+  }
+  if (daysToEvent === 0) {
+    return { label: "Days to event", value: "Today" };
+  }
+  if (daysToEvent === 1) {
+    return { label: "Days to event", value: "1 day" };
+  }
+  return { label: "Days to event", value: `${daysToEvent} days` };
 }
 
 export function isOverdue(dateStr?: string): boolean {

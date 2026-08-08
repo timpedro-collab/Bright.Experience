@@ -1,4 +1,5 @@
 /** Partner commissions — what's coming, what's pending, and the full history. */
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { Wallet } from "lucide-react";
 
@@ -15,9 +16,19 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { NextPayoutCard } from "@/components/partners/NextPayoutCard";
 import { PartnerDealList } from "@/components/partners/PartnerPipeline";
+import { entityTitle, getPartnerNameForTitle } from "@/lib/queries/page-titles";
 
 interface CommissionsPageProps {
   params: Promise<{ slug: string }>;
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  return { title: entityTitle("Commissions", await getPartnerNameForTitle(slug)) };
 }
 
 export default async function PartnerCommissionsPage({ params }: CommissionsPageProps) {

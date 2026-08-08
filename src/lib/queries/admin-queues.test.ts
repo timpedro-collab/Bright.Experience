@@ -37,6 +37,8 @@ describe("getInternalQueueCounts", () => {
     // 5 approvals + 6 briefings + 7 assets-pending-revision = 18 (assets
     // shares the table response so this is best-effort: assert > 0)
     expect(counts.stuckCustomerActions).toBeGreaterThanOrEqual(0);
+    // Accepted-without-workspace shares the quotes table response.
+    expect(counts.acceptedNeedingWorkspace).toBe(3);
   });
 
   it("treats null counts as zero", async () => {

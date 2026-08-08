@@ -168,6 +168,40 @@ export async function getQuoteById(id: string) {
  * service-role client: the unguessable UUID is the credential, validated
  * here rather than by leaving the table readable to the whole internet.
  */
+/**
+ * The customer contact who booked an event, read from its originating quote.
+ * Powers the "Campaign led by …" credit on the report reveal. Null when the
+ * event wasn't provisioned from a quote.
+ *
+ * Reads through the service-role client because the credit also renders on
+ * the anonymous share-token report page (like `getQuoteForProposal`, the
+ * unguessable token upstream is the credential); only the three display
+ * fields ever leave this function.
+ */
+export async function getQuoteContactForEvent(eventId: string): Promise<{
+  contactName: string | null;
+  contactRole: string | null;
+  companyName: string | null;
+} | null> {
+  const supabase = getServiceRoleClient();
+  const { data, error } = await supabase
+    .from("quotes")
+    .select("contact_name, contact_role, company_name")
+    .eq("event_id", eventId)
+    .limit(1)
+    .maybeSingle();
+
+  if (error || !data) {
+    if (error) logQueryError("getQuoteContactForEvent", error, { eventId });
+    return null;
+  }
+  return {
+    contactName: (data.contact_name as string | null) ?? null,
+    contactRole: (data.contact_role as string | null) ?? null,
+    companyName: (data.company_name as string | null) ?? null,
+  };
+}
+
 export async function getQuoteForProposal(id: string) {
   if (!UUID_RE.test(id)) return null;
 

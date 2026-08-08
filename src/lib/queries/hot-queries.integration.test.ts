@@ -239,9 +239,9 @@ describeIntegration("hot read queries against local Postgres", () => {
         (await import("./telemetry")).getTelemetryByEvent(fixtures.eventId),
     ],
     [
-      "getLatestEventMetrics",
+      "getEventMetricTotals",
       async () =>
-        (await import("./event-metrics")).getLatestEventMetrics(fixtures.eventId),
+        (await import("./event-metrics")).getEventMetricTotals(fixtures.eventId),
     ],
     ["getBenchmarks", async () => (await import("./benchmarks")).getBenchmarks()],
     [

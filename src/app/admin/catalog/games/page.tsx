@@ -9,6 +9,10 @@ import { canViewCreativeProduct } from "@/lib/roles";
 import { getAllGames } from "@/lib/queries/admin-catalog";
 import { getUnreadCount } from "@/lib/queries/notifications";
 
+export const metadata = {
+  title: "Game library",
+};
+
 export default async function GamesAdminPage() {
   const user = await getUser();
   if (!user) redirect("/login");

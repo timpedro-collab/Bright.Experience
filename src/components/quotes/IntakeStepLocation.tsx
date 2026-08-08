@@ -4,6 +4,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { spellDateRange } from "@/lib/date-confirm";
 
 interface IntakeStepLocationProps {
   venueName: string;
@@ -15,6 +16,7 @@ interface IntakeStepLocationProps {
 
 /** Venue and date inputs for the intake wizard. */
 export function IntakeStepLocation(props: IntakeStepLocationProps) {
+  const spelled = spellDateRange(props.eventDateStart, props.eventDateEnd);
   return (
     <Card>
       <CardHeader>
@@ -60,6 +62,13 @@ export function IntakeStepLocation(props: IntakeStepLocationProps) {
             />
           </div>
         </div>
+        {/* Locale-proof echo: the native picker displays in the browser's
+            format, so the parsed date is confirmed back in words. */}
+        {spelled && (
+          <p className="text-sm text-muted-foreground" aria-live="polite">
+            Your event: <span className="font-medium text-foreground">{spelled}</span>
+          </p>
+        )}
       </CardContent>
     </Card>
   );

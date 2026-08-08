@@ -5,7 +5,7 @@ import { PrintButton } from "@/components/organizers/PrintButton";
 
 import { getUser } from "@/lib/auth";
 import { formatMoneyFromPence } from "@/lib/currency";
-import { formatDateShort } from "@/lib/dates";
+import { formatDateGB } from "@/lib/dates";
 import { getPartnerForUser } from "@/lib/queries/partners";
 import { getVenueBySlug } from "@/lib/queries/venues";
 import { getEarningsByVenue } from "@/lib/queries/venue-earnings";
@@ -31,7 +31,7 @@ export default async function VenueEarningsStatementPage({ params }: Props) {
   if (!partner || venue.partner_id !== partner.id) redirect("/");
 
   const earnings = await getEarningsByVenue(venue.id);
-  const preparedOn = formatDateShort(new Date().toISOString());
+  const preparedOn = formatDateGB(new Date().toISOString().slice(0, 10));
 
   return (
     <div className="min-h-screen bg-neutral-100 py-8 print:bg-white print:py-0">

@@ -24,7 +24,7 @@ import { getUser } from "@/lib/auth";
 import { getUnreadCount } from "@/lib/queries/notifications";
 import { getAccountProfiles, getTeamForAccount } from "@/lib/queries/team";
 
-export const metadata = { title: "Team · Bright.Experience" };
+export const metadata = { title: "Team" };
 
 export default async function TeamSettingsPage() {
   const user = await getUser();

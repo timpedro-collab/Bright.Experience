@@ -105,6 +105,20 @@ export function buildFocusItems({
         });
       }
     }
+    // A customer who said yes and has no workspace is the loudest commercial
+    // signal on the board — it outranks new quote requests.
+    if (queueCounts && queueCounts.acceptedNeedingWorkspace > 0) {
+      const n = queueCounts.acceptedNeedingWorkspace;
+      items.push({
+        id: "accepted-unprovisioned",
+        kind: "quote",
+        title: `${n} accepted quote${n === 1 ? "" : "s"} need${n === 1 ? "s" : ""} a workspace`,
+        reason: "Customer accepted — set up their event and send the invite",
+        href: "/admin/quotes",
+        cta: "Provision",
+        tone: "critical",
+      });
+    }
     if (queueCounts && queueCounts.newQuotes > 0) {
       items.push({
         id: "quotes",

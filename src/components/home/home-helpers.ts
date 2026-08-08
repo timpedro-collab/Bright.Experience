@@ -2,6 +2,7 @@
 
 import type { Event } from "@/types";
 import type { PlateStatusTone } from "@/components/brand";
+import { deriveEventHealth } from "@/lib/event-health";
 
 /**
  * Pick the event the customer most wants to see first. We prefer:
@@ -24,19 +25,21 @@ export function pickFeaturedEvent(events: Event[]): Event | null {
   return upcoming ?? events[0];
 }
 
-/** Map an event's health into a tone for the on-track pill. */
+/**
+ * Map an event's health into a tone for the on-track pill. Health is derived
+ * from stage + dates (see `deriveEventHealth`), so a date-passed event can
+ * never read "On track" here.
+ */
 export function healthLabel(event: Event): {
   label: string;
   tone: PlateStatusTone;
 } {
-  if (event.healthStatus === "red")
-    return { label: "Blocked", tone: "warning" };
-  if (event.healthStatus === "amber")
-    return { label: "At risk", tone: "warning" };
+  const chip = deriveEventHealth(event);
+  if (chip.kind === "wrapped") return { label: "Wrap", tone: "wrap" };
+  if (chip.status === "red") return { label: "Blocked", tone: "warning" };
+  if (chip.status === "amber") return { label: "At risk", tone: "warning" };
   if (event.currentStage === "event_live")
     return { label: "Live", tone: "live" };
-  if (event.currentStage === "complete" || event.currentStage === "reporting")
-    return { label: "Wrap", tone: "wrap" };
   return { label: "On track", tone: "active" };
 }
 
