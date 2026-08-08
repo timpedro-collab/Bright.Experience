@@ -34,9 +34,9 @@ export function LiveCounter({
   suffix,
 }: LiveCounterProps) {
   const reducedMotion = prefersReducedMotion();
-  const [displayValue, setDisplayValue] = useState(() =>
-    reducedMotion ? value : 0
-  );
+  // Start at the real value — never render 0 (or a mid-count number) as a
+  // resting state. The count-up only runs for mid-session ticks.
+  const [displayValue, setDisplayValue] = useState(value);
   const animationRef = useRef<number | null>(null);
   const startRef = useRef<number>(0);
 

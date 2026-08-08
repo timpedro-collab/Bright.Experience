@@ -32,10 +32,10 @@ describe("LiveCounter", () => {
     expect(screen.getByText("1,247")).toBeInTheDocument();
   });
 
-  it("renders with count-up otherwise", () => {
+  it("never renders 0 as a resting state — first paint shows the real value", () => {
     mockMatchMedia(false);
     render(<LiveCounter label="Plays" value={1247} icon={icon} />);
-    expect(screen.getByText("0")).toBeInTheDocument();
-    expect(screen.queryByText("1,247")).not.toBeInTheDocument();
+    expect(screen.getByText("1,247")).toBeInTheDocument();
+    expect(screen.queryByText("0")).not.toBeInTheDocument();
   });
 });
