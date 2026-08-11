@@ -98,8 +98,8 @@ export function NrsPricingExplorer() {
             onChange={setSingles}
           />
           <LeverRow
-            label="Retail per single placement"
-            ariaLabel="Retail per single placement"
+            label="Recommended retail per single placement"
+            ariaLabel="Recommended retail per single placement"
             valueLabel={formatUsd(singleRetail)}
             value={singleRetail}
             min={RETAIL.single.min}
@@ -119,8 +119,8 @@ export function NrsPricingExplorer() {
           />
           {takeovers > 0 ? (
             <LeverRow
-              label="Retail per takeover bundle"
-              ariaLabel="Retail per takeover bundle"
+              label="Recommended retail per takeover bundle"
+              ariaLabel="Recommended retail per takeover bundle"
               valueLabel={formatUsd(takeoverRetail)}
               value={takeoverRetail}
               min={RETAIL.takeover.min}

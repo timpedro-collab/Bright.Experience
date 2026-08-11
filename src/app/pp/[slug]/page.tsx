@@ -37,6 +37,26 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
+/** Live activation photography — real wrapped Europas, not renders. */
+const EUROPA_GALLERY = [
+  {
+    src: "/catalog/machines/europa/01-hero-pelion.jpg",
+    alt: "Europa machine fully wrapped in Pelion branding at a live activation",
+  },
+  {
+    src: "/catalog/machines/europa/02-costa-cup.jpg",
+    alt: "Costa-branded Europa activation with custom cup creative",
+  },
+  {
+    src: "/catalog/machines/europa/04-pepsi.jpg",
+    alt: "Pepsi-branded Europa machine on an event floor",
+  },
+  {
+    src: "/catalog/machines/europa/05-play-to-win.jpg",
+    alt: "Europa running a play-to-win interactive game screen",
+  },
+];
+
 const PRECEDENT_STATS = [
   {
     value: "$42–45k",
@@ -156,6 +176,9 @@ export default async function PartnerPricingPage({
                 <CardTitle className="text-base">Single unit, full show</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                  Recommended retail
+                </p>
                 <p className="text-2xl font-bold tabular-nums">$45,000–$50,000</p>
                 <p className="text-sm text-muted-foreground">
                   One interactive machine, fully wrapped in the sponsor&rsquo;s
@@ -172,6 +195,9 @@ export default async function PartnerPricingPage({
                 </div>
               </CardHeader>
               <CardContent className="space-y-2">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                  Recommended retail
+                </p>
                 <p className="text-2xl font-bold tabular-nums">$110,000–$120,000</p>
                 <p className="text-sm text-muted-foreground">
                   Three units — the sponsor&rsquo;s booth plus two halls —
@@ -185,6 +211,9 @@ export default async function PartnerPricingPage({
                 <CardTitle className="text-base">Corridor activation (pilot)</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                  Recommended retail
+                </p>
                 <p className="text-2xl font-bold tabular-nums">$25,000–$30,000</p>
                 <p className="text-sm text-muted-foreground">
                   Monetises the dead traffic between the three NRS buildings.
@@ -196,6 +225,82 @@ export default async function PartnerPricingPage({
               </CardContent>
             </Card>
           </div>
+        </section>
+
+        {/* Europa in the wild */}
+        <section className="mt-14">
+          <h2 className="text-heading text-xl font-bold">The Europa, in the wild</h2>
+          <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+            Every placement ships fully wrapped in the sponsor&rsquo;s creative
+            — these are live activations, not renders.
+          </p>
+          <div className="mt-5 grid grid-cols-2 gap-4 lg:grid-cols-4">
+            {EUROPA_GALLERY.map((photo) => (
+              <div
+                key={photo.src}
+                className="relative aspect-[3/4] overflow-hidden rounded-xl border"
+              >
+                <Image
+                  src={photo.src}
+                  alt={photo.alt}
+                  fill
+                  sizes="(max-width: 1024px) 50vw, 25vw"
+                  className="object-cover"
+                />
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Embedded media value */}
+        <section className="mt-14">
+          <Card>
+            <CardContent className="pt-6">
+              <h2 className="text-heading text-xl font-bold">
+                The screen is a media channel in its own right
+              </h2>
+              <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
+                Each machine runs a rolling loop of six 10-second video slots.
+                On a fully sponsored unit, every slot carries the
+                sponsor&rsquo;s creative — sole-sponsor screen time for the
+                entire show, in front of an audience of 55,000+ foodservice
+                professionals. On the Cross-Hall Takeover that&rsquo;s three
+                screens running the brand all show long.
+              </p>
+              <dl className="mt-5 grid gap-6 sm:grid-cols-3">
+                <div>
+                  <dt className="text-xs uppercase tracking-wide text-muted-foreground">
+                    Video slots per screen
+                  </dt>
+                  <dd className="mt-1 text-3xl font-bold tabular-nums text-heading">
+                    6 × 10s
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-xs uppercase tracking-wide text-muted-foreground">
+                    Creative plays per show
+                  </dt>
+                  <dd className="mt-1 text-3xl font-bold tabular-nums text-heading">
+                    ~1,800
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-xs uppercase tracking-wide text-muted-foreground">
+                    Audience on the floor
+                  </dt>
+                  <dd className="mt-1 text-3xl font-bold tabular-nums text-primary">
+                    55,000+
+                  </dd>
+                </div>
+              </dl>
+              <p className="mt-4 max-w-3xl text-sm text-muted-foreground">
+                For context: the NRS rate card prices <em>static</em> signage
+                at $27,500–$37,000 against a comparable audience. The screen
+                time here is dynamic, sponsor-exclusive and interactive — and
+                it&rsquo;s bundled inside the placement price, not sold on top.
+              </p>
+            </CardContent>
+          </Card>
         </section>
 
         {/* The model */}

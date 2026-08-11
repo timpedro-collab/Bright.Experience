@@ -26,7 +26,7 @@ describe("NrsPricingExplorer", () => {
   it("never lets the single retail slider go below the $45k band floor", () => {
     render(<NrsPricingExplorer />);
     const retailSlider = screen.getByRole("slider", {
-      name: "Retail per single placement",
+      name: "Recommended retail per single placement",
     });
     fireEvent.keyDown(retailSlider, { key: "Home" });
     expect(retailSlider).toHaveAttribute("aria-valuemin", "45000");
@@ -47,7 +47,7 @@ describe("NrsPricingExplorer", () => {
     expect(scaleRow!.textContent).toContain("current mix");
     // The bundle retail lever appears once bundles are in the mix
     expect(
-      screen.getByRole("slider", { name: "Retail per takeover bundle" })
+      screen.getByRole("slider", { name: "Recommended retail per takeover bundle" })
     ).toBeInTheDocument();
   });
 

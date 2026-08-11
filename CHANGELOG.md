@@ -25,6 +25,11 @@ capability URL.
 - **`src/components/ui/slider.tsx`** — new shadcn primitive; `aria-label`
   forwarded to the Radix `Thumb` (where `role="slider"` lives) so sliders
   have accessible names.
+- Follow-up same night: "Recommended retail" labelling on all price
+  surfaces, Europa activation photo gallery (real wrapped machines from
+  `/catalog/machines/europa`), and an embedded-DOOH media value section
+  (6×10s slots, ~1,800 plays, 55,000+ verified NRS audience) framed against
+  the show's own rate card rather than street DOOH CPMs.
 
 ---
 
