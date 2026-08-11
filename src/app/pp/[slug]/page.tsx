@@ -86,7 +86,7 @@ const MODEL_TERMS = [
   {
     term: `Pilot: ${COMMITMENT.pilotMinUnits}–${COMMITMENT.pilotMaxUnits} units, take-or-pay`,
     detail:
-      "We commit build capacity, you commit placement. The commitment can be reduced up to 90 days out, before builds start — and any unsold unit can deploy as show-branded activation, so committed units always do work.",
+      `We commit build capacity, you commit placement. Your unit count stays flexible — up or down — until the production lock date, ${COMMITMENT.cutoffWeeks} weeks before the show. From that date we're building, so the number is fixed; any unsold unit can deploy as show-branded activation, so committed units always do work.`,
   },
   {
     term: "McCormick logistics, split sensibly",
