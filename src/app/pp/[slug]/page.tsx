@@ -294,8 +294,8 @@ export default async function PartnerPricingPage({
                 </div>
               </dl>
               <p className="mt-4 max-w-3xl text-sm text-muted-foreground">
-                For context: the NRS rate card prices <em>static</em> signage
-                at $27,500–$37,000 against a comparable audience. The screen
+                For context: the NRS rate card prices <em>static</em>{" "}
+                signage at $27,500–$37,000 against a comparable audience. The screen
                 time here is dynamic, sponsor-exclusive and interactive — and
                 it&rsquo;s bundled inside the placement price, not sold on top.
               </p>
