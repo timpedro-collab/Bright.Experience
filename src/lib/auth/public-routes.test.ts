@@ -39,6 +39,13 @@ describe("isPublicPath", () => {
     expect(isPublicPath("/play/0c725f9b-6d17-4ca0-abc6-4ee06f7c7f6a")).toBe(true);
   });
 
+  it("lets partner pricing microsites through without opening prefix-sharing routes", () => {
+    expect(isPublicPath("/pp/nrs-europa-4e9d1c7a2b86")).toBe(true);
+    expect(isPublicPath("/pp")).toBe(true);
+    expect(isPublicPath("/ppx")).toBe(false);
+    expect(isPublicPath("/pp-admin/settings")).toBe(false);
+  });
+
   it("lets the report share exports and player card image through, nothing else under those prefixes", () => {
     const token = "6830ebad-e7dc-47f9-9a52-902b77a6434b";
     expect(isPublicPath(`/api/reports/${token}/stat-card`)).toBe(true);

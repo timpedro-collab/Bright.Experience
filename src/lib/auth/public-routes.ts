@@ -53,6 +53,9 @@ const PUBLIC_ROUTES = [
   // Player result card — the unguessable lead UUID is the credential,
   // validated by the page's service-role query.
   "/play",
+  // Partner pricing microsites — the unguessable slug is the credential,
+  // validated against the page's static registry (unknown slugs 404).
+  "/pp",
   // Machine-to-machine endpoints that can never carry a browser session:
   // inbound Cloud/Cal.com webhooks (HMAC) and scheduled crons (CRON_SECRET
   // bearer). Without these the session gate 307s the caller to /login and

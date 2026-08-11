@@ -37,6 +37,7 @@
 /report/:token                      → Public proof-of-performance report (tokened; optional partner co-branding)
 /report/:token/wrapped              → Event Wrapped — story-format share page (+ /api/reports/:token/wrapped-card PNG)
 /play/:leadId                       → Player result card — score/rank, player as hero (+ /api/play/:leadId/card PNG)
+/pp/:slug                           → Partner pricing microsite — buyer-facing interactive deal explorer (unguessable slug; chromeless; noindex)
 /bright-index                       → The Bright Index — published fleet benchmarks (ungated)
 /state-of-play                      → State of Play — annual measured-activation report (ungated)
 /live/:token                        → View-only live dashboard (tokened, expiring, "Powered by")

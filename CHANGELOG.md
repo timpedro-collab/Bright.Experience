@@ -4,6 +4,30 @@ All notable changes to the Bright.Experience platform are documented here.
 
 ---
 
+## [Partner pricing microsite] - 2026-08-12
+
+Buyer-facing interactive deal explorer for partner negotiations (first
+instance: Informa / National Restaurant Show), shareable as an unguessable
+capability URL.
+
+- **`/pp/[slug]`** — chromeless, noindex page outside the `(public)`
+  marketing chrome; unknown slugs 404 against a static registry
+  (`src/app/pp/[slug]/page.tsx`). Added `/pp` to the middleware public-route
+  allowlist with tests.
+- **`src/lib/partner-pricing.ts`** — buyer-safe deal maths (retail anchors,
+  60/40 split, floor ladder, commitment terms). Documented as never carrying
+  internal economics: the module ships to a negotiating counterparty's
+  browser.
+- **`src/components/partners/NrsPricingExplorer.tsx`** — slider-driven
+  inventory mix explorer (singles, retail band, takeover bundles) with live
+  gross/retained figures and a volume-ladder table. Slider bounds enforce the
+  negotiating floors — the UI cannot express a price below them.
+- **`src/components/ui/slider.tsx`** — new shadcn primitive; `aria-label`
+  forwarded to the Radix `Thumb` (where `role="slider"` lives) so sliders
+  have accessible names.
+
+---
+
 ## [The loops: Event Wrapped, invitation footers, loop telemetry + pulse dashboard] - 2026-08-08
 
 Experience audit Tier 3 (the loops), Part 3 (subtractions), and Part 5
