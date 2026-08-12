@@ -154,6 +154,32 @@ export default async function PartnerPricingPage({
           </div>
         </header>
 
+        {/* Europa in the wild — the product, up top, before any numbers */}
+        <section className="mt-10">
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+            {EUROPA_GALLERY.map((photo) => (
+              <div
+                key={photo.src}
+                className="relative aspect-[3/4] overflow-hidden rounded-xl border"
+              >
+                <Image
+                  src={photo.src}
+                  alt={photo.alt}
+                  fill
+                  sizes="(max-width: 1024px) 50vw, 25vw"
+                  className="object-cover"
+                  style={{ objectPosition: photo.position }}
+                />
+              </div>
+            ))}
+          </div>
+          <p className="mt-3 text-sm text-muted-foreground">
+            The Europa, in the wild — every placement ships fully wrapped in
+            the sponsor&rsquo;s creative. These are live activations, not
+            renders.
+          </p>
+        </section>
+
         {/* Precedent */}
         <section className="mt-14">
           <h2 className="text-heading text-xl font-bold">
@@ -191,32 +217,6 @@ export default async function PartnerPricingPage({
           </p>
           <div className="mt-6">
             <NrsModelsShowcase />
-          </div>
-        </section>
-
-        {/* Europa in the wild */}
-        <section className="mt-14">
-          <h2 className="text-heading text-xl font-bold">The Europa, in the wild</h2>
-          <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-            Every placement ships fully wrapped in the sponsor&rsquo;s creative
-            — these are live activations, not renders.
-          </p>
-          <div className="mt-5 grid grid-cols-2 gap-4 lg:grid-cols-4">
-            {EUROPA_GALLERY.map((photo) => (
-              <div
-                key={photo.src}
-                className="relative aspect-[3/4] overflow-hidden rounded-xl border"
-              >
-                <Image
-                  src={photo.src}
-                  alt={photo.alt}
-                  fill
-                  sizes="(max-width: 1024px) 50vw, 25vw"
-                  className="object-cover"
-                  style={{ objectPosition: photo.position }}
-                />
-              </div>
-            ))}
           </div>
         </section>
 
