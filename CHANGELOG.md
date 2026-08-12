@@ -61,6 +61,12 @@ capability URL.
 - Campus schematic lines brightened (hall outlines, takeover trio,
   dashboard feed lines) after review feedback that they were too faint
   on the dark theme.
+- Corridor placements added as a third explorer lever with their own
+  $25k–$40k retail band (suggested $30k): they were previously a static
+  card only, so buyers couldn't model Model 1 revenue or see corridor
+  volume push the mix into cheaper floor tiers. All placements draw from
+  the shared 50-unit fleet ceiling. "The split never moves" removed from
+  the ladder footnote (it is exactly what's being negotiated).
 - Post-meeting pass (12 Aug): takeover retail slider now always mounted
   (disabled at 0 bundles) — conditionally inserting it mid-drag shifted
   the layout under the cursor and read as broken sliders on the call;
