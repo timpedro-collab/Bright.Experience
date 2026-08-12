@@ -24,6 +24,18 @@ import {
 } from "@/lib/partner-pricing";
 import { cn } from "@/lib/utils";
 
+/**
+ * Thumb styles matching the placement markers in the campus schematic's
+ * legend (see `Marker` in NrsModelsShowcase) — the same visual key carries
+ * from the diagram into the levers: gray dot = singles, solid blue dot =
+ * takeover, blue-outlined dot = corridor (the thumb's default look).
+ */
+const MARKER_THUMBS = {
+  single: "border-transparent bg-foreground/50",
+  takeover: "border-primary bg-primary ring-2 ring-primary/30",
+  corridor: undefined,
+} as const;
+
 /** One labelled slider row with its live value. */
 function LeverRow({
   label,
@@ -35,6 +47,7 @@ function LeverRow({
   onChange,
   ariaLabel,
   disabled = false,
+  marker,
 }: {
   label: string;
   valueLabel: string;
@@ -45,6 +58,7 @@ function LeverRow({
   onChange: (next: number) => void;
   ariaLabel: string;
   disabled?: boolean;
+  marker?: keyof typeof MARKER_THUMBS;
 }) {
   return (
     <div className={cn("space-y-2", disabled && "opacity-50")}>
@@ -59,6 +73,7 @@ function LeverRow({
         max={max}
         step={step}
         disabled={disabled}
+        thumbClassName={marker ? MARKER_THUMBS[marker] : undefined}
         onValueChange={([next]) => onChange(next)}
       />
     </div>
@@ -110,6 +125,7 @@ export function NrsPricingExplorer() {
             min={0}
             max={maxSingles}
             step={1}
+            marker="single"
             onChange={setSingles}
           />
           <LeverRow
@@ -120,6 +136,7 @@ export function NrsPricingExplorer() {
             min={RETAIL.single.min}
             max={RETAIL.single.max}
             step={RETAIL.single.step}
+            marker="single"
             onChange={setSingleRetail}
           />
           <LeverRow
@@ -130,6 +147,7 @@ export function NrsPricingExplorer() {
             min={0}
             max={RETAIL.takeover.maxBundles}
             step={1}
+            marker="takeover"
             onChange={setTakeovers}
           />
           {/* Always mounted: conditionally inserting this row mid-drag shifts
@@ -144,6 +162,7 @@ export function NrsPricingExplorer() {
             max={RETAIL.takeover.max}
             step={RETAIL.takeover.step}
             disabled={takeovers === 0}
+            marker="takeover"
             onChange={setTakeoverRetail}
           />
           <LeverRow
@@ -154,6 +173,7 @@ export function NrsPricingExplorer() {
             min={0}
             max={maxCorridors}
             step={1}
+            marker="corridor"
             onChange={setCorridors}
           />
           <LeverRow
@@ -165,6 +185,7 @@ export function NrsPricingExplorer() {
             max={RETAIL.corridor.max}
             step={RETAIL.corridor.step}
             disabled={effectiveCorridors === 0}
+            marker="corridor"
             onChange={setCorridorRetail}
           />
           <p className="text-xs text-muted-foreground">

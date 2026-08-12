@@ -7,8 +7,11 @@ import { cn } from "@/lib/utils"
 
 const Slider = React.forwardRef<
   React.ElementRef<typeof SliderPrimitive.Root>,
-  React.ComponentPropsWithoutRef<typeof SliderPrimitive.Root>
->(({ className, "aria-label": ariaLabel, ...props }, ref) => (
+  React.ComponentPropsWithoutRef<typeof SliderPrimitive.Root> & {
+    /** Extra classes for the Thumb, e.g. to theme it per data series. */
+    thumbClassName?: string
+  }
+>(({ className, thumbClassName, "aria-label": ariaLabel, ...props }, ref) => (
   <SliderPrimitive.Root
     ref={ref}
     className={cn(
@@ -24,7 +27,10 @@ const Slider = React.forwardRef<
         a label on the Root never reaches assistive tech. */}
     <SliderPrimitive.Thumb
       aria-label={ariaLabel}
-      className="block h-5 w-5 rounded-full border-2 border-primary bg-background ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
+      className={cn(
+        "block h-5 w-5 rounded-full border-2 border-primary bg-background ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+        thumbClassName
+      )}
     />
   </SliderPrimitive.Root>
 ))
