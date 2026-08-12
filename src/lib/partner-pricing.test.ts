@@ -122,17 +122,30 @@ describe("computeDeal", () => {
 
   it("prices corridor placements on their own band and counts them toward volume", () => {
     const deal = computeDeal({
-      singles: 10,
+      singles: 12,
       singleRetail: 50_000,
       takeovers: 0,
       takeoverRetail: RETAIL.takeover.suggested,
-      corridors: 6,
+      corridors: 4,
       corridorRetail: 30_000,
     });
     expect(deal.totalUnits).toBe(16);
-    expect(deal.gross).toBe(10 * 50_000 + 6 * 30_000);
+    expect(deal.gross).toBe(12 * 50_000 + 4 * 30_000);
     // 16 units crosses into the Scale floor tier
     expect(deal.tier.label).toBe("Scale");
+  });
+
+  it("caps corridor placements at the physical maximum of 4", () => {
+    const deal = computeDeal({
+      singles: 0,
+      singleRetail: 50_000,
+      takeovers: 0,
+      takeoverRetail: RETAIL.takeover.suggested,
+      corridors: 99,
+      corridorRetail: 30_000,
+    });
+    expect(deal.totalUnits).toBe(4);
+    expect(deal.gross).toBe(4 * 30_000);
   });
 
   it("clamps corridor retail into the $25k–$40k band", () => {

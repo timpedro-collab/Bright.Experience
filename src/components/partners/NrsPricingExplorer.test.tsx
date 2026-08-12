@@ -56,6 +56,8 @@ describe("NrsPricingExplorer", () => {
     const corridorSlider = screen.getByRole("slider", {
       name: "Corridor placements",
     });
+    // Physically capped at 4 (two connecting corridors, two machines each)
+    expect(corridorSlider).toHaveAttribute("aria-valuemax", "4");
     fireEvent.keyDown(corridorSlider, { key: "ArrowRight" });
     fireEvent.keyDown(corridorSlider, { key: "ArrowRight" });
     // 12 singles + 2 corridors = 14 units; $600k + 2 × $30k = $660k

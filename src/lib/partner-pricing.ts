@@ -31,8 +31,12 @@ export const RETAIL = {
   single: { min: 45_000, max: 70_000, suggested: 50_000, step: 1_000 },
   /** Cross-Hall Takeover: 3 units (booth + 2 halls), scarcity-capped. */
   takeover: { min: 110_000, max: 175_000, suggested: 120_000, step: 5_000, unitsPerBundle: 3, maxBundles: 3 },
-  /** Corridor placements: new inventory, priced under the single band to move. */
-  corridor: { min: 25_000, max: 40_000, suggested: 30_000, step: 1_000 },
+  /**
+   * Corridor placements: the stated Model 1 pilot. Physically capped — the
+   * campus has two connecting corridors, two machines each. Priced under the
+   * single band; placement rights (MPEA) are agreed separately.
+   */
+  corridor: { min: 25_000, max: 40_000, suggested: 30_000, step: 1_000, maxUnits: 4 },
 } as const;
 
 /**
@@ -97,7 +101,7 @@ export function clampRetail(value: number, bounds: { min: number; max: number })
 export function computeDeal(inputs: DealInputs): DealSummary {
   const singles = Math.max(0, Math.floor(inputs.singles));
   const takeovers = Math.max(0, Math.min(Math.floor(inputs.takeovers), RETAIL.takeover.maxBundles));
-  const corridors = Math.max(0, Math.floor(inputs.corridors));
+  const corridors = Math.max(0, Math.min(Math.floor(inputs.corridors), RETAIL.corridor.maxUnits));
   const singleRetail = clampRetail(inputs.singleRetail, RETAIL.single);
   const takeoverRetail = clampRetail(inputs.takeoverRetail, RETAIL.takeover);
   const corridorRetail = clampRetail(inputs.corridorRetail, RETAIL.corridor);

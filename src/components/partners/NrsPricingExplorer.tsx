@@ -78,7 +78,12 @@ export function NrsPricingExplorer() {
   const takeoverUnits = takeovers * RETAIL.takeover.unitsPerBundle;
   const maxSingles = COMMITMENT.maxUnits - takeoverUnits - corridors;
   const effectiveSingles = Math.min(singles, maxSingles);
-  const maxCorridors = COMMITMENT.maxUnits - takeoverUnits - effectiveSingles;
+  // Corridors are physically capped (two connecting corridors, two machines
+  // each) as well as bounded by the shared fleet ceiling.
+  const maxCorridors = Math.min(
+    RETAIL.corridor.maxUnits,
+    COMMITMENT.maxUnits - takeoverUnits - effectiveSingles,
+  );
   const effectiveCorridors = Math.min(corridors, maxCorridors);
 
   const deal = computeDeal({
@@ -142,7 +147,7 @@ export function NrsPricingExplorer() {
             onChange={setTakeoverRetail}
           />
           <LeverRow
-            label="Corridor placements"
+            label={`Corridor placements (pilot, max ${RETAIL.corridor.maxUnits})`}
             ariaLabel="Corridor placements"
             valueLabel={effectiveCorridors === 0 ? "None" : `${effectiveCorridors} units`}
             value={effectiveCorridors}
@@ -165,6 +170,12 @@ export function NrsPricingExplorer() {
           <p className="text-xs text-muted-foreground">
             Retail is yours to set. The ranges shown are our suggested bands,
             anchored to the NRS prospectus and comparable show activations.
+          </p>
+          <p className="text-xs text-muted-foreground">
+            Corridor placements are the stated pilot: two connecting
+            corridors, two machines each. Placement rights and the terms for
+            corridor space sit outside this structure and get agreed
+            separately before any corridor unit is sold.
           </p>
         </CardContent>
       </Card>

@@ -41,7 +41,7 @@ const MODELS = [
     role: "The pilot",
     name: "Corridor activations",
     retail: "$25,000–$40,000",
-    retailNote: "per unit, if retailed",
+    retailNote: "per unit, if retailed. Max 4 units (2 per corridor)",
     accent: false,
     description:
       "Machines in the dead-traffic corridors between the three NRS buildings, foot traffic nobody monetizes today. Placed inside the licensed show footprint (MPEA public space carries a 15% ad-revenue commission and a signage-exclusivity risk). Run as a stated pilot that proves the campus-wide story.",
