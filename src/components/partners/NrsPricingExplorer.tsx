@@ -237,10 +237,10 @@ export function NrsPricingExplorer() {
               </tbody>
             </table>
             <p className="mt-3 text-sm text-muted-foreground">
-              The split never moves. Volume is rewarded through the floor,
-              because delivery economics genuinely improve at scale. Up to{" "}
-              {COMMITMENT.maxUnits} machines can be on the floor for May, with
-              volumes committed {COMMITMENT.cutoffWeeks} weeks before the show.
+              Volume is rewarded through the floor, because delivery economics
+              genuinely improve at scale. Up to {COMMITMENT.maxUnits} machines
+              can be on the floor for May, with volumes committed{" "}
+              {COMMITMENT.cutoffWeeks} weeks before the show.
             </p>
           </CardContent>
         </Card>
