@@ -161,10 +161,12 @@ export default async function PartnerPricingPage({
             ))}
           </div>
           <p className="mt-4 text-sm text-muted-foreground">
-            Buyers at HIMSS include Slack, Salesforce, HPE and CoverMyMeds. The
-            Freeman unit has no game layer, no live dashboard, no CRM
-            integration, no payments and no self-serve reporting — this one has
-            all five.
+            Buyers at HIMSS include Slack, Salesforce, HPE and CoverMyMeds —
+            and what they bought is a wrapped vending machine with a video
+            loop. The Europa is a black-box experience engine: a 55&Prime;
+            interactive touchscreen that can run branded games, surveys and
+            measured sampling, a six-slot DOOH ad loop, and live engagement
+            data behind every interaction.
           </p>
         </section>
 
