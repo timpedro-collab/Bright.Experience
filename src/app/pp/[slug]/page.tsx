@@ -13,9 +13,10 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 
+import { NrsModelsShowcase } from "@/components/partners/NrsModelsShowcase";
 import { NrsPricingExplorer } from "@/components/partners/NrsPricingExplorer";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { COMMITMENT } from "@/lib/partner-pricing";
 
 /**
@@ -167,63 +168,18 @@ export default async function PartnerPricingPage({
           </p>
         </section>
 
-        {/* Inventory */}
+        {/* The three models, presented as one programme */}
         <section className="mt-14">
-          <h2 className="text-heading text-xl font-bold">The inventory</h2>
-          <div className="mt-5 grid gap-4 lg:grid-cols-3">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Single unit, full show</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                  Recommended retail
-                </p>
-                <p className="text-2xl font-bold tabular-nums">$45,000–$50,000</p>
-                <p className="text-sm text-muted-foreground">
-                  One interactive machine, fully wrapped in the sponsor&rsquo;s
-                  creative, staffed and reported. Sits one notch above your
-                  $37k top signage item — and it captures leads.
-                </p>
-              </CardContent>
-            </Card>
-            <Card className="border-primary/40">
-              <CardHeader>
-                <div className="flex items-center justify-between gap-2">
-                  <CardTitle className="text-base">Cross-Hall Takeover</CardTitle>
-                  <Badge>Flagship — 1 per hall pairing</Badge>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                  Recommended retail
-                </p>
-                <p className="text-2xl font-bold tabular-nums">$110,000–$120,000</p>
-                <p className="text-sm text-muted-foreground">
-                  Three units — the sponsor&rsquo;s booth plus two halls —
-                  feeding one live dashboard. Scarcity-capped so it stays a
-                  statement buy.
-                </p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Corridor activation (pilot)</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                  Recommended retail
-                </p>
-                <p className="text-2xl font-bold tabular-nums">$25,000–$30,000</p>
-                <p className="text-sm text-muted-foreground">
-                  Monetises the dead traffic between the three NRS buildings.
-                  Placed inside the licensed show footprint — placements in
-                  MPEA public space carry a 15% venue commission on ad revenue
-                  and sit behind the campus digital-signage exclusivity, so the
-                  licensed footprint is the recommended home.
-                </p>
-              </CardContent>
-            </Card>
+          <h2 className="text-heading text-xl font-bold">
+            The three models — one programme
+          </h2>
+          <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+            The three models from the briefing, kept — and run on one set of
+            commercial rails so there&rsquo;s a single agreement behind all of
+            them.
+          </p>
+          <div className="mt-6">
+            <NrsModelsShowcase />
           </div>
         </section>
 
