@@ -38,23 +38,32 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-/** Live activation photography — real wrapped Europas, not renders. */
+/**
+ * Live activation photography — real wrapped Europas, not renders.
+ * Cleaned copies (deck frames trimmed by scripts/clean-nrs-gallery.py);
+ * `position` keeps the machine in frame when landscape shots are cropped
+ * into the portrait tiles.
+ */
 const EUROPA_GALLERY = [
   {
-    src: "/catalog/machines/europa/01-hero-pelion.jpg",
+    src: "/partners/nrs/gallery/01-hero-pelion.jpg",
     alt: "Europa machine fully wrapped in Pelion branding at a live activation",
+    position: "55% 50%",
   },
   {
-    src: "/catalog/machines/europa/02-costa-cup.jpg",
+    src: "/partners/nrs/gallery/02-costa-cup.jpg",
     alt: "Costa-branded Europa activation with custom cup creative",
+    position: "100% 50%",
   },
   {
-    src: "/catalog/machines/europa/04-pepsi.jpg",
+    src: "/partners/nrs/gallery/04-pepsi.jpg",
     alt: "Pepsi-branded Europa machine on an event floor",
+    position: "50% 50%",
   },
   {
-    src: "/catalog/machines/europa/05-play-to-win.jpg",
+    src: "/partners/nrs/gallery/05-play-to-win.jpg",
     alt: "Europa running a play-to-win interactive game screen",
+    position: "50% 50%",
   },
 ];
 
@@ -204,6 +213,7 @@ export default async function PartnerPricingPage({
                   fill
                   sizes="(max-width: 1024px) 50vw, 25vw"
                   className="object-cover"
+                  style={{ objectPosition: photo.position }}
                 />
               </div>
             ))}
