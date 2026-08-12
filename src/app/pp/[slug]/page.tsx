@@ -120,13 +120,16 @@ export default async function PartnerPricingPage({
         {/* Hero */}
         <header className="space-y-6">
           <div className="flex flex-wrap items-center justify-between gap-4">
+            {/* App dark mode is the `.theme-dark` class (see ThemeProvider),
+                not the OS `prefers-color-scheme` that Tailwind's `dark:`
+                variant targets — key the wordmark swap off the class. */}
             <Image
               src="/brand/bright-blue-wordmark-light.png"
               alt="Bright.Blue"
               width={150}
               height={40}
               priority
-              className="h-8 w-auto dark:hidden"
+              className="h-8 w-auto [.theme-dark_&]:hidden"
             />
             <Image
               src="/brand/bright-blue-wordmark-dark.png"
@@ -134,7 +137,7 @@ export default async function PartnerPricingPage({
               width={150}
               height={40}
               priority
-              className="hidden h-8 w-auto dark:block"
+              className="hidden h-8 w-auto [.theme-dark_&]:block"
             />
             <Badge variant="outline" className="text-xs">
               Prepared for {page.partner} · {page.show}
