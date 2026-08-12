@@ -84,7 +84,7 @@ function CampusSchematic() {
             width={240}
             height={170}
             rx={16}
-            className="fill-muted stroke-border"
+            className="fill-muted stroke-muted-foreground/50"
             strokeWidth={1.5}
           />
           <text
@@ -108,7 +108,7 @@ function CampusSchematic() {
             y={196}
             width={70}
             height={38}
-            className="fill-muted/60 stroke-border"
+            className="fill-muted/60 stroke-muted-foreground/50"
             strokeWidth={1.5}
           />
           <text
@@ -164,8 +164,8 @@ function CampusSchematic() {
           x2={460}
           y2={398}
           className="stroke-primary"
-          strokeOpacity={0.18}
-          strokeWidth={1.2}
+          strokeOpacity={0.4}
+          strokeWidth={1.4}
           strokeDasharray="3 4"
         />
       ))}
@@ -175,8 +175,8 @@ function CampusSchematic() {
         points="150,210 470,210 770,210"
         fill="none"
         className="stroke-primary"
-        strokeOpacity={0.45}
-        strokeWidth={2}
+        strokeOpacity={0.85}
+        strokeWidth={2.5}
         strokeDasharray="6 5"
       />
       {[
