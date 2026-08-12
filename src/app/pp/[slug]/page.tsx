@@ -122,9 +122,11 @@ export default async function PartnerPricingPage({
           <div className="flex flex-wrap items-center justify-between gap-4">
             {/* App dark mode is the `.theme-dark` class (see ThemeProvider),
                 not the OS `prefers-color-scheme` that Tailwind's `dark:`
-                variant targets — key the wordmark swap off the class. */}
+                variant targets — key the wordmark swap off the class.
+                Asset names describe their own ink: `-dark.png` is navy text
+                (for light surfaces), `-light.png` is white text (for dark). */}
             <Image
-              src="/brand/bright-blue-wordmark-light.png"
+              src="/brand/bright-blue-wordmark-dark.png"
               alt="Bright.Blue"
               width={150}
               height={40}
@@ -132,7 +134,7 @@ export default async function PartnerPricingPage({
               className="h-8 w-auto [.theme-dark_&]:hidden"
             />
             <Image
-              src="/brand/bright-blue-wordmark-dark.png"
+              src="/brand/bright-blue-wordmark-light.png"
               alt="Bright.Blue"
               width={150}
               height={40}
