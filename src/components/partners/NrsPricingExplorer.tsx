@@ -70,17 +70,24 @@ export function NrsPricingExplorer() {
   const [singleRetail, setSingleRetail] = useState<number>(RETAIL.single.suggested);
   const [takeovers, setTakeovers] = useState(0);
   const [takeoverRetail, setTakeoverRetail] = useState<number>(RETAIL.takeover.suggested);
+  const [corridors, setCorridors] = useState(0);
+  const [corridorRetail, setCorridorRetail] = useState<number>(RETAIL.corridor.suggested);
 
-  // Fleet ceiling: a takeover bundle deploys 3 machines, so the singles
-  // slider shrinks as bundles are added to keep the total within 50.
-  const maxSingles = COMMITMENT.maxUnits - takeovers * RETAIL.takeover.unitsPerBundle;
+  // Fleet ceiling: every placement draws from the same 50-unit fleet, so
+  // each count slider shrinks as the others grow (bundles deploy 3 machines).
+  const takeoverUnits = takeovers * RETAIL.takeover.unitsPerBundle;
+  const maxSingles = COMMITMENT.maxUnits - takeoverUnits - corridors;
   const effectiveSingles = Math.min(singles, maxSingles);
+  const maxCorridors = COMMITMENT.maxUnits - takeoverUnits - effectiveSingles;
+  const effectiveCorridors = Math.min(corridors, maxCorridors);
 
   const deal = computeDeal({
     singles: effectiveSingles,
     singleRetail,
     takeovers,
     takeoverRetail,
+    corridors: effectiveCorridors,
+    corridorRetail,
   });
 
   return (
@@ -133,6 +140,27 @@ export function NrsPricingExplorer() {
             step={RETAIL.takeover.step}
             disabled={takeovers === 0}
             onChange={setTakeoverRetail}
+          />
+          <LeverRow
+            label="Corridor placements"
+            ariaLabel="Corridor placements"
+            valueLabel={effectiveCorridors === 0 ? "None" : `${effectiveCorridors} units`}
+            value={effectiveCorridors}
+            min={0}
+            max={maxCorridors}
+            step={1}
+            onChange={setCorridors}
+          />
+          <LeverRow
+            label="Recommended retail per corridor placement"
+            ariaLabel="Recommended retail per corridor placement"
+            valueLabel={effectiveCorridors === 0 ? "add a corridor unit above" : formatUsd(corridorRetail)}
+            value={corridorRetail}
+            min={RETAIL.corridor.min}
+            max={RETAIL.corridor.max}
+            step={RETAIL.corridor.step}
+            disabled={effectiveCorridors === 0}
+            onChange={setCorridorRetail}
           />
           <p className="text-xs text-muted-foreground">
             Retail is yours to set. The ranges shown are our suggested bands,

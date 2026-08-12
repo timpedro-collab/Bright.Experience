@@ -31,7 +31,8 @@ export const RETAIL = {
   single: { min: 45_000, max: 70_000, suggested: 50_000, step: 1_000 },
   /** Cross-Hall Takeover: 3 units (booth + 2 halls), scarcity-capped. */
   takeover: { min: 110_000, max: 175_000, suggested: 120_000, step: 5_000, unitsPerBundle: 3, maxBundles: 3 },
-  corridor: { min: 25_000, max: 40_000 },
+  /** Corridor placements: new inventory, priced under the single band to move. */
+  corridor: { min: 25_000, max: 40_000, suggested: 30_000, step: 1_000 },
 } as const;
 
 /**
@@ -64,10 +65,14 @@ export interface DealInputs {
   takeovers: number;
   /** Retail per takeover bundle (USD). */
   takeoverRetail: number;
+  /** Corridor placements sold. */
+  corridors: number;
+  /** Retail per corridor placement (USD). */
+  corridorRetail: number;
 }
 
 export interface DealSummary {
-  /** Machines on the floor: singles + 3 per takeover bundle. */
+  /** Machines on the floor: singles + corridors + 3 per takeover bundle. */
   totalUnits: number;
   /** Partner's gross sponsorship revenue (USD). */
   gross: number;
@@ -92,11 +97,16 @@ export function clampRetail(value: number, bounds: { min: number; max: number })
 export function computeDeal(inputs: DealInputs): DealSummary {
   const singles = Math.max(0, Math.floor(inputs.singles));
   const takeovers = Math.max(0, Math.min(Math.floor(inputs.takeovers), RETAIL.takeover.maxBundles));
+  const corridors = Math.max(0, Math.floor(inputs.corridors));
   const singleRetail = clampRetail(inputs.singleRetail, RETAIL.single);
   const takeoverRetail = clampRetail(inputs.takeoverRetail, RETAIL.takeover);
+  const corridorRetail = clampRetail(inputs.corridorRetail, RETAIL.corridor);
 
-  const totalUnits = singles + takeovers * RETAIL.takeover.unitsPerBundle;
-  const gross = singles * singleRetail + takeovers * takeoverRetail;
+  const totalUnits = singles + corridors + takeovers * RETAIL.takeover.unitsPerBundle;
+  const gross =
+    singles * singleRetail +
+    corridors * corridorRetail +
+    takeovers * takeoverRetail;
   const partnerKeeps = Math.round(gross * REVENUE_SPLIT.partner);
   const brightBlueShare = gross - partnerKeeps;
 

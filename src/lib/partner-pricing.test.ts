@@ -60,6 +60,8 @@ describe("computeDeal", () => {
       singleRetail: RETAIL.single.suggested,
       takeovers: 0,
       takeoverRetail: RETAIL.takeover.suggested,
+      corridors: 0,
+      corridorRetail: RETAIL.corridor.suggested,
     });
     expect(deal.totalUnits).toBe(12);
     expect(deal.gross).toBe(600_000);
@@ -75,6 +77,8 @@ describe("computeDeal", () => {
       singleRetail: 45_000,
       takeovers: 2,
       takeoverRetail: 115_000,
+      corridors: 0,
+      corridorRetail: 30_000,
     });
     expect(deal.totalUnits).toBe(16);
     expect(deal.gross).toBe(10 * 45_000 + 2 * 115_000);
@@ -87,6 +91,8 @@ describe("computeDeal", () => {
       singleRetail: 45_000,
       takeovers: 99,
       takeoverRetail: 115_000,
+      corridors: 0,
+      corridorRetail: 30_000,
     });
     expect(deal.totalUnits).toBe(RETAIL.takeover.maxBundles * 3);
   });
@@ -97,6 +103,8 @@ describe("computeDeal", () => {
       singleRetail: 45_000,
       takeovers: 0,
       takeoverRetail: 115_000,
+      corridors: 0,
+      corridorRetail: 30_000,
     });
     expect(below.belowPilotMinimum).toBe(true);
 
@@ -105,9 +113,38 @@ describe("computeDeal", () => {
       singleRetail: 45_000,
       takeovers: 0,
       takeoverRetail: 115_000,
+      corridors: 0,
+      corridorRetail: 30_000,
     });
     expect(empty.belowPilotMinimum).toBe(false);
     expect(empty.partnerKeepsPerUnit).toBe(0);
+  });
+
+  it("prices corridor placements on their own band and counts them toward volume", () => {
+    const deal = computeDeal({
+      singles: 10,
+      singleRetail: 50_000,
+      takeovers: 0,
+      takeoverRetail: RETAIL.takeover.suggested,
+      corridors: 6,
+      corridorRetail: 30_000,
+    });
+    expect(deal.totalUnits).toBe(16);
+    expect(deal.gross).toBe(10 * 50_000 + 6 * 30_000);
+    // 16 units crosses into the Scale floor tier
+    expect(deal.tier.label).toBe("Scale");
+  });
+
+  it("clamps corridor retail into the $25k–$40k band", () => {
+    const deal = computeDeal({
+      singles: 0,
+      singleRetail: 50_000,
+      takeovers: 0,
+      takeoverRetail: RETAIL.takeover.suggested,
+      corridors: 1,
+      corridorRetail: 90_000,
+    });
+    expect(deal.gross).toBe(40_000);
   });
 
   it("clamps retail inputs below the band back to the floor", () => {
@@ -116,6 +153,8 @@ describe("computeDeal", () => {
       singleRetail: 10_000,
       takeovers: 0,
       takeoverRetail: 115_000,
+      corridors: 0,
+      corridorRetail: 30_000,
     });
     expect(deal.gross).toBe(45_000);
   });

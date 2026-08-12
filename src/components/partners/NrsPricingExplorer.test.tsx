@@ -51,6 +51,24 @@ describe("NrsPricingExplorer", () => {
     ).toBeInTheDocument();
   });
 
+  it("adds corridor placements at their own retail band", () => {
+    render(<NrsPricingExplorer />);
+    const corridorSlider = screen.getByRole("slider", {
+      name: "Corridor placements",
+    });
+    fireEvent.keyDown(corridorSlider, { key: "ArrowRight" });
+    fireEvent.keyDown(corridorSlider, { key: "ArrowRight" });
+    // 12 singles + 2 corridors = 14 units; $600k + 2 × $30k = $660k
+    expect(screen.getByText("14 machines on the floor")).toBeInTheDocument();
+    expect(screen.getByText("$660k")).toBeInTheDocument();
+    // The corridor retail lever activates with units in the mix
+    const corridorRetail = screen.getByRole("slider", {
+      name: "Recommended retail per corridor placement",
+    });
+    expect(corridorRetail).toHaveAttribute("aria-valuemin", "25000");
+    expect(corridorRetail).toHaveAttribute("aria-valuenow", "30000");
+  });
+
   it("warns when the mix drops below the take-or-pay minimum", () => {
     render(<NrsPricingExplorer />);
     const unitSlider = screen.getByRole("slider", {
