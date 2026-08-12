@@ -35,6 +35,19 @@ export const internalArchetypes = {
     defaults: { inPortal: true, emailMode: "immediate" },
     audience: "internal",
   },
+  "proposal.config_requested": {
+    kind: "proposal.config_requested",
+    classOf: "action_required",
+    priority: "high",
+    eyebrow: "Action required",
+    subjectTemplate: "Configuration requested — {addedLabel}",
+    bodyTemplate:
+      "The customer tuned their proposal in the deal explorer and requested {addedLabel}. The quote's capabilities are updated — confirm the revised pricing with them before anything is charged.",
+    linkTemplate: "/admin/quotes/{quoteId}",
+    ownerResolver: "event_account_executive",
+    defaults: { inPortal: true, emailMode: "immediate" },
+    audience: "internal",
+  },
   "booking.received": {
     kind: "booking.received",
     classOf: "action_required",

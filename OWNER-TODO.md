@@ -37,6 +37,16 @@ live ones:
   built: deposit size, refund rule, hold-offer window, pay-later gating, and
   payment rails. The full design (with proposed defaults to react to) is
   `docs/21-deposit-to-hold-design.md` — it stays unbuilt until these are set.
+- [ ] **Sign off the multi-event volume ladder.** Proposals now show a
+  written-down ladder (1 event full price / 2–3 events −5% / 4+ events −10%,
+  `src/lib/pricing/volume-ladder.ts`). The rungs and percentages are
+  placeholders using the same "delivery economics improve with committed
+  volume" argument that priced the NRS partner floor ladder. Changing a
+  number is a one-line edit.
+- [ ] **Decide priced rules for days and machine-count levers** in the
+  proposal deal explorer. V1 only lets customers toggle capability add-ons
+  (priced at catalogue defaults); extending the explorer to days or extra
+  machines needs a priced rule that doesn't exist yet.
 
 ## Commercial
 

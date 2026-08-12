@@ -119,6 +119,11 @@ export default async function MachineDetailPage({ params }: PageProps) {
                   See activation tiers
                 </Link>
               </div>
+              <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
+                Every unit carries three screens of sponsor creative all day.
+                Comparable premium digital-out-of-home impressions trade at
+                $30–65 CPM.
+              </p>
             </div>
             <div className="relative aspect-[4/3] overflow-hidden rounded-[var(--radius-card)] border border-border bg-[radial-gradient(ellipse_at_center,hsl(230,93%,53%,0.25),transparent_55%)]">
               {machine.hero_image_url ? (

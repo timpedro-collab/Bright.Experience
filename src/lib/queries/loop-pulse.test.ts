@@ -54,7 +54,7 @@ describe("getLoopPulse", () => {
       count: 4,
     });
 
-    // loop_events is read three times: report views, landings, player-card count.
+    // loop_events is read four times: report views, landings, player-card count, proposal views.
     supabase.queueTableResponses("loop_events", [
       {
         data: [{ event_id: "e1" }, { event_id: "e1" }, { event_id: "e2" }],
@@ -65,6 +65,14 @@ describe("getLoopPulse", () => {
         error: null,
       },
       { data: null, error: null, count: 10 },
+      {
+        data: [
+          { metadata: { quoteId: "q1", status: "proposal_sent" } },
+          { metadata: { quoteId: "q1", status: "proposal_sent" } },
+          { metadata: { quoteId: "q2", status: "accepted" } },
+        ],
+        error: null,
+      },
     ]);
 
     supabase.setTableResponse("events", {
@@ -127,6 +135,11 @@ describe("getLoopPulse", () => {
       { source: "Saw it at an event", count: 2 },
       { source: "Referral", count: 1 },
     ]);
+
+    expect(pulse.proposals).toEqual({
+      views: 3,
+      distinctProposals: 2,
+    });
   });
 
   it("degrades to empty metrics when nothing has happened yet", async () => {
@@ -138,5 +151,6 @@ describe("getLoopPulse", () => {
     expect(pulse.rebook.ratePct).toBeNull();
     expect(pulse.capture.ratePct).toBeNull();
     expect(pulse.referrals).toEqual([]);
+    expect(pulse.proposals).toEqual({ views: 0, distinctProposals: 0 });
   });
 });

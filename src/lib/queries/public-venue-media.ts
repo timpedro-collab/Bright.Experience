@@ -17,6 +17,7 @@ export interface PublicPlacement {
   format: string | null;
   unitName: string;
   locationNote: string | null;
+  footfallEstimate: number | null;
 }
 
 export interface PublicOpenSlot {
@@ -36,7 +37,13 @@ export interface PublicVenuePackage {
 }
 
 export interface PublicVenueMedia {
-  venue: { id: string; name: string; slug: string; capacity: number | null };
+  venue: {
+    id: string;
+    name: string;
+    slug: string;
+    capacity: number | null;
+    locationTier: string | null;
+  };
   placements: PublicPlacement[];
   openSlots: PublicOpenSlot[];
   packages: PublicVenuePackage[];
@@ -58,7 +65,7 @@ export async function getPublicVenueMedia(
 
   const { data: venue, error: venueError } = await supabase
     .from("venues")
-    .select("id, name, slug, capacity, is_active")
+    .select("id, name, slug, capacity, location_tier, is_active")
     .eq("slug", slug)
     .maybeSingle();
 
@@ -71,7 +78,7 @@ export async function getPublicVenueMedia(
   const { data: placementRows, error: placementsError } = await supabase
     .from("placements")
     .select(
-      `id, status, sku_status, location_label, notes, pricing_model_json,
+      `id, status, sku_status, location_label, notes, footfall_estimate, pricing_model_json,
        machine_instances!placements_machine_instance_id_fkey ( nickname )`,
     )
     .eq("venue_id", venue.id)
@@ -98,6 +105,8 @@ export async function getPublicVenueMedia(
           (p.location_label as string | null) ??
           (p.notes as string | null) ??
           null,
+        footfallEstimate:
+          p.footfall_estimate != null ? Number(p.footfall_estimate) : null,
       };
     });
 
@@ -149,6 +158,7 @@ export async function getPublicVenueMedia(
       name: String(venue.name),
       slug: String(venue.slug),
       capacity: venue.capacity != null ? Number(venue.capacity) : null,
+      locationTier: (venue.location_tier as string | null) ?? null,
     },
     placements: livePlacements,
     openSlots,

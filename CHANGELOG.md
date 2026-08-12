@@ -4,6 +4,37 @@ All notable changes to the Bright.Experience platform are documented here.
 
 ---
 
+## [Portal pull-through: partner pricing productized + proposal explorer + media-value framing] - 2026-08-12
+
+The NRS side quest's winning mechanics pulled into the portal proper.
+
+- **Partner pricing pages are now a real feature, not a hardcoded page.**
+  New `partner_pricing_pages` table (RLS internal-only, pgTAP test, NRS row
+  seeded and applied to production) with create/revoke server actions,
+  slug-credential public reads, and an `/admin/partner-pricing` queue +
+  create form (linked from the Commercial nav). `/pp/[slug]` now reads from
+  the DB: the live NRS page renders identically on its `nrs` template;
+  new pages get a generic template driven by a JSON `DealConfig` and a new
+  reusable `DealExplorer` (generalized from the NRS explorer via the new
+  data-driven `src/lib/deal-config.ts`). Page views recorded as
+  `partner_pricing_view` loop events.
+- **Proposal deal explorer (post-reveal).** `ProposalExplorer` renders in
+  the proposal's Investment section only after the walkthrough price
+  reveal: customers toggle tailorable capabilities, watch the investment
+  update live, and "Request this configuration" merges the add-ons onto
+  the quote and pings the AE (new `proposal.config_requested` archetype).
+  Nothing is charged without AE confirmation. Explorer play tracked as
+  debounced `proposal_explorer_change` loop events; proposal opens as
+  `proposal_view`, both surfaced on `/admin/loop-pulse`.
+- **Volume ladder scaffolding.** `src/lib/pricing/volume-ladder.ts` with
+  placeholder multi-event discounts (owner sign-off pending, see
+  OWNER-TODO) and pricing-doc updates.
+- **Media-value framing on buyer surfaces.** Conservative per-tier DOOH CPM
+  benchmarks (`src/lib/pricing/dooh-cpm.ts`); sponsor pitch pages show
+  "Equivalent DOOH media value" when placement footfall + dates exist,
+  venue advertise heroes gain a "Weekly media value" stat, machine PDPs a
+  qualitative CPM anchor line. Hard gating: no data, no stat.
+
 ## [Partner pricing microsite] - 2026-08-12
 
 Buyer-facing interactive deal explorer for partner negotiations (first

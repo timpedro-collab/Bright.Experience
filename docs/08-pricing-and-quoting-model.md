@@ -52,6 +52,13 @@ wizard (`IntakeWizard`), echoed back to the customer on the confirmation card.
   `walkthrough_completed_at` is set **or** the quote is accepted. The walkthrough
   is a video call booked via Cal.com (or the built-in preset slot picker when
   Cal.com is unconfigured).
+- **Volume ladder** — [`src/lib/pricing/volume-ladder.ts`](../src/lib/pricing/volume-ladder.ts)
+  writes down the price of growth: committed multi-event volume in a program
+  year earns a discount rung (1 event / 2–3 / 4+), shown post-reveal on
+  proposals and on the internal quote builder so scaling never reopens the
+  negotiation. The mechanic mirrors the partner floor ladder in
+  [`src/lib/deal-config.ts`](../src/lib/deal-config.ts). **Discount values are
+  placeholders pending owner sign-off** (OWNER-TODO.md "Pricing & packaging").
 
 ### Decision, provisioning, attribution
 - **Decision** — customer accepts/declines on the proposal page

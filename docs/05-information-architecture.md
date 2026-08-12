@@ -37,7 +37,7 @@
 /report/:token                      → Public proof-of-performance report (tokened; optional partner co-branding)
 /report/:token/wrapped              → Event Wrapped — story-format share page (+ /api/reports/:token/wrapped-card PNG)
 /play/:leadId                       → Player result card — score/rank, player as hero (+ /api/play/:leadId/card PNG)
-/pp/:slug                           → Partner pricing microsite — buyer-facing interactive deal explorer (unguessable slug; chromeless; noindex)
+/pp/:slug                           → Partner pricing microsite — buyer-facing interactive deal explorer (DB-backed `partner_pricing_pages`; per-page template + config; unguessable slug; chromeless; noindex)
 /bright-index                       → The Bright Index — published fleet benchmarks (ungated)
 /state-of-play                      → State of Play — annual measured-activation report (ungated)
 /live/:token                        → View-only live dashboard (tokened, expiring, "Powered by")
@@ -90,6 +90,7 @@ page — it is the `GET /api/events/:id/export` handler
 /admin/catalog[…]                   → Catalog admin (machines, games, packages, case-studies, machine-placements)
 /admin/campaigns[/new|/:id]         → Campaigns
 /admin/partners[/:id]               → Partner administration
+/admin/partner-pricing               → Partner pricing microsites — mint and revoke unlisted `/pp/:slug` deal pages
 /admin/organizers                   → Show organizers: list + create
 /admin/organizers/:id               → Organizer setup console — invite their team,
                                       link shows, deploy/release machines

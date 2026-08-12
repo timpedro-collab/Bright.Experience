@@ -27,6 +27,7 @@ import { AcceptedAddOns } from "@/components/quotes/proposal/AcceptedAddOns";
 import { PostAcceptBanner } from "@/components/quotes/PostAcceptBanner";
 import { shouldAutoProvisionQuote } from "@/lib/booking-flags";
 import { walkthroughUrlFor } from "@/lib/calcom";
+import { recordLoopEvent } from "@/server/loop-events";
 
 export const metadata: Metadata = {
   title: "Your proposal",
@@ -41,6 +42,14 @@ export default async function ProposalDetailPage({ params }: PageProps) {
   const { id } = await params;
   const quote = await getQuoteForProposal(id);
   if (!quote) notFound();
+
+  // Loop pulse: every proposal page open counts towards proposal views
+  // on /admin/loop-pulse. Fire-and-forget — never blocks the page.
+  await recordLoopEvent("proposal_view", {
+    artifact: "proposal",
+    ...(quote.event_id ? { eventId: quote.event_id } : {}),
+    metadata: { quoteId: quote.id, status: quote.status },
+  });
 
   const doc = buildProposalDocument(quote);
 

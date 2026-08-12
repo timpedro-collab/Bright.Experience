@@ -24,6 +24,7 @@ import {
   Users,
   Key,
   Activity,
+  Link2,
 } from "lucide-react";
 
 import {
@@ -76,6 +77,7 @@ const INTERNAL_SECTIONS: NavSection[] = [
       { label: "Partners", href: "/admin/partners", icon: Handshake, show: canViewCommercial },
       { label: "Organizers", href: "/admin/organizers", icon: Building2, show: canViewCommercial },
       { label: "Deal registrations", href: "/admin/deals", icon: Handshake, show: canViewCommercial },
+      { label: "Pricing pages", href: "/admin/partner-pricing", icon: Link2, show: canViewCommercial },
       { label: "Campaigns", href: "/admin/campaigns", icon: Layers, show: canViewCommercial },
     ],
   },

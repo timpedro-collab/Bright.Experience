@@ -1,5 +1,11 @@
 /**
- * Buyer-safe deal maths for the partner pricing microsite (`/pp/:slug`).
+ * Buyer-safe deal maths for the NRS partner pricing microsite (`/pp/:slug`).
+ *
+ * The generic engine lives in `@/lib/deal-config`; this module pins the
+ * NRS/Informa deal's numbers and preserves the original named API used by
+ * the NRS components and tests. `NRS_DEAL_CONFIG` is the same deal
+ * expressed as a data-driven `DealConfig` (and is what the seeded
+ * `partner_pricing_pages` row carries).
  *
  * IMPORTANT: this module ships to the client on a page shared with an
  * external negotiating counterparty. It may only contain numbers that
@@ -7,6 +13,17 @@
  * ladder and commitment terms. Internal economics (unit costs, margins,
  * the wholesale reserve, concession lines) must NEVER enter this file.
  */
+
+import {
+  computeConfigDeal,
+  clampRetail,
+  formatDealCurrency,
+  formatDealCurrencyCompact,
+  floorTierForVolume as configFloorTierForVolume,
+  type DealConfig,
+} from "@/lib/deal-config";
+
+export { clampRetail };
 
 /** Revenue split on partner-sold placements: Bright.Blue 70 / partner 30. */
 export const REVENUE_SPLIT = { brightBlue: 0.7, partner: 0.3 } as const;
@@ -51,13 +68,57 @@ export const FLOOR_TIERS = [
 
 export type FloorTier = (typeof FLOOR_TIERS)[number];
 
+/** The NRS/Informa deal expressed as a data-driven config. */
+export const NRS_DEAL_CONFIG: DealConfig = {
+  currency: "USD",
+  split: REVENUE_SPLIT,
+  commitment: COMMITMENT,
+  levers: [
+    {
+      key: "single",
+      label: "Single-unit placements",
+      unitsPerItem: 1,
+      retail: {
+        min: RETAIL.single.min,
+        max: RETAIL.single.max,
+        suggested: RETAIL.single.suggested,
+        step: RETAIL.single.step,
+      },
+    },
+    {
+      key: "takeover",
+      label: "Cross-Hall Takeover bundles (3 units each)",
+      unitsPerItem: RETAIL.takeover.unitsPerBundle,
+      maxItems: RETAIL.takeover.maxBundles,
+      retail: {
+        min: RETAIL.takeover.min,
+        max: RETAIL.takeover.max,
+        suggested: RETAIL.takeover.suggested,
+        step: RETAIL.takeover.step,
+      },
+    },
+    {
+      key: "corridor",
+      label: "Corridor placements",
+      unitsPerItem: 1,
+      maxItems: RETAIL.corridor.maxUnits,
+      retail: {
+        min: RETAIL.corridor.min,
+        max: RETAIL.corridor.max,
+        suggested: RETAIL.corridor.suggested,
+        step: RETAIL.corridor.step,
+      },
+    },
+  ],
+  floorTiers: FLOOR_TIERS.map((t) => ({ ...t })),
+};
+
 /** The floor tier a given deployed-unit count lands in. */
 export function floorTierForVolume(totalUnits: number): FloorTier {
-  const clamped = Math.max(1, Math.min(totalUnits, COMMITMENT.maxUnits));
-  return (
-    FLOOR_TIERS.find((t) => clamped >= t.minUnits && clamped <= t.maxUnits) ??
-    FLOOR_TIERS[FLOOR_TIERS.length - 1]
-  );
+  const tier = configFloorTierForVolume(NRS_DEAL_CONFIG, totalUnits);
+  // The config tiers are copies of FLOOR_TIERS; return the canonical
+  // constant so callers can compare by reference/label as before.
+  return FLOOR_TIERS.find((t) => t.label === tier.label) ?? FLOOR_TIERS[FLOOR_TIERS.length - 1];
 }
 
 export interface DealInputs {
@@ -92,46 +153,19 @@ export interface DealSummary {
   belowPilotMinimum: boolean;
 }
 
-/** Clamp a retail value into its allowed band — floors are non-negotiable. */
-export function clampRetail(value: number, bounds: { min: number; max: number }): number {
-  return Math.min(bounds.max, Math.max(bounds.min, value));
-}
-
 /** Compute the partner-facing economics for a given inventory mix. */
 export function computeDeal(inputs: DealInputs): DealSummary {
-  const singles = Math.max(0, Math.floor(inputs.singles));
-  const takeovers = Math.max(0, Math.min(Math.floor(inputs.takeovers), RETAIL.takeover.maxBundles));
-  const corridors = Math.max(0, Math.min(Math.floor(inputs.corridors), RETAIL.corridor.maxUnits));
-  const singleRetail = clampRetail(inputs.singleRetail, RETAIL.single);
-  const takeoverRetail = clampRetail(inputs.takeoverRetail, RETAIL.takeover);
-  const corridorRetail = clampRetail(inputs.corridorRetail, RETAIL.corridor);
-
-  const totalUnits = singles + corridors + takeovers * RETAIL.takeover.unitsPerBundle;
-  const gross =
-    singles * singleRetail +
-    corridors * corridorRetail +
-    takeovers * takeoverRetail;
-  const partnerKeeps = Math.round(gross * REVENUE_SPLIT.partner);
-  const brightBlueShare = gross - partnerKeeps;
-
-  return {
-    totalUnits,
-    gross,
-    partnerKeeps,
-    brightBlueShare,
-    partnerKeepsPerUnit: totalUnits > 0 ? Math.round(partnerKeeps / totalUnits) : 0,
-    tier: floorTierForVolume(totalUnits),
-    belowPilotMinimum: totalUnits > 0 && totalUnits < COMMITMENT.pilotMinUnits,
-  };
+  const summary = computeConfigDeal(NRS_DEAL_CONFIG, {
+    single: { count: inputs.singles, retail: inputs.singleRetail },
+    takeover: { count: inputs.takeovers, retail: inputs.takeoverRetail },
+    corridor: { count: inputs.corridors, retail: inputs.corridorRetail },
+  });
+  return { ...summary, tier: floorTierForVolume(summary.totalUnits) };
 }
 
 /** "$45,000" — whole-dollar USD for the pricing surfaces. */
 export function formatUsd(value: number): string {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 0,
-  }).format(value);
+  return formatDealCurrency("USD", value);
 }
 
 /**
@@ -140,16 +174,5 @@ export function formatUsd(value: number): string {
  * with their totals (e.g. $392k across 20 machines is $19.6k, not $20k).
  */
 export function formatUsdCompact(value: number): string {
-  if (Math.abs(value) >= 1_000_000) {
-    const m = value / 1_000_000;
-    return `$${m % 1 === 0 ? m.toFixed(0) : m.toFixed(1)}m`;
-  }
-  if (Math.abs(value) >= 1_000) {
-    const k =
-      Math.abs(value) < 100_000
-        ? Math.round(value / 100) / 10
-        : Math.round(value / 1_000);
-    return `$${k % 1 === 0 ? k.toFixed(0) : k.toFixed(1)}k`;
-  }
-  return formatUsd(value);
+  return formatDealCurrencyCompact("USD", value);
 }

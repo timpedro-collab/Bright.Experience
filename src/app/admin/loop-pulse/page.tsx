@@ -70,8 +70,15 @@ export default async function LoopPulsePage() {
     getUnreadCount(user.id),
   ]);
 
-  const { provisioning, reports, rebook, invitations, capture, referrals } =
-    pulse;
+  const {
+    provisioning,
+    reports,
+    rebook,
+    invitations,
+    capture,
+    referrals,
+    proposals,
+  } = pulse;
 
   return (
     <AdminPageShell
@@ -114,6 +121,11 @@ export default async function LoopPulsePage() {
               label="Email capture"
               value={formatPct(capture.ratePct)}
               detail={`${capture.totalLeads.toLocaleString("en-GB")} opted-in leads from ${capture.totalPlays.toLocaleString("en-GB")} plays, fleet-wide.`}
+            />
+            <PulseCard
+              label="Proposals opened"
+              value={proposals.views.toLocaleString("en-GB")}
+              detail={`${proposals.distinctProposals.toLocaleString("en-GB")} different proposals opened by buyers — silence here means links aren't landing.`}
             />
           </div>
         </section>

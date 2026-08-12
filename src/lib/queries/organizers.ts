@@ -491,6 +491,10 @@ export async function getSlotByPitchToken(token: string) {
     .select(
       `id, event_id, machine_instance_id, sponsor_name, start_date, end_date,
        price, status, pitch_token, pitch_token_expires_at,
+       placements (
+         footfall_estimate,
+         venues ( location_tier )
+       ),
        machine_instances (
          id, serial_number, nickname, zone, mission,
          machines ( ${MACHINE_SPEC_COLUMNS} )

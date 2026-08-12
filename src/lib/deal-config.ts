@@ -1,0 +1,208 @@
+/**
+ * Generic, data-driven deal maths for partner pricing microsites (`/pp/:slug`).
+ *
+ * A `DealConfig` describes one partner deal: its inventory levers (what can
+ * be sold, in what bands), the revenue split, the commitment terms and the
+ * volume floor ladder. The engine below turns a config plus the buyer's
+ * chosen mix into the economics shown on the page.
+ *
+ * IMPORTANT: configs ship to the client on pages shared with external
+ * negotiating counterparties. A config may only carry deck-visible numbers
+ * (retail anchors, the split, floors, commitment terms). Internal economics
+ * (unit costs, margins, wholesale reserves, concession ladders) must NEVER
+ * enter a config.
+ *
+ * Everything here is JSON-serializable so configs can live in the
+ * `partner_pricing_pages.config` jsonb column.
+ */
+
+/** Currencies a deal page can present. Formatting only — no FX math. */
+export type DealCurrency = "USD" | "GBP";
+
+/** Suggested retail band for one lever — sliders never go below `min`. */
+export interface RetailBand {
+  min: number;
+  max: number;
+  suggested: number;
+  step: number;
+}
+
+/**
+ * One sellable inventory line, e.g. "single placements" or a 3-unit
+ * takeover bundle. `unitsPerItem` is how many machines one sold item
+ * deploys; `maxItems` is a physical cap on items sold (not units).
+ */
+export interface DealLever {
+  /** Stable identifier, e.g. "single" — keys the inputs record. */
+  key: string;
+  /** Buyer-facing name, e.g. "Single-unit placements". */
+  label: string;
+  /** Machines deployed per item sold (a 3-unit bundle deploys 3). */
+  unitsPerItem: number;
+  /** Physical cap on items sold, if one exists (e.g. 4 corridor units). */
+  maxItems?: number;
+  retail: RetailBand;
+}
+
+/** One rung of the volume floor ladder. */
+export interface DealFloorTier {
+  label: string;
+  minUnits: number;
+  maxUnits: number;
+  floor: number;
+}
+
+/** The full description of one partner deal. */
+export interface DealConfig {
+  currency: DealCurrency;
+  /** Fractions summing to 1, e.g. { brightBlue: 0.7, partner: 0.3 }. */
+  split: { brightBlue: number; partner: number };
+  commitment: {
+    pilotMinUnits: number;
+    pilotMaxUnits: number;
+    /** Fleet ceiling shared across all levers. */
+    maxUnits: number;
+    /** Weeks before the show by which scale volumes must be committed. */
+    cutoffWeeks: number;
+  };
+  levers: DealLever[];
+  floorTiers: DealFloorTier[];
+}
+
+/** The buyer's chosen position on one lever. */
+export interface LeverInput {
+  /** Items sold (bundles count as one item). */
+  count: number;
+  /** Retail per item, in the config's currency. */
+  retail: number;
+}
+
+/** Inputs keyed by lever key; missing levers are treated as zero. */
+export type DealConfigInputs = Record<string, LeverInput>;
+
+export interface DealConfigSummary {
+  /** Machines on the floor across all levers. */
+  totalUnits: number;
+  /** Partner's gross sponsorship revenue. */
+  gross: number;
+  /** Partner's retained share. */
+  partnerKeeps: number;
+  /** Bright.Blue's share. */
+  brightBlueShare: number;
+  /** Average retained revenue per deployed unit (0-safe). */
+  partnerKeepsPerUnit: number;
+  /** Floor tier the volume lands in (drives the ladder display). */
+  tier: DealFloorTier;
+  /** True when volume is non-zero but below the take-or-pay minimum. */
+  belowPilotMinimum: boolean;
+}
+
+/** Clamp a retail value into its allowed band — floors are non-negotiable. */
+export function clampRetail(
+  value: number,
+  bounds: { min: number; max: number },
+): number {
+  return Math.min(bounds.max, Math.max(bounds.min, value));
+}
+
+/** The floor tier a given deployed-unit count lands in. */
+export function floorTierForVolume(
+  config: DealConfig,
+  totalUnits: number,
+): DealFloorTier {
+  const clamped = Math.max(
+    1,
+    Math.min(totalUnits, config.commitment.maxUnits),
+  );
+  return (
+    config.floorTiers.find(
+      (t) => clamped >= t.minUnits && clamped <= t.maxUnits,
+    ) ?? config.floorTiers[config.floorTiers.length - 1]
+  );
+}
+
+/**
+ * Compute the partner-facing economics for a buyer's chosen mix.
+ * Counts are floored and clamped to each lever's physical cap; retail is
+ * clamped into its band, so the result can never express a price below
+ * the negotiated floors.
+ */
+export function computeConfigDeal(
+  config: DealConfig,
+  inputs: DealConfigInputs,
+): DealConfigSummary {
+  let totalUnits = 0;
+  let gross = 0;
+
+  for (const lever of config.levers) {
+    const input = inputs[lever.key];
+    if (!input) continue;
+    const rawCount = Math.max(0, Math.floor(input.count));
+    const count =
+      lever.maxItems != null ? Math.min(rawCount, lever.maxItems) : rawCount;
+    const retail = clampRetail(input.retail, lever.retail);
+    totalUnits += count * lever.unitsPerItem;
+    gross += count * retail;
+  }
+
+  const partnerKeeps = Math.round(gross * config.split.partner);
+  const brightBlueShare = gross - partnerKeeps;
+
+  return {
+    totalUnits,
+    gross,
+    partnerKeeps,
+    brightBlueShare,
+    partnerKeepsPerUnit:
+      totalUnits > 0 ? Math.round(partnerKeeps / totalUnits) : 0,
+    tier: floorTierForVolume(config, totalUnits),
+    belowPilotMinimum:
+      totalUnits > 0 && totalUnits < config.commitment.pilotMinUnits,
+  };
+}
+
+const CURRENCY_LOCALE: Record<DealCurrency, string> = {
+  USD: "en-US",
+  GBP: "en-GB",
+};
+
+const CURRENCY_SYMBOL: Record<DealCurrency, string> = {
+  USD: "$",
+  GBP: "£",
+};
+
+/** "$45,000" / "£45,000" — whole-unit currency for pricing surfaces. */
+export function formatDealCurrency(
+  currency: DealCurrency,
+  value: number,
+): string {
+  return new Intl.NumberFormat(CURRENCY_LOCALE[currency], {
+    style: "currency",
+    currency,
+    maximumFractionDigits: 0,
+  }).format(value);
+}
+
+/**
+ * "$450k" / "£19.6k" / "$1.2m" — compact currency for stat headlines.
+ * Sub-100k values keep one decimal so derived figures stay consistent
+ * with their totals (e.g. $392k across 20 machines is $19.6k, not $20k).
+ */
+export function formatDealCurrencyCompact(
+  currency: DealCurrency,
+  value: number,
+): string {
+  const symbol = CURRENCY_SYMBOL[currency];
+  if (Math.abs(value) >= 1_000_000) {
+    const m = value / 1_000_000;
+    return `${symbol}${m % 1 === 0 ? m.toFixed(0) : m.toFixed(1)}m`;
+  }
+  if (Math.abs(value) >= 1_000) {
+    const k =
+      Math.abs(value) < 100_000
+        ? Math.round(value / 100) / 10
+        : Math.round(value / 1_000);
+    return `${symbol}${k % 1 === 0 ? k.toFixed(0) : k.toFixed(1)}k`;
+  }
+  return formatDealCurrency(currency, value);
+}

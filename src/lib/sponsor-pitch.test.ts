@@ -7,6 +7,7 @@ import {
   pitchTokenDaysRemaining,
   toSponsorPerformance,
   rollupPitchTelemetry,
+  slotMediaValue,
 } from "./sponsor-pitch";
 
 describe("isPitchUnlocked", () => {
@@ -121,5 +122,79 @@ describe("rollupPitchTelemetry", () => {
       totalViews: 0,
       lastViewedAt: null,
     });
+  });
+});
+
+describe("slotMediaValue", () => {
+  it("returns null without footfall", () => {
+    expect(
+      slotMediaValue({
+        footfallEstimate: null,
+        startDate: "2026-09-01",
+        endDate: "2026-09-07",
+        venueTier: "tier_1",
+      }),
+    ).toBeNull();
+    expect(
+      slotMediaValue({
+        footfallEstimate: 0,
+        startDate: "2026-09-01",
+        endDate: "2026-09-07",
+        venueTier: "tier_1",
+      }),
+    ).toBeNull();
+  });
+
+  it("returns null without dates", () => {
+    expect(
+      slotMediaValue({
+        footfallEstimate: 10_000,
+        startDate: null,
+        endDate: "2026-09-07",
+        venueTier: "tier_1",
+      }),
+    ).toBeNull();
+    expect(
+      slotMediaValue({
+        footfallEstimate: 10_000,
+        startDate: "2026-09-01",
+        endDate: undefined,
+        venueTier: "tier_1",
+      }),
+    ).toBeNull();
+  });
+
+  it("computes cents for a valid slot", () => {
+    expect(
+      slotMediaValue({
+        footfallEstimate: 10_000,
+        startDate: "2026-09-01",
+        endDate: "2026-09-07",
+        venueTier: "tier_3",
+      }),
+    ).toBe(189_000);
+  });
+
+  it("clamps days at 30", () => {
+    const sevenDays = slotMediaValue({
+      footfallEstimate: 10_000,
+      startDate: "2026-09-01",
+      endDate: "2026-09-07",
+      venueTier: "tier_3",
+    });
+    const fortyFiveDays = slotMediaValue({
+      footfallEstimate: 10_000,
+      startDate: "2026-09-01",
+      endDate: "2026-10-15",
+      venueTier: "tier_3",
+    });
+    const thirtyDayCap = slotMediaValue({
+      footfallEstimate: 10_000,
+      startDate: "2026-09-01",
+      endDate: "2026-09-30",
+      venueTier: "tier_3",
+    });
+    expect(fortyFiveDays).toBe(thirtyDayCap);
+    expect(fortyFiveDays).toBeGreaterThan(sevenDays!);
   });
 });

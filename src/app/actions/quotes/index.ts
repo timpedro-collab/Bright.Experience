@@ -7,7 +7,13 @@
  */
 
 export { submitBookNowQuote, getBookingReceipt } from "./book-now";
-export { submitProposalIntake, updateQuoteCapabilities, bookWalkthrough } from "./proposal-intake";
+export {
+  submitProposalIntake,
+  updateQuoteCapabilities,
+  bookWalkthrough,
+  recordProposalExplorerChange,
+  requestProposalConfiguration,
+} from "./proposal-intake";
 export { prepareProposal, setProposalWalkthrough } from "./proposal-admin";
 export { acceptQuote, declineQuote } from "./decisions";
 export { convertQuoteToEvent } from "./conversion";

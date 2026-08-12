@@ -39,6 +39,7 @@ import {
   type ProposalDocument,
 } from "@/lib/proposals/build-proposal";
 import { ProposalActions } from "./ProposalActions";
+import { ProposalExplorer } from "./ProposalExplorer";
 
 interface ProposalDocumentViewProps {
   doc: ProposalDocument;
@@ -480,6 +481,13 @@ export function ProposalDocumentView({
             <p className="mt-5 text-xs text-muted-foreground leading-relaxed max-w-[64ch]">
               {doc.investment.note}
             </p>
+            {/* Post-reveal only: the explorer shows live numbers, so it sits
+                strictly behind the same walkthrough gate as the fee. */}
+            <ProposalExplorer
+              quoteId={quoteId}
+              baseFeePence={doc.investment.feePence}
+              selectedAddonSlugs={doc.recommendedAddons.map((a) => a.slug)}
+            />
             <ProposalActions quoteId={quoteId} canRespond={canRespond} />
           </>
         ) : (

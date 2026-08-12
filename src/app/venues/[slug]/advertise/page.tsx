@@ -14,6 +14,7 @@ import { Container, Section } from "@/components/ui/section";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { getPublicVenueMedia } from "@/lib/queries/public-venue-media";
+import { weeklyVenueMediaValueCents } from "@/lib/venues/venue-media-value";
 import { formatMoneyFromPence } from "@/lib/currency";
 import {
   VenueAdvertiseBoard,
@@ -64,6 +65,11 @@ export default async function VenueAdvertisePage({ params }: Props) {
     .map((s) => s.price ?? Infinity)
     .reduce((a, b) => Math.min(a, b), Infinity);
 
+  const weeklyMediaValue = weeklyVenueMediaValueCents(
+    placements,
+    venue.locationTier,
+  );
+
   const stats = [
     venue.capacity
       ? { label: "Daily capacity", value: venue.capacity.toLocaleString("en-US") }
@@ -72,6 +78,12 @@ export default async function VenueAdvertisePage({ params }: Props) {
     { label: "Slots open now", value: String(openSlots.length) },
     Number.isFinite(fromPrice)
       ? { label: "From", value: `${formatMoneyFromPence(fromPrice)}/wk` }
+      : null,
+    weeklyMediaValue != null
+      ? {
+          label: "Weekly media value",
+          value: `Up to ${formatMoneyFromPence(weeklyMediaValue)}`,
+        }
       : null,
   ].filter(Boolean) as { label: string; value: string }[];
 

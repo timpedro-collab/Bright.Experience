@@ -17,6 +17,7 @@ const VENUE = {
   name: "Westfield Stratford",
   slug: "westfield-stratford",
   capacity: 5000,
+  location_tier: "tier_1",
   is_active: true,
 };
 
@@ -32,6 +33,7 @@ describe("getPublicVenueMedia", () => {
             sku_status: "live",
             location_label: "The Street, ground floor",
             notes: null,
+            footfall_estimate: 42_000,
             pricing_model_json: { model: "revenue_share", rate: 0.2 },
             machine_instances: { nickname: "Street Portal" },
           },
@@ -41,6 +43,7 @@ describe("getPublicVenueMedia", () => {
             sku_status: "draft",
             location_label: null,
             notes: "Not approved yet",
+            footfall_estimate: null,
             pricing_model_json: null,
             machine_instances: null,
           },
@@ -50,6 +53,7 @@ describe("getPublicVenueMedia", () => {
             sku_status: null,
             location_label: null,
             notes: "Pre-register row",
+            footfall_estimate: null,
             pricing_model_json: { format: "Digital 6-sheet" },
             machine_instances: null,
           },
@@ -94,6 +98,7 @@ describe("getPublicVenueMedia", () => {
       name: "Westfield Stratford",
       slug: "westfield-stratford",
       capacity: 5000,
+      locationTier: "tier_1",
     });
     // Draft SKU is excluded; legacy row without sku_status reads as live.
     expect(media?.placements.map((p) => p.id)).toEqual(["pl-live", "pl-legacy"]);
@@ -102,6 +107,7 @@ describe("getPublicVenueMedia", () => {
       format: null,
       unitName: "Street Portal",
       locationNote: "The Street, ground floor",
+      footfallEstimate: 42_000,
     });
     expect(media?.placements[1].format).toBe("Digital 6-sheet");
     expect(media?.openSlots).toEqual([

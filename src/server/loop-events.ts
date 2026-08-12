@@ -11,7 +11,10 @@ export type LoopEventKind =
   | "invitation_landing"
   | "pitch_unlock"
   | "player_card_view"
-  | "report_view";
+  | "report_view"
+  | "proposal_view"
+  | "proposal_explorer_change"
+  | "partner_pricing_view";
 
 export async function recordLoopEvent(
   kind: LoopEventKind,

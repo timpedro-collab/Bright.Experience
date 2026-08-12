@@ -6,7 +6,8 @@ import { createClient } from "@/lib/supabase/server";
 import { getServiceRoleClient } from "@/lib/supabase/service-role";
 import { revalidatePath } from "next/cache";
 import { quoteLimiter, decisionLimiter, getClientIp } from "@/lib/rate-limit";
-import { sanitiseCapabilitySlugs } from "@/lib/capabilities";
+import { getCapabilities, sanitiseCapabilitySlugs } from "@/lib/capabilities";
+import { recordLoopEvent } from "@/server/loop-events";
 import { getBenchmarksForEventType } from "@/lib/queries/benchmarks";
 import {
   buildInstantEstimate,
@@ -276,6 +277,109 @@ export async function bookWalkthrough(
   revalidatePath(`/admin/quotes/${quoteId}`);
   revalidatePath("/admin/quotes");
   return { success: true as const, data: { scheduledAt, slotLabel } };
+}
+
+/**
+ * Record a debounced deal-explorer interaction for loop-pulse telemetry.
+ *
+ * Public proposal-page action — rate-limited, fire-and-forget semantics
+ * (a failed insert never surfaces to the customer). Carries the toggled
+ * slugs so the dashboard can see which add-ons buyers actually play with.
+ */
+export async function recordProposalExplorerChange(
+  quoteId: string,
+  toggledSlugs: string[],
+) {
+  if (!(await decisionLimiter(await getClientIp()))) {
+    return { success: false as const, error: "Rate limited" };
+  }
+  await recordLoopEvent("proposal_explorer_change", {
+    artifact: "proposal",
+    metadata: { quoteId, toggled: sanitiseCapabilitySlugs(toggledSlugs) },
+  });
+  return { success: true as const, data: { id: quoteId } };
+}
+
+/**
+ * The deal explorer's "Request this configuration" — merges the toggled
+ * add-ons into the quote's capabilities and pings the AE to confirm the
+ * revised pricing. Nothing is charged from here; the AE confirms first.
+ */
+export async function requestProposalConfiguration(
+  quoteId: string,
+  toggledSlugs: string[],
+) {
+  // Public proposal-page action — throttle unauthenticated writes.
+  if (!(await decisionLimiter(await getClientIp()))) {
+    return {
+      success: false as const,
+      error: "Too many requests. Please wait a moment and try again.",
+    };
+  }
+
+  const toggled = sanitiseCapabilitySlugs(toggledSlugs);
+  if (toggled.length === 0) {
+    return { success: false as const, error: "Nothing selected to request" };
+  }
+
+  // Anonymous write from the proposal page — service role required (RLS
+  // blocks anon updates). Pinned to statuses where tuning still makes sense;
+  // read-then-write so existing capabilities are merged, never replaced.
+  const supabase = getServiceRoleClient();
+  const { data: quote, error: readError } = await supabase
+    .from("quotes")
+    .select("id, addons, status")
+    .eq("id", quoteId)
+    .in("status", ["proposal_sent", "accepted"])
+    .maybeSingle();
+
+  if (readError || !quote) {
+    return { success: false as const, error: "Failed to update configuration" };
+  }
+
+  const existing = sanitiseCapabilitySlugs(quote.addons);
+  const merged = sanitiseCapabilitySlugs([...existing, ...toggled]);
+  const added = merged.filter((slug) => !existing.includes(slug));
+  if (added.length === 0) {
+    // Everything requested was already on the quote — treat as success.
+    return { success: true as const, data: { id: quoteId, addons: existing } };
+  }
+
+  const { error: writeError } = await supabase
+    .from("quotes")
+    .update({ addons: merged })
+    .eq("id", quoteId);
+
+  if (writeError) {
+    console.error("[requestProposalConfiguration] update failed", writeError);
+    return { success: false as const, error: "Failed to update configuration" };
+  }
+
+  // Loop-pulse: the explorer converted a play into a request.
+  await recordLoopEvent("proposal_explorer_change", {
+    artifact: "proposal",
+    metadata: { quoteId, requested: added },
+  });
+
+  // Ping the AE. The outcome lines (not slugs) make the ask readable.
+  try {
+    const addedLabel = getCapabilities(added)
+      .map((c) => c.outcome)
+      .join(", ");
+    await dispatchNotification("proposal.config_requested", {
+      quoteId,
+      addedLabel: addedLabel || `${added.length} add-on(s)`,
+      entityType: "quote",
+      entityId: quoteId,
+    });
+  } catch (notifyError) {
+    console.error("[requestProposalConfiguration] notify failed", notifyError);
+  }
+
+  revalidatePath(`/admin/quotes/${quoteId}`);
+  revalidatePath("/admin/quotes");
+  revalidatePath(`/proposal/${quoteId}`);
+  return { success: true as const, data: { id: quoteId, addons: merged } };
 }
 
 /**

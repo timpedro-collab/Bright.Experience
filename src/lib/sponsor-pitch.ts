@@ -1,5 +1,5 @@
 /**
- * Sponsor pitch links and what they may expose.
+ * Sponsor pitch links, media-value framing, and what they may expose.
  *
  * A pitch link is a capability URL: possession of the token is the whole
  * authorization. That makes two rules non-negotiable, and both are enforced
@@ -10,6 +10,9 @@
  *      Captured contacts belong to the brand that ran the activation, and no
  *      consent was ever given for a prospective sponsor to see them.
  */
+import { experientialReach } from "@/lib/reach";
+import { cpmForTier } from "@/lib/pricing/dooh-cpm";
+import { showDayCount } from "@/lib/metrics/expected-performance";
 
 /** How long a pitch link lives when the caller doesn't say. */
 export const PITCH_TOKEN_DEFAULT_DAYS = 30;
@@ -115,4 +118,38 @@ export function rollupPitchTelemetry(
   }
 
   return { totalViews, lastViewedAt };
+}
+
+export interface SlotMediaValueInput {
+  footfallEstimate: number | null | undefined;
+  startDate: string | null | undefined;
+  endDate: string | null | undefined;
+  venueTier: string | null | undefined;
+}
+
+/**
+ * Equivalent DOOH media value for a sponsorship slot, in integer USD cents.
+ * Returns null when footfall or dates are missing — no invented fallbacks.
+ */
+export function slotMediaValue(input: SlotMediaValueInput): number | null {
+  const footfall = Number(input.footfallEstimate);
+  if (!Number.isFinite(footfall) || footfall <= 0) return null;
+
+  const startDate = input.startDate?.slice(0, 10);
+  const endDate = input.endDate?.slice(0, 10);
+  if (!startDate || !endDate) return null;
+
+  const start = Date.parse(`${startDate}T00:00:00Z`);
+  const end = Date.parse(`${endDate}T00:00:00Z`);
+  if (Number.isNaN(start) || Number.isNaN(end) || end < start) return null;
+
+  const days = Math.min(30, Math.max(1, showDayCount(startDate, endDate)));
+  const reach = experientialReach({
+    dailyFootfall: footfall,
+    passRate: 0.3,
+    days,
+    cpm: cpmForTier(input.venueTier),
+  });
+
+  return reach.doohMediaValueCents ?? null;
 }

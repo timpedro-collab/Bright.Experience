@@ -51,6 +51,10 @@ export interface LoopPulseData {
     ratePct: number | null;
   };
   referrals: Array<{ source: string; count: number }>;
+  proposals: {
+    views: number;
+    distinctProposals: number;
+  };
 }
 
 /** Fetch every loop-pulse metric. Individual failures degrade to empty data. */
@@ -111,6 +115,13 @@ export async function getLoopPulse(): Promise<LoopPulseData> {
     .select("id", { count: "exact", head: true })
     .eq("kind", "player_card_view");
   if (pcErr) logQueryError("getLoopPulse.playerCards", pcErr);
+
+  const { data: proposalViewRows, error: pvErr } = await supabase
+    .from("loop_events")
+    .select("metadata")
+    .eq("kind", "proposal_view")
+    .limit(5000);
+  if (pvErr) logQueryError("getLoopPulse.proposalViews", pvErr);
 
   // 8. Rebook base: every event's account + stage.
   const { data: eventRows, error: eventsErr } = await supabase
@@ -191,6 +202,21 @@ export async function getLoopPulse(): Promise<LoopPulseData> {
     player_card: playerCardViews ?? 0,
   };
 
+  // --- Proposals ---
+  const proposalViewList = (proposalViewRows ?? []) as Array<{
+    metadata: Record<string, unknown> | null;
+  }>;
+  const distinctProposalIds = new Set(
+    proposalViewList
+      .map((r) => {
+        const quoteId = r.metadata?.quoteId;
+        return typeof quoteId === "string" && quoteId.trim()
+          ? quoteId.trim()
+          : null;
+      })
+      .filter((id): id is string => Boolean(id)),
+  );
+
   // --- Capture ---
   let totalPlays = 0;
   let totalLeads = 0;
@@ -238,5 +264,9 @@ export async function getLoopPulse(): Promise<LoopPulseData> {
     referrals: [...referralCounts.entries()]
       .map(([source, count]) => ({ source, count }))
       .sort((a, b) => b.count - a.count),
+    proposals: {
+      views: proposalViewList.length,
+      distinctProposals: distinctProposalIds.size,
+    },
   };
 }

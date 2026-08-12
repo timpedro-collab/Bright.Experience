@@ -20,7 +20,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { cookies } from "next/headers";
-import { Cpu, MapPin, CalendarDays, Activity, Users, Gift, Percent } from "lucide-react";
+import { Cpu, MapPin, CalendarDays, Activity, Users, Gift, Percent, Monitor } from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -46,6 +46,7 @@ import {
   PITCH_UNLOCK_COOKIE,
   isPitchUnlocked,
   pitchTokenDaysRemaining,
+  slotMediaValue,
 } from "@/lib/sponsor-pitch";
 import { PitchDetailGate } from "@/components/sponsors/PitchDetailGate";
 import { InvitationFooter } from "@/components/public/InvitationFooter";
@@ -167,6 +168,18 @@ export default async function SponsorPitchPage({ params }: Props) {
   const caseStudies = toCaseStudyProof(
     caseStudyRows as unknown as Record<string, unknown>[]
   );
+
+  const placement = first(slot.placements);
+  const placementVenue = placement ? first(placement.venues) : null;
+  const mediaValueCents =
+    performance === null
+      ? slotMediaValue({
+          footfallEstimate: placement?.footfall_estimate as number | null,
+          startDate,
+          endDate,
+          venueTier: placementVenue?.location_tier as string | null,
+        })
+      : null;
 
   return (
     <main className="mx-auto max-w-3xl px-6 py-16">
@@ -305,6 +318,26 @@ export default async function SponsorPitchPage({ params }: Props) {
               leadsLow={expectedLeads.totalLow}
               leadsHigh={expectedLeads.totalHigh}
             />
+          ) : null}
+
+          {mediaValueCents != null ? (
+            <Card>
+              <CardContent className="p-6 text-center">
+                <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-brand/10 text-brand">
+                  <Monitor size={20} />
+                </div>
+                <p className="text-heading text-2xl font-bold tabular-nums text-foreground">
+                  Up to {formatMoneyFromPence(mediaValueCents)}
+                </p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Equivalent DOOH media value
+                </p>
+                <p className="mt-3 text-xs text-muted-foreground">
+                  What the same impressions would cost on premium digital
+                  out-of-home at a comparable site. A ceiling, not a promise.
+                </p>
+              </CardContent>
+            </Card>
           ) : null}
 
           <SponsorInterestForm

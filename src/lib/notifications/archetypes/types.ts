@@ -27,6 +27,7 @@ export type NotificationKind =
   // Internal-actionable
   | "proposal.intake_received"
   | "proposal.walkthrough_booked"
+  | "proposal.config_requested"
   | "booking.received"
   | "quote.accepted"
   | "asset.review_needed"
