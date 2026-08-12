@@ -140,7 +140,7 @@ export default async function PartnerPricingPage({
           <div className="space-y-4">
             <h1 className="text-display-grotesk text-4xl leading-tight sm:text-5xl">
               A new inventory line for NRS,
-              <br className="hidden sm:block" /> priced in your own language
+              <br className="hidden sm:block" /> sold the way you already sell
             </h1>
             <p className="max-w-2xl text-lg text-muted-foreground">
               Interactive brand machines with lead capture, live dashboards and
@@ -180,7 +180,7 @@ export default async function PartnerPricingPage({
         {/* Precedent */}
         <section className="mt-14">
           <h2 className="text-heading text-xl font-bold">
-            The category is proven inside your own company
+            Your own shows already sell this
           </h2>
           <div className="mt-5 grid gap-4 sm:grid-cols-3">
             {PRECEDENT_STATS.map((stat) => (
