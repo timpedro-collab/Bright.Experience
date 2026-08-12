@@ -48,7 +48,7 @@ describe("clampRetail", () => {
   });
 
   it("caps at the top of the band and passes through in-band values", () => {
-    expect(clampRetail(75_000, RETAIL.single)).toBe(60_000);
+    expect(clampRetail(95_000, RETAIL.single)).toBe(70_000);
     expect(clampRetail(52_000, RETAIL.single)).toBe(52_000);
   });
 });
@@ -62,9 +62,9 @@ describe("computeDeal", () => {
       takeoverRetail: RETAIL.takeover.suggested,
     });
     expect(deal.totalUnits).toBe(12);
-    expect(deal.gross).toBe(570_000);
-    expect(deal.partnerKeeps).toBe(228_000);
-    expect(deal.brightBlueShare).toBe(342_000);
+    expect(deal.gross).toBe(600_000);
+    expect(deal.partnerKeeps).toBe(240_000);
+    expect(deal.brightBlueShare).toBe(360_000);
     expect(deal.partnerKeeps + deal.brightBlueShare).toBe(deal.gross);
     expect(deal.belowPilotMinimum).toBe(false);
   });

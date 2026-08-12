@@ -18,8 +18,8 @@ const MODELS = [
     number: "Model 3",
     role: "The engine",
     name: "Prospectus inventory",
-    retail: "$45,000–$50,000",
-    retailNote: "per unit, full show",
+    retail: "$45,000–$70,000",
+    retailNote: "per unit, full show — top of band for premium positions",
     accent: false,
     description:
       "Single machines sold by your sponsorship team as prospectus line items — sitting one notch above the $37k aisle signage, except these capture leads, run games and report live. No new sales motion; it's a new line in a book your buyers already read.",
@@ -29,7 +29,7 @@ const MODELS = [
     number: "Model 2",
     role: "The flagship",
     name: "Cross-Hall Takeover",
-    retail: "$110,000–$120,000",
+    retail: "$110,000–$175,000",
     retailNote: "3 units: booth + 2 halls",
     accent: true,
     description:
@@ -40,7 +40,7 @@ const MODELS = [
     number: "Model 1",
     role: "The pilot",
     name: "Corridor activations",
-    retail: "$25,000–$30,000",
+    retail: "$25,000–$40,000",
     retailNote: "per unit, if retailed",
     accent: false,
     description:
@@ -234,7 +234,7 @@ function MoneyFlow() {
         </div>
         <div className="text-center text-sm font-medium text-muted-foreground sm:w-40">
           pays retail
-          <span className="block text-xs">($45k–$120k, you set it)</span>
+          <span className="block text-xs">($45k–$175k, you set it)</span>
         </div>
         <div className="rounded-xl border bg-muted/40 px-5 py-4 text-center sm:flex-1">
           <p className="text-sm font-semibold">Informa prospectus</p>

@@ -20,12 +20,18 @@ export const COMMITMENT = {
   cutoffWeeks: 25,
 } as const;
 
-/** Suggested retail bounds — sliders must never go below the minimums. */
+/**
+ * Suggested retail bounds — sliders must never go below the minimums.
+ * Top of band prices the audience gap vs the HIMSS precedent (a basic
+ * wrapped vendor at a ~30k-attendee show fetches $45k; NRS is 55k+) plus
+ * premium positioning. Takeover ceiling = 3 × $70k less a ~17% bundle
+ * discount.
+ */
 export const RETAIL = {
-  single: { min: 45_000, max: 60_000, suggested: 47_500, step: 1_000 },
+  single: { min: 45_000, max: 70_000, suggested: 50_000, step: 1_000 },
   /** Cross-Hall Takeover: 3 units (booth + 2 halls), scarcity-capped. */
-  takeover: { min: 110_000, max: 135_000, suggested: 115_000, step: 5_000, unitsPerBundle: 3, maxBundles: 3 },
-  corridor: { min: 25_000, max: 30_000 },
+  takeover: { min: 110_000, max: 175_000, suggested: 120_000, step: 5_000, unitsPerBundle: 3, maxBundles: 3 },
+  corridor: { min: 25_000, max: 40_000 },
 } as const;
 
 /**
