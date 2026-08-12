@@ -30,6 +30,10 @@ capability URL.
   `/catalog/machines/europa`), and an embedded-DOOH media value section
   (6×10s slots, ~1,800 plays, 55,000+ verified NRS audience) framed against
   the show's own rate card rather than street DOOH CPMs.
+- Retail ceilings raised on the audience-gap argument (HIMSS is a ~30k
+  show selling a basic unit at $45k; NRS is 55k+): singles
+  $45k–$70k (suggested anchor $50k), Cross-Hall Takeover $110k–$175k,
+  corridor $25k–$40k. Floors unchanged.
 - **`src/components/partners/NrsModelsShowcase.tsx`** — the three
   go-to-market models presented visually in the partner deck's own
   numbering (Model 1/2/3 as pilot/flagship/engine), with an SVG campus
