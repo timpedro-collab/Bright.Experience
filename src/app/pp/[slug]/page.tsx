@@ -146,7 +146,7 @@ export default async function PartnerPricingPage({
               Interactive brand machines with lead capture, live dashboards and
               post-show reporting, sold through your prospectus like any other
               sponsorship line. The numbers below are live. Drag them and see
-              what the programme earns.
+              what the program earns.
             </p>
           </div>
         </header>
@@ -207,7 +207,7 @@ export default async function PartnerPricingPage({
         {/* The three models, presented as one programme */}
         <section className="mt-14">
           <h2 className="text-heading text-xl font-bold">
-            The three models, one programme
+            The three models, one program
           </h2>
           <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
             All three models from the briefing are kept. They run on one set

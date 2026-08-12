@@ -44,7 +44,7 @@ const MODELS = [
     retailNote: "per unit, if retailed",
     accent: false,
     description:
-      "Machines in the dead-traffic corridors between the three NRS buildings, footfall nobody monetises today. Placed inside the licensed show footprint (MPEA public space carries a 15% ad-revenue commission and a signage-exclusivity risk). Run as a stated pilot that proves the campus-wide story.",
+      "Machines in the dead-traffic corridors between the three NRS buildings, foot traffic nobody monetizes today. Placed inside the licensed show footprint (MPEA public space carries a 15% ad-revenue commission and a signage-exclusivity risk). Run as a stated pilot that proves the campus-wide story.",
     marker: "corridor" as const,
   },
 ];
@@ -311,7 +311,7 @@ export function NrsModelsShowcase() {
         <CardContent className="pt-6">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <h3 className="text-heading text-lg font-bold">
-              One programme across the whole campus
+              One program across the whole campus
             </h3>
             <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
               <span className="flex items-center gap-1.5">
