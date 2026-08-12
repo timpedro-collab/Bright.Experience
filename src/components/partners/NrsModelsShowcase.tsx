@@ -243,17 +243,17 @@ function MoneyFlow() {
       </div>
       <div>
         <div className="flex h-14 w-full overflow-hidden rounded-xl border">
-          <div className="flex w-[60%] items-center justify-center bg-primary px-3 text-center">
+          <div className="flex w-[70%] items-center justify-center bg-primary px-3 text-center">
             <p className="text-sm font-semibold text-primary-foreground">
-              60% Bright.Blue
+              70% Bright.Blue
               <span className="block text-[0.68rem] font-normal opacity-85">
                 machines · creative · crew · platform · reporting
               </span>
             </p>
           </div>
-          <div className="flex w-[40%] items-center justify-center bg-muted px-3 text-center">
+          <div className="flex w-[30%] items-center justify-center bg-muted px-3 text-center">
             <p className="text-sm font-semibold">
-              40% Informa
+              30% Informa
               <span className="block text-[0.68rem] font-normal text-muted-foreground">
                 the sale, nothing else to carry
               </span>

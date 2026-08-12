@@ -4,7 +4,7 @@
  * Interactive deal explorer for the NRS partner pricing microsite.
  *
  * Buyer-facing: every number rendered here is deck-visible (retail anchors,
- * the 60/40 split, the floor ladder, commitment terms). The slider bounds
+ * the 70/30 split, the floor ladder, commitment terms). The slider bounds
  * are the negotiating floors — the UI deliberately cannot express a price
  * below them. Internal economics must never appear in this component.
  */
@@ -158,7 +158,7 @@ export function NrsPricingExplorer() {
               </div>
               <div className="flex flex-col">
                 <dt className="text-xs uppercase tracking-wide text-muted-foreground">
-                  Informa retains (40%)
+                  Informa retains (30%)
                 </dt>
                 <dd className="mt-auto pt-1 text-3xl font-bold tabular-nums text-primary">
                   {formatUsdCompact(deal.partnerKeeps)}
@@ -174,7 +174,7 @@ export function NrsPricingExplorer() {
               </div>
             </dl>
             <p className="mt-4 text-sm text-muted-foreground">
-              Bright.Blue&rsquo;s 60% share ({formatUsd(deal.brightBlueShare)})
+              Bright.Blue&rsquo;s 70% share ({formatUsd(deal.brightBlueShare)})
               covers the machines, creative build, on-site crew, software
               platform, live dashboards and post-show reporting. You carry
               the sale, nothing else.
@@ -225,7 +225,7 @@ export function NrsPricingExplorer() {
                       <td className="py-2 tabular-nums">
                         {tier.minUnits}–{tier.maxUnits}
                       </td>
-                      <td className="py-2 tabular-nums">60 / 40</td>
+                      <td className="py-2 tabular-nums">70 / 30</td>
                       <td className="py-2 tabular-nums">{formatUsd(tier.floor)}</td>
                     </tr>
                   );

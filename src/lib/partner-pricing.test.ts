@@ -33,7 +33,7 @@ describe("floorTierForVolume", () => {
 
   it("never moves the split with volume — only the floor steps", () => {
     // The ladder rewards volume through the floor alone; a tier carrying its
-    // own split would contradict the locked 60/40 structure.
+    // own split would contradict the locked 70/30 structure.
     for (const tier of FLOOR_TIERS) {
       expect(tier).not.toHaveProperty("split");
     }
@@ -54,7 +54,7 @@ describe("clampRetail", () => {
 });
 
 describe("computeDeal", () => {
-  it("splits a 12-single pilot 60/40 at suggested retail", () => {
+  it("splits a 12-single pilot 70/30 at suggested retail", () => {
     const deal = computeDeal({
       singles: 12,
       singleRetail: RETAIL.single.suggested,
@@ -63,8 +63,8 @@ describe("computeDeal", () => {
     });
     expect(deal.totalUnits).toBe(12);
     expect(deal.gross).toBe(600_000);
-    expect(deal.partnerKeeps).toBe(240_000);
-    expect(deal.brightBlueShare).toBe(360_000);
+    expect(deal.partnerKeeps).toBe(180_000);
+    expect(deal.brightBlueShare).toBe(420_000);
     expect(deal.partnerKeeps + deal.brightBlueShare).toBe(deal.gross);
     expect(deal.belowPilotMinimum).toBe(false);
   });

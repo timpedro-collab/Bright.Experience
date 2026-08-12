@@ -84,9 +84,9 @@ const PRECEDENT_STATS = [
 
 const MODEL_TERMS = [
   {
-    term: "Revenue share, 60 / 40",
+    term: "Revenue share, 70 / 30",
     detail:
-      "You sell each placement into your prospectus at a price you set. Bright.Blue takes 60%, you retain 40%. The machines, creative, crew, platform and reporting are all carried on our side of the line.",
+      "You sell each placement into your prospectus at a price you set. Bright.Blue takes 70%, you retain 30%. The machines, creative, crew, platform and reporting are all carried on our side of the line.",
   },
   {
     term: "A per-unit floor",

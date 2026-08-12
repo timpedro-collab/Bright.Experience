@@ -51,6 +51,16 @@ capability URL.
   proof heading now "Your own shows already sell this" (both user-approved),
   and the production-lock example date corrected from mid- to late November
   (25 weeks before 15 May is 21 November).
+- Revenue split repositioned from 60/40 to **70/30** (opening negotiation
+  position, decided with the CMO before the page was shared externally):
+  `REVENUE_SPLIT` in `partner-pricing.ts`, the money-flow diagram, the
+  volume-ladder table, the partnership-terms card and all tests. Floors
+  and retail bands unchanged. The internal commercial spec records the
+  concession ladder (settle target 60/40, absolute floor 55/45, every
+  step traded for term or volume).
+- Campus schematic lines brightened (hall outlines, takeover trio,
+  dashboard feed lines) after review feedback that they were too faint
+  on the dark theme.
 - Retail ceilings raised on the audience-gap argument (HIMSS is a ~30k
   show selling a basic unit at $45k; NRS is 55k+): singles
   $45k–$70k (suggested anchor $50k), Cross-Hall Takeover $110k–$175k,

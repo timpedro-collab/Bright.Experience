@@ -8,8 +8,8 @@
  * the wholesale reserve, concession lines) must NEVER enter this file.
  */
 
-/** Revenue split on partner-sold placements: Bright.Blue 60 / partner 40. */
-export const REVENUE_SPLIT = { brightBlue: 0.6, partner: 0.4 } as const;
+/** Revenue split on partner-sold placements: Bright.Blue 70 / partner 30. */
+export const REVENUE_SPLIT = { brightBlue: 0.7, partner: 0.3 } as const;
 
 /** Pilot commitment: take-or-pay band and the volume ceiling. */
 export const COMMITMENT = {
@@ -71,9 +71,9 @@ export interface DealSummary {
   totalUnits: number;
   /** Partner's gross sponsorship revenue (USD). */
   gross: number;
-  /** Partner's 40% retained share (USD). */
+  /** Partner's 30% retained share (USD). */
   partnerKeeps: number;
-  /** Bright.Blue's 60% share (USD). */
+  /** Bright.Blue's 70% share (USD). */
   brightBlueShare: number;
   /** Average retained revenue per deployed unit (USD, 0-safe). */
   partnerKeepsPerUnit: number;

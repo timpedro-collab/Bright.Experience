@@ -7,9 +7,9 @@ describe("NrsPricingExplorer", () => {
   it("opens on the 12-unit pilot at suggested retail", () => {
     render(<NrsPricingExplorer />);
     expect(screen.getByText("12 machines on the floor")).toBeInTheDocument();
-    // 12 × $50,000 = $600k gross; Informa keeps 40% = $240k
+    // 12 × $50,000 = $600k gross; Informa keeps 30% = $180k
     expect(screen.getByText("$600k")).toBeInTheDocument();
-    expect(screen.getByText("$240k")).toBeInTheDocument();
+    expect(screen.getByText("$180k")).toBeInTheDocument();
   });
 
   it("recomputes the earnings when a placement is added", () => {
