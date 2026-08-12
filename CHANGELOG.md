@@ -61,6 +61,13 @@ capability URL.
 - Campus schematic lines brightened (hall outlines, takeover trio,
   dashboard feed lines) after review feedback that they were too faint
   on the dark theme.
+- Post-meeting pass (12 Aug): takeover retail slider now always mounted
+  (disabled at 0 bundles) — conditionally inserting it mid-drag shifted
+  the layout under the cursor and read as broken sliders on the call;
+  Bright.Blue's dollar share removed from the explorer (split percentage
+  only); HIMSS precedent section removed at the buyer's steer (different
+  show, different clientele), with the Europa capability copy relocated
+  under the photo gallery; buyer-facing spelling americanized.
 - Retail ceilings raised on the audience-gap argument (HIMSS is a ~30k
   show selling a basic unit at $45k; NRS is 55k+): singles
   $45k–$70k (suggested anchor $50k), Cross-Hall Takeover $110k–$175k,
