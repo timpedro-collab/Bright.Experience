@@ -67,21 +67,6 @@ const EUROPA_GALLERY = [
   },
 ];
 
-const PRECEDENT_STATS = [
-  {
-    value: "$42–45k",
-    label: "HIMSS 2026 list price per unit for Freeman's far more basic vending activation, which sold out",
-  },
-  {
-    value: "4 years",
-    label: "The HIMSS inventory has been re-bought every year since 2023, at escalating prices",
-  },
-  {
-    value: "$37k",
-    label: "NRS's current top passive item (South Hall aisle signage). Static, no leads, no data",
-  },
-];
-
 const MODEL_TERMS = [
   {
     term: "Revenue share, 70 / 30",
@@ -175,27 +160,8 @@ export default async function PartnerPricingPage({
             the sponsor&rsquo;s creative. These are live activations, not
             renders.
           </p>
-        </section>
-
-        {/* Precedent */}
-        <section className="mt-14">
-          <h2 className="text-heading text-xl font-bold">
-            Your own shows already sell this
-          </h2>
-          <div className="mt-5 grid gap-4 sm:grid-cols-3">
-            {PRECEDENT_STATS.map((stat) => (
-              <Card key={stat.value}>
-                <CardContent className="pt-6">
-                  <p className="text-3xl font-bold tabular-nums text-primary">{stat.value}</p>
-                  <p className="mt-2 text-sm text-muted-foreground">{stat.label}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-          <p className="mt-4 text-sm text-muted-foreground">
-            Buyers at HIMSS include Slack, Salesforce, HPE and CoverMyMeds,
-            and what they bought is a wrapped vending machine with a video
-            loop. The Europa is a black-box experience engine: a 55&Prime;
+          <p className="mt-3 max-w-3xl text-sm text-muted-foreground">
+            The Europa is a black-box experience engine: a 55&Prime;
             interactive touchscreen that runs branded games, surveys, measured
             sampling and lead capture, and carries a six-slot DOOH ad loop.
             Every sponsor gets a live dashboard during the show and a

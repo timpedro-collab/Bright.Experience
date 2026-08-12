@@ -34,6 +34,7 @@ function LeverRow({
   step,
   onChange,
   ariaLabel,
+  disabled = false,
 }: {
   label: string;
   valueLabel: string;
@@ -43,9 +44,10 @@ function LeverRow({
   step: number;
   onChange: (next: number) => void;
   ariaLabel: string;
+  disabled?: boolean;
 }) {
   return (
-    <div className="space-y-2">
+    <div className={cn("space-y-2", disabled && "opacity-50")}>
       <div className="flex items-baseline justify-between gap-4">
         <span className="text-sm font-medium">{label}</span>
         <span className="text-sm tabular-nums text-muted-foreground">{valueLabel}</span>
@@ -56,6 +58,7 @@ function LeverRow({
         min={min}
         max={max}
         step={step}
+        disabled={disabled}
         onValueChange={([next]) => onChange(next)}
       />
     </div>
@@ -117,21 +120,23 @@ export function NrsPricingExplorer() {
             step={1}
             onChange={setTakeovers}
           />
-          {takeovers > 0 ? (
-            <LeverRow
-              label="Recommended retail per takeover bundle"
-              ariaLabel="Recommended retail per takeover bundle"
-              valueLabel={formatUsd(takeoverRetail)}
-              value={takeoverRetail}
-              min={RETAIL.takeover.min}
-              max={RETAIL.takeover.max}
-              step={RETAIL.takeover.step}
-              onChange={setTakeoverRetail}
-            />
-          ) : null}
+          {/* Always mounted: conditionally inserting this row mid-drag shifts
+              the layout under the visitor's cursor, which reads as "the
+              sliders aren't working". Disabled until a bundle is in the mix. */}
+          <LeverRow
+            label="Recommended retail per takeover bundle"
+            ariaLabel="Recommended retail per takeover bundle"
+            valueLabel={takeovers === 0 ? "add a bundle above" : formatUsd(takeoverRetail)}
+            value={takeoverRetail}
+            min={RETAIL.takeover.min}
+            max={RETAIL.takeover.max}
+            step={RETAIL.takeover.step}
+            disabled={takeovers === 0}
+            onChange={setTakeoverRetail}
+          />
           <p className="text-xs text-muted-foreground">
             Retail is yours to set. The ranges shown are our suggested bands,
-            anchored to the HIMSS 2026 precedent and the NRS prospectus.
+            anchored to the NRS prospectus and comparable show activations.
           </p>
         </CardContent>
       </Card>
@@ -174,10 +179,9 @@ export function NrsPricingExplorer() {
               </div>
             </dl>
             <p className="mt-4 text-sm text-muted-foreground">
-              Bright.Blue&rsquo;s 70% share ({formatUsd(deal.brightBlueShare)})
-              covers the machines, creative build, on-site crew, software
-              platform, live dashboards and post-show reporting. You carry
-              the sale, nothing else.
+              Bright.Blue&rsquo;s 70% share covers the machines, creative
+              build, on-site crew, software platform, live dashboards and
+              post-show reporting. You carry the sale, nothing else.
             </p>
             {deal.belowPilotMinimum ? (
               <p className="mt-3 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-900 [.theme-dark_&]:bg-amber-950 [.theme-dark_&]:text-amber-200">
