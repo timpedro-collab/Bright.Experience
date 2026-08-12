@@ -100,12 +100,23 @@ export function CaseStudyCard({ caseStudy, index = 0 }: CaseStudyCardProps) {
             className="object-cover"
           />
         ) : showLogoTile ? (
-          <div className="absolute inset-0 flex items-center justify-center bg-[radial-gradient(circle_at_50%_40%,hsl(230,93%,53%,0.35),transparent_70%)]">
+          /* Photo-less tiles rest on the client's own brand colour (the same
+             hue the hover wash uses), so the grid reads as a wall of brands
+             even before any interaction. A soft dark vignette keeps the
+             white logo and chip legible on light brand hues. */
+          <div
+            className="cs-brand-tile absolute inset-0 flex items-center justify-center"
+            style={{ backgroundColor: washColor }}
+          >
+            <div
+              aria-hidden
+              className="absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,transparent_35%,rgba(0,0,0,0.38)_100%)]"
+            />
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={clientLogo!.src}
               alt={clientLogo!.name}
-              className="h-12 w-auto max-w-[60%] object-contain opacity-80 brightness-0 invert"
+              className="relative h-12 w-auto max-w-[60%] object-contain opacity-90 brightness-0 invert"
             />
           </div>
         ) : (

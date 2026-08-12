@@ -66,6 +66,30 @@ describe("CaseStudyCard", () => {
     );
   });
 
+  it("rests photo-less logo tiles on the client's own brand colour", () => {
+    mockMatchMedia(false);
+    const { container } = render(
+      <CaseStudyCard caseStudy={{ ...BASE_STUDY, clientName: "Pelion" }} />
+    );
+    const tile = container.querySelector(".cs-brand-tile") as HTMLElement;
+    expect(tile).not.toBeNull();
+    expect(tile.style.backgroundColor).toBe("#00a19a");
+  });
+
+  it("keeps photography untinted when a hero image exists", () => {
+    mockMatchMedia(false);
+    const { container } = render(
+      <CaseStudyCard
+        caseStudy={{
+          ...BASE_STUDY,
+          clientName: "Pelion",
+          heroImageUrl: "/x.jpg",
+        }}
+      />
+    );
+    expect(container.querySelector(".cs-brand-tile")).toBeNull();
+  });
+
   it("renders no client chip or giant name when no client is attributed", () => {
     mockMatchMedia(false);
     const { container } = render(<CaseStudyCard caseStudy={BASE_STUDY} />);
