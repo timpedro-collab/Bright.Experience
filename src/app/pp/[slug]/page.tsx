@@ -34,7 +34,7 @@ const PARTNER_PAGES = {
 type Slug = keyof typeof PARTNER_PAGES;
 
 export const metadata: Metadata = {
-  title: "Machine inventory for NRS — Bright.Blue",
+  title: "Machine inventory for NRS · Bright.Blue",
   robots: { index: false, follow: false },
 };
 
@@ -70,7 +70,7 @@ const EUROPA_GALLERY = [
 const PRECEDENT_STATS = [
   {
     value: "$42–45k",
-    label: "HIMSS 2026 list price per unit for Freeman's far more basic vending activation — sold out",
+    label: "HIMSS 2026 list price per unit for Freeman's far more basic vending activation, which sold out",
   },
   {
     value: "4 years",
@@ -78,7 +78,7 @@ const PRECEDENT_STATS = [
   },
   {
     value: "$37k",
-    label: "NRS's current top passive item (South Hall aisle signage) — static, no leads, no data",
+    label: "NRS's current top passive item (South Hall aisle signage). Static, no leads, no data",
   },
 ];
 
@@ -86,7 +86,7 @@ const MODEL_TERMS = [
   {
     term: "Revenue share, 60 / 40",
     detail:
-      "You sell each placement into your prospectus at a price you set. Bright.Blue takes 60%, you retain 40% — the machines, creative, crew, platform and reporting are all carried on our side of the line.",
+      "You sell each placement into your prospectus at a price you set. Bright.Blue takes 60%, you retain 40%. The machines, creative, crew, platform and reporting are all carried on our side of the line.",
   },
   {
     term: "A per-unit floor",
@@ -96,12 +96,12 @@ const MODEL_TERMS = [
   {
     term: `Pilot: ${COMMITMENT.pilotMinUnits}–${COMMITMENT.pilotMaxUnits} units, take-or-pay`,
     detail:
-      `We commit build capacity, you commit placement. Your unit count stays flexible — up or down — until the production lock date, ${COMMITMENT.cutoffWeeks} weeks before the show. From that date we're building, so the number is fixed; any unsold unit can deploy as show-branded activation, so committed units always do work.`,
+      `We commit build capacity, you commit placement. Your unit count stays flexible, up or down, until the production lock date, ${COMMITMENT.cutoffWeeks} weeks before the show. From that date we're building, so the number is fixed. Any unsold unit can deploy as show-branded activation, so committed units always do work.`,
   },
   {
     term: "McCormick logistics, split sensibly",
     detail:
-      "Inside the building — drayage, positioning, electrical — runs through your GSC master contract, where your rates are a fraction of what an outside exhibitor pays. Everything up to the dock (build, freight, crew, wrap) is ours.",
+      "Everything inside the building (drayage, positioning, electrical) runs through your GSC master contract, where your rates are a fraction of what an outside exhibitor pays. Everything up to the dock (build, freight, crew, wrap) is ours.",
   },
 ];
 
@@ -115,31 +115,23 @@ export default async function PartnerPricingPage({
   if (!page) notFound();
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    /* Always dark: `.theme-dark` remaps every semantic token (globals.css),
+       so this page renders the same cinematic slate for every visitor
+       regardless of their app theme or OS setting. */
+    <div className="theme-dark min-h-screen bg-background text-foreground">
       <div className="mx-auto max-w-5xl px-6 py-12 sm:py-16">
         {/* Hero */}
         <header className="space-y-6">
           <div className="flex flex-wrap items-center justify-between gap-4">
-            {/* App dark mode is the `.theme-dark` class (see ThemeProvider),
-                not the OS `prefers-color-scheme` that Tailwind's `dark:`
-                variant targets — key the wordmark swap off the class.
-                Asset names describe their own ink: `-dark.png` is navy text
-                (for light surfaces), `-light.png` is white text (for dark). */}
-            <Image
-              src="/brand/bright-blue-wordmark-dark.png"
-              alt="Bright.Blue"
-              width={150}
-              height={40}
-              priority
-              className="h-8 w-auto [.theme-dark_&]:hidden"
-            />
+            {/* Page is dark-only; `-light.png` is the white-ink wordmark
+                (asset names describe their own ink, not the background). */}
             <Image
               src="/brand/bright-blue-wordmark-light.png"
               alt="Bright.Blue"
               width={150}
               height={40}
               priority
-              className="hidden h-8 w-auto [.theme-dark_&]:block"
+              className="h-8 w-auto"
             />
             <Badge variant="outline" className="text-xs">
               Prepared for {page.partner} · {page.show}
@@ -147,13 +139,13 @@ export default async function PartnerPricingPage({
           </div>
           <div className="space-y-4">
             <h1 className="text-display-grotesk text-4xl leading-tight sm:text-5xl">
-              A new inventory line for NRS —
+              A new inventory line for NRS,
               <br className="hidden sm:block" /> priced in your own language
             </h1>
             <p className="max-w-2xl text-lg text-muted-foreground">
               Interactive brand machines with lead capture, live dashboards and
               post-show reporting, sold through your prospectus like any other
-              sponsorship line. The numbers below are live — drag them and see
+              sponsorship line. The numbers below are live. Drag them and see
               what the programme earns.
             </p>
           </div>
@@ -179,7 +171,7 @@ export default async function PartnerPricingPage({
             ))}
           </div>
           <p className="mt-3 text-sm text-muted-foreground">
-            The Europa, in the wild — every placement ships fully wrapped in
+            The Europa in the wild. Every placement ships fully wrapped in
             the sponsor&rsquo;s creative. These are live activations, not
             renders.
           </p>
@@ -201,7 +193,7 @@ export default async function PartnerPricingPage({
             ))}
           </div>
           <p className="mt-4 text-sm text-muted-foreground">
-            Buyers at HIMSS include Slack, Salesforce, HPE and CoverMyMeds —
+            Buyers at HIMSS include Slack, Salesforce, HPE and CoverMyMeds,
             and what they bought is a wrapped vending machine with a video
             loop. The Europa is a black-box experience engine: a 55&Prime;
             interactive touchscreen that can run branded games, surveys and
@@ -213,12 +205,12 @@ export default async function PartnerPricingPage({
         {/* The three models, presented as one programme */}
         <section className="mt-14">
           <h2 className="text-heading text-xl font-bold">
-            The three models — one programme
+            The three models, one programme
           </h2>
           <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-            The three models from the briefing, kept — and run on one set of
-            commercial rails so there&rsquo;s a single agreement behind all of
-            them.
+            All three models from the briefing are kept. They run on one set
+            of commercial rails, so there&rsquo;s a single agreement behind
+            all of them.
           </p>
           <div className="mt-6">
             <NrsModelsShowcase />
@@ -235,7 +227,7 @@ export default async function PartnerPricingPage({
               <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
                 Each machine runs a rolling loop of six 10-second video slots.
                 On a fully sponsored unit, every slot carries the
-                sponsor&rsquo;s creative — sole-sponsor screen time for the
+                sponsor&rsquo;s creative: sole-sponsor screen time for the
                 entire show, in front of an audience of 55,000+ foodservice
                 professionals. On the Cross-Hall Takeover that&rsquo;s three
                 screens running the brand all show long.
@@ -271,7 +263,7 @@ export default async function PartnerPricingPage({
               <p className="mt-4 max-w-3xl text-sm text-muted-foreground">
                 For context: the NRS rate card prices <em>static</em>{" "}
                 signage at $27,500–$37,000 against a comparable audience. The screen
-                time here is dynamic, sponsor-exclusive and interactive — and
+                time here is dynamic, sponsor-exclusive and interactive, and
                 it&rsquo;s bundled inside the placement price, not sold on top.
               </p>
             </CardContent>
@@ -314,11 +306,11 @@ export default async function PartnerPricingPage({
               </h2>
               <p className="mt-2 max-w-3xl text-sm opacity-90">
                 Production capacity for up to {COMMITMENT.maxUnits} units is
-                confirmed — the only condition is time. Volumes committed{" "}
+                confirmed. The only condition is time. Volumes committed{" "}
                 {COMMITMENT.cutoffWeeks} weeks before the show give us the
                 runway for builds, creative wraps, consolidation and shipping.
                 For a mid-May show, that means locking numbers by
-                mid-November. The volume ladder above already writes down the
+                late November. The volume ladder above already writes down the
                 price of growth, so scaling never reopens the negotiation.
               </p>
             </CardContent>
@@ -328,8 +320,8 @@ export default async function PartnerPricingPage({
         <footer className="mt-14 border-t pt-6 text-sm text-muted-foreground">
           <p>
             Prepared by Bright.Blue for {page.partner}. Suggested retail bands
-            are exactly that — final pricing is yours. This page is private to
-            this link; please don&rsquo;t forward it outside the deal team.
+            are exactly that: final pricing is yours. This page is private to
+            this link, so please don&rsquo;t forward it outside the deal team.
           </p>
         </footer>
       </div>

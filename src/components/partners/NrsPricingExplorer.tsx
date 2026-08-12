@@ -130,7 +130,7 @@ export function NrsPricingExplorer() {
             />
           ) : null}
           <p className="text-xs text-muted-foreground">
-            Retail is yours to set — the ranges shown are our suggested bands,
+            Retail is yours to set. The ranges shown are our suggested bands,
             anchored to the HIMSS 2026 precedent and the NRS prospectus.
           </p>
         </CardContent>
@@ -176,13 +176,13 @@ export function NrsPricingExplorer() {
             <p className="mt-4 text-sm text-muted-foreground">
               Bright.Blue&rsquo;s 60% share ({formatUsd(deal.brightBlueShare)})
               covers the machines, creative build, on-site crew, software
-              platform, live dashboards and post-show reporting — you carry
+              platform, live dashboards and post-show reporting. You carry
               the sale, nothing else.
             </p>
             {deal.belowPilotMinimum ? (
               <p className="mt-3 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-900 [.theme-dark_&]:bg-amber-950 [.theme-dark_&]:text-amber-200">
                 The pilot commitment is {COMMITMENT.pilotMinUnits}–
-                {COMMITMENT.pilotMaxUnits} units — add placements to reach the
+                {COMMITMENT.pilotMaxUnits} units. Add placements to reach the
                 minimum.
               </p>
             ) : null}
@@ -191,7 +191,7 @@ export function NrsPricingExplorer() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Volume ladder — the price of growth, written down</CardTitle>
+            <CardTitle className="text-base">Volume ladder: the price of growth, written down</CardTitle>
           </CardHeader>
           <CardContent>
             <table className="w-full text-sm">
@@ -235,7 +235,7 @@ export function NrsPricingExplorer() {
             <p className="mt-3 text-sm text-muted-foreground">
               The split never moves. Volume is rewarded through the floor,
               because delivery economics genuinely improve at scale. Up to{" "}
-              {COMMITMENT.maxUnits} machines can be on the floor for May —
+              {COMMITMENT.maxUnits} machines can be on the floor for May, with
               volumes committed {COMMITMENT.cutoffWeeks} weeks before the show.
             </p>
           </CardContent>

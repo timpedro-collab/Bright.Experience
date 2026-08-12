@@ -19,10 +19,10 @@ const MODELS = [
     role: "The engine",
     name: "Prospectus inventory",
     retail: "$45,000–$70,000",
-    retailNote: "per unit, full show — top of band for premium positions",
+    retailNote: "per unit, full show. Top of band is for premium positions",
     accent: false,
     description:
-      "Single machines sold by your sponsorship team as prospectus line items — sitting one notch above the $37k aisle signage, except these capture leads, run games and report live. No new sales motion; it's a new line in a book your buyers already read.",
+      "Single machines sold by your sponsorship team as prospectus line items, sitting one notch above the $37k aisle signage. Except these capture leads, run games and report live. No new sales motion. It's a new line in a book your buyers already read.",
     marker: "single" as const,
   },
   {
@@ -33,7 +33,7 @@ const MODELS = [
     retailNote: "3 units: booth + 2 halls",
     accent: true,
     description:
-      "One brand owns three machines across the campus — their booth plus two hall placements — every screen running their creative, every lead feeding one live dashboard. Scarcity-capped at one per hall pairing so it stays a statement buy.",
+      "One brand owns three machines across the campus: their booth plus two hall placements. Every screen runs their creative and every lead feeds one live dashboard. Capped at one per hall pairing so it stays a statement buy.",
     marker: "takeover" as const,
   },
   {
@@ -44,7 +44,7 @@ const MODELS = [
     retailNote: "per unit, if retailed",
     accent: false,
     description:
-      "Machines in the dead-traffic corridors between the three NRS buildings — footfall nobody monetises today. Placed inside the licensed show footprint (MPEA public space carries a 15% ad-revenue commission and a signage-exclusivity risk). Run as a stated pilot that proves the campus-wide story.",
+      "Machines in the dead-traffic corridors between the three NRS buildings, footfall nobody monetises today. Placed inside the licensed show footprint (MPEA public space carries a 15% ad-revenue commission and a signage-exclusivity risk). Run as a stated pilot that proves the campus-wide story.",
     marker: "corridor" as const,
   },
 ];
@@ -255,14 +255,14 @@ function MoneyFlow() {
             <p className="text-sm font-semibold">
               40% Informa
               <span className="block text-[0.68rem] font-normal text-muted-foreground">
-                the sale — nothing else to carry
+                the sale, nothing else to carry
               </span>
             </p>
           </div>
         </div>
         <p className="mt-2 text-xs text-muted-foreground">
-          A per-unit floor protects the economics on both sides: above it,
-          package and discount however you like — below it, a placement simply
+          A per-unit floor protects the economics on both sides. Above it,
+          package and discount however you like. Below it, a placement simply
           doesn&rsquo;t ship.
         </p>
       </div>
@@ -326,9 +326,9 @@ export function NrsModelsShowcase() {
             </div>
           </div>
           <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
-            Every machine — booth, hall or corridor — feeds the same live
-            dashboard: leads, plays and engagement in real time, for the
-            sponsor and for your team. Schematic, not a floorplan.
+            Every machine, whether booth, hall or corridor, feeds the same
+            live dashboard: leads, plays and engagement in real time, for the
+            sponsor and for your team. This is a schematic, not a floorplan.
           </p>
           <div className="mt-4">
             <CampusSchematic />
@@ -341,7 +341,7 @@ export function NrsModelsShowcase() {
         <CardContent className="pt-6">
           <h3 className="text-heading text-lg font-bold">How the money flows</h3>
           <p className="mb-5 mt-2 max-w-3xl text-sm text-muted-foreground">
-            One commercial structure carries all three models — one split to
+            One commercial structure carries all three models. One split to
             agree, not three.
           </p>
           <MoneyFlow />
