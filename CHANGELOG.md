@@ -71,6 +71,11 @@ capability URL.
   two machines each) so the calculator can't express an unreal mix of
   cheap corridor units, with an explicit note that corridor placement
   rights (MPEA) sit outside this structure and are agreed separately.
+- Explorer slider thumbs now carry the campus schematic's marker key
+  (gray dot = singles, solid blue = takeover, blue outline = corridor) so
+  the diagram legend and the levers read as one system; each retail
+  slider matches its placement type. Implemented via a new optional
+  `thumbClassName` prop on the shared `Slider` primitive.
 - Post-meeting pass (12 Aug): takeover retail slider now always mounted
   (disabled at 0 bundles) — conditionally inserting it mid-drag shifted
   the layout under the cursor and read as broken sliders on the call;
