@@ -44,12 +44,14 @@ def trim_box(im):
     return left, top, right + 1, bottom + 1
 
 # Per-file extra insets (l, t, r, b) after auto-trim: kills rounded-corner
-# arcs (~14px radius) and, for 05, a sliver of a neighbouring deck photo.
+# arcs (~20px radius), residual frame lines the auto-trim's row threshold
+# misses (01 and 05 keep a partial navy line along the bottom), and, for
+# 05, a sliver of a neighbouring deck photo on the left.
 EXTRA = {
-    "01-hero-pelion.jpg": (12, 12, 12, 12),
-    "02-costa-cup.jpg": (12, 12, 12, 12),
-    "04-pepsi.jpg": (12, 12, 12, 12),
-    "05-play-to-win.jpg": (64, 12, 12, 12),
+    "01-hero-pelion.jpg": (16, 16, 16, 30),
+    "02-costa-cup.jpg": (16, 16, 16, 16),
+    "04-pepsi.jpg": (16, 16, 16, 16),
+    "05-play-to-win.jpg": (64, 16, 16, 30),
 }
 
 os.makedirs(DST, exist_ok=True)

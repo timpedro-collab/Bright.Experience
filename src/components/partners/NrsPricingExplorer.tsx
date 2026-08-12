@@ -145,28 +145,30 @@ export function NrsPricingExplorer() {
             </div>
           </CardHeader>
           <CardContent>
+            {/* flex-col + mt-auto keeps the values on one baseline even when
+                a label wraps to a second line. */}
             <dl className="grid gap-6 sm:grid-cols-3">
-              <div>
+              <div className="flex flex-col">
                 <dt className="text-xs uppercase tracking-wide text-muted-foreground">
                   Gross sponsorship revenue
                 </dt>
-                <dd className="mt-1 text-3xl font-bold tabular-nums text-heading">
+                <dd className="mt-auto pt-1 text-3xl font-bold tabular-nums text-heading">
                   {formatUsdCompact(deal.gross)}
                 </dd>
               </div>
-              <div>
+              <div className="flex flex-col">
                 <dt className="text-xs uppercase tracking-wide text-muted-foreground">
                   Informa retains (40%)
                 </dt>
-                <dd className="mt-1 text-3xl font-bold tabular-nums text-primary">
+                <dd className="mt-auto pt-1 text-3xl font-bold tabular-nums text-primary">
                   {formatUsdCompact(deal.partnerKeeps)}
                 </dd>
               </div>
-              <div>
+              <div className="flex flex-col">
                 <dt className="text-xs uppercase tracking-wide text-muted-foreground">
                   Retained per machine
                 </dt>
-                <dd className="mt-1 text-3xl font-bold tabular-nums text-heading">
+                <dd className="mt-auto pt-1 text-3xl font-bold tabular-nums text-heading">
                   {formatUsdCompact(deal.partnerKeepsPerUnit)}
                 </dd>
               </div>

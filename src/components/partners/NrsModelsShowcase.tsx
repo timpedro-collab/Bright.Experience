@@ -297,7 +297,9 @@ export function NrsModelsShowcase() {
                 Recommended retail
               </p>
               <p className="text-2xl font-bold tabular-nums">{model.retail}</p>
-              <p className="text-xs text-muted-foreground">{model.retailNote}</p>
+              {/* min-h-8 reserves two text-xs lines so a wrapping note doesn't
+                  push this card's description out of line with its siblings. */}
+              <p className="min-h-8 text-xs text-muted-foreground">{model.retailNote}</p>
               <p className="mt-3 text-sm text-muted-foreground">{model.description}</p>
             </CardContent>
           </Card>

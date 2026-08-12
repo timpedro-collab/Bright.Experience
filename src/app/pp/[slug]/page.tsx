@@ -235,28 +235,30 @@ export default async function PartnerPricingPage({
                 professionals. On the Cross-Hall Takeover that&rsquo;s three
                 screens running the brand all show long.
               </p>
+              {/* flex-col + mt-auto keeps the values level even when a
+                  label wraps to a second line at narrow widths. */}
               <dl className="mt-5 grid gap-6 sm:grid-cols-3">
-                <div>
+                <div className="flex flex-col">
                   <dt className="text-xs uppercase tracking-wide text-muted-foreground">
                     Video slots per screen
                   </dt>
-                  <dd className="mt-1 text-3xl font-bold tabular-nums text-heading">
+                  <dd className="mt-auto pt-1 text-3xl font-bold tabular-nums text-heading">
                     6 × 10s
                   </dd>
                 </div>
-                <div>
+                <div className="flex flex-col">
                   <dt className="text-xs uppercase tracking-wide text-muted-foreground">
                     Creative plays per show
                   </dt>
-                  <dd className="mt-1 text-3xl font-bold tabular-nums text-heading">
+                  <dd className="mt-auto pt-1 text-3xl font-bold tabular-nums text-heading">
                     ~1,800
                   </dd>
                 </div>
-                <div>
+                <div className="flex flex-col">
                   <dt className="text-xs uppercase tracking-wide text-muted-foreground">
                     Audience on the floor
                   </dt>
-                  <dd className="mt-1 text-3xl font-bold tabular-nums text-primary">
+                  <dd className="mt-auto pt-1 text-3xl font-bold tabular-nums text-primary">
                     55,000+
                   </dd>
                 </div>

@@ -129,4 +129,12 @@ describe("USD formatting", () => {
     expect(formatUsdCompact(2_000_000)).toBe("$2m");
     expect(formatUsdCompact(950)).toBe("$950");
   });
+
+  it("keeps derived per-unit figures consistent with their totals", () => {
+    // $392k retained across 20 machines is $19.6k each — rounding it to
+    // "$20k" makes the three headline stats visibly disagree.
+    expect(formatUsdCompact(19_600)).toBe("$19.6k");
+    expect(formatUsdCompact(20_000)).toBe("$20k");
+    expect(formatUsdCompact(392_000)).toBe("$392k");
+  });
 });

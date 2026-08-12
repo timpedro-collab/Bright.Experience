@@ -120,12 +120,22 @@ export function formatUsd(value: number): string {
   }).format(value);
 }
 
-/** "$450k" / "$1.2m" — compact USD for stat headlines. */
+/**
+ * "$450k" / "$19.6k" / "$1.2m" — compact USD for stat headlines.
+ * Sub-$100k values keep one decimal so derived figures stay consistent
+ * with their totals (e.g. $392k across 20 machines is $19.6k, not $20k).
+ */
 export function formatUsdCompact(value: number): string {
   if (Math.abs(value) >= 1_000_000) {
     const m = value / 1_000_000;
     return `$${m % 1 === 0 ? m.toFixed(0) : m.toFixed(1)}m`;
   }
-  if (Math.abs(value) >= 1_000) return `$${Math.round(value / 1_000)}k`;
+  if (Math.abs(value) >= 1_000) {
+    const k =
+      Math.abs(value) < 100_000
+        ? Math.round(value / 100) / 10
+        : Math.round(value / 1_000);
+    return `$${k % 1 === 0 ? k.toFixed(0) : k.toFixed(1)}k`;
+  }
   return formatUsd(value);
 }
