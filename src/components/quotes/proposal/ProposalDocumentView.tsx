@@ -6,6 +6,7 @@
  * is complete we show a "book your 15-minute walkthrough" card instead of the
  * price, so pricing is always discussed on a call first.
  */
+import Image from "next/image";
 import {
   ArrowDown,
   CalendarClock,
@@ -40,6 +41,36 @@ import {
 } from "@/lib/proposals/build-proposal";
 import { ProposalActions } from "./ProposalActions";
 import { ProposalExplorer } from "./ProposalExplorer";
+import { VolumeLadderCard } from "./VolumeLadderCard";
+
+/**
+ * Live activation photography for the cover strip — real wrapped machines
+ * (same cleaned assets as the partner microsite gallery), shown before any
+ * number on the page. `position` keeps the machine in frame when landscape
+ * shots are cropped into the portrait tiles.
+ */
+const COVER_PHOTOS = [
+  {
+    src: "/partners/nrs/gallery/01-hero-pelion.jpg",
+    alt: "Machine fully wrapped in sponsor branding at a live activation",
+    position: "55% 50%",
+  },
+  {
+    src: "/partners/nrs/gallery/02-costa-cup.jpg",
+    alt: "Costa-branded machine activation with custom cup creative",
+    position: "100% 50%",
+  },
+  {
+    src: "/partners/nrs/gallery/04-pepsi.jpg",
+    alt: "Pepsi-branded machine on an event floor",
+    position: "50% 50%",
+  },
+  {
+    src: "/partners/nrs/gallery/05-play-to-win.jpg",
+    alt: "Machine running a play-to-win interactive game screen",
+    position: "50% 50%",
+  },
+];
 
 interface ProposalDocumentViewProps {
   doc: ProposalDocument;
@@ -54,6 +85,8 @@ interface ProposalDocumentViewProps {
   /** Benchmark-backed ranges from comparable activations; null when none. */
   expectedPlays?: Expectation | null;
   expectedLeads?: Expectation | null;
+  /** When true, show the multi-event volume ladder (flag-gated on the page). */
+  showVolumeLadder?: boolean;
 }
 
 function ReachStat({
@@ -113,6 +146,7 @@ export function ProposalDocumentView({
   validity,
   expectedPlays,
   expectedLeads,
+  showVolumeLadder = false,
 }: ProposalDocumentViewProps) {
   return (
     <div className="space-y-20 md:space-y-28">
@@ -148,6 +182,29 @@ export function ProposalDocumentView({
             </span>
           </p>
         )}
+        {/* Photos first: real wrapped machines before any number on the page —
+            the same product-leads ordering proven on the partner microsite. */}
+        <div className="mx-auto mt-10 grid max-w-3xl grid-cols-4 gap-3">
+          {COVER_PHOTOS.map((photo) => (
+            <div
+              key={photo.src}
+              className="relative aspect-[3/4] overflow-hidden rounded-[var(--radius-card)] border border-border/60"
+            >
+              <Image
+                src={photo.src}
+                alt={photo.alt}
+                fill
+                sizes="(max-width: 768px) 25vw, 12rem"
+                className="object-cover"
+                style={{ objectPosition: photo.position }}
+              />
+            </div>
+          ))}
+        </div>
+        <p className="mx-auto mt-3 max-w-2xl text-xs text-muted-foreground">
+          Real activations, not renders. Every machine ships fully wrapped in
+          your creative.
+        </p>
         <div className="mx-auto mt-10 flex max-w-2xl flex-wrap items-stretch justify-center gap-3">
           {doc.cover.facts.map((f) => (
             <div
@@ -488,6 +545,10 @@ export function ProposalDocumentView({
               baseFeePence={doc.investment.feePence}
               selectedAddonSlugs={doc.recommendedAddons.map((a) => a.slug)}
             />
+            {/* Flag-gated: ladder discounts are placeholders pending owner sign-off. */}
+            {showVolumeLadder ? (
+              <VolumeLadderCard baseFeePence={doc.investment.feePence} />
+            ) : null}
             <ProposalActions quoteId={quoteId} canRespond={canRespond} />
           </>
         ) : (

@@ -9,6 +9,7 @@
  * deck-visible numbers only.
  */
 
+import { SplitFlow } from "@/components/brand/SplitFlow";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
@@ -242,24 +243,21 @@ function MoneyFlow() {
         </div>
       </div>
       <div>
-        <div className="flex h-14 w-full overflow-hidden rounded-xl border">
-          <div className="flex w-[70%] items-center justify-center bg-primary px-3 text-center">
-            <p className="text-sm font-semibold text-primary-foreground">
-              70% Bright.Blue
-              <span className="block text-[0.68rem] font-normal opacity-85">
-                machines · creative · crew · platform · reporting
-              </span>
-            </p>
-          </div>
-          <div className="flex w-[30%] items-center justify-center bg-muted px-3 text-center">
-            <p className="text-sm font-semibold">
-              30% Informa
-              <span className="block text-[0.68rem] font-normal text-muted-foreground">
-                the sale, nothing else to carry
-              </span>
-            </p>
-          </div>
-        </div>
+        <SplitFlow
+          segments={[
+            {
+              label: "70% Bright.Blue",
+              fraction: 0.7,
+              caption: "machines · creative · crew · platform · reporting",
+              emphasis: true,
+            },
+            {
+              label: "30% Informa",
+              fraction: 0.3,
+              caption: "the sale, nothing else to carry",
+            },
+          ]}
+        />
         <p className="mt-2 text-xs text-muted-foreground">
           A per-unit floor protects the economics on both sides. Above it,
           package and discount however you like. Below it, a placement simply

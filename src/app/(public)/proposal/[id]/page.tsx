@@ -25,7 +25,10 @@ import { ChampionSummaryCard } from "@/components/quotes/proposal/ChampionSummar
 import { buildProposalJourney } from "@/lib/proposals/proposal-extras";
 import { AcceptedAddOns } from "@/components/quotes/proposal/AcceptedAddOns";
 import { PostAcceptBanner } from "@/components/quotes/PostAcceptBanner";
-import { shouldAutoProvisionQuote } from "@/lib/booking-flags";
+import {
+  isVolumeLadderCustomerVisible,
+  shouldAutoProvisionQuote,
+} from "@/lib/booking-flags";
 import { walkthroughUrlFor } from "@/lib/calcom";
 import { recordLoopEvent } from "@/server/loop-events";
 
@@ -116,6 +119,7 @@ export default async function ProposalDetailPage({ params }: PageProps) {
 
   // Endowed progress: the reader arrives at step 2 of 4, not at zero.
   const journey = buildProposalJourney(quote);
+  const showVolumeLadder = isVolumeLadderCustomerVisible();
 
   return (
     <Section className="relative" spacing="md">
@@ -153,6 +157,7 @@ export default async function ProposalDetailPage({ params }: PageProps) {
           validity={validity}
           expectedPlays={expectedPlays}
           expectedLeads={expectedLeads}
+          showVolumeLadder={showVolumeLadder}
         />
 
         {/* Post-acceptance: the warmest moment to add a layer. */}

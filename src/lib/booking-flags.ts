@@ -22,3 +22,13 @@ export function shouldAutoProvisionQuote(): boolean {
   const flag = process.env.BOOKING_AUTO_PROVISION;
   return flag === "true" || flag === "1";
 }
+
+/**
+ * Whether the multi-event volume ladder is shown to customers on proposals.
+ * Defaults OFF: the ladder's discount rungs are placeholders pending owner
+ * sign-off (OWNER-TODO.md "Pricing & packaging"). Internal surfaces always
+ * show the ladder, labelled as draft.
+ */
+export function isVolumeLadderCustomerVisible(): boolean {
+  return process.env.VOLUME_LADDER_CUSTOMER_VISIBLE === "true";
+}

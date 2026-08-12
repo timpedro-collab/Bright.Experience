@@ -147,6 +147,30 @@ export default async function MachineDetailPage({ params }: PageProps) {
         </Container>
       </Section>
 
+      {/* Photos first: real activations directly after the hero, before any
+          spec tables — the product sells harder than the spec sheet. */}
+      {(() => {
+        const raw = (machine.gallery_urls as string[] | null) ?? [];
+        const galleryItems: MediaItem[] = raw.map((url) => ({
+          url,
+          type: (url.endsWith(".mp4") || url.endsWith(".webm") ? "video" : "image") as "video" | "image",
+        }));
+        if (galleryItems.length === 0) return null;
+        return (
+          <Section className="border-b border-border/60">
+            <Container>
+              <div className="mb-6">
+                <p className="text-overline text-muted-foreground mb-2">Gallery</p>
+                <h2 className="text-heading text-3xl font-bold text-foreground md:text-4xl">
+                  See it in action
+                </h2>
+              </div>
+              <MediaGallery items={galleryItems} />
+            </Container>
+          </Section>
+        );
+      })()}
+
       {(() => {
         const capacity = (machine.capacity_label as string | null) ?? null;
         const mechanisms = (machine.mechanisms as string[] | null) ?? [];
@@ -249,28 +273,6 @@ export default async function MachineDetailPage({ params }: PageProps) {
                   </div>
                 )}
               </div>
-            </Container>
-          </Section>
-        );
-      })()}
-
-      {(() => {
-        const raw = (machine.gallery_urls as string[] | null) ?? [];
-        const galleryItems: MediaItem[] = raw.map((url) => ({
-          url,
-          type: (url.endsWith(".mp4") || url.endsWith(".webm") ? "video" : "image") as "video" | "image",
-        }));
-        if (galleryItems.length === 0) return null;
-        return (
-          <Section className="border-b border-border/60">
-            <Container>
-              <div className="mb-6">
-                <p className="text-overline text-muted-foreground mb-2">Gallery</p>
-                <h2 className="text-heading text-3xl font-bold text-foreground md:text-4xl">
-                  See it in action
-                </h2>
-              </div>
-              <MediaGallery items={galleryItems} />
             </Container>
           </Section>
         );

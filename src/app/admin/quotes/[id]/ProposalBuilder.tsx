@@ -14,6 +14,12 @@ import { formatMoneyFromPence, formatNumberUS } from "@/lib/currency";
 import { timelineLabel } from "@/components/catalog/quiz/quiz-data";
 import { referralSourceLabel } from "@/lib/referral-source";
 import { Plus, Trash2, Eye, Users, MapPin } from "lucide-react";
+import {
+  VOLUME_LADDER,
+  formatDiscount,
+  ladderedFeePence,
+} from "@/lib/pricing/volume-ladder";
+import { formatGBP } from "@/lib/roi";
 
 interface LineItem { label: string; amount: string; category: string }
 
@@ -127,6 +133,8 @@ export function ProposalBuilder({ quote }: ProposalBuilderProps) {
             </div>
           </CardContent>
         </Card>
+
+        <VolumeLadderReference baseFeePence={total} />
 
         <Card>
           <CardHeader><CardTitle className="text-base">Proposal Notes</CardTitle></CardHeader>
@@ -250,5 +258,42 @@ function BlockRow({ label, value }: { label: string; value: string }) {
       <span className="block text-muted-foreground">{label}</span>
       <p className="text-foreground leading-snug">{value}</p>
     </div>
+  );
+}
+
+/** Read-only draft volume ladder for internal quote building. */
+function VolumeLadderReference({ baseFeePence }: { baseFeePence: number }) {
+  const showFees = baseFeePence > 0;
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">Volume ladder (draft)</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-1.5 text-sm">
+        {VOLUME_LADDER.map((rung) => {
+          const line =
+            rung.discount === 0
+              ? "First activation: list price"
+              : `${rung.label}: ${formatDiscount(rung.discount)} off`;
+          const fee = showFees
+            ? formatGBP(ladderedFeePence(baseFeePence, rung.minEvents) / 100)
+            : null;
+
+          return (
+            <p key={rung.label} className="text-foreground">
+              {line}
+              {fee ? (
+                <span className="text-muted-foreground"> · {fee}</span>
+              ) : null}
+            </p>
+          );
+        })}
+        <p className="pt-2 text-xs text-muted-foreground leading-relaxed">
+          Placeholder rungs pending sign-off (OWNER-TODO). Quote against them
+          directionally, not contractually.
+        </p>
+      </CardContent>
+    </Card>
   );
 }

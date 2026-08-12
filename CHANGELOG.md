@@ -4,6 +4,30 @@ All notable changes to the Bright.Experience platform are documented here.
 
 ---
 
+## [Portal pull-through, part 2: volume ladder surfaces + photos-first + SplitFlow] - 2026-08-12
+
+Closes out the portal pull-through plan (Phases 3.2, 5.1, 5.2).
+
+- **Volume ladder on both quote surfaces, honestly gated.** Internal quote
+  builder (`/admin/quotes/[id]`) always shows a "Volume ladder (draft)"
+  reference card with per-rung fees, explicitly labelled placeholder.
+  Customers only see the `VolumeLadderCard` on revealed proposals when
+  `VOLUME_LADDER_CUSTOMER_VISIBLE=true` (new flag in booking-flags,
+  documented in `.env.example`, default off until the owner signs off the
+  rungs — see OWNER-TODO).
+- **Photos first.** The proposal cover now opens with a four-tile strip of
+  real wrapped-machine activation photography (the cleaned gallery assets
+  proven on the partner microsite) before any fact chip or number, with a
+  "Real activations, not renders" caption. The machine PDP's "See it in
+  action" gallery moved from below the spec tables to directly after the
+  hero.
+- **`SplitFlow` extracted** (`src/components/brand/SplitFlow.tsx`) from the
+  NRS money-flow diagram; the NRS page renders identically through it.
+  Deliberately NOT added to venue earnings: venue rates are negotiated
+  per placement (`pricing_model_json`), so a single split bar would
+  misrepresent the deal — the component is ready for surfaces with a
+  genuine fixed split.
+
 ## [Portal pull-through: partner pricing productized + proposal explorer + media-value framing] - 2026-08-12
 
 The NRS side quest's winning mechanics pulled into the portal proper.
