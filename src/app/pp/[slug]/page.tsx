@@ -196,9 +196,11 @@ export default async function PartnerPricingPage({
             Buyers at HIMSS include Slack, Salesforce, HPE and CoverMyMeds,
             and what they bought is a wrapped vending machine with a video
             loop. The Europa is a black-box experience engine: a 55&Prime;
-            interactive touchscreen that can run branded games, surveys and
-            measured sampling, a six-slot DOOH ad loop, and live engagement
-            data behind every interaction.
+            interactive touchscreen that runs branded games, surveys, measured
+            sampling and lead capture, and carries a six-slot DOOH ad loop.
+            Every sponsor gets a live dashboard during the show and a
+            proof-of-performance report after it, which is what brings them
+            back the following year.
           </p>
         </section>
 
