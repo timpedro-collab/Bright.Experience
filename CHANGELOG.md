@@ -30,6 +30,12 @@ capability URL.
   `/catalog/machines/europa`), and an embedded-DOOH media value section
   (6×10s slots, ~1,800 plays, 55,000+ verified NRS audience) framed against
   the show's own rate card rather than street DOOH CPMs.
+- **`src/components/partners/NrsModelsShowcase.tsx`** — the three
+  go-to-market models presented visually in the partner deck's own
+  numbering (Model 1/2/3 as pilot/flagship/engine), with an SVG campus
+  placement schematic (halls, corridors, takeover trio, dashboard feeds)
+  and a money-flow diagram of the 60/40 split. Replaces the plain
+  inventory card list on `/pp/[slug]`.
 
 ---
 
