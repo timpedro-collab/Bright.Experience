@@ -67,6 +67,10 @@ capability URL.
   volume push the mix into cheaper floor tiers. All placements draw from
   the shared 50-unit fleet ceiling. "The split never moves" removed from
   the ladder footnote (it is exactly what's being negotiated).
+- Corridor lever physically capped at 4 units (two connecting corridors,
+  two machines each) so the calculator can't express an unreal mix of
+  cheap corridor units, with an explicit note that corridor placement
+  rights (MPEA) sit outside this structure and are agreed separately.
 - Post-meeting pass (12 Aug): takeover retail slider now always mounted
   (disabled at 0 bundles) — conditionally inserting it mid-drag shifted
   the layout under the cursor and read as broken sliders on the call;
