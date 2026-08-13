@@ -18,8 +18,12 @@
 -- Auth users must be created separately via the auth admin API
 -- (see seed-users.ts). This seed references those UUIDs.
 --
--- All inserts are idempotent (`on conflict do nothing`) so the seed
--- can be re-applied without crashing on re-runs.
+-- All inserts are idempotent so the seed can be re-applied without
+-- crashing or duplicating rows: tables with a unique key use
+-- `on conflict ... do nothing/update`; tables without one (child rows
+-- keyed only by a generated id) use a scoped `delete` of exactly the
+-- rows this file owns immediately before their insert. run-seed.ts
+-- runs AFTER this file and re-asserts several of these tables itself.
 -- ============================================================
 
 -- ============================================================
@@ -223,6 +227,13 @@ on conflict (id) do nothing;
 -- ============================================================
 -- CATALOG: package_addons (canonical capability slugs)
 -- ============================================================
+-- No unique key beyond the generated id, so re-runs are made idempotent
+-- by clearing the seed-owned packages' add-ons first (catalog add-ons are
+-- only ever written by this seed).
+delete from package_addons where package_id in (
+  'c2c2c2c2-c2c2-4c2c-8c2c-c2c2c2c2c2c2',
+  'c3c3c3c3-c3c3-4c3c-8c3c-c3c3c3c3c3c3',
+  'c4c4c4c4-c4c4-4c4c-8c4c-c4c4c4c4c4c4');
 insert into package_addons (package_id, name, description, price, category, capability_slug) values
   ('c2c2c2c2-c2c2-4c2c-8c2c-c2c2c2c2c2c2', 'Lead capture',                 'GDPR-compliant opted-in lead capture on every play.',              45000,  'mechanics',     'lead-capture'),
   ('c2c2c2c2-c2c2-4c2c-8c2c-c2c2c2c2c2c2', 'Live telemetry dashboard',     'Live read of leads, plays, conversions during the event.',          50000,  'reporting',     'live-telemetry'),
@@ -324,6 +335,9 @@ on conflict (id) do nothing;
 -- ============================================================
 -- MILESTONES (for evt-1)
 -- ============================================================
+-- No unique key beyond the generated id: delete-first keeps re-runs
+-- duplicate-free. run-seed.ts later does the same delete + re-insert.
+delete from milestones where event_id = 'e1111111-1111-1111-1111-111111111111';
 insert into milestones (event_id, name, stage, status, target_date, completed_at, sort_order) values
   ('e1111111-1111-1111-1111-111111111111', 'Event Confirmed',          'confirmed',            'complete',    '2026-05-06', '2026-03-01T10:00:00Z', 0),
   ('e1111111-1111-1111-1111-111111111111', 'Kickoff Complete',         'kickoff_complete',      'complete',    '2026-05-13', '2026-03-15T14:00:00Z', 1),
@@ -347,9 +361,17 @@ insert into tasks (id, event_id, title, description, task_type, category, status
   ('11111111-1111-4111-8111-111111111105', 'e1111111-1111-1111-1111-111111111111', 'Provide onsite contact details', 'Name, phone, and email for the person on site during the event', 'customer_action', 'logistics', 'pending', 'medium', null, '2026-05-01', null, false, true, 4, 'operations_lead', 'logistics'),
   ('11111111-1111-4111-8111-111111111106', 'e1111111-1111-1111-1111-111111111111', 'Design wrap concept', null, 'internal_action', 'creative', 'pending', 'high', '33333333-3333-3333-3333-333333333333', '2026-04-20', null, true, false, 5, 'creative_lead', 'studio'),
   ('11111111-1111-4111-8111-111111111107', 'e1111111-1111-1111-1111-111111111111', 'Configure game logic', null, 'internal_action', 'development', 'pending', 'medium', '55555555-5555-5555-5555-555555555555', '2026-05-15', null, false, false, 6, 'admin', 'configuration'),
-  ('11111111-1111-4111-8111-111111111108', 'e1111111-1111-1111-1111-111111111111', 'Arrange logistics and transport', null, 'internal_action', 'logistics', 'pending', 'medium', '44444444-4444-4444-4444-444444444444', '2026-06-30', null, false, false, 7, 'operations_lead', 'logistics');
+  ('11111111-1111-4111-8111-111111111108', 'e1111111-1111-1111-1111-111111111111', 'Arrange logistics and transport', null, 'internal_action', 'logistics', 'pending', 'medium', '44444444-4444-4444-4444-444444444444', '2026-06-30', null, false, false, 7, 'operations_lead', 'logistics')
+on conflict (id) do nothing;
 
--- Generic tasks for other events
+-- Generic tasks for other events. No explicit ids, so delete-first keeps
+-- re-runs duplicate-free; run-seed.ts later re-asserts these same events'
+-- tasks with the same delete + re-insert pattern.
+delete from tasks where event_id in (
+  'e2222222-2222-2222-2222-222222222222',
+  'e3333333-3333-3333-3333-333333333333',
+  'e4444444-4444-4444-4444-444444444444',
+  'e5555555-5555-5555-5555-555555555555');
 insert into tasks (event_id, title, task_type, category, status, priority, due_date, is_blocking, customer_visible, sort_order, assigned_role, target_path) values
   ('e2222222-2222-2222-2222-222222222222', 'Upload brand assets',           'customer_action', 'creative',   'pending', 'high',   '2026-04-20', true,  true, 0, 'creative_lead', 'assets'),
   ('e2222222-2222-2222-2222-222222222222', 'Complete creative briefing form','customer_action', 'admin',      'pending', 'medium', '2026-04-25', false, true, 1, 'events_lead',   'briefing'),
@@ -408,7 +430,8 @@ on conflict (id) do nothing;
 insert into approvals (id, event_id, title, description, approval_type, status, preview_url, requested_by, requested_at, decided_at, feedback, revision_count) values
   ('ab111111-1111-1111-1111-111111111111', 'e2222222-2222-2222-2222-222222222222', 'Wrap Design', 'Machine wrap design for the Galaxy Launch Experience', 'wrap', 'pending', '/catalog/case-studies/costa-matcha/03-prize-selection.png', '33333333-3333-3333-3333-333333333333', '2026-03-28T14:00:00Z', null, 'Previous version had incorrect blue shade. Updated to Galaxy Blue #1428A0.', 1),
   ('ab222222-2222-2222-2222-222222222222', 'e2222222-2222-2222-2222-222222222222', 'Game Flow', 'Interactive game sequence for the Bright.Play activation', 'game_flow', 'approved', null, '33333333-3333-3333-3333-333333333333', '2026-03-20T10:00:00Z', '2026-03-22T16:30:00Z', null, 0),
-  ('ab333333-3333-3333-3333-333333333333', 'e2222222-2222-2222-2222-222222222222', 'Webform Design', 'Data capture form for lead generation', 'webform', 'pending', null, '33333333-3333-3333-3333-333333333333', '2026-03-30T09:00:00Z', null, null, 0);
+  ('ab333333-3333-3333-3333-333333333333', 'e2222222-2222-2222-2222-222222222222', 'Webform Design', 'Data capture form for lead generation', 'webform', 'pending', null, '33333333-3333-3333-3333-333333333333', '2026-03-30T09:00:00Z', null, null, 0)
+on conflict (id) do nothing;
 
 -- ============================================================
 -- PARTNERS + USERS
@@ -448,13 +471,17 @@ on conflict (id) do nothing;
 -- ============================================================
 -- BENCHMARKS (industry baselines for the recommendations + reports)
 -- ============================================================
+-- benchmarks has a real unique key (benchmarks_scope_metric_key, added in
+-- 20260728000006) and the updateBenchmarks recompute upserts against it, so
+-- on-conflict is used here — a table-wide delete would wipe recomputed rows.
 insert into benchmarks (event_type, location_tier, machine_type, metric_name, avg_value, median_value, p25_value, p75_value, sample_size) values
   ('activation',  'tier_1', 'Bright.Play',     'plays_per_day',      275,  270,  250,  300, 28),
   ('activation',  'tier_2', 'Bright.Play',     'plays_per_day',      205,  200,  175,  235, 19),
   ('activation',  'tier_1', 'Bright.Play',     'leads_per_day',      212,  208,  185,  240, 28),
   ('activation',  'tier_2', 'Bright.Play',     'leads_per_day',      154,  150,  128,  180, 19),
   ('sampling',    'tier_1', 'Bright.Vend Pro', 'samples_per_day',    270,  265,  245,  295, 22),
-  ('sampling',    'tier_2', 'Bright.Vend Pro', 'samples_per_day',    200,  195,  170,  230, 17);
+  ('sampling',    'tier_2', 'Bright.Vend Pro', 'samples_per_day',    200,  195,  170,  230, 17)
+on conflict (event_type, location_tier, machine_type, game_type, metric_name) do nothing;
 
 -- TELEMETRY + LEADS: live-feed demo data lives on the organizer world's
 -- Tech Live London show (below), which runs "now" in the anchor frame.
@@ -470,6 +497,9 @@ insert into quotes (id, account_id, track, status, contact_name, contact_email, 
   ('22222222-2222-4222-8222-222222222220', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'proposal', 'proposal_sent', 'Aisha Khan',  'aisha@samsung.example',   'Samsung Electronics', 'activation', 'M1', '2026-10-03', '2026-10-07', 'Bright.Play',     'Photo Booth Pro','15000-20000', '["live-telemetry","linkedin-follow","survey-layer"]'::jsonb, 2750000, '2026-03-30T14:00:00Z')
 on conflict (id) do nothing;
 
+-- No unique key beyond the generated id: clear this seed-owned quote's
+-- line items first so re-runs don't duplicate them.
+delete from quote_line_items where quote_id = '22222222-2222-4222-8222-222222222220';
 insert into quote_line_items (quote_id, label, description, amount, category, sort_order) values
   ('22222222-2222-4222-8222-222222222220', 'Bright.Play — 5-day activation', 'Includes hardware, ops, creative production', 2200000, 'hardware', 0),
   ('22222222-2222-4222-8222-222222222220', 'Logistics + travel',             'Multi-day on-site team',                       250000, 'logistics', 1),
@@ -483,6 +513,11 @@ insert into quote_line_items (quote_id, label, description, amount, category, so
 -- proposal)
 -- ============================================================
 -- Commission is stored in integer cents (10% of the $27,500 deal = $2,750).
+-- No unique key beyond the generated id: clear the attributions on these two
+-- seed-owned quotes first so re-runs don't duplicate them.
+delete from partner_attributions where quote_id in (
+  '22222222-2222-4222-8222-222222222220',
+  '21212121-2121-4121-8121-212121212121');
 insert into partner_attributions (partner_id, quote_id, event_id, commission_amount, commission_status) values
   ('e0e0e0e0-e0e0-4e0e-8e0e-e0e0e0e0e0e0', '22222222-2222-4222-8222-222222222220', 'e5555555-5555-5555-5555-555555555555', 275000, 'pending'),
   ('e2e2e2e2-e2e2-4e2e-8e2e-e2e2e2e2e2e2', '21212121-2121-4121-8121-212121212121', 'e6666666-6666-6666-6666-666666666666', 120000, 'paid');
@@ -495,16 +530,22 @@ insert into partner_attributions (partner_id, quote_id, event_id, commission_amo
 -- BRIEFING + QA + LOGISTICS for evt-1 to make every internal
 -- ops surface render with real data.
 -- ============================================================
+-- briefing_responses has unique(event_id, form_type), so on-conflict applies.
 insert into briefing_responses (event_id, form_type, responses, is_submitted, submitted_by, submitted_at) values
   ('e1111111-1111-1111-1111-111111111111', 'creative', '{"primaryAudience":"Festival-goers 18-35","brandPillars":["Refresh","Optimism","Togetherness"]}'::jsonb, true, '22222222-2222-2222-2222-222222222222', '2026-03-20T15:00:00Z'),
-  ('e1111111-1111-1111-1111-111111111111', 'ops',      '{"venueContact":"James Chen","onSiteHours":"08:00-22:00","accessNotes":"Vehicle entry via Park Lane gate"}'::jsonb, false, null, null);
+  ('e1111111-1111-1111-1111-111111111111', 'ops',      '{"venueContact":"James Chen","onSiteHours":"08:00-22:00","accessNotes":"Vehicle entry via Park Lane gate"}'::jsonb, false, null, null)
+on conflict (event_id, form_type) do nothing;
 
+-- qa_items / logistics_entries have no unique key beyond the generated id:
+-- delete-first, scoped to the demo event, keeps re-runs duplicate-free.
+delete from qa_items where event_id = 'e1111111-1111-1111-1111-111111111111';
 insert into qa_items (event_id, category, title, description, status, sort_order) values
   ('e1111111-1111-1111-1111-111111111111', 'machine',     'Touchscreen calibration',         'Confirm touch accuracy after wrap install.',     'pending', 0),
   ('e1111111-1111-1111-1111-111111111111', 'game_logic',  'Lead capture form submission',    'End-to-end test of submitting a lead.',          'pending', 1),
   ('e1111111-1111-1111-1111-111111111111', 'wrap',        'Wrap colour calibration',         'Pantone match against approved sample.',         'pending', 2),
   ('e1111111-1111-1111-1111-111111111111', 'machine',     'On-site 4G fallback',             'Confirm cellular failover when wifi drops.',     'pending', 3);
 
+delete from logistics_entries where event_id = 'e1111111-1111-1111-1111-111111111111';
 insert into logistics_entries (event_id, entry_type, title, description, scheduled_date, scheduled_time, status, contact_name, contact_phone, sort_order) values
   ('e1111111-1111-1111-1111-111111111111', 'delivery', 'Hardware delivery',  'Two Bright.Vend Pro machines + wrap.',  '2026-07-14', '08:00', 'pending', 'Dan Barnes', '+44 7700 900123', 0),
   ('e1111111-1111-1111-1111-111111111111', 'setup',    'On-site setup',      'Configure machines + connectivity.',     '2026-07-14', '10:00', 'pending', 'Dan Barnes', '+44 7700 900123', 1),
@@ -515,7 +556,8 @@ insert into logistics_entries (event_id, entry_type, title, description, schedul
 -- ============================================================
 insert into studio_requests (id, event_id, service_type, title, description, status, estimated_days, estimated_cost, created_by, created_at) values
   ('40404040-4040-4040-8040-404040404040', 'e2222222-2222-2222-2222-222222222222', 'video', 'Hype reel for Galaxy Launch',
-    'Pre-event hype reel for the social rollout. 30s, 9:16.', 'submitted', 5, 145000, '22222222-2222-2222-2222-222222222222', '2026-03-25T11:00:00Z');
+    'Pre-event hype reel for the social rollout. 30s, 9:16.', 'submitted', 5, 145000, '22222222-2222-2222-2222-222222222222', '2026-03-25T11:00:00Z')
+on conflict (id) do nothing;
 
 -- ============================================================
 -- ORGANIZER WORLD (mirrors src/lib/supabase/mock/extra.ts)
@@ -591,6 +633,10 @@ insert into deal_registrations (id, partner_id, event_id, quote_id, sponsor_comp
 on conflict (id) do nothing;
 
 -- Show-floor activity for the live edition ("today" relative to now()).
+-- No usable unique key (external_event_id is null on these demo rows) and the
+-- timestamps are now()-relative, so re-runs reset this demo show's feed:
+-- delete the show's telemetry first, then insert a fresh batch.
+delete from telemetry_events where event_id = 'e7777777-7777-7777-7777-777777777777';
 insert into telemetry_events (machine_instance_id, event_id, event_type, payload_json, "timestamp") values
   ('e7000000-0000-4000-8000-000000000001', 'e7777777-7777-7777-7777-777777777777', 'play_started',   '{"session":"t1"}'::jsonb, now() - interval '4 hours'),
   ('e7000000-0000-4000-8000-000000000001', 'e7777777-7777-7777-7777-777777777777', 'lead_captured',  '{"session":"t1","source":"badge_scan"}'::jsonb, now() - interval '4 hours' + interval '1 minute'),
