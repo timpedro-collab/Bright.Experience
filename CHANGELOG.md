@@ -4,6 +4,47 @@ All notable changes to the Bright.Experience platform are documented here.
 
 ---
 
+## [Full-portal audit, wave 1: messages, nudges, booking hygiene, seed truth] - 2026-08-13
+
+Foundations + fix wave from the whole-portal correctness audit (journey
+walk-throughs by role follow as wave 2).
+
+- **Internal notes no longer leak to customers.** Internal-only event
+  messages now dispatch a dedicated `message.internal_note` archetype
+  (`audience: internal`); customer-facing `message.received` fires only for
+  real thread messages and emails immediately instead of waiting for the
+  digest. The Messages tab shows an unread-count badge for every role,
+  cleared on opening the thread (`MarkThreadRead`). The notification
+  settings page now hides archetypes the viewer's audience can never
+  receive.
+- **The proposal follow-up chase actually sends.** `proposal.delivered`
+  resolved to `customer_admins`, which is nobody for a proposal-track
+  quote (no account exists yet) — the chase silently never fired. A new
+  `quote_contact` resolver targets the intake contact email as an
+  email-only recipient; the reminder ledger's `recipient_id` was relaxed
+  from uuid+FK to text (migration applied to production) so synthetic ids
+  dedupe correctly. New `proposal.walkthrough_missed` no-show reminder:
+  booked walkthroughs 2+ hours past their slot with no completion mark get
+  a gentle rebook email (4h first nudge, 48h interval, max 2).
+- **Digest cron made honest about its schedule.** Vercel Hobby rejects
+  hourly crons, so `shouldSendDigest` gained a mode: `daily` (default,
+  matches the deployed `0 10 * * *`) sends everyone due on the single tick;
+  `hourly` (`DIGEST_CRON_MODE`, for a Pro-plan upgrade) keeps exact
+  local-hour targeting. Settings copy updated to best-effort wording.
+- **Quote lifecycle cleaned.** Statuses `preparing`,
+  `walkthrough_scheduled` and `delivered` (allowed but never written)
+  dropped from the DB check constraint (migration applied to production);
+  phantom `booked` removed from the conversion allow-lists.
+- **No more placeholder Cal.com links.** `walkthroughUrlFor` returns null
+  when no link is configured; the proposal page falls back to the in-app
+  `WalkthroughScheduler` inline, and the proposal email + fallback booker
+  copy no longer promise a calendar invite that never comes.
+- **Seed truth.** Five new persona logins (break-glass admin, junior
+  customer, junior partner member, Northern Events reseller, Kings Cross
+  venue) created in production and `seed-users.ts`; login pills corrected;
+  `seed.sql` made genuinely idempotent (ON CONFLICT or scoped delete-first
+  on every insert, matching its header claim).
+
 ## [Portal pull-through, part 2: volume ladder surfaces + photos-first + SplitFlow] - 2026-08-12
 
 Closes out the portal pull-through plan (Phases 3.2, 5.1, 5.2).

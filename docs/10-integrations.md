@@ -373,7 +373,7 @@ Auth is **Bearer-only**: `Authorization: Bearer ${CRON_SECRET}` must match
 | Route | Schedule (`vercel.json`) | Purpose |
 |---|---|---|
 | `/api/cron/reminders` | `0 9 * * *` (daily 09:00 UTC) | Send pending notification reminders |
-| `/api/cron/digest` | `0 * * * *` (hourly) | Bundle FYI digests for recipients whose local digest hour has arrived |
+| `/api/cron/digest` | `0 10 * * *` (daily 10:00 UTC) | Bundle FYI digests. The route supports two cadences via `DIGEST_CRON_MODE`: `daily` (default, matches this schedule — the Vercel Hobby plan allows nothing more frequent) sends to everyone due on the tick, best-effort on their chosen hour; `hourly` honours each recipient's exact local digest hour and requires upgrading the schedule to `0 * * * *` on a Pro plan |
 | `/api/cron/pipedrive` | `0 * * * *` (hourly) | Drain Pipedrive outbox + time triggers |
 | `/api/cron/reports` | `0 8 * * *` + `0 18 * * *` (twice daily UTC) | Auto-draft post-event reports — the 18:00 pass drafts same-day for events ending that day (the "report beats the client back to the office" ritual) and files a same-day review task; the 08:00 pass is catch-up. Also processes scheduled exports |
 | `/api/cron/purge-leads` | `30 2 * * *` (daily 02:30 UTC) | GDPR lead retention: hard-delete leads older than each event's `retention_days` (default 60); default sweep for unconfigured events. Each purge is logged |
