@@ -46,7 +46,8 @@ export const CLIENT_LOGOS: ClientLogo[] = [
   { name: "Suntory", src: "/logos/suntory.svg", brandColor: "#004098" },
   { name: "Lucozade", src: "/logos/lucozade.png", brandColor: "#ff8200" },
   { name: "Celsius", src: "/logos/celsius.svg", brandColor: "#f47920" },
-  { name: "Pelion", src: "/logos/pelion.png", brandColor: "#00a19a" },
+  // Pelion's accent is the magenta-pink from pelion.com (#d2247c), not teal.
+  { name: "Pelion", src: "/logos/pelion.png", brandColor: "#d2247c" },
   { name: "Intact", src: "/logos/intact.png", brandColor: "#c8102e" },
   // British Insurance Brokers' Association — real BIBA Conference client. Full
   // lion + wordmark lockup; supplied asset had its white background stripped to

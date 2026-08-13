@@ -73,7 +73,7 @@ describe("CaseStudyCard", () => {
     );
     const tile = container.querySelector(".cs-brand-tile") as HTMLElement;
     expect(tile).not.toBeNull();
-    expect(tile.style.backgroundColor).toBe("#00a19a");
+    expect(tile.style.backgroundColor).toBe("#d2247c");
   });
 
   it("keeps photography untinted when a hero image exists", () => {
