@@ -84,6 +84,37 @@ describe("notifications action — markAllRead", () => {
   });
 });
 
+describe("notifications action — markEventMessagesRead", () => {
+  it("returns error when unauthenticated", async () => {
+    supabase.setUser(null);
+    const { markEventMessagesRead } = await import("./notifications");
+    const result = await markEventMessagesRead("e1");
+    expect(result.success).toBe(false);
+    if (!result.success) expect(result.error).toMatch(/authenticated/);
+  });
+
+  it("marks only this event's unread message notifications as read", async () => {
+    supabase.setUser({ id: "u1" });
+    supabase.setTableResponse("notifications", { data: null, error: null });
+    const { markEventMessagesRead } = await import("./notifications");
+    const result = await markEventMessagesRead("e1");
+    expect(result.success).toBe(true);
+    const calls = supabase.callsFor("notifications");
+    expect(calls.some((c) => c.method === "update")).toBe(true);
+    expect(
+      calls.some((c) => c.method === "eq" && c.args[0] === "event_id" && c.args[1] === "e1"),
+    ).toBe(true);
+    expect(
+      calls.some(
+        (c) =>
+          c.method === "in" &&
+          c.args[0] === "kind" &&
+          (c.args[1] as string[]).includes("message.internal_note"),
+      ),
+    ).toBe(true);
+  });
+});
+
 describe("notifications action — createNotification", () => {
   it("inserts a new notification row", async () => {
     supabase.setTableResponse("notifications", { data: null, error: null });

@@ -145,6 +145,41 @@ describe("getUnreadCount", () => {
   });
 });
 
+describe("getUnreadMessageCount", () => {
+  it("counts only unread message-kind notifications scoped to the event", async () => {
+    supabase.setTableResponse("notifications", { count: 3, error: null });
+    const { getUnreadMessageCount, MESSAGE_NOTIFICATION_KINDS } = await import(
+      "./notifications"
+    );
+    const count = await getUnreadMessageCount("u1", "e1");
+    expect(count).toBe(3);
+    const calls = supabase.callsFor("notifications");
+    expect(
+      calls.some((c) => c.method === "eq" && c.args[0] === "event_id" && c.args[1] === "e1"),
+    ).toBe(true);
+    expect(
+      calls.some((c) => c.method === "eq" && c.args[0] === "is_read" && c.args[1] === false),
+    ).toBe(true);
+    expect(
+      calls.some(
+        (c) =>
+          c.method === "in" &&
+          c.args[0] === "kind" &&
+          JSON.stringify(c.args[1]) === JSON.stringify([...MESSAGE_NOTIFICATION_KINDS]),
+      ),
+    ).toBe(true);
+  });
+
+  it("returns 0 on error", async () => {
+    supabase.setTableResponse("notifications", {
+      count: null,
+      error: { message: "boom" },
+    });
+    const { getUnreadMessageCount } = await import("./notifications");
+    await expect(getUnreadMessageCount("u1", "e1")).resolves.toBe(0);
+  });
+});
+
 describe("markNotificationRead", () => {
   it("returns false on Supabase error", async () => {
     supabase.setTableResponse("notifications", {

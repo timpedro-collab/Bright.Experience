@@ -49,7 +49,9 @@ export type NotificationKind =
   | "lead.captured_live"
   | "event.metrics_daily"
   | "message.received"
+  | "message.internal_note"
   | "comment.new"
+  | "proposal.walkthrough_missed"
   | "stage.changed"
   // System lifecycle
   | "booking.provisioned"
@@ -83,6 +85,7 @@ export type OwnerResolverKey =
   | "event_members_all"
   | "task_assignee"
   | "message_recipients"
+  | "quote_contact"
   | "asset_uploader"
   | "asset_comment_participants"
   | "approval_requester"

@@ -29,6 +29,7 @@ import { NotificationTimingForm } from "@/components/settings/NotificationTiming
 import { DEFAULT_DIGEST_TIMING } from "@/lib/notifications/digest-timing";
 
 import { getUser } from "@/lib/auth";
+import { isInternalRole } from "@/lib/roles";
 import {
   getNotificationPreferences,
   getNotificationUserSettings,
@@ -105,7 +106,10 @@ export default async function NotificationSettingsPage() {
               digest, or off.
             </p>
             <div className="mt-6">
-              <NotificationPreferencesForm initialPreferences={prefMap} />
+              <NotificationPreferencesForm
+                initialPreferences={prefMap}
+                viewerAudience={isInternalRole(user.role) ? "internal" : "customer"}
+              />
             </div>
 
             <div className="mt-8">

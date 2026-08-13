@@ -22,12 +22,17 @@ import {
 } from "@/components/brand";
 
 const DEMO_ACCOUNTS: Array<{ email: string; label: string; role: string }> = [
-  { email: "tim@brightblue.co.uk", label: "Tim Pedro", role: "Admin · Event Lead" },
-  { email: "james.chen@cocacola.com", label: "James Chen", role: "Customer" },
+  { email: "tim@brightblue.co.uk", label: "Tim Pedro", role: "Event Lead" },
+  { email: "sofia@brightblue.co.uk", label: "Sofia Reyes", role: "Admin" },
+  { email: "james.chen@cocacola.com", label: "James Chen", role: "Customer Admin" },
+  { email: "priya.sharma@cocacola.com", label: "Priya Sharma", role: "Customer" },
   { email: "theo@brightblue.co.uk", label: "Theo Roturu", role: "Creative" },
   { email: "dan@brightblue.co.uk", label: "Dan Barnes", role: "Ops" },
+  { email: "alex@brightblue.co.uk", label: "Alex Rivera", role: "QA" },
   { email: "maya@northern.events", label: "Maya Patel", role: "Reseller Partner" },
-  { email: "aaron@excel.london", label: "Aaron Howe", role: "Venue · ExCeL London" },
+  { email: "leo@northern.events", label: "Leo Grant", role: "Reseller · Member" },
+  { email: "aaron@kingsx.london", label: "Aaron Howe", role: "Venue · Kings Cross Hall" },
+  { email: "daniel@westfield-stratford.com", label: "Daniel Cole", role: "Venue · Westfield" },
   { email: "nadia@informatech.events", label: "Nadia Okafor", role: "Organizer · Tech Live London" },
 ];
 

@@ -26,6 +26,8 @@ interface EventTabNavProps {
   currentStage: Stage;
   /** Per-section completion tone for customers (green/amber/red dots). */
   sectionStatus?: SectionStatusMap;
+  /** Unread message-thread notifications — numeric badge on the Messages tab. */
+  unreadMessages?: number;
 }
 
 const STATUS_DOT: Record<Exclude<SectionStatus, "neutral">, string> = {
@@ -46,6 +48,7 @@ export function EventTabNav({
   viewerRole,
   currentStage,
   sectionStatus,
+  unreadMessages = 0,
 }: EventTabNavProps) {
   const internal = isInternalRole(viewerRole);
 
@@ -55,6 +58,7 @@ export function EventTabNav({
     const isActive = currentSection === route;
     const status = sectionStatus?.[section];
     const showDot = status && status !== "neutral";
+    const unread = section === "communications" ? unreadMessages : 0;
     return (
       <Link
         key={section}
@@ -73,6 +77,19 @@ export function EventTabNav({
         aria-current={isActive ? "page" : undefined}
       >
         {label}
+        {unread > 0 && (
+          <span
+            className={cn(
+              "inline-flex min-w-4 shrink-0 items-center justify-center rounded-full px-1 text-[0.625rem] font-semibold tabular-nums leading-4",
+              isActive
+                ? "bg-primary-foreground/90 text-primary"
+                : "bg-[var(--color-bb-cobalt)] text-white",
+            )}
+            aria-label={`${unread} unread message${unread === 1 ? "" : "s"}`}
+          >
+            {unread > 9 ? "9+" : unread}
+          </span>
+        )}
         {showDot && (
           <>
             <span

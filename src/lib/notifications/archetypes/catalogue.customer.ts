@@ -151,6 +151,34 @@ export const customerArchetypes = {
     defaults: { inPortal: true, emailMode: "immediate" },
     audience: "customer",
   },
+  // Walkthrough was booked but never happened — invite the prospect to grab
+  // another time. Kept deliberately gentle (the completed flag is set by the
+  // Cal.com webhook, or manually by the AE on the fallback booker, so a
+  // stale flag must never read as an accusation). The AE is cc'd from the
+  // first chase so a human can intervene.
+  "proposal.walkthrough_missed": {
+    kind: "proposal.walkthrough_missed",
+    classOf: "action_required",
+    priority: "high",
+    eyebrow: "Action required",
+    subjectTemplate: "Shall we find another time?",
+    bodyTemplate:
+      "Your walkthrough call for {eventName} was booked, but it looks like we didn't manage to connect. Pick another time that suits you — your tailored pricing unlocks right after the call.",
+    linkTemplate: "/proposal/{quoteId}",
+    ownerResolver: "quote_contact",
+    reminderCadence: {
+      firstAfterHours: 4,
+      intervalHours: 48,
+      maxEscalations: 2,
+      ccAccountManagerAtLevel: 1,
+    },
+    defaults: { inPortal: true, emailMode: "immediate" },
+    audience: "customer",
+  },
+  // Resolver is `quote_contact`, not `customer_admins`: proposal-track
+  // quotes have no account or portal user yet, so `customer_admins` resolves
+  // to nobody and the follow-up chase silently never sends. The contact
+  // email captured at intake is the only handle on the prospect.
   "proposal.delivered": {
     kind: "proposal.delivered",
     classOf: "action_required",
@@ -158,9 +186,9 @@ export const customerArchetypes = {
     eyebrow: "Action required",
     subjectTemplate: "Your tailored proposal is ready to review",
     bodyTemplate:
-      "Your proposal for {eventName} is live in the portal. Take a look and let us know — accept it or tell us what to adjust.",
+      "Your proposal for {eventName} is ready and waiting. Take a look and let us know — accept it or tell us what to adjust.",
     linkTemplate: "/proposal/{quoteId}",
-    ownerResolver: "customer_admins",
+    ownerResolver: "quote_contact",
     reminderCadence: {
       firstAfterHours: TWENTY_FOUR * 5,
       intervalHours: TWENTY_FOUR * 5,

@@ -64,6 +64,24 @@ describe("sendMessage", () => {
     );
   });
 
+  it("routes internal-only notes through the internal archetype so customers are never notified", async () => {
+    supabase.setUser({ id: "u1" });
+    supabase.setTableResponse("messages", { data: { id: "m2" }, error: null });
+    supabase.setTableResponse("profiles", { data: { name: "Sam" }, error: null });
+
+    const { sendMessage } = await import("./messages");
+    const result = await sendMessage("e1", "Internal heads-up", true);
+    expect(result.success).toBe(true);
+    expect(dispatchNotification).toHaveBeenCalledWith(
+      "message.internal_note",
+      expect.objectContaining({ eventId: "e1", messageId: "m2" }),
+    );
+    expect(dispatchNotification).not.toHaveBeenCalledWith(
+      "message.received",
+      expect.anything(),
+    );
+  });
+
   it("returns an error when the insert fails", async () => {
     supabase.setUser({ id: "u1" });
     supabase.setTableResponse("messages", {

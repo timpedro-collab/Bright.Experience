@@ -156,6 +156,39 @@ export async function findStaleSubjects(
       );
     }
 
+    case "proposal.walkthrough_missed": {
+      // Booked walkthroughs whose slot has passed without a completion mark.
+      // A 2-hour grace window absorbs calls that ran long or started late;
+      // the archetype's cadence (first nudge 4h after the slot) sits on top.
+      const graceCutoff = new Date(
+        Date.now() - 2 * 60 * 60 * 1000
+      ).toISOString();
+      const { data } = await supabase
+        .from("quotes")
+        .select(
+          "id, contact_name, company_name, walkthrough_scheduled_at, walkthrough_completed_at, status"
+        )
+        .in("status", ["submitted", "proposal_sent"])
+        .not("walkthrough_scheduled_at", "is", null)
+        .is("walkthrough_completed_at", null)
+        .lt("walkthrough_scheduled_at", graceCutoff);
+      return ((data ?? []) as unknown as Record<string, unknown>[]).map(
+        (r) => ({
+          kind,
+          subjectType: "quote",
+          subjectId: String(r.id),
+          anchor: String(r.walkthrough_scheduled_at),
+          context: {
+            quoteId: String(r.id),
+            contactName: String(r.contact_name),
+            eventName: (r.company_name as string) ?? "your event",
+            entityType: "quote",
+            entityId: String(r.id),
+          },
+        })
+      );
+    }
+
     case "proposal.intake_received": {
       const { data } = await supabase
         .from("quotes")

@@ -15,9 +15,6 @@
  *     at /api/webhooks/calcom (see that route for the payload contract).
  */
 
-/** Fallback event-type path used until a real Cal.com account is configured. */
-export const DEFAULT_CALCOM_LINK = "brightblue/15min";
-
 /** The configured Cal.com event-type path, or null when not set up. */
 export function getCalcomLink(): string | null {
   const link = process.env.NEXT_PUBLIC_CALCOM_LINK?.trim();
@@ -31,11 +28,14 @@ export function calcomBookingUrl(link: string): string {
 
 /**
  * Resolve the walkthrough URL for a quote: the per-quote override wins,
- * then the configured Cal.com link, then the fallback path.
+ * then the configured Cal.com link. Returns null when neither exists —
+ * callers must fall back to the in-app scheduler rather than linking a
+ * placeholder Cal.com page that 404s.
  */
-export function walkthroughUrlFor(quoteUrl?: string | null): string {
+export function walkthroughUrlFor(quoteUrl?: string | null): string | null {
   if (quoteUrl?.trim()) return quoteUrl.trim();
-  return calcomBookingUrl(getCalcomLink() ?? DEFAULT_CALCOM_LINK);
+  const link = getCalcomLink();
+  return link ? calcomBookingUrl(link) : null;
 }
 
 /**

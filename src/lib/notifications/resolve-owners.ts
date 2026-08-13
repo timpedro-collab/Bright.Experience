@@ -38,6 +38,12 @@ export interface ResolvedRecipient {
   role: string;
   /** Marks the synthetic AE fallback so callers can route email-only sends. */
   isFallbackTeamInbox?: boolean;
+  /**
+   * Recipient has no portal account (e.g. a proposal prospect known only by
+   * their quote contact email). The dispatcher must skip the in-portal lane
+   * for them — there is no profile row to attach a notification to.
+   */
+  emailOnly?: boolean;
 }
 
 /**
@@ -316,6 +322,29 @@ export async function resolveOwners(
       if (!task?.assigned_to) return [];
       const profile = await fetchProfile(task.assigned_to, supabase);
       return profile ? [profile] : [];
+    }
+
+    case "quote_contact": {
+      // Proposal-track quotes have no account or portal user yet — the only
+      // handle on the prospect is the contact email captured at intake. The
+      // recipient is email-only: no profile exists to write a portal row to.
+      if (!context.quoteId) return [];
+      const sb = await client(supabase);
+      const { data: quote } = await sb
+        .from("quotes")
+        .select("id, contact_name, contact_email")
+        .eq("id", String(context.quoteId))
+        .single();
+      if (!quote?.contact_email) return [];
+      return [
+        {
+          id: `quote-contact:${quote.id}`,
+          email: String(quote.contact_email),
+          name: String(quote.contact_name ?? "there"),
+          role: "customer_admin",
+          emailOnly: true,
+        },
+      ];
     }
 
     case "message_recipients": {

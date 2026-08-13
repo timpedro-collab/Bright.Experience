@@ -132,7 +132,7 @@ describe("ConvertToEventCard", () => {
     render(
       <ConvertToEventCard
         quoteId={QUOTE_ID}
-        status="booked"
+        status="accepted"
         eventId={null}
         contactName="Dana"
       />

@@ -206,6 +206,9 @@ export async function dispatchNotification(
   if (!options.skipInPortal) {
     const rows = realRecipients
       .filter((r) => {
+        // Email-only recipients (e.g. a proposal prospect) have no profile
+        // row — inserting a notification for them would FK-fail the batch.
+        if (r.emailOnly) return false;
         if (archetype.classOf === "action_required") return true;
         const pref = preferences[r.id];
         if (!pref) return archetype.defaults.inPortal;

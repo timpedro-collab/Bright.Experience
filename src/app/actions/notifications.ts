@@ -51,6 +51,36 @@ export async function markAllRead(): Promise<ActionResult> {
 }
 
 /**
+ * Mark the current user's message notifications for one event as read.
+ *
+ * Fired when they open the event's Messages thread, so the unread badge on
+ * the Messages tab (and the bell count) clears once they've actually seen
+ * the thread.
+ */
+export async function markEventMessagesRead(
+  eventId: string,
+): Promise<ActionResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { success: false, error: "Not authenticated" };
+
+  const { error } = await supabase
+    .from("notifications")
+    .update({ is_read: true })
+    .eq("user_id", user.id)
+    .eq("event_id", eventId)
+    .eq("is_read", false)
+    .in("kind", ["message.received", "message.internal_note"]);
+
+  if (error)
+    return { success: false, error: `Failed to mark read: ${error.message}` };
+  revalidatePath(`/events/${eventId}/communications`);
+  return { success: true, data: undefined };
+}
+
+/**
  * Save the current user's digest delivery timing (timezone + quiet hours).
  *
  * Backs the controls on /settings/notifications. The hourly digest cron reads

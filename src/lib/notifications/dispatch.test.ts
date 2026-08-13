@@ -75,6 +75,34 @@ describe("dispatchNotification — Class A (action_required)", () => {
     expect(rows[0].priority).toBe("high");
   });
 
+  it("emails an email-only quote contact without writing an in-portal row", async () => {
+    // proposal.delivered resolves via quote_contact — a prospect with no
+    // profile. They must get the email, and the in-portal lane must skip
+    // them (no profile row to FK a notification to).
+    supabase.setTableResponse("quotes", {
+      data: {
+        id: "q1",
+        contact_name: "Aisha Khan",
+        contact_email: "aisha@samsung.example",
+      },
+      error: null,
+    });
+    const { dispatchNotification } = await import("./dispatch");
+    await dispatchNotification(
+      "proposal.delivered",
+      { quoteId: "q1", eventName: "Samsung activation" },
+      { supabaseClient: supabase }
+    );
+    const insertCall = supabase
+      .callsFor("notifications")
+      .find((c) => c.method === "insert");
+    expect(insertCall).toBeUndefined();
+    expect(resendSend).toHaveBeenCalledTimes(1);
+    expect(resendSend).toHaveBeenCalledWith(
+      expect.objectContaining({ to: ["aisha@samsung.example"] })
+    );
+  });
+
   it("forces in-portal row even if user opted out (Class A guardrail)", async () => {
     supabase.setTableResponse("notification_preferences", {
       data: [

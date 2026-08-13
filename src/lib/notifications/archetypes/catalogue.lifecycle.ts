@@ -57,6 +57,9 @@ export const lifecycleArchetypes = {
     defaults: { inPortal: true, emailMode: "digest" },
     audience: "both",
   },
+  // Immediate email: a message is a person waiting on a reply, not a status
+  // change — bundling it into the next-morning digest reads as silence.
+  // Recipients can still downgrade to digest/off in their preferences.
   "message.received": {
     kind: "message.received",
     classOf: "fyi",
@@ -66,8 +69,24 @@ export const lifecycleArchetypes = {
     bodyTemplate: "{preview}",
     linkTemplate: "/events/{eventId}/communications",
     ownerResolver: "message_recipients",
-    defaults: { inPortal: true, emailMode: "digest" },
+    defaults: { inPortal: true, emailMode: "immediate" },
     audience: "both",
+  },
+  // Internal-only notes must never fan out to customers: `message_recipients`
+  // includes customer admins, so internal notes route through this archetype
+  // instead (internal audience + internal resolver). The dispatcher strips
+  // the sender, so authors don't get pinged for their own note.
+  "message.internal_note": {
+    kind: "message.internal_note",
+    classOf: "fyi",
+    priority: "normal",
+    eyebrow: "Internal note",
+    subjectTemplate: "Internal note from {senderName}",
+    bodyTemplate: "{preview}",
+    linkTemplate: "/events/{eventId}/communications",
+    ownerResolver: "event_members_internal",
+    defaults: { inPortal: true, emailMode: "immediate" },
+    audience: "internal",
   },
   "comment.new": {
     kind: "comment.new",

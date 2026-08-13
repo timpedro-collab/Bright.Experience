@@ -33,6 +33,7 @@ import {
   getEventSectionStatus,
   type SectionStatusMap,
 } from "@/lib/queries/event-section-status";
+import { getUnreadMessageCount } from "@/lib/queries/notifications";
 
 import type { Event, User, UserRole } from "@/types";
 
@@ -114,6 +115,9 @@ export async function EventPageShell({
   if (CUSTOMER_ROLES.includes(effectiveRole)) {
     sectionStatus = await getEventSectionStatus(event.id);
   }
+  // Unread thread messages badge the Messages tab for every role — a waiting
+  // reply shouldn't depend on someone thinking to check the bell.
+  const unreadMessages = await getUnreadMessageCount(user.id, event.id);
   return (
     <EditionShell>
       <EditionChrome
@@ -154,6 +158,7 @@ export async function EventPageShell({
         viewerRole={effectiveRole}
         currentStage={event.currentStage}
         sectionStatus={sectionStatus}
+        unreadMessages={unreadMessages}
       />
       <EditionBody>{children}</EditionBody>
       <EditionFooter

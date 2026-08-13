@@ -21,7 +21,7 @@ import { Card } from "@/components/ui/card";
 import { convertQuoteToEvent } from "@/app/actions/quotes";
 
 /** Statuses the action will act on — mirrored here to explain the block. */
-const CONVERTIBLE = ["submitted", "proposal_sent", "accepted", "booked"];
+const CONVERTIBLE = ["submitted", "proposal_sent", "accepted"];
 
 export function ConvertToEventCard({
   quoteId,

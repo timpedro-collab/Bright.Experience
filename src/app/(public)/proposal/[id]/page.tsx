@@ -30,6 +30,7 @@ import {
   shouldAutoProvisionQuote,
 } from "@/lib/booking-flags";
 import { walkthroughUrlFor } from "@/lib/calcom";
+import { DEFAULT_ACCOUNT_MANAGER } from "@/lib/team";
 import { recordLoopEvent } from "@/server/loop-events";
 
 export const metadata: Metadata = {
@@ -154,6 +155,9 @@ export default async function ProposalDetailPage({ params }: PageProps) {
           priceRevealed={priceRevealed}
           canRespond={canRespond}
           walkthroughUrl={walkthroughUrl}
+          aeFirstName={DEFAULT_ACCOUNT_MANAGER.firstName}
+          contactName={quote.contact_name ?? undefined}
+          contactEmail={quote.contact_email ?? undefined}
           validity={validity}
           expectedPlays={expectedPlays}
           expectedLeads={expectedLeads}

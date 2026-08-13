@@ -119,6 +119,37 @@ export async function getUnreadCount(userId: string): Promise<number> {
   return count ?? 0;
 }
 
+/** Notification kinds that represent a message on an event thread. */
+export const MESSAGE_NOTIFICATION_KINDS = [
+  "message.received",
+  "message.internal_note",
+] as const;
+
+/**
+ * Unread message-thread notifications for one event — powers the unread
+ * badge on the event's Messages tab. Derived from the notifications spine
+ * (no message-level read state needed).
+ */
+export async function getUnreadMessageCount(
+  userId: string,
+  eventId: string,
+): Promise<number> {
+  const supabase = await createClient();
+  const { count, error } = await supabase
+    .from("notifications")
+    .select("*", { count: "exact", head: true })
+    .eq("user_id", userId)
+    .eq("event_id", eventId)
+    .eq("is_read", false)
+    .in("kind", [...MESSAGE_NOTIFICATION_KINDS]);
+
+  if (error) {
+    logQueryError("getUnreadMessageCount", error, { userId, eventId });
+    return 0;
+  }
+  return count ?? 0;
+}
+
 /** Mark a single notification as read. Returns true on success, false on error. */
 export async function markNotificationRead(
   notificationId: string,

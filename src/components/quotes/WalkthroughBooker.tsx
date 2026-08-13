@@ -109,10 +109,12 @@ export function WalkthroughBooker({
             <p className="text-sm font-semibold text-foreground">
               You&apos;re booked for {confirmed}
             </p>
+            {/* Honest promise: this picker records the slot but doesn't send
+                calendar invites — the AE emails the call link by hand. */}
             <p className="mt-0.5 text-sm text-muted-foreground">
               {aeFirstName} will meet you then on a video call to walk through
               your tailored proposal, and email the final version straight
-              after. Your call link arrives with the calendar invite.
+              after. {aeFirstName} will email you the call link ahead of time.
             </p>
             <button
               type="button"

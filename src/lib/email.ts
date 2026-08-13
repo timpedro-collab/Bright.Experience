@@ -124,7 +124,13 @@ export async function sendProposalReadyEmail({
   companyName?: string | null;
   eventType?: string | null;
   proposalUrl: string;
-  walkthroughUrl: string;
+  /**
+   * External booking/reschedule URL. Null when Cal.com is not configured —
+   * booking then happens inline on the proposal page, so links fall back to
+   * `proposalUrl` and the copy avoids promising a calendar invite that the
+   * in-app picker doesn't send.
+   */
+  walkthroughUrl: string | null;
   /** Human label of an already-booked walkthrough, e.g. "Thu 2 Jul · 2:00 PM". */
   scheduledSlotLabel?: string | null;
 }) {
@@ -141,16 +147,20 @@ export async function sendProposalReadyEmail({
 
   // The closing block adapts to whether a walkthrough call is already booked:
   // confirm the existing call, or invite them to pick a time.
+  const bookingHref = walkthroughUrl ?? proposalUrl;
+  const callLinkLine = walkthroughUrl
+    ? "your call link is in the calendar invite"
+    : "your event lead will send the video call link ahead of time";
   const callBlock = scheduledSlotLabel
     ? `
             <p style="color: #374151; font-size: 14px; line-height: 1.7; margin: 0 0 8px;">
               You're booked for <strong>${escapeHtml(scheduledSlotLabel)}</strong>. We'll walk
               through the proposal together on a video call and cover the
-              investment; your call link is in the calendar invite. Have a read
+              investment; ${callLinkLine}. Have a read
               before then if you can.
             </p>
             <div style="margin: 8px 0 4px;">
-              <a href="${walkthroughUrl}" style="display: inline-block; color: #246BFD; text-decoration: none; font-size: 14px; font-weight: 600;">
+              <a href="${bookingHref}" style="display: inline-block; color: #246BFD; text-decoration: none; font-size: 14px; font-weight: 600;">
                 Need a different time? Reschedule here →
               </a>
             </div>`
@@ -159,7 +169,7 @@ export async function sendProposalReadyEmail({
               When you're ready, book a 15-minute video call. We'll walk through it together and cover the investment, with no commitment.
             </p>
             <div style="margin: 8px 0 4px;">
-              <a href="${walkthroughUrl}" style="display: inline-block; color: #246BFD; text-decoration: none; font-size: 14px; font-weight: 600;">
+              <a href="${bookingHref}" style="display: inline-block; color: #246BFD; text-decoration: none; font-size: 14px; font-weight: 600;">
                 Book your 15-minute walkthrough →
               </a>
             </div>`;

@@ -42,6 +42,7 @@ import {
 import { ProposalActions } from "./ProposalActions";
 import { ProposalExplorer } from "./ProposalExplorer";
 import { VolumeLadderCard } from "./VolumeLadderCard";
+import { WalkthroughScheduler } from "@/components/quotes/WalkthroughScheduler";
 
 /**
  * Live activation photography for the cover strip — real wrapped machines
@@ -79,7 +80,17 @@ interface ProposalDocumentViewProps {
   priceRevealed: boolean;
   /** Whether the customer can still accept/decline (status === proposal_sent). */
   canRespond: boolean;
-  walkthroughUrl: string;
+  /**
+   * External booking URL (per-quote override or configured Cal.com link).
+   * Null when neither exists — the in-app scheduler renders inline instead
+   * of linking a placeholder Cal.com page.
+   */
+  walkthroughUrl: string | null;
+  /** First name of the AE hosting the walkthrough (fallback booker copy). */
+  aeFirstName?: string;
+  /** Prefill for the Cal.com booking form. */
+  contactName?: string;
+  contactEmail?: string;
   /** Countdown line ("Valid for N more days"); null hides the chip. */
   validity?: string | null;
   /** Benchmark-backed ranges from comparable activations; null when none. */
@@ -143,6 +154,9 @@ export function ProposalDocumentView({
   priceRevealed,
   canRespond,
   walkthroughUrl,
+  aeFirstName = "your event lead",
+  contactName,
+  contactEmail,
   validity,
   expectedPlays,
   expectedLeads,
@@ -571,15 +585,26 @@ export function ProposalDocumentView({
               we can tailor the detail to you and answer any questions before
               you decide. Pick a time that suits.
             </p>
-            <a
-              href={walkthroughUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-6 inline-flex items-center gap-2 rounded-full bg-[var(--color-bb-cobalt)] px-6 py-3 text-base font-medium text-white transition-opacity hover:opacity-90"
-            >
-              <CalendarClock className="h-4 w-4" />
-              Book your 15-minute walkthrough
-            </a>
+            {walkthroughUrl ? (
+              <a
+                href={walkthroughUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-6 inline-flex items-center gap-2 rounded-full bg-[var(--color-bb-cobalt)] px-6 py-3 text-base font-medium text-white transition-opacity hover:opacity-90"
+              >
+                <CalendarClock className="h-4 w-4" />
+                Book your 15-minute walkthrough
+              </a>
+            ) : (
+              <div className="mx-auto mt-6 max-w-xl text-left">
+                <WalkthroughScheduler
+                  quoteId={quoteId}
+                  aeFirstName={aeFirstName}
+                  contactName={contactName}
+                  contactEmail={contactEmail}
+                />
+              </div>
+            )}
           </Card>
         )}
       </section>

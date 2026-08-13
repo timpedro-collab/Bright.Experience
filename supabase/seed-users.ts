@@ -68,6 +68,38 @@ const users = [
     email: "nadia@informatech.events",
     password: "demo-password-123",
   },
+  // Reseller persona — Maya runs Northern Events (partner e0e0…).
+  {
+    id: "66666666-6666-6666-6666-666666666666",
+    email: "maya@northern.events",
+    password: "demo-password-123",
+  },
+  // Venue persona — Aaron runs Kings Cross Hall (partner e1e1…, venue f1f1…).
+  {
+    id: "77777777-7777-7777-7777-777777777777",
+    email: "aaron@kingsx.london",
+    password: "demo-password-123",
+  },
+  // Junior customer persona — customer_user on the Coca-Cola account
+  // (sees everything James does minus Studio ordering).
+  {
+    id: "88888888-8888-8888-8888-888888888888",
+    email: "priya.sharma@cocacola.com",
+    password: "demo-password-123",
+  },
+  // Break-glass admin persona — full internal superset incl. Users + API.
+  {
+    id: "a0a0a0a0-a0a0-4a0a-8a0a-a0a0a0a0a0a0",
+    email: "sofia@brightblue.co.uk",
+    password: "demo-password-123",
+  },
+  // Junior partner persona — partner_member at Northern Events
+  // (partner portal minus admin-only commission/onboarding actions).
+  {
+    id: "c6c6c6c6-c6c6-4c6c-8c6c-c6c6c6c6c6c6",
+    email: "leo@northern.events",
+    password: "demo-password-123",
+  },
 ];
 
 async function seed() {

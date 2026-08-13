@@ -48,6 +48,51 @@ describe("resolveOwners — customer_admins", () => {
   });
 });
 
+describe("resolveOwners — quote_contact", () => {
+  it("returns the quote's contact as an email-only recipient", async () => {
+    supabase.setTableResponse("quotes", {
+      data: {
+        id: "q1",
+        contact_name: "Aisha Khan",
+        contact_email: "aisha@samsung.example",
+      },
+      error: null,
+    });
+    const out = await resolveOwners(
+      ARCHETYPES["proposal.delivered"],
+      { quoteId: "q1" },
+      supabase
+    );
+    expect(out).toHaveLength(1);
+    expect(out[0]).toMatchObject({
+      id: "quote-contact:q1",
+      email: "aisha@samsung.example",
+      name: "Aisha Khan",
+      emailOnly: true,
+    });
+  });
+
+  it("returns empty without a quoteId or contact email", async () => {
+    const noQuoteId = await resolveOwners(
+      ARCHETYPES["proposal.delivered"],
+      {},
+      supabase
+    );
+    expect(noQuoteId).toEqual([]);
+
+    supabase.setTableResponse("quotes", {
+      data: { id: "q1", contact_name: "A", contact_email: null },
+      error: null,
+    });
+    const noEmail = await resolveOwners(
+      ARCHETYPES["proposal.delivered"],
+      { quoteId: "q1" },
+      supabase
+    );
+    expect(noEmail).toEqual([]);
+  });
+});
+
 describe("resolveOwners — event_account_executive", () => {
   it("returns the events_lead AE when configured", async () => {
     supabase.setTableResponse("events", {

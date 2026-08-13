@@ -31,6 +31,7 @@ const OWNER_RESOLVERS: ReadonlySet<string> = new Set([
   "event_members_all",
   "task_assignee",
   "message_recipients",
+  "quote_contact",
   "asset_uploader",
   "asset_comment_participants",
   "approval_requester",

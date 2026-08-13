@@ -13,11 +13,11 @@ import type { ActionResult } from "@/types/actions";
  * Statuses a quote can be converted from.
  *
  * `submitted` covers a Book Now purchase, `accepted` a signed-off proposal,
- * `booked` a legacy pre-provisioned row, and `proposal_sent` the very common
- * case of a customer saying yes on the walkthrough call rather than clicking
- * the button. A `draft`, `declined` or `expired` quote is nothing to build on.
+ * and `proposal_sent` the very common case of a customer saying yes on the
+ * walkthrough call rather than clicking the button. A `draft`, `declined`
+ * or `expired` quote is nothing to build on.
  */
-const CONVERTIBLE_STATUSES = ["submitted", "proposal_sent", "accepted", "booked"];
+const CONVERTIBLE_STATUSES = ["submitted", "proposal_sent", "accepted"];
 
 /**
  * Create the event workspace for a quote by hand.

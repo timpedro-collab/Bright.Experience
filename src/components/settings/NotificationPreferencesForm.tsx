@@ -32,6 +32,12 @@ interface PrefValue {
 
 interface Props {
   initialPreferences: Record<string, PrefValue>;
+  /**
+   * Which side of the fence the viewer sits on. Archetypes whose audience is
+   * the other side are hidden — a customer can never receive an
+   * internal-only kind, so offering them a toggle for it is just noise.
+   */
+  viewerAudience: "customer" | "internal";
 }
 
 const EMAIL_OPTIONS: { value: EmailMode; label: string; hint: string }[] = [
@@ -53,10 +59,20 @@ const IN_PORTAL_OPTIONS: { value: boolean; label: string }[] = [
   { value: false, label: "Hidden" },
 ];
 
-export function NotificationPreferencesForm({ initialPreferences }: Props) {
+export function NotificationPreferencesForm({
+  initialPreferences,
+  viewerAudience,
+}: Props) {
+  const relevant = (kind: NotificationKind) => {
+    const audience = ARCHETYPES[kind].audience;
+    return audience === "both" || audience === viewerAudience;
+  };
+  const classAKinds = CLASS_A_KINDS.filter(relevant);
+  const classBKinds = CLASS_B_KINDS.filter(relevant);
+
   const [prefs, setPrefs] = useState<Record<string, PrefValue>>(() => {
     const out: Record<string, PrefValue> = { ...initialPreferences };
-    for (const k of [...CLASS_A_KINDS, ...CLASS_B_KINDS]) {
+    for (const k of [...classAKinds, ...classBKinds]) {
       if (!out[k]) {
         const a = ARCHETYPES[k];
         out[k] = {
@@ -106,7 +122,7 @@ export function NotificationPreferencesForm({ initialPreferences }: Props) {
           let your event stall.
         </p>
         <div className="space-y-2">
-          {CLASS_A_KINDS.map((kind) => (
+          {classAKinds.map((kind) => (
             <PreferenceRow
               key={kind}
               kind={kind}
@@ -124,7 +140,7 @@ export function NotificationPreferencesForm({ initialPreferences }: Props) {
         description="Useful, but not project-critical. Silence them and your event will still hum along."
       >
         <div className="space-y-2">
-          {CLASS_B_KINDS.map((kind) => (
+          {classBKinds.map((kind) => (
             <PreferenceRow
               key={kind}
               kind={kind}

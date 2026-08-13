@@ -67,6 +67,7 @@ const ARCHETYPE: Record<string, { icon: LucideIcon; label: string }> = {
   "studio.status_changed": { icon: Sparkles, label: "Studio" },
   studio_update: { icon: Sparkles, label: "Studio" },
   "message.received": { icon: MessageCircle, label: "Message" },
+  "message.internal_note": { icon: MessageCircle, label: "Internal note" },
   message_received: { icon: MessageCircle, label: "Message" },
   message: { icon: MessageCircle, label: "Message" },
   "task.assigned": { icon: Bell, label: "Task" },

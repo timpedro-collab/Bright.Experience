@@ -68,15 +68,20 @@ export async function sendMessage(
     .single();
   const senderName = senderProfile?.name ?? "Someone";
 
-  await dispatchNotification("message.received", {
-    eventId,
-    actorId: user.id,
-    messageId: message.id,
-    senderName,
-    preview: body.length > 100 ? `${body.slice(0, 100)}…` : body,
-    entityType: "message",
-    entityId: message.id,
-  });
+  // Internal-only notes route through an internal-audience archetype so the
+  // note (and its body preview) never reaches customer recipients.
+  await dispatchNotification(
+    isInternal ? "message.internal_note" : "message.received",
+    {
+      eventId,
+      actorId: user.id,
+      messageId: message.id,
+      senderName,
+      preview: body.length > 100 ? `${body.slice(0, 100)}…` : body,
+      entityType: "message",
+      entityId: message.id,
+    },
+  );
 
   revalidatePath(`/events/${eventId}/communications`);
   return { success: true, data: { id: message.id } };

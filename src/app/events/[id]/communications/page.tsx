@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 
 import { EventPageShell } from "@/components/brand/event-page-shell";
+import { MarkThreadRead } from "@/components/messages/MarkThreadRead";
 import { MessageThread } from "@/components/messages/MessageThread";
 import { AutoRefresh } from "@/components/system/AutoRefresh";
 
@@ -52,6 +53,7 @@ export default async function CommunicationsPage({
       viewerRole={user.role}
     >
       <AutoRefresh intervalMs={12_000} />
+      <MarkThreadRead eventId={id} />
       <section className="py-8">
         <MessageThread
           eventId={id}

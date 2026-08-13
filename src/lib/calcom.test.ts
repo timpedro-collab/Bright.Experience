@@ -2,7 +2,6 @@
 
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import {
-  DEFAULT_CALCOM_LINK,
   getCalcomLink,
   calcomBookingUrl,
   walkthroughUrlFor,
@@ -69,13 +68,9 @@ describe("walkthroughUrlFor", () => {
     );
   });
 
-  it("falls back to the default link when nothing is configured", () => {
-    expect(walkthroughUrlFor(undefined)).toBe(
-      `https://cal.com/${DEFAULT_CALCOM_LINK}`
-    );
-    expect(walkthroughUrlFor("  ")).toBe(
-      `https://cal.com/${DEFAULT_CALCOM_LINK}`
-    );
+  it("returns null when nothing is configured (no placeholder links)", () => {
+    expect(walkthroughUrlFor(undefined)).toBeNull();
+    expect(walkthroughUrlFor("  ")).toBeNull();
   });
 });
 
