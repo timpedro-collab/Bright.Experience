@@ -58,6 +58,19 @@ function EntityIcon({
   }
 }
 
+/** Fallback CTA label when the resolved next step targets a different item. */
+function ctaLabelForItem(item: CustomerActionItem): string {
+  switch (item.entityType) {
+    case "asset":
+      return "Upload assets";
+    case "briefing":
+      return "Complete the briefing";
+    case "task":
+    default:
+      return "Start now";
+  }
+}
+
 /** Canonical destination for an action item. */
 function linkForItem(eventId: string, item: CustomerActionItem): string {
   switch (item.entityType) {
@@ -141,8 +154,15 @@ export function OverToYou({
   }
 
   const [first, ...rest] = items;
-  const primaryHref = nextStep?.primaryAction.href ?? linkForItem(eventId, first);
-  const primaryLabel = nextStep?.primaryAction.label ?? "Start now";
+  // The button belongs to the promoted row. Borrow the resolved next-step CTA
+  // only when it points at the same destination — otherwise the pill would
+  // advertise a different action than the task it sits under (e.g. "Upload
+  // assets" beneath "Provide onsite contact details").
+  const primaryHref = linkForItem(eventId, first);
+  const primaryLabel =
+    nextStep && nextStep.primaryAction.href === primaryHref
+      ? nextStep.primaryAction.label
+      : ctaLabelForItem(first);
 
   return (
     <GlassCard data-tour="waiting-on-you">

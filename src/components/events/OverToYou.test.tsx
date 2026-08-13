@@ -3,7 +3,10 @@
  *
  * The contract that matters to the customer:
  *   - when they owe things, the most important one is the loud primary CTA
- *     (using the resolved next-step label) and every item shows a why-line
+ *     and every item shows a why-line
+ *   - the CTA always belongs to the promoted item: the next-step label is
+ *     borrowed only when it targets the same destination, so the button never
+ *     advertises a different action than the row it sits under
  *   - when they owe nothing, it reassures and previews what's coming next
  *     rather than reading as "finished forever"
  */
@@ -42,6 +45,32 @@ describe("OverToYou", () => {
     expect(
       screen.getByText("So the studio can build your creative."),
     ).toBeInTheDocument();
+  });
+
+  it("does not borrow the next-step CTA when the promoted item targets a different page", () => {
+    // The event-level next step says "Upload assets", but the most urgent
+    // item is an onsite-contacts task on the logistics page. The button must
+    // follow the task, not the unrelated next step.
+    render(
+      <OverToYou
+        eventId="e1"
+        items={[
+          {
+            id: "t-contacts",
+            eventId: "e1",
+            entityType: "task",
+            title: "Provide onsite contact details",
+            targetPath: "logistics",
+          },
+        ]}
+        nextStep={nextStep}
+      />,
+    );
+    expect(
+      screen.queryByRole("link", { name: /Upload assets/i }),
+    ).not.toBeInTheDocument();
+    const cta = screen.getByRole("link", { name: /Start now/i });
+    expect(cta).toHaveAttribute("href", "/events/e1/logistics");
   });
 
   it("shows a supporting row for each additional item and a see-all teaser", () => {

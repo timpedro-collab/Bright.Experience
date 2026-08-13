@@ -95,19 +95,25 @@ async function seed() {
   if (msErr) { console.error("Milestones:", msErr.message); return; }
   console.log("Milestones seeded");
 
-  // Tasks for evt-1 (upsert by id so re-runs are idempotent)
-  const { error: taskErr } = await supabase.from("tasks").upsert([
-    { id: "d1111111-1111-1111-1111-111111111111", event_id: "e1111111-1111-1111-1111-111111111111", title: "Upload primary brand logo", description: "SVG or PNG format, minimum 300dpi, on transparent background", task_type: "customer_action", category: "creative", status: "complete", priority: "high", assigned_to: "22222222-2222-2222-2222-222222222222", due_date: "2026-04-10", completed_at: "2026-04-02T10:00:00Z", is_blocking: true, customer_visible: true, sort_order: 0 },
-    { id: "d2222222-2222-2222-2222-222222222222", event_id: "e1111111-1111-1111-1111-111111111111", title: "Add your brand kit (colours, fonts, usage)", description: "Add your brand colours and fonts in a few fields — or attach a full guidelines PDF if you have one", task_type: "customer_action", category: "creative", status: "in_progress", priority: "high", assigned_to: "22222222-2222-2222-2222-222222222222", due_date: daysFromNow(5), is_blocking: true, customer_visible: true, sort_order: 1 },
-    { id: "d3333333-3333-3333-3333-333333333333", event_id: "e1111111-1111-1111-1111-111111111111", title: "Provide webform questions", description: "List of data capture questions for the consumer-facing form", task_type: "customer_action", category: "creative", status: "pending", priority: "medium", assigned_to: "22222222-2222-2222-2222-222222222222", due_date: daysFromNow(8), is_blocking: false, customer_visible: true, sort_order: 2 },
-    { id: "d4444444-4444-4444-4444-444444444444", event_id: "e1111111-1111-1111-1111-111111111111", title: "Confirm prize details and quantities", description: "Product name, size, quantity, and any vending-specific requirements", task_type: "customer_action", category: "operations", status: "pending", priority: "high", assigned_to: "22222222-2222-2222-2222-222222222222", due_date: daysFromNow(11), is_blocking: true, customer_visible: true, sort_order: 3 },
-    { id: "d5555555-5555-5555-5555-555555555555", event_id: "e1111111-1111-1111-1111-111111111111", title: "Provide onsite contact details", description: "Name, phone, and email for the person on site during the event", task_type: "customer_action", category: "logistics", status: "pending", priority: "medium", due_date: daysFromNow(20), is_blocking: false, customer_visible: true, sort_order: 4 },
-    { id: "d6666666-6666-6666-6666-666666666666", event_id: "e1111111-1111-1111-1111-111111111111", title: "Design wrap concept", task_type: "internal_action", category: "creative", status: "pending", priority: "high", assigned_to: "33333333-3333-3333-3333-333333333333", due_date: daysFromNow(7), is_blocking: true, customer_visible: false, sort_order: 5 },
-    { id: "d7777777-7777-7777-7777-777777777777", event_id: "e1111111-1111-1111-1111-111111111111", title: "Configure game logic", task_type: "internal_action", category: "development", status: "pending", priority: "medium", assigned_to: "55555555-5555-5555-5555-555555555555", due_date: daysFromNow(25), is_blocking: false, customer_visible: false, sort_order: 6 },
-    { id: "d8888888-8888-8888-8888-888888888888", event_id: "e1111111-1111-1111-1111-111111111111", title: "Arrange logistics and transport", task_type: "internal_action", category: "logistics", status: "pending", priority: "medium", assigned_to: "44444444-4444-4444-4444-444444444444", due_date: daysFromNow(40), is_blocking: false, customer_visible: false, sort_order: 7 },
-  ]);
-  if (taskErr) { console.error("Tasks:", taskErr.message); return; }
-  console.log("Tasks seeded");
+  // Tasks for evt-1 come from seed.sql (applied by scripts/apply-seed-sql.sh
+  // before this script). It is the single source of truth for that batch: it
+  // carries `target_path` and `assigned_role`, which the customer action list
+  // and asset grouping depend on. A second insert here previously duplicated
+  // every evt-1 task under different ids — do not reintroduce one.
+  // Belt-and-braces: clear any stragglers from the old duplicate batch.
+  await supabase
+    .from("tasks")
+    .delete()
+    .in("id", [
+      "d1111111-1111-1111-1111-111111111111",
+      "d2222222-2222-2222-2222-222222222222",
+      "d3333333-3333-3333-3333-333333333333",
+      "d4444444-4444-4444-4444-444444444444",
+      "d5555555-5555-5555-5555-555555555555",
+      "d6666666-6666-6666-6666-666666666666",
+      "d7777777-7777-7777-7777-777777777777",
+      "d8888888-8888-8888-8888-888888888888",
+    ]);
 
   // Generic tasks for other events (clear first so re-runs don't duplicate)
   const genericEventIds = ["e2222222-2222-2222-2222-222222222222", "e3333333-3333-3333-3333-333333333333", "e4444444-4444-4444-4444-444444444444", "e5555555-5555-5555-5555-555555555555", "e6666666-6666-6666-6666-666666666666"];
