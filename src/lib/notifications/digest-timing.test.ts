@@ -99,4 +99,27 @@ describe("shouldSendDigest", () => {
       false,
     );
   });
+
+  describe("daily cron mode", () => {
+    it("sends outside the chosen hour, so a single daily tick reaches everyone", () => {
+      // 12:00 UTC -> 13:00 London; chosen hour is 9 but the tick is the moment.
+      const now = new Date("2026-06-01T12:00:00Z");
+      expect(shouldSendDigest(now, base, "daily")).toBe(true);
+    });
+
+    it("still respects quiet hours", () => {
+      // 22:00 UTC -> 23:00 London, inside the 21->8 quiet window.
+      const now = new Date("2026-06-01T22:00:00Z");
+      expect(shouldSendDigest(now, base, "daily")).toBe(false);
+    });
+
+    it("still suppresses a second send within the 20h dedup window", () => {
+      const now = new Date("2026-06-01T12:00:00Z");
+      const recentlySent: DigestTiming = {
+        ...base,
+        lastSentAt: new Date("2026-06-01T05:00:00Z"),
+      };
+      expect(shouldSendDigest(now, recentlySent, "daily")).toBe(false);
+    });
+  });
 });

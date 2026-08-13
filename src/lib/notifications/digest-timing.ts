@@ -1,11 +1,11 @@
 /**
  * Per-recipient digest timing.
  *
- * The digest cron runs hourly. For each recipient we only actually send when
- * it's their chosen local hour, they're not inside their quiet-hours window,
- * and we haven't already sent them a digest in the last ~day. All of that
- * decision logic lives here as pure functions so it can be unit-tested without
- * a database or a real clock.
+ * For each recipient we only actually send when they're not inside their
+ * quiet-hours window and we haven't already sent them a digest in the last
+ * ~day; when the cron ticks hourly we additionally wait for their chosen
+ * local hour (see DigestCronMode). All of that decision logic lives here as
+ * pure functions so it can be unit-tested without a database or a real clock.
  */
 
 export interface DigestTiming {
@@ -73,18 +73,35 @@ export function isWithinQuietHours(
 const MIN_RESEND_GAP_MS = 20 * 60 * 60 * 1000;
 
 /**
- * Should we send this recipient a digest right now? True only when it's their
- * local digest hour, they're outside quiet hours, and they haven't already
- * received one in the last ~20 hours (dedup against the hourly cron).
+ * How often the scheduler actually ticks the digest cron.
+ *
+ * - `hourly`: the cron fires every hour, so we can honour each recipient's
+ *   chosen local digest hour exactly (send only when localHour matches).
+ * - `daily`: the cron fires once a day (Vercel Hobby allows nothing more
+ *   frequent), so exact-hour matching would permanently skip anyone whose
+ *   chosen hour doesn't coincide with the single tick. In this mode the
+ *   chosen hour is best-effort: everyone due gets the digest on the daily
+ *   tick, still respecting quiet hours and the once-per-day gap.
  */
-export function shouldSendDigest(now: Date, timing: DigestTiming): boolean {
+export type DigestCronMode = "hourly" | "daily";
+
+/**
+ * Should we send this recipient a digest right now? Always enforces the
+ * ~20-hour dedup gap and the quiet-hours window; enforces the exact local
+ * digest hour only when the cron actually ticks hourly.
+ */
+export function shouldSendDigest(
+  now: Date,
+  timing: DigestTiming,
+  mode: DigestCronMode = "hourly",
+): boolean {
   if (timing.lastSentAt) {
     const elapsed = now.getTime() - timing.lastSentAt.getTime();
     if (elapsed < MIN_RESEND_GAP_MS) return false;
   }
 
   const localHour = getLocalHour(now, timing.timezone);
-  if (localHour !== timing.digestHour) return false;
+  if (mode === "hourly" && localHour !== timing.digestHour) return false;
   if (isWithinQuietHours(localHour, timing.quietStartHour, timing.quietEndHour)) {
     return false;
   }

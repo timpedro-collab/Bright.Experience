@@ -49,7 +49,7 @@ const EMAIL_OPTIONS: { value: EmailMode; label: string; hint: string }[] = [
   {
     value: "digest",
     label: "Daily digest",
-    hint: "Bundle into one daily email, sent at your chosen local time below.",
+    hint: "Bundle into one daily email, sent once a day outside your quiet hours.",
   },
   { value: "off", label: "Off", hint: "Don't email me — portal only." },
 ];

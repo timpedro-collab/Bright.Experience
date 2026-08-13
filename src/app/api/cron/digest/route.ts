@@ -26,6 +26,7 @@ import { renderNotificationEmail } from "@/lib/notifications/email-shell";
 import {
   shouldSendDigest,
   DEFAULT_DIGEST_TIMING,
+  type DigestCronMode,
   type DigestTiming,
 } from "@/lib/notifications/digest-timing";
 import { forEachChunk } from "@/lib/queries/chunk";
@@ -37,6 +38,15 @@ const resend = process.env.RESEND_API_KEY
   ? new Resend(process.env.RESEND_API_KEY)
   : null;
 const FROM_EMAIL = process.env.FROM_EMAIL ?? "noreply@brightblue.co.uk";
+
+/**
+ * Must match the schedule in vercel.json: "daily" while the project sits on
+ * a plan limited to daily crons; flip to "hourly" (env DIGEST_CRON_MODE)
+ * when the schedule is upgraded to `0 * * * *` so chosen digest hours are
+ * honoured exactly.
+ */
+const DIGEST_CRON_MODE: DigestCronMode =
+  process.env.DIGEST_CRON_MODE === "hourly" ? "hourly" : "daily";
 
 interface PendingNotification {
   id: string;
@@ -171,9 +181,11 @@ export async function GET(request: Request) {
     const profile = profileById.get(userId);
     if (!profile) continue;
 
-    // Only send in the recipient's local digest hour, outside quiet hours,
-    // and at most once per day.
-    if (!shouldSendDigest(now, timingFor(userId))) {
+    // Outside quiet hours and at most once per day; in hourly mode also
+    // only at the recipient's chosen local digest hour. The deployed
+    // schedule in vercel.json is daily (Vercel Hobby limit), so the default
+    // mode treats the single daily tick as everyone's digest moment.
+    if (!shouldSendDigest(now, timingFor(userId), DIGEST_CRON_MODE)) {
       skippedForTiming += 1;
       continue;
     }

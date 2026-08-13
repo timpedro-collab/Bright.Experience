@@ -138,6 +138,10 @@ export function NotificationTimingForm({ initial }: Props) {
               </option>
             ))}
           </select>
+          <p className="text-xs text-muted-foreground">
+            Best effort — delivery lands as close to this hour as the daily
+            send schedule allows, always outside your quiet hours.
+          </p>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
