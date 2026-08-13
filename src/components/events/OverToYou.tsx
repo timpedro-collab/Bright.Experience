@@ -240,7 +240,7 @@ export function OverToYou({
           href={`/events/${eventId}/actions`}
           className="flex items-center justify-center gap-1.5 rounded-lg border border-border/60 px-3 py-2 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
         >
-          See all {count} task{count === 1 ? "" : "s"}
+          See all {count} {count === 1 ? "task" : "tasks"}
           <ArrowRight size={12} />
         </Link>
       </div>
