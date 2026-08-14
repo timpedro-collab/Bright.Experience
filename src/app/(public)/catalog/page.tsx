@@ -17,13 +17,13 @@ import { getMachines } from "@/lib/queries/machines";
 import { getCaseStudies } from "@/lib/queries/case-studies";
 
 export const metadata: Metadata = {
-  title: "Catalog",
+  title: "Catalogue",
   description:
     "Explore Bright.Blue's experiential activation machines, games, and case studies. Find the perfect fit for your next event.",
   openGraph: {
-    title: "Bright.Experience — Activations Catalog",
+    title: "Bright.Experience — Activations Catalogue",
     description:
-      "Interactive activation machines, games, and packages. Magazine-grade catalog with case studies and ROI insights.",
+      "Interactive activation machines, games, and packages. Magazine-grade catalogue with case studies and ROI insights.",
   },
 };
 
@@ -39,7 +39,7 @@ export default async function CatalogPage() {
       <Section spacing="md">
         <Container>
           <div className="max-w-2xl">
-            <p className="text-overline text-muted-foreground mb-2">The catalog</p>
+            <p className="text-overline text-muted-foreground mb-2">The catalogue</p>
             <h1 className="text-heading text-4xl font-bold text-foreground md:text-5xl">
               Browse the range
             </h1>

@@ -54,7 +54,7 @@ export default async function PackagesIndexPage({
           />
         </div>
         <Container className="relative pt-16 md:pt-20 pb-10">
-          <EditorialEyebrow accent>Catalog</EditorialEyebrow>
+          <EditorialEyebrow accent>Catalogue</EditorialEyebrow>
           <h1 className="text-display mt-2 text-[clamp(2.25rem,4.5vw,3.75rem)] leading-[1.1] text-foreground">
             Packages.
           </h1>

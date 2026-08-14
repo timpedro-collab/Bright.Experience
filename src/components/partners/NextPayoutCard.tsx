@@ -7,15 +7,13 @@ import { Wallet } from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { formatMoneyFromPence } from "@/lib/currency";
+import { formatDateLong } from "@/lib/dates";
 
 /** Bright.Blue pays approved commissions on the last business day of the month. */
 function nextPayoutDate(now = new Date()): string {
   const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-  return end.toLocaleDateString("en-US", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
+  const iso = `${end.getFullYear()}-${String(end.getMonth() + 1).padStart(2, "0")}-${String(end.getDate()).padStart(2, "0")}`;
+  return formatDateLong(iso);
 }
 
 export function NextPayoutCard({

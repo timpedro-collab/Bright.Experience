@@ -36,7 +36,7 @@ export default async function GamesAdminPage() {
       title="Game library."
       subtitle="Software titles available for machines — manage games and their metadata."
       backHref="/admin/catalog"
-      backLabel="Back to catalog"
+      backLabel="Back to catalogue"
     >
       <section className="py-8">
         <EditorialEyebrow accent>All games</EditorialEyebrow>

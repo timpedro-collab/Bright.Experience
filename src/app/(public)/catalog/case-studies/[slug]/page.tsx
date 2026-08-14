@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { MediaGallery, type MediaItem } from "@/components/catalog/MediaGallery";
+import { formatDateMedium } from "@/lib/dates";
 import { getCaseStudyBySlug } from "@/lib/queries/case-studies";
 
 interface Props {
@@ -37,10 +38,7 @@ export default async function CaseStudyDetailPage({ params }: Props) {
   );
 
   const publishedDate = cs.published_at
-    ? new Date(cs.published_at).toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "long",
-      })
+    ? formatDateMedium(cs.published_at)
     : null;
 
   return (

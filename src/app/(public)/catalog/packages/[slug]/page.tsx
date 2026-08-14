@@ -43,7 +43,7 @@ export default async function PackageDetailPage({ params }: PageProps) {
       <Section spacing="md" className="border-b border-border/60">
         <Container>
           <nav className="mb-4 text-xs text-muted-foreground">
-            <Link href="/catalog" className="hover:text-foreground">Catalog</Link>
+            <Link href="/catalog" className="hover:text-foreground">Catalogue</Link>
             <span className="mx-2">/</span>
             <Link href="/catalog/packages" className="hover:text-foreground">Packages</Link>
             <span className="mx-2">/</span>

@@ -36,7 +36,7 @@ export async function generateMetadata({ params }: AttributionPageProps) {
   return {
     title: partner ? `${partner.name} × Bright.Blue` : "Welcome",
     description: partner
-      ? `Browse the Bright.Experience catalog with ${partner.name} — your activation partner.`
+      ? `Browse the Bright.Experience catalogue with ${partner.name} — your activation partner.`
       : "Bright.Experience — interactive activations for unforgettable events.",
   };
 }
@@ -109,7 +109,7 @@ export default async function PartnerAttributionPage({
               </Link>
             </Button>
             <Button asChild variant="glass">
-              <Link href="/catalog">Browse catalog</Link>
+              <Link href="/catalog">Browse catalogue</Link>
             </Button>
           </div>
         </Container>
@@ -189,7 +189,7 @@ function NotFoundCard({ code }: { code: string }) {
           </p>
           <div className="mt-8 flex justify-center gap-3">
             <Button asChild variant="brand">
-              <Link href="/catalog">Browse the catalog</Link>
+              <Link href="/catalog">Browse the catalogue</Link>
             </Button>
             <Button asChild variant="ghost">
               <Link href="/quiz">Take the quiz</Link>

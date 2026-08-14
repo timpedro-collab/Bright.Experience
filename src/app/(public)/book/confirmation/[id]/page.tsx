@@ -186,7 +186,7 @@ export default async function ConfirmationPage({
             </Link>
           </Button>
           <Button variant="ghost" asChild>
-            <Link href="/catalog">Back to the catalog</Link>
+            <Link href="/catalog">Back to the catalogue</Link>
           </Button>
         </div>
       </section>

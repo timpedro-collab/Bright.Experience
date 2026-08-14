@@ -12,6 +12,7 @@ import {
   type DeliveryWindow,
   type DeliveryWindows,
 } from "@/app/actions/logistics";
+import { formatDateLong } from "@/lib/dates";
 
 interface DeliveryWindowsCardProps {
   eventId: string;
@@ -34,19 +35,7 @@ const TIME_WINDOWS = [
 const EMPTY: DeliveryWindow = { date: "", window: "", notes: "" };
 
 function formatDate(iso: string): string {
-  // Date-only strings (YYYY-MM-DD) must be parsed as local time, otherwise
-  // they render a day early in negative-offset timezones.
-  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso.trim());
-  const d = m
-    ? new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]))
-    : new Date(iso);
-  if (Number.isNaN(d.getTime())) return iso;
-  return d.toLocaleDateString("en-US", {
-    weekday: "short",
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
+  return formatDateLong(iso);
 }
 
 function WindowFields({

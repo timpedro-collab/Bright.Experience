@@ -15,19 +15,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { labelForRole } from "@/lib/roles";
 import type { User } from "@/types";
-
-const ROLE_LABELS: Record<string, string> = {
-  customer_user: "Customer",
-  customer_admin: "Customer admin",
-  events_lead: "Events lead",
-  creative_lead: "Creative lead",
-  operations_lead: "Operations lead",
-  qa_lead: "QA lead",
-  admin: "Administrator",
-  partner_member: "Partner",
-  partner_admin: "Partner admin",
-};
 
 interface UserMenuProps {
   user: User;
@@ -92,7 +81,7 @@ export function UserMenu({ user, roleLabel }: UserMenuProps) {
               {user.name}
             </span>
             <span className="text-overline text-[0.6rem] text-muted-foreground">
-              {roleLabel ?? ROLE_LABELS[user.role] ?? user.role}
+              {roleLabel ?? labelForRole(user.role)}
             </span>
           </span>
         </button>

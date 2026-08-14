@@ -34,7 +34,7 @@ export function OtherEventsRail({
           href="/"
           className="text-overline text-muted-foreground hover:text-foreground transition-colors"
         >
-          View all →
+          See all →
         </Link>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">

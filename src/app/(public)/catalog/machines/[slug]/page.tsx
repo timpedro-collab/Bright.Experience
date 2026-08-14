@@ -60,7 +60,7 @@ export default async function MachineDetailPage({ params }: PageProps) {
       <Section spacing="md" className="border-b border-border/60">
         <Container>
           <nav className="mb-6 flex flex-wrap items-center gap-1 text-xs text-muted-foreground">
-            <Link href="/catalog" className="hover:text-foreground">Catalog</Link>
+            <Link href="/catalog" className="hover:text-foreground">Catalogue</Link>
             <ChevronRight className="h-3 w-3" />
             <Link href="/catalog/machines" className="hover:text-foreground">Machines</Link>
             <ChevronRight className="h-3 w-3" />

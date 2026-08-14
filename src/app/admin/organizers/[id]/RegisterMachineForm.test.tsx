@@ -43,7 +43,7 @@ async function openForm(types = TYPES) {
 describe("RegisterMachineForm", () => {
   it("sends people to the catalog when there are no machine types", () => {
     render(<RegisterMachineForm eventId={EVENT_ID} machineTypes={[]} />);
-    expect(screen.getByText(/Add a machine to the catalog/i)).toBeInTheDocument();
+    expect(screen.getByText(/Add a machine to the catalogue/i)).toBeInTheDocument();
   });
 
   it("stays collapsed until asked for", () => {

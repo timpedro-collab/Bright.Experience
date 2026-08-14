@@ -87,7 +87,7 @@ export function EventTabNav({
             )}
             aria-label={`${unread} unread message${unread === 1 ? "" : "s"}`}
           >
-            {unread > 9 ? "9+" : unread}
+            {unread > 99 ? "99+" : unread}
           </span>
         )}
         {showDot && (

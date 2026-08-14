@@ -13,6 +13,7 @@ import {
   TableHead,
   TableCell,
 } from "@/components/ui/table";
+import { formatDateMedium } from "@/lib/dates";
 import { cn } from "@/lib/utils";
 import {
   CheckCircle2,
@@ -161,7 +162,7 @@ export function PartnerDetailView({ partner, attributions }: PartnerDetailViewPr
                   return (
                     <TableRow key={attrId}>
                       <TableCell className="text-muted-foreground">
-                        {new Date(String(attr.created_at)).toLocaleDateString("en-US")}
+                        {formatDateMedium(String(attr.created_at))}
                       </TableCell>
                       <TableCell>{attr.quote_id ? "Quote" : "Event"}</TableCell>
                       <TableCell className="text-right tabular-nums">

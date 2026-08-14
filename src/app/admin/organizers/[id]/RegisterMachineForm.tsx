@@ -74,7 +74,7 @@ export function RegisterMachineForm({ eventId, machineTypes }: RegisterMachineFo
   if (machineTypes.length === 0) {
     return (
       <p className="text-xs text-muted-foreground">
-        Add a machine to the catalog before registering physical units.
+        Add a machine to the catalogue before registering physical units.
       </p>
     );
   }

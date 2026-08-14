@@ -29,7 +29,7 @@ export default function CatalogLoading() {
           />
         </div>
         <Container className="relative pt-16 md:pt-20 pb-10">
-          <EditorialEyebrow accent>Catalog</EditorialEyebrow>
+          <EditorialEyebrow accent>Catalogue</EditorialEyebrow>
           <div className="mt-2 h-12 w-2/3 rounded-md bg-white/[0.05] animate-pulse" />
           <div className="mt-3 h-5 w-1/2 rounded-md bg-white/[0.04] animate-pulse" />
         </Container>

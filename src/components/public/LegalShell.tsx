@@ -10,6 +10,7 @@ import { AlertTriangle } from "lucide-react";
 
 import { Container, Section } from "@/components/ui/section";
 import { RidgeArtwork, EditorialEyebrow } from "@/components/brand";
+import { formatDateMedium } from "@/lib/dates";
 
 interface Props {
   eyebrow: string;
@@ -28,11 +29,7 @@ export function LegalShell({
   children,
   approved = false,
 }: Props) {
-  const lastUpdated = new Date(lastUpdatedIso).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
+  const lastUpdated = formatDateMedium(lastUpdatedIso);
   return (
     <>
       <section className="relative isolate overflow-hidden border-b border-border/40">

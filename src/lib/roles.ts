@@ -159,3 +159,27 @@ export function isPartnerRole(role: UserRole): boolean {
 export function isPartnerAdmin(role: UserRole): boolean {
   return role === "partner_admin";
 }
+
+/**
+ * Canonical display labels for every UserRole. One map — the user menu,
+ * home eyebrow, and any other chrome that names a role must read from here
+ * so the same person is never "Administrator" in one place and "Admin" in
+ * another. Venue/organizer portals still pass an override when the same
+ * partner_* role should read "Venue admin" / "Show organizer".
+ */
+const ROLE_LABELS: Record<UserRole, string> = {
+  customer_user: "Customer",
+  customer_admin: "Customer admin",
+  events_lead: "Events lead",
+  creative_lead: "Creative lead",
+  operations_lead: "Operations lead",
+  qa_lead: "QA lead",
+  admin: "Administrator",
+  partner_member: "Partner",
+  partner_admin: "Partner admin",
+};
+
+/** Sentence-case label for a role. Unknown values fall back to the raw slug. */
+export function labelForRole(role: UserRole | string): string {
+  return ROLE_LABELS[role as UserRole] ?? role;
+}

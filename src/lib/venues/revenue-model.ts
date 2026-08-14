@@ -1,3 +1,5 @@
+import { formatMoneyFromPence } from "@/lib/currency";
+
 /**
  * Typed venue revenue models over `placements.pricing_model_json`.
  *
@@ -112,15 +114,13 @@ export function venueShareForBooked(
 
 /** Human line for a model, e.g. "18% of booked revenue". */
 export function formatRevenueModel(model: RevenueModel): string {
-  const pounds = (pence: number) =>
-    `£${Math.round(pence / 100).toLocaleString("en-GB")}`;
   switch (model.model) {
     case "revenue_share":
       return `${Math.round(model.rate * 100)}% of booked revenue`;
     case "fixed_fee":
-      return `${pounds(model.feePence)} flat`;
+      return `${formatMoneyFromPence(model.feePence)} flat`;
     case "guarantee_overage":
-      return `${pounds(model.guaranteePence)} guaranteed or ${Math.round(
+      return `${formatMoneyFromPence(model.guaranteePence)} guaranteed or ${Math.round(
         model.overageRate * 100,
       )}%, whichever is greater`;
   }

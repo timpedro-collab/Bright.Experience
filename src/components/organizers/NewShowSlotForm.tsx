@@ -20,6 +20,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { NativeSelect } from "@/components/ui/native-select";
 import { createShowSlot } from "@/app/actions/organizers";
+import { formatGBP } from "@/lib/currency";
 import { missionLabel } from "@/lib/fleet-labels";
 import { suggestedWholesalePence } from "@/lib/pricing/slot-economics";
 import type { MachineMission } from "@/types";
@@ -192,7 +193,7 @@ export function NewShowSlotForm({
           />
           {suggestedWholesale != null && !wholesale && (
             <p className="text-xs text-muted-foreground">
-              Suggested: £{suggestedWholesale.toLocaleString()} — the rest is
+              Suggested: {formatGBP(suggestedWholesale)} — the rest is
               your margin.
             </p>
           )}

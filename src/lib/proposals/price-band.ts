@@ -1,3 +1,5 @@
+import { formatMoneyFromPence } from "@/lib/currency";
+
 /**
  * Indicative price band shown on the proposal before the walkthrough call.
  *
@@ -44,7 +46,5 @@ export function indicativePriceBand(feePence: number): PriceBand | null {
 
 /** Format a band as customer-facing copy, e.g. "£22,000–£30,000". */
 export function formatPriceBand(band: PriceBand): string {
-  const gbp = (pence: number) =>
-    `£${Math.round(pence / 100).toLocaleString("en-GB")}`;
-  return `${gbp(band.lowPence)}–${gbp(band.highPence)}`;
+  return `${formatMoneyFromPence(band.lowPence)}–${formatMoneyFromPence(band.highPence)}`;
 }

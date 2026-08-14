@@ -12,6 +12,7 @@ import {
   Edit,
 } from "lucide-react";
 import type { AuditRow } from "@/lib/queries/audit";
+import { formatDateMedium } from "@/lib/dates";
 import { cn } from "@/lib/utils";
 
 const ACTION_MAP: Record<string, { label: string; icon: React.ElementType }> = {
@@ -45,7 +46,7 @@ function relativeTime(dateStr: string): string {
   const days = Math.floor(hours / 24);
   if (days === 1) return "Yesterday";
   if (days < 30) return `${days}d ago`;
-  return new Date(dateStr).toLocaleDateString();
+  return formatDateMedium(dateStr);
 }
 
 interface ActivityFeedProps {

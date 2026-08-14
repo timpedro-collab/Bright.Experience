@@ -52,7 +52,7 @@ export default async function PackagesAdminPage() {
       title="Pricing packages."
       subtitle="Tiers, add-ons, and feature lists — the building blocks of every quote."
       backHref="/admin/catalog"
-      backLabel="Back to catalog"
+      backLabel="Back to catalogue"
     >
       <section className="py-8">
         <EditorialEyebrow accent>All packages</EditorialEyebrow>

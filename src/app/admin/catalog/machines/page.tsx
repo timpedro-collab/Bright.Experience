@@ -36,7 +36,7 @@ export default async function MachinesAdminPage() {
       title="Machine fleet."
       subtitle="Hardware units available for booking — add, edit, or deactivate machines."
       backHref="/admin/catalog"
-      backLabel="Back to catalog"
+      backLabel="Back to catalogue"
     >
       <section className="py-8">
         <EditorialEyebrow accent>All machines</EditorialEyebrow>

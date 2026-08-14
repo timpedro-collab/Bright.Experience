@@ -15,6 +15,7 @@ import {
   canViewCreativeProduct,
   canViewLocations,
   canOrderStudioWork,
+  labelForRole,
 } from "./roles";
 import type { UserRole } from "@/types";
 
@@ -131,6 +132,20 @@ describe("studio ordering", () => {
     ] as UserRole[]) {
       expect(canOrderStudioWork(role)).toBe(false);
     }
+  });
+});
+
+describe("labelForRole", () => {
+  it("uses one sentence-case label per role", () => {
+    expect(labelForRole("admin")).toBe("Administrator");
+    expect(labelForRole("customer_admin")).toBe("Customer admin");
+    expect(labelForRole("creative_lead")).toBe("Creative lead");
+    expect(labelForRole("qa_lead")).toBe("QA lead");
+    expect(labelForRole("partner_admin")).toBe("Partner admin");
+  });
+
+  it("falls back to the raw slug for an unknown role", () => {
+    expect(labelForRole("finance")).toBe("finance");
   });
 });
 

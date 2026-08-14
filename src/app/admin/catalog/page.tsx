@@ -51,9 +51,9 @@ export default async function CatalogAdminPage() {
     <AdminPageShell
       user={user}
       unreadCount={unread}
-      section="Catalog"
+      section="Catalogue"
       title="The storefront."
-      subtitle="Manage the public catalog — machines, games, packages, and case studies that cold visitors land on."
+      subtitle="Manage the public catalogue — machines, games, packages, and case studies that cold visitors land on."
     >
       <section className="py-8">
         <EditorialEyebrow>Manage</EditorialEyebrow>

@@ -153,7 +153,7 @@ export function CustomerHoldingState({
       </h1>
       <p className="mt-4 max-w-[52ch] text-base text-muted-foreground">
         No activations in flight yet. Take the 60-second quiz and we&apos;ll
-        build a proposal with you, or browse the catalog to see what&apos;s
+        build a proposal with you, or browse the catalogue to see what&apos;s
         possible.
       </p>
       <div className="mt-8 flex flex-wrap gap-3">
@@ -167,7 +167,7 @@ export function CustomerHoldingState({
           href="/catalog"
           className="inline-flex items-center gap-2 rounded-md border border-border px-5 py-2.5 text-sm font-medium text-foreground hover:bg-accent"
         >
-          Browse the catalog
+          Browse the catalogue
         </Link>
         <a
           href={`mailto:${DEFAULT_ACCOUNT_MANAGER.email}`}

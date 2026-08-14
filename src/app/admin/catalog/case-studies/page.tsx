@@ -36,7 +36,7 @@ export default async function CaseStudiesAdminPage() {
       title="Portfolio pieces."
       subtitle="Published case studies and testimonials that power the public site."
       backHref="/admin/catalog"
-      backLabel="Back to catalog"
+      backLabel="Back to catalogue"
     >
       <section className="py-8">
         <EditorialEyebrow accent>All case studies</EditorialEyebrow>

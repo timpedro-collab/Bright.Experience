@@ -4,6 +4,28 @@ All notable changes to the Bright.Experience platform are documented here.
 
 ---
 
+## [Full-portal audit, wave 2: copy and number consistency] - 2026-08-14
+
+The nine-role production journey found two real defects (guessable
+`/messages` URL, "Unknown" senders) which shipped earlier the same day.
+This wave is the consistency pass: one voice, one date format, one money
+formatter, one role label per person.
+
+- **One role label map.** `labelForRole` in `src/lib/roles.ts` is now the
+  only source for chrome labels. The user menu and home eyebrow no longer
+  disagree ("Administrator" vs "Admin", "Customer admin" vs "Customer").
+- **UK dates everywhere that mattered.** Activity feed and account-created
+  no longer flip format by browser locale; logistics, payout, legal, stage
+  transitions, partner attributions, scheduled exports, and case-study
+  published dates go through `src/lib/dates.ts`.
+- **UK spelling.** User-facing "catalog" is now "catalogue"; the internal
+  home is "Command centre". URLs stay `/catalog`.
+- **One money helper.** Executive summary, price bands, venue revenue
+  models, and the show-slot wholesale hint use `formatMoneyFromPence` /
+  `formatGBP`.
+- **Matching badges and list CTAs.** Messages-tab unread cap matches the
+  bell (`99+`). In-app "view the full list" links say "See all".
+
 ## [Full-portal audit, wave 1: messages, nudges, booking hygiene, seed truth] - 2026-08-13
 
 Foundations + fix wave from the whole-portal correctness audit (journey

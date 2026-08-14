@@ -8,21 +8,12 @@
  */
 import { ArrowRight, Sparkles } from "lucide-react";
 
+import { formatTimestamp } from "@/lib/dates";
 import { STAGE_CONFIG } from "@/types";
 import type { StageTransition } from "@/lib/queries/stage-transitions";
 
 interface Props {
   transitions: StageTransition[];
-}
-
-function formatTimestamp(iso: string): string {
-  const d = new Date(iso);
-  return d.toLocaleString("en-US", {
-    day: "numeric",
-    month: "short",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
 }
 
 export function StageTransitions({ transitions }: Props) {
@@ -51,8 +42,11 @@ export function StageTransitions({ transitions }: Props) {
               <ArrowRight className="inline h-3 w-3" />{" "}
               <span className="font-medium">{to}</span>
             </span>
-            <span className="text-overline text-muted-foreground tabular-nums">
-              {formatTimestamp(t.occurredAt)}
+            <span
+              className="text-overline text-muted-foreground tabular-nums"
+              title={formatTimestamp(t.occurredAt).exact}
+            >
+              {formatTimestamp(t.occurredAt).display}
               {t.actorName ? ` · ${t.actorName}` : ""}
             </span>
           </li>

@@ -4,6 +4,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { formatDateMedium } from "@/lib/dates";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -65,7 +66,7 @@ export function SecurityForm({ email, createdAt }: { email: string; createdAt?: 
             <div className="py-2.5 flex justify-between">
               <span className="text-sm text-muted-foreground">Account created</span>
               <span className="text-sm text-foreground font-medium tabular-nums">
-                {new Date(createdAt).toLocaleDateString()}
+                {formatDateMedium(createdAt)}
               </span>
             </div>
           )}

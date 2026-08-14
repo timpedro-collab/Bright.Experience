@@ -71,7 +71,7 @@ export default async function CaseStudiesPage({
             href="/catalog"
             className="inline-flex items-center gap-1.5 text-overline text-muted-foreground hover:text-foreground transition-colors mb-4"
           >
-            <ArrowLeft className="h-3 w-3" /> Back to Catalog
+            <ArrowLeft className="h-3 w-3" /> Back to Catalogue
           </Link>
           <EditorialEyebrow accent>The proof</EditorialEyebrow>
           <h1 className="text-display mt-2 text-[clamp(2.25rem,4.5vw,3.75rem)] leading-[1.1] text-foreground">

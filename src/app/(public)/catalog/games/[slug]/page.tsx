@@ -58,7 +58,7 @@ export default async function GameDetailPage({
     <EditionShell>
       <EditionChrome
         breadcrumbs={[
-          { label: "Catalog", href: "/catalog" },
+          { label: "Catalogue", href: "/catalog" },
           { label: "Games", href: "/catalog/games" },
           { label: game.name },
         ]}
@@ -162,7 +162,7 @@ export default async function GameDetailPage({
             </h2>
             <p className="mt-1 text-sm text-muted-foreground max-w-[52ch]">
               Take our 2-minute quiz to find the perfect machine and package
-              for your event, or browse the full catalog.
+              for your event, or browse the full catalogue.
             </p>
           </div>
           <div className="flex items-center gap-3">

@@ -357,7 +357,7 @@ async function OverviewContent({
                   href={`/events/${id}/actions`}
                   className="mt-4 inline-block text-overline text-[var(--color-bb-cobalt)] underline decoration-from-font underline-offset-4 font-medium"
                 >
-                  View all tasks →
+                  See all tasks →
                 </Link>
               </div>
             </GlassCard>

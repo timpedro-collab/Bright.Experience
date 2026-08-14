@@ -37,7 +37,7 @@ export function MachinesTable({ machines }: { machines: Machine[] }) {
 
       {machines.length === 0 ? (
         <div className="px-4 py-8 text-center text-muted-foreground">
-          No machines in the catalog yet.
+          No machines in the catalogue yet.
         </div>
       ) : (
         <div className="border-t border-b border-border/40 overflow-x-auto">

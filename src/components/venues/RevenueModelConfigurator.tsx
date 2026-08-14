@@ -7,6 +7,7 @@ import { Loader2, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { updatePlacementPricing } from "@/app/actions/venues";
+import { formatMoneyFromPence } from "@/lib/currency";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -250,8 +251,6 @@ export function RevenueModelConfigurator({
     );
   }
 
-  const sampleBookedPounds = (sampleBookedPence / 100).toLocaleString("en-GB");
-
   return (
     <form
       onSubmit={handleSubmit}
@@ -349,8 +348,8 @@ export function RevenueModelConfigurator({
 
         {previewModel && previewEarnPence !== null && (
           <p className="text-xs text-muted-foreground">
-            On £{sampleBookedPounds} of bookings you&apos;d earn £
-            {(previewEarnPence / 100).toLocaleString("en-GB")}
+            On {formatMoneyFromPence(sampleBookedPence)} of bookings you&apos;d
+            earn {formatMoneyFromPence(previewEarnPence)}
           </p>
         )}
       </div>

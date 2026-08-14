@@ -197,7 +197,7 @@ export function OverviewSidebar({
               href={`/events/${eventId}/activity`}
               className="mt-3 inline-block text-overline text-[var(--color-bb-cobalt)] underline decoration-from-font underline-offset-4 font-medium"
             >
-              View all activity →
+              See all activity →
             </Link>
           </div>
         </>

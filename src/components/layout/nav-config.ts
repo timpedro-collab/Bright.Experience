@@ -56,7 +56,7 @@ const INTERNAL_SECTIONS: NavSection[] = [
   {
     heading: "Workspace",
     items: [
-      { label: "Command center", href: "/", icon: LayoutDashboard, show: ALWAYS },
+      { label: "Command centre", href: "/", icon: LayoutDashboard, show: ALWAYS },
       { label: "Pipeline", href: "/pipeline", icon: GitBranch, show: ALWAYS },
       { label: "Inbox", href: "/inbox", icon: Inbox, show: ALWAYS },
     ],
@@ -82,9 +82,9 @@ const INTERNAL_SECTIONS: NavSection[] = [
     ],
   },
   {
-    heading: "Catalog & data",
+    heading: "Catalogue & data",
     items: [
-      { label: "Catalog", href: "/admin/catalog", icon: Boxes, show: canViewCreativeProduct },
+      { label: "Catalogue", href: "/admin/catalog", icon: Boxes, show: canViewCreativeProduct },
       { label: "Templates", href: "/admin/templates", icon: FileText, show: canViewCommercial },
       { label: "Locations", href: "/admin/locations", icon: MapPin, show: canViewLocations },
       { label: "Benchmarks", href: "/admin/benchmarks", icon: BarChart3, show: canViewCommercial },

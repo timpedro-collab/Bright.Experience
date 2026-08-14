@@ -10,6 +10,7 @@ import {
   Clock,
   CheckCircle2,
 } from "lucide-react";
+import { formatDateMedium } from "@/lib/dates";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -147,7 +148,7 @@ export function ScheduledExportManager({
             {exp.lastSentAt && (
               <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
                 <Clock size={10} />
-                Last sent {new Date(exp.lastSentAt).toLocaleDateString("en-US")}
+                Last sent {formatDateMedium(exp.lastSentAt)}
               </p>
             )}
           </div>

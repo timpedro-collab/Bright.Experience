@@ -29,20 +29,9 @@ import { NeedsYouNow } from "@/components/home/NeedsYouNow";
 import { PortfolioStrip } from "@/components/home/PortfolioStrip";
 import { firstName } from "@/components/home/home-helpers";
 
+import { labelForRole } from "@/lib/roles";
 import type { FocusItem } from "@/lib/queries/home-focus";
-import type { Event, User, UserRole } from "@/types";
-
-const ROLE_LABEL: Record<UserRole, string> = {
-  customer_user: "Customer",
-  customer_admin: "Customer",
-  events_lead: "Events lead",
-  creative_lead: "Creative",
-  operations_lead: "Operations",
-  qa_lead: "Quality assurance",
-  admin: "Admin",
-  partner_member: "Partner",
-  partner_admin: "Partner",
-};
+import type { Event, User } from "@/types";
 
 interface FocusedHomeProps {
   user: User;
@@ -79,7 +68,7 @@ export function FocusedHome({
     <TourShell role={user.role} autoStart={false}>
       <EditionShell>
         <EditionChrome
-          breadcrumbs={[{ label: "Command center" }]}
+          breadcrumbs={[{ label: "Command centre" }]}
           rightSlot={
             <>
               <NotificationBell unreadCount={unread} />
@@ -92,7 +81,7 @@ export function FocusedHome({
         <RidgeHero
           variant="compact"
           seed={user.id}
-          eyebrow={`${ROLE_LABEL[user.role]} · Command center`}
+          eyebrow={`${labelForRole(user.role)} · Command centre`}
           title={`Welcome back, ${firstName(user.name)}.`}
           subtitle={focusSentence}
           rightSlot={<StreakIndicator streak={streak} />}

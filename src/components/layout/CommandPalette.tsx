@@ -304,7 +304,7 @@ function StaticGroups({ go, isInternal, role, eventId, partnerSlug, venueSlug }:
   return (
     <>
       <CommandGroup heading="Workspace">
-        <CommandItem onSelect={() => go("/")}><LayoutDashboard /><span>{isInternal ? "Command center" : "My Events"}</span><CommandShortcut>G E</CommandShortcut></CommandItem>
+        <CommandItem onSelect={() => go("/")}><LayoutDashboard /><span>{isInternal ? "Command centre" : "My Events"}</span><CommandShortcut>G E</CommandShortcut></CommandItem>
         <CommandItem onSelect={() => go("/notifications")}><Bell /><span>Notifications</span><CommandShortcut>G N</CommandShortcut></CommandItem>
         <CommandItem onSelect={() => go("/settings")}><Settings /><span>Settings</span></CommandItem>
       </CommandGroup>

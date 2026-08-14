@@ -37,7 +37,7 @@ export default function CatalogError({
           </div>
           <EditorialEyebrow>Something didn&apos;t load</EditorialEyebrow>
           <h1 className="mt-2 text-display text-2xl text-foreground md:text-3xl">
-            We couldn&apos;t reach the catalog right now.
+            We couldn&apos;t reach the catalogue right now.
           </h1>
           <p className="mt-3 text-muted-foreground">
             Try again in a moment — and if it keeps happening, ping us at{" "}

@@ -4,6 +4,7 @@
  * to a CFO without editing.
  */
 import { Card, CardContent } from "@/components/ui/card";
+import { formatMoneyFromPence } from "@/lib/currency";
 import {
   engagedMinutes,
   formatEngagedMinutes,
@@ -19,13 +20,6 @@ interface ExecutiveSummaryProps {
   costPerLeadPence: number | null;
   /** Pre-written benchmark verdict sentences, e.g. "18% above the venue-class median". */
   verdictSentences?: string[];
-}
-
-function formatPence(pence: number): string {
-  const pounds = pence / 100;
-  return pounds >= 100
-    ? `£${Math.round(pounds).toLocaleString("en-GB")}`
-    : `£${pounds.toFixed(2)}`;
 }
 
 export function ExecutiveSummary({
@@ -54,14 +48,14 @@ export function ExecutiveSummary({
   if (cpl != null && totalCostPence > 0 && totalLeads > 0) {
     stats.push({
       label: "Cost per lead",
-      value: formatPence(cpl),
+      value: formatMoneyFromPence(cpl, { decimals: true }),
       sub: `${totalLeads.toLocaleString("en-GB")} leads captured`,
     });
   }
   if (perMinute != null) {
     stats.push({
       label: "Cost per engaged minute",
-      value: formatPence(perMinute),
+      value: formatMoneyFromPence(perMinute, { decimals: true }),
       sub: "voluntary brand attention, telemetry-verified",
     });
   }

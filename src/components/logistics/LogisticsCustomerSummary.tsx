@@ -1,5 +1,6 @@
 /** Simplified logistics summary for customer-facing view — key dates & status */
 import { Truck, Package, ArrowDownToLine, CheckCircle2, Clock } from "lucide-react";
+import { formatDateShort } from "@/lib/dates";
 import { cn } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
 import type { LogisticsEntry } from "@/types";
@@ -11,11 +12,7 @@ const TYPE_LABELS: Record<string, { label: string; Icon: React.ElementType }> = 
 };
 
 function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-US", {
-    weekday: "short",
-    day: "numeric",
-    month: "short",
-  });
+  return formatDateShort(iso);
 }
 
 interface LogisticsCustomerSummaryProps {

@@ -17,7 +17,7 @@ import {
 export const metadata: Metadata = {
   title: "All machines",
   description:
-    "Explore our full catalog of interactive Bright.Blue machines — claw machines, prize vendors, photo experiences, and more.",
+    "Explore our full catalogue of interactive Bright.Blue machines — claw machines, prize vendors, photo experiences, and more.",
 };
 
 export default async function MachinesIndexPage() {
@@ -46,7 +46,7 @@ export default async function MachinesIndexPage() {
           />
         </div>
         <Container className="relative pt-16 md:pt-20 pb-10">
-          <EditorialEyebrow accent>Catalog</EditorialEyebrow>
+          <EditorialEyebrow accent>Catalogue</EditorialEyebrow>
           <h1 className="text-display mt-2 text-[clamp(2.25rem,4.5vw,3.75rem)] leading-[1.1] text-foreground">
             The machines.
           </h1>
@@ -70,7 +70,7 @@ export default async function MachinesIndexPage() {
         <Container>
           {machines.length === 0 ? (
             <div className="rounded-[var(--radius-card)] border border-border/60 bg-muted/40 p-12 text-center text-muted-foreground">
-              The machine catalog is being prepared. Please check back soon.
+              The machine catalogue is being prepared. Please check back soon.
             </div>
           ) : (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">

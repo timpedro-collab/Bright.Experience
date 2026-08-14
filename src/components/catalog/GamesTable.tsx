@@ -33,7 +33,7 @@ export function GamesTable({ games }: { games: Game[] }) {
 
       {games.length === 0 ? (
         <div className="px-4 py-8 text-center text-muted-foreground">
-          No games in the catalog yet.
+          No games in the catalogue yet.
         </div>
       ) : (
         <div className="border-t border-b border-border/40 overflow-x-auto">
