@@ -37,11 +37,22 @@ export async function sendMessage(
   } = await supabase.auth.getUser();
   if (!user) return { success: false, error: "Not authenticated" };
 
+  // Resolved up front so it can be stamped onto the row: profiles RLS hides
+  // other users' rows from customers, so the thread renders the denormalized
+  // name rather than a join that is null for everyone but the viewer.
+  const { data: senderProfile } = await supabase
+    .from("profiles")
+    .select("name")
+    .eq("id", user.id)
+    .single();
+  const senderName = senderProfile?.name ?? "Someone";
+
   const { data: message, error } = await supabase
     .from("messages")
     .insert({
       event_id: eventId,
       sender_id: user.id,
+      sender_name: senderName,
       body: body.trim(),
       is_internal: isInternal,
       attachments: attachments && attachments.length > 0 ? attachments : null,
@@ -60,13 +71,6 @@ export async function sendMessage(
     entity_id: message.id,
     metadata: { is_internal: isInternal },
   });
-
-  const { data: senderProfile } = await supabase
-    .from("profiles")
-    .select("name")
-    .eq("id", user.id)
-    .single();
-  const senderName = senderProfile?.name ?? "Someone";
 
   // Internal-only notes route through an internal-audience archetype so the
   // note (and its body preview) never reaches customer recipients.

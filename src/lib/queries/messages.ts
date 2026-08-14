@@ -22,7 +22,12 @@ export async function getMessagesByEvent(eventId: string) {
       id: row.id as string,
       eventId: row.event_id as string,
       senderId: row.sender_id as string,
-      senderName: (sender?.name as string) ?? "Unknown",
+      // Live profile name when the viewer's RLS can see it (internal users,
+      // own messages); otherwise the name stamped at send time — profiles
+      // RLS hides other users' rows from customers, which used to render
+      // every other participant as "Unknown".
+      senderName:
+        (sender?.name as string) ?? (row.sender_name as string) ?? "Unknown",
       body: row.body as string,
       attachments: (row.attachments as string[]) ?? [],
       isInternal: row.is_internal as boolean,

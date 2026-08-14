@@ -64,6 +64,23 @@ describe("sendMessage", () => {
     );
   });
 
+  it("stamps the sender's name onto the message row so customers see attribution despite profiles RLS", async () => {
+    supabase.setUser({ id: "u1" });
+    supabase.setTableResponse("messages", { data: { id: "m1" }, error: null });
+    supabase.setTableResponse("profiles", { data: { name: "Sam" }, error: null });
+
+    const { sendMessage } = await import("./messages");
+    await sendMessage("e1", "Hello team", false);
+
+    const insert = supabase
+      .callsFor("messages")
+      .find((c) => c.method === "insert");
+    expect(insert?.args[0]).toMatchObject({
+      sender_id: "u1",
+      sender_name: "Sam",
+    });
+  });
+
   it("routes internal-only notes through the internal archetype so customers are never notified", async () => {
     supabase.setUser({ id: "u1" });
     supabase.setTableResponse("messages", { data: { id: "m2" }, error: null });
