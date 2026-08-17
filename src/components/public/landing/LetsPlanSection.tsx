@@ -13,8 +13,8 @@ import { Reveal } from "@/components/ui/motion";
 
 const COMPLETIONS: { label: string; type: string }[] = [
   { label: "your trade show stand", type: "trade-show" },
+  { label: "your experiential activation", type: "experiential-activation" },
   { label: "your festival sampling tour", type: "festival" },
-  { label: "your retail activation", type: "experiential-activation" },
   { label: "your conference lead capture", type: "conference" },
   { label: "your company celebration", type: "corporate" },
 ];
