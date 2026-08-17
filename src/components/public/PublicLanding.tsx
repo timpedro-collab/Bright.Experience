@@ -31,33 +31,37 @@ export async function PublicLanding() {
   ]);
 
   return (
-    <PublicSiteChrome>
-      <HeroSection />
-      <LogosStrip overline="Trusted by Leading Brands" logos={CLIENT_LOGOS} />
-      <LetsPlanSection />
-      <PillarsSection />
-      <MachinesShowcase
-        machines={machines.map((m) => ({
-          name: m.name,
-          slug: m.slug,
-          tagline: m.tagline ?? undefined,
-          heroImageUrl: m.hero_image_url,
-        }))}
-      />
-      <ProofSection
-        caseStudies={caseStudies.map((cs) => ({
-          title: cs.title,
-          slug: cs.slug,
-          clientName: cs.client_name ?? undefined,
-          location: cs.location ?? undefined,
-          heroImageUrl: cs.hero_image_url ?? undefined,
-          statsJson: (cs.stats_json as Record<string, unknown>) ?? undefined,
-        }))}
-      />
-      <PlatformSection />
-      <NetworkSection />
-      <HowItWorks />
-      <FinalCta />
-    </PublicSiteChrome>
+    /* Dark by default: `.theme-dark` remaps every semantic token (globals.css)
+       for this subtree only — same pattern as /pp/[slug] and login. */
+    <div className="theme-dark bg-background text-foreground">
+      <PublicSiteChrome>
+        <HeroSection />
+        <LogosStrip overline="Trusted by Leading Brands" logos={CLIENT_LOGOS} />
+        <LetsPlanSection />
+        <PillarsSection />
+        <MachinesShowcase
+          machines={machines.map((m) => ({
+            name: m.name,
+            slug: m.slug,
+            tagline: m.tagline ?? undefined,
+            heroImageUrl: m.hero_image_url,
+          }))}
+        />
+        <ProofSection
+          caseStudies={caseStudies.map((cs) => ({
+            title: cs.title,
+            slug: cs.slug,
+            clientName: cs.client_name ?? undefined,
+            location: cs.location ?? undefined,
+            heroImageUrl: cs.hero_image_url ?? undefined,
+            statsJson: (cs.stats_json as Record<string, unknown>) ?? undefined,
+          }))}
+        />
+        <PlatformSection />
+        <NetworkSection />
+        <HowItWorks />
+        <FinalCta />
+      </PublicSiteChrome>
+    </div>
   );
 }
