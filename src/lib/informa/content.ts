@@ -73,10 +73,10 @@ export const BADGE_CLAIM =
  */
 export const PLAY_JOURNEY = [
   { step: "Attract", line: "The machine stops traffic that signage never will." },
-  { step: "Play", line: "A 15 second branded game with a score at the end." },
-  { step: "Capture", line: "Badge scan plus opted-in contact and preference data." },
+  { step: "Play", line: "A fast branded game with a score at the end." },
+  { step: "Capture", line: "The badge scan opens the play. The opt-in flow goes further: preferences, answers and context a scan alone never carries." },
   { step: "Reward", line: "A prize, a sample, or next year's stand reserved." },
-  { step: "Report", line: "Live dashboard during the show. Board-ready report within 24 hours of close." },
+  { step: "Report", line: "A board-ready proof-of-performance report within 24 hours of close." },
 ] as const;
 
 /**
@@ -140,7 +140,7 @@ export const REP_SCRIPT = [
   {
     beat: "The proof",
     script:
-      "It is not a novelty. Each machine serves around 150 to 220 plays a day, and you get a live dashboard during the show plus a full report within 24 hours of close. You will know exactly what it did.",
+      "It is not a novelty. Each machine serves around 150 to 220 plays a day, and you get a full proof-of-performance report within 24 hours of close. You will know exactly what it did.",
   },
   {
     beat: "The close",
@@ -194,9 +194,8 @@ export const SPONSOR_GETS = [
   "A machine fully wrapped in their brand at a placement the whole audience passes",
   "A custom branded game, built and loaded by Bright.Blue",
   "Badge-gated plays: every interaction starts with a real registrant",
-  "Opted-in leads with preference data, delivered to the sponsor under their own consent notice",
+  "Opted-in leads with preference and context data far richer than a badge scan alone",
   "Sole-sponsor screen time on three ad surfaces between plays",
-  "A live engagement dashboard during the show",
   "A board-ready proof-of-performance report within 24 hours of close",
 ] as const;
 
