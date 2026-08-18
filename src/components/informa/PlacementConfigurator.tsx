@@ -94,7 +94,7 @@ const CPL_STORIES: Record<CplPosition, string> = {
   below:
     "That is under the industry average for a trade show lead, and these are not scan-and-run leads. Every one is opted in, with a game score, declared preferences and context attached.",
   level:
-    "That is level with the industry average for a trade show lead, except an average lead is a badge scan. These arrive opted in, with a game score, declared preferences and context attached, and the sponsor's creative ran on three screens all show.",
+    "That is level with the industry average for a trade show lead, except an average lead is a badge scan. These arrive opted in, with a game score, declared preferences and context attached, and the sponsor's creative ran between plays all show.",
   above:
     "That is above the badge-scan average because it buys more than a scan: minutes of hands-on attention, an opt-in, declared preferences, and sole-sponsor screen time all show.",
 };
@@ -202,7 +202,7 @@ export function PlacementConfigurator() {
           <StatTile
             label="Ad impressions"
             value={formatCount(v.impressions)}
-            hint="Across three screens of sole-sponsor creative"
+            hint="Ceiling for a fully specced three-screen unit; some machines carry one"
           />
         </div>
         <BenchmarkPanel position={cplPosition(v.costPerLeadLow, v.costPerLeadHigh)} />
