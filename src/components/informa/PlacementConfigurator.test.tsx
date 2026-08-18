@@ -11,7 +11,7 @@ import { placementValue, formatCount } from "@/lib/informa/kit-math";
 describe("PlacementConfigurator", () => {
   it("renders the projection for the default levers", () => {
     render(<PlacementConfigurator />);
-    const expected = placementValue({ attendees: 3_000, days: 3, priceUsd: 18_000 });
+    const expected = placementValue({ attendees: 3_000, days: 3, priceUsd: 40_000 });
     expect(screen.getByText(formatCount(expected.impressions))).toBeInTheDocument();
     expect(screen.getByText(/cost per opted-in lead/i)).toBeInTheDocument();
   });

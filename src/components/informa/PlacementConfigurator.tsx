@@ -85,7 +85,7 @@ function StatTile({
 export function PlacementConfigurator() {
   const [attendees, setAttendees] = useState(3_000);
   const [days, setDays] = useState(3);
-  const [price, setPrice] = useState(18_000);
+  const [price, setPrice] = useState(40_000);
 
   const v = placementValue({ attendees, days, priceUsd: price });
 
@@ -121,8 +121,8 @@ export function PlacementConfigurator() {
             label="Sponsor price"
             valueLabel={formatUsdWhole(price)}
             value={price}
-            min={5_000}
-            max={60_000}
+            min={30_000}
+            max={75_000}
             step={1_000}
             onChange={setPrice}
           />
