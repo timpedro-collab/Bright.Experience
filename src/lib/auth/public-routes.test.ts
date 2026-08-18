@@ -46,6 +46,12 @@ describe("isPublicPath", () => {
     expect(isPublicPath("/pp-admin/settings")).toBe(false);
   });
 
+  it("lets partner pitch decks through without opening prefix-sharing routes", () => {
+    expect(isPublicPath("/pitch/informa")).toBe(true);
+    expect(isPublicPath("/pitch/informa/kit")).toBe(true);
+    expect(isPublicPath("/pitches")).toBe(false);
+  });
+
   it("lets the report share exports and player card image through, nothing else under those prefixes", () => {
     const token = "6830ebad-e7dc-47f9-9a52-902b77a6434b";
     expect(isPublicPath(`/api/reports/${token}/stat-card`)).toBe(true);
