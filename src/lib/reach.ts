@@ -27,8 +27,10 @@ import { DEFAULT_CONVERSION_RATE } from "./roi";
 /**
  * Ad surfaces on the Bright frozen unit: 1 front touchscreen + 2 side
  * screens, all running the brand's creative. Multiplies raw exposures.
+ * Exported for surfaces that model reach outside the quiz (e.g. the
+ * Informa seller's kit) so every calculator shares one source of truth.
  */
-const SCREEN_MULTIPLIER = 3;
+export const SCREEN_MULTIPLIER = 3;
 
 /** Lead opt-in rate as a fraction (DEFAULT_CONVERSION_RATE is a %). */
 const LEAD_RATE = DEFAULT_CONVERSION_RATE / 100;
@@ -44,9 +46,10 @@ const EXPERIENTIAL_PLAY_RATE = 0.06;
  * Realistic ceiling on completed plays for a *single* Bright unit per active
  * day (~200–250 in the field). Impressions scale with the crowd, but plays are
  * bounded by what one machine can physically serve — so we cap them here to
- * keep the numbers defensible in a sales conversation.
+ * keep the numbers defensible in a sales conversation. Exported for the same
+ * reason as SCREEN_MULTIPLIER.
  */
-const PLAYS_PER_DAY = 220;
+export const PLAYS_PER_DAY = 220;
 
 /** Days we assume for a tradeshow run when the quiz doesn't capture them. */
 const DEFAULT_TRADESHOW_DAYS = 2;

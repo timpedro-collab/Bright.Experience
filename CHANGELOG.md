@@ -4,6 +4,37 @@ All notable changes to the Bright.Experience platform are documented here.
 
 ---
 
+## [Informa pitch deck + seller's kit] - 2026-08-18
+
+Two unlisted, buyer-safe surfaces for the Informa partnership push, anchored
+on the Connect Marketplace showcase (Tampa, 24–26 Aug 2026: registration,
+Experiential Media Lounge, and Informa-booth rebooking placements).
+
+- **`/pitch/informa`** — fullscreen interactive pitch deck (8 slides,
+  `?slide=N` deep links, keyboard/touch nav): Tampa act one, the play
+  journey, the organizer-inventory gap, the Activation SKU offer, 24h
+  renewal-protection reporting, and the ask (named prospectus line on 2–3
+  shows next cycle).
+- **`/pitch/informa/kit`** — the seller's kit for Informa's own sponsorship
+  reps: 60-second script, qualifying questions, an interactive placement
+  configurator (attendance/days/price levers → plays, opted-in leads, cost
+  per lead, impressions), objection handling, and the deal-protection flow.
+- All copy and facts live in `src/lib/informa/content.ts`; configurator maths
+  in `src/lib/informa/kit-math.ts` reuses the portal reach model
+  (`PLAYS_PER_DAY` and `SCREEN_MULTIPLIER` now exported from
+  `src/lib/reach.ts`). Projections are labelled illustrative; no internal
+  economics on either page; both are `noindex`.
+- Files: `src/app/pitch/informa/{page,kit/page}.tsx`,
+  `src/components/informa/*`, `src/lib/informa/*` (+ tests).
+
+## [Homepage dark default + Let's plan wording] - 2026-08-17
+
+- Logged-out homepage now renders dark by default (`theme-dark` wrapper in
+  `src/components/public/PublicLanding.tsx`); theme toggle and all other
+  surfaces unchanged.
+- "Let's plan" completion renamed to "your experiential activation" and
+  lifted to second (`src/components/public/landing/LetsPlanSection.tsx`).
+
 ## [Full-portal audit, wave 2: copy and number consistency] - 2026-08-14
 
 The nine-role production journey found two real defects (guessable
