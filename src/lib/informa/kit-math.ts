@@ -89,6 +89,31 @@ function perUnit(priceUsd: number, count: number): number | null {
   return Math.round(priceUsd / count);
 }
 
+/**
+ * Published industry benchmark for trade show cost per lead, whole USD.
+ * Sources: Exhibit Surveys 2025 ($112 average), ShowHero State of Trade
+ * Shows 2026 ($112 to $186 band), CEIR $142 blended average. A field sales
+ * call runs $259+ (Exhibit Surveys) for context.
+ */
+export const INDUSTRY_CPL = { low: 112, high: 186, fieldSalesCall: 259 } as const;
+
+export type CplPosition = "below" | "level" | "above";
+
+/**
+ * Where the configured placement's cost-per-lead range sits against the
+ * industry benchmark band: entirely under it, overlapping it, or entirely
+ * over it. Null when there is no lead range to compare.
+ */
+export function cplPosition(
+  costPerLeadLow: number | null,
+  costPerLeadHigh: number | null
+): CplPosition | null {
+  if (costPerLeadLow == null || costPerLeadHigh == null) return null;
+  if (costPerLeadHigh < INDUSTRY_CPL.low) return "below";
+  if (costPerLeadLow > INDUSTRY_CPL.high) return "above";
+  return "level";
+}
+
 /** Compact "12,400" formatting for counts. */
 export function formatCount(n: number): string {
   return new Intl.NumberFormat("en-US").format(Math.round(n));

@@ -22,6 +22,13 @@ describe("PlacementConfigurator", () => {
     expect(screen.getByText(/not a\s+promise/i)).toBeInTheDocument();
   });
 
+  it("shows the industry benchmark comparison with its sources", () => {
+    render(<PlacementConfigurator />);
+    expect(screen.getByText(/against the industry standard/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/\$112 to \$186/).length).toBeGreaterThan(0);
+    expect(screen.getByText(/ShowHero State of\s+Trade Shows 2026/i)).toBeInTheDocument();
+  });
+
   it("exposes all three levers as accessible sliders", () => {
     render(<PlacementConfigurator />);
     expect(screen.getByRole("slider", { name: /show attendance/i })).toBeInTheDocument();

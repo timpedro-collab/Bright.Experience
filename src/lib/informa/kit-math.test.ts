@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { formatCount, formatUsdWhole, placementValue } from "./kit-math";
+import {
+  cplPosition,
+  formatCount,
+  formatUsdWhole,
+  placementValue,
+} from "./kit-math";
 
 describe("placementValue", () => {
   it("caps plays at the machine's daily throughput, not raw attendance", () => {
@@ -44,6 +49,26 @@ describe("placementValue", () => {
     expect(v.impressions).toBe(0);
     expect(v.playsHigh).toBe(0);
     expect(v.costPerLeadLow).toBeNull();
+  });
+});
+
+describe("cplPosition", () => {
+  it("reports below when the whole range is under the benchmark band", () => {
+    expect(cplPosition(60, 90)).toBe("below");
+  });
+
+  it("reports level when the range overlaps the benchmark band", () => {
+    expect(cplPosition(100, 150)).toBe("level");
+    expect(cplPosition(120, 200)).toBe("level");
+  });
+
+  it("reports above when the whole range is over the benchmark band", () => {
+    expect(cplPosition(200, 320)).toBe("above");
+  });
+
+  it("returns null when there is no lead range to compare", () => {
+    expect(cplPosition(null, null)).toBeNull();
+    expect(cplPosition(50, null)).toBeNull();
   });
 });
 
