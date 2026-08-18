@@ -1,8 +1,10 @@
 /**
  * The Informa seller's kit — everything a sponsorship rep with zero
- * Bright.Blue context needs to sell a placement the same day: script,
- * qualifying questions, an interactive placement calculator, objection
- * handling, and the deal-protection flow.
+ * Bright.Blue context needs to sell a placement the same day and hand the
+ * deal straight to delivery: script, qualifying questions, an interactive
+ * placement calculator, a paste-ready prospectus listing, objection
+ * handling, proof photography, the delivery timeline, and a deal brief
+ * builder that sends Bright.Blue everything needed to deliver.
  *
  * Same unlisted, buyer-safe posture as the pitch deck one level up.
  */
@@ -11,7 +13,14 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
+import { DealBriefBuilder } from "@/components/informa/DealBriefBuilder";
+import { InventoryListing } from "@/components/informa/InventoryListing";
 import { PlacementConfigurator } from "@/components/informa/PlacementConfigurator";
+import {
+  DeliveryTimeline,
+  KitGallery,
+  SiteRequirements,
+} from "@/components/informa/SellerKitDelivery";
 import {
   DealFlowSteps,
   KitSection,
@@ -20,6 +29,7 @@ import {
   RepScript,
   SponsorGets,
 } from "@/components/informa/SellerKitSections";
+import { KIT_BRIEF_EMAIL } from "@/lib/informa/content";
 
 export const metadata: Metadata = {
   title: "Informa seller's kit · Bright.Blue",
@@ -58,7 +68,8 @@ export default function InformaSellerKitPage() {
             One new line for your sponsorship book: a branded interactive
             machine, badge-gated plays, opted-in leads, and a proof report
             within 24 hours of close. Bright.Blue runs everything on site.
-            This page is the whole toolkit.
+            This page is the whole toolkit, from first pitch to a closed deal
+            handed straight to delivery.
           </p>
         </div>
 
@@ -82,19 +93,61 @@ export default function InformaSellerKitPage() {
             <SponsorGets />
           </KitSection>
 
+          <KitSection
+            overline="Paste this"
+            title="A ready-made line for your prospectus"
+          >
+            <InventoryListing />
+          </KitSection>
+
           <KitSection overline="Expect these" title="Objections, answered">
             <ObjectionCards />
+          </KitSection>
+
+          <KitSection overline="Proof" title="On show floors already">
+            <KitGallery />
+          </KitSection>
+
+          <KitSection
+            overline="After the signature"
+            title="Delivery is our job, start to finish"
+          >
+            <DeliveryTimeline />
+          </KitSection>
+
+          <KitSection
+            overline="What the show provides"
+            title="A square meter and a socket"
+          >
+            <SiteRequirements />
           </KitSection>
 
           <KitSection overline="Protect the deal" title="Once a sponsor bites">
             <DealFlowSteps />
           </KitSection>
+
+          <KitSection
+            overline="Close it"
+            title="Send the deal brief, and delivery starts"
+          >
+            <DealBriefBuilder />
+          </KitSection>
         </div>
 
-        <footer className="mt-4 border-t border-border/60 py-10 text-sm text-muted-foreground">
+        <footer className="mt-4 space-y-2 border-t border-border/60 py-10 text-sm text-muted-foreground">
           <p>
             Bright.Blue handles build, wrap, freight, install, on-site ops,
             teardown and reporting. Your team sells the line item.
+          </p>
+          <p>
+            Questions mid-deal? Write to{" "}
+            <a
+              href={`mailto:${KIT_BRIEF_EMAIL}`}
+              className="text-foreground underline underline-offset-4 transition-colors hover:text-[var(--color-bb-cyan)]"
+            >
+              {KIT_BRIEF_EMAIL}
+            </a>{" "}
+            and you will hear back within one working day.
           </p>
         </footer>
       </div>

@@ -206,3 +206,85 @@ export const DEAL_FLOW = [
   { step: "Answer within 24 hours", detail: "Bright.Blue confirms availability and pricing inside one working day." },
   { step: "14 days of exclusivity", detail: "The registered deal is yours across every channel, including Bright.Blue's own inbound." },
 ] as const;
+
+/**
+ * Where a rep's completed deal brief lands. One constant so it can be
+ * swapped when a dedicated partnerships inbox exists.
+ */
+export const KIT_BRIEF_EMAIL = "tim@brightblue.co.uk";
+
+/**
+ * The drop-in prospectus listing: copy a rep pastes straight into their own
+ * sponsorship deck or inventory sheet. Written as inventory copy, not
+ * marketing prose, so it survives the paste untouched.
+ */
+export const INVENTORY_LISTING = {
+  title: "Interactive Brand Activation Machine",
+  tier: "Premium engagement inventory · limited placements per show",
+  body: "A full-size interactive game machine, wrapped edge to edge in your brand, positioned where the audience already is. Attendees scan their badge to play a custom branded game, opt in as they play, and win real rewards from the machine. You receive every opted-in lead with preferences attached, and a board-ready performance report within 24 hours of the show closing.",
+  includes: [
+    "Machine, custom branded game and full brand wrap",
+    "Badge-gated plays with opted-in lead capture",
+    "Optional product sampling or prize dispensing on wins",
+    "Rotating screen creative between plays",
+    "Delivery, install, on-site operation and teardown",
+    "Proof-of-performance report within 24 hours of close",
+  ],
+  priceLine: "Price on application to your account team",
+} as const;
+
+/**
+ * From signature to show day: the delivery story a rep can promise without
+ * phoning anyone. Kept honest: creative lock is the only dated promise, and
+ * it comes from the standard four-week production lead time.
+ */
+export const DELIVERY_TIMELINE = [
+  {
+    phase: "On signature",
+    detail: "Bright.Blue's delivery team takes over from your rep. One kickoff call with the sponsor covers the game, the prize or sample, and the data capture.",
+  },
+  {
+    phase: "About 4 weeks out",
+    detail: "Brand assets and creative lock. Wrap production and game build start; the sponsor approves the design before anything prints.",
+  },
+  {
+    phase: "Show week",
+    detail: "Bright.Blue delivers, installs and tests the machine before doors. Your ops team provides the placement and a power socket; everything else is ours.",
+  },
+  {
+    phase: "Doors open",
+    detail: "Bright.Blue staff run the machine, restock rewards, and keep the queue moving. No workload lands on the show team.",
+  },
+  {
+    phase: "Within 24 hours of close",
+    detail: "The sponsor receives a board-ready proof-of-performance report. Your team gets the renewal ammunition at the same time.",
+  },
+] as const;
+
+/** What the show's ops team must provision. Everything else is Bright.Blue's. */
+export const SITE_REQUIREMENTS = [
+  { need: "Floor space", detail: "About one square meter, plus queueing room in front" },
+  { need: "Power", detail: "One standard power socket" },
+  { need: "Placement", detail: "A spot the audience already passes: registration, a lounge, a main aisle" },
+  { need: "Everything else", detail: "Build, wrap, freight, install, ops, teardown and reporting are all Bright.Blue's" },
+] as const;
+
+/** Real activation photography for the kit's proof strip. */
+export const KIT_GALLERY = [
+  {
+    src: "/partners/nrs/gallery/01-hero-pelion.jpg",
+    alt: "Machine fully wrapped in sponsor branding at a live activation",
+  },
+  {
+    src: "/partners/nrs/gallery/05-play-to-win.jpg",
+    alt: "Machine running a play-to-win interactive game screen",
+  },
+  {
+    src: "/partners/nrs/gallery/02-costa-cup.jpg",
+    alt: "Costa-branded machine with custom creative",
+  },
+  {
+    src: "/partners/nrs/gallery/04-pepsi.jpg",
+    alt: "Pepsi-branded machine on an event floor",
+  },
+] as const;

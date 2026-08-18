@@ -26,6 +26,16 @@ Experiential Media Lounge, and Informa-booth rebooking placements).
   economics on either page; both are `noindex`.
 - Files: `src/app/pitch/informa/{page,kit/page}.tsx`,
   `src/components/informa/*`, `src/lib/informa/*` (+ tests).
+- **Kit, wave 2 (world-class pass):** the kit now covers the whole deal
+  lifecycle, not just the pitch. Added a paste-ready prospectus listing with
+  one-click copy (`InventoryListing`), the post-signature delivery timeline,
+  site requirements ("a square metre and a socket"), a real-activation photo
+  strip (`SellerKitDelivery`), and a deal brief builder
+  (`DealBriefBuilder` + pure formatter `src/lib/informa/brief.ts`): the rep
+  fills it during the closing conversation and ships it to Bright.Blue by
+  clipboard or prefilled email (`KIT_BRIEF_EMAIL`), which is exactly what
+  delivery needs to take over. Deck's kit-preview slide updated to promise
+  only what the kit actually contains.
 
 ## [Homepage dark default + Let's plan wording] - 2026-08-17
 

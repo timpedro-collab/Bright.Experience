@@ -122,16 +122,17 @@ export function KitPreviewSlide({}: SlideProps) {
       </h2>
       <p className="mt-4 max-w-2xl text-lg text-muted-foreground">
         A seller&apos;s kit built for a sponsorship rep with no Bright.Blue
-        context: a 60 second script, three qualifying questions, an interactive
-        placement calculator they can screen-share in the meeting, and the
-        answers to every objection they will hear.
+        context: a 60 second script, an interactive placement calculator they
+        can screen-share in the meeting, a paste-ready prospectus listing, the
+        answer to every objection, and a deal brief that hands the closed deal
+        straight to delivery.
       </p>
 
       <motion.div variants={stagger} initial="hidden" animate="visible" className="mt-8 grid gap-3 sm:grid-cols-3">
         {[
           "Price a placement live, in the sponsor meeting",
-          "Register the deal, get an answer in 24 hours, keep 14 days of exclusivity",
-          "Co-branded one-pagers and prospectus blocks, generated in clicks",
+          "Paste a ready-made listing straight into the prospectus",
+          "Close, send the brief, and keep 14 days of deal exclusivity",
         ].map((line) => (
           <motion.div
             key={line}
