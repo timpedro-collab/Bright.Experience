@@ -140,7 +140,7 @@ export const REP_SCRIPT = [
   {
     beat: "The proof",
     script:
-      "It is not a novelty. Each machine serves around 150 to 220 plays a day, and you get a full proof-of-performance report within 24 hours of close. You will know exactly what it did.",
+      "It is not a novelty. Each machine serves around 150 to 220 plays a day, and it dispenses as well as it plays: drinks, snacks, beauty, merch, prizes. If it fits, it vends. And you get a full proof-of-performance report within 24 hours of close, so you will know exactly what it did.",
   },
   {
     beat: "The close",
@@ -193,6 +193,7 @@ export const OBJECTIONS = [
 export const SPONSOR_GETS = [
   "A machine fully wrapped in their brand at a placement the whole audience passes",
   "A custom branded game, built and loaded by Bright.Blue",
+  "Sampling on a win: the machine can be configured to dispense almost anything that fits, from drinks and snacks to beauty and merch",
   "Badge-gated plays: every interaction starts with a real registrant",
   "Opted-in leads with preference and context data far richer than a badge scan alone",
   "Sole-sponsor screen time on three ad surfaces between plays",
