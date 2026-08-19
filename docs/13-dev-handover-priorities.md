@@ -216,24 +216,33 @@ order is signed.) Everything the pitch promises a buyer
 `src/lib/informa/sample-report.ts`) must trace back to a tracked datum here —
 nothing in the report may be estimated.
 
-Both units are **badge-gated**: a badge scan unlocks the game, so a booked
-Tampa is the trigger that promotes badge-scan capture (P1.5) from services
-work to platform work — pick the registration provider Informa uses for the
-show as the first P1.5 target. Prerequisites for either machine sending usable data:
-event-ID assignment (P1.1), config push (P1.2), and the capture-quality
-rules (P2.1) enforced at the point of capture.
+Both units are **badge-gated**: a badge scan starts every session, so a
+booked Tampa is the trigger that promotes badge-scan capture (P1.5) from
+services work to platform work — pick the registration provider Informa uses
+for the show as the first P1.5 target. Prerequisites for either machine
+sending usable data: event-ID assignment (P1.1), config push (P1.2), and the
+capture-quality rules (P2.1) enforced at the point of capture.
 
-### Shared baseline — what every Tampa unit must emit
+**Repeat play is a deliberate choice on both units.** Neither machine limits
+an attendee to one interaction — prize stock (mints at Registration, Celsius
+at the lounge) is provisioned for repeats. A rescan starts a new session and
+may dispense again. Dedupe applies only at the **lead layer**: the first
+scan creates the sponsor lead; every later scan attaches to the same
+`badge_id`, incrementing that lead's play count, never duplicating the
+contact. This is per-event config — P2.1's "one entry per person" default is
+switched off for Tampa, not removed from the platform.
+
+### Shared baseline — what both Tampa units must emit
 
 All through the existing inbound contract (`docs/10-integrations.md` §1a),
 keyed by `machine_serial` so every datum attributes to one placement:
 
 | Signal | Wire shape | Feeds |
 |---|---|---|
-| Play started / completed | `telemetry.batch` → `play_started`, `play_completed` (payload: session seconds, game score) | Plays by hour/day, avg session duration, completion rate |
-| Opted-in lead | `lead.captured` — contact resolved from the badge provider, `contact.badge_id`, `contact.consented_at` | Lead counts, CPL vs benchmark, sponsor lead file |
-| Prize / sample dispensed | `telemetry.batch` → `prize_awarded` (payload: SKU) | Fulfilment reconciled to stock, live stock bar + reload estimate (P2.2) |
-| Capture guardrails | `capture_rejected_domain`, `capture_duplicate_blocked` | "Capture quality" report card; duplicate-scan blocking proof |
+| Session started / completed | `telemetry.batch` → `play_started`, `play_completed` (payload: `badge_id`, session seconds, score where the unit runs a game) | Sessions by hour/day, dwell, completion rate, repeat plays per badge |
+| Dwell | Session seconds on every completion event, covering the **whole interaction** — scan to dispense, not just the play | Avg and distribution of hands-on dwell, per machine |
+| Opted-in lead | `lead.captured` — contact resolved from the badge provider, `contact.badge_id`, `contact.consented_at` | Unique lead counts, CPL vs benchmark, sponsor lead file |
+| Prize / sample dispensed | `telemetry.batch` → `prize_awarded` (payload: `badge_id`, SKU) | Fulfilment reconciled to stock per SKU, live stock bar + reload estimate (P2.2) |
 | Health | `machine.heartbeat` (status, firmware) | Uptime record for the show-day SLA |
 
 Consent is stamped per lead (`consented_at`), retention runs on the
@@ -242,37 +251,58 @@ receives aggregate performance only, never contact data.
 
 ### Registration machine — "The Arrival" (Registration Takeover)
 
-The sell is *own the first minutes of every attendee's show*, so tracking
-must prove reach against the whole attendee population:
+Runs a **survey in lieu of a game**: the badge scan unlocks a short
+question flow, and completing it dispenses a prize (mints; stocked for
+repeat visits). The sell is *own the first minutes of every attendee's
+show*, so tracking must tie every answer to a person and prove reach:
 
-- **Scan-to-play funnel** — every badge scan resolves to an unlock, a
-  duplicate block, or a failed scan. One play per badge by default
-  (`capture_duplicate_blocked` on rescan, never a reset); the funnel is the
-  proof that gating worked.
-- **Population penetration** — plays and opted-in leads as a share of
-  registered attendance (report divides by the registration count Informa
-  provides; the machine only needs accurate uniques by `badge_id`).
-- **Engagement by hour from doors-open** — hourly play series with the
-  arrival peak visible; this is the headline chart in the sponsor report.
-- **Cost per opted-in lead** — computed against placement price and the
-  industry benchmark (`INDUSTRY_CPL`, `src/lib/informa/kit-math.ts`).
-- **Prize/sample fulfilment** — every win-dispense logged and reconciled to
-  loaded stock.
+- **Survey responses, keyed to the badge** — every completed survey emits a
+  `survey_completed` telemetry event (payload: `badge_id`, `answers[]` of
+  question id, question text and chosen answer) so each response joins to
+  the lead. The sponsor lead file carries the person's answers; the report
+  renders per-question answer distributions.
+- **Full-interaction dwell** — session seconds from scan through last
+  answer to dispense; partial surveys emit their abandon point so
+  drop-off per question is visible.
+- **Repeat interactions** — unlimited plays per badge; report separates
+  **unique badges** from **total sessions** so reach and enthusiasm are
+  distinct numbers.
+- **Population penetration** — unique badges as a share of registered
+  attendance (Informa supplies the registration count; the machine only
+  needs accurate uniques by `badge_id`).
+- **Engagement by hour from doors-open** — hourly session series with the
+  arrival peak visible; the headline chart in the sponsor report.
+- **Cost per opted-in lead** — against placement price and the industry
+  benchmark (`INDUSTRY_CPL`, `src/lib/informa/kit-math.ts`).
+- **Prize fulfilment** — every dispense logged and reconciled to loaded
+  stock.
+
+**New portal work this creates:** survey authoring does not exist —
+`GameConfigForm` configures games only. The config payload (P1.2) needs a
+`survey` block (questions, answer options, order) and the report needs a
+per-question distribution card. Neither is large; both must exist before
+Tampa goes live.
 
 ### Experiential Media Lounge machine — "The Draw" (Floor & Lounge Activation)
 
-Same baseline, but this unit is also the **category showcase** — the proof
+The straightforward one: our standard **tap-to-play game**, wins vend a
+**mystery flavor of Celsius**. Also the **category showcase** — the proof
 Informa uses to fill next year's prospectus — so it carries extra
 obligations:
 
-- **Dwell** — session seconds on every `play_completed`; avg hands-on dwell
-  is the number that differentiates the format from signage, so it must be
-  measured, not sampled.
-- **Sampling per SKU** — `prize_awarded` carries the SKU so multi-product
-  sampling reconciles per product line, with the live stock/reload signal
-  (P2.2) active during show hours.
-- **Repeat-demand signal** — blocked rescans counted and reported as demand
-  ("N attendees came back for a second play"), not discarded.
+- **Dwell** — full-interaction session seconds on every completion; avg
+  hands-on dwell is the number that differentiates the format from signage,
+  so it is measured, not sampled.
+- **Badge IDs on every session** — every scan and play keyed to `badge_id`,
+  unlimited repeats; report separates unique players from total plays and
+  shows plays-per-player as the comeback signal.
+- **High score** — `play_completed` carries the game score; the report
+  shows the show's high score and top-score table, and score attaches to
+  each lead as an engagement-quality marker.
+- **Mystery-flavor vend per SKU** — `prize_awarded` carries the flavor SKU,
+  so the sponsor sees exactly which Celsius flavors moved, reconciled to
+  stock per flavor, with the live stock/reload signal (P2.2) active during
+  show hours.
 - **Organizer aggregate cut** — alongside the sponsor's report, an
   anonymized format-performance summary for Informa: plays, dwell, opt-in
   rate, hourly shape. No contact data — this is the dataset their reps
@@ -283,8 +313,12 @@ obligations:
 - Every `measures[]` line on the two product cards maps to a query over
   `telemetry_events` / `leads` rows — demonstrated end-to-end with
   `scripts/simulate-cloud-webhook.ts` before the show.
-- A rescan of the same badge produces `capture_duplicate_blocked`, not a
-  second lead or prize.
+- A rescan of the same badge starts a new session and increments that
+  badge's play count without creating a duplicate lead.
+- Every survey answer at Registration is queryable joined to its badge and
+  lead; per-question distributions render in the report.
+- The lounge report renders the high-score table and per-flavor vend counts
+  from live rows.
 - The 24-hour proof-of-performance report renders every section of the
   sample report (`/pitch/informa/report`) from live rows, and the Informa
   aggregate contains no personally identifiable data.

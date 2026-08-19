@@ -7,16 +7,22 @@ All notable changes to the Bright.Experience platform are documented here.
 ## [Tampa per-machine tracking requirements] - 2026-08-19
 
 - New **P2b** section in `docs/13-dev-handover-priorities.md` specifying
-  what the two sponsor-sold Informa Tampa units must track: a shared
-  telemetry baseline (plays, opted-in leads, prize/sample dispensing,
-  capture guardrails, heartbeats) mapped to the existing webhook contract,
-  plus per-machine requirements — the Registration machine's scan-to-play
-  funnel, population penetration and doors-open hourly series; the
-  Experiential Media Lounge machine's dwell measurement, per-SKU sampling
-  reconciliation, repeat-demand signal, and the anonymized organizer
-  aggregate Informa resells from. Acceptance criteria tie every pitch
-  `measures[]` line to live `telemetry_events`/`leads` rows; a booked
-  Tampa is named as the P1.5 badge-scan trigger.
+  what the two sponsor-sold Informa Tampa units must track, per the show
+  design: both units badge-gated with **unlimited repeat plays** (dedupe at
+  the lead layer only — a rescan starts a new session, never a duplicate
+  contact) and **full-interaction dwell** measured scan-to-dispense. The
+  Registration machine runs a **survey in lieu of a game**: every response
+  emits `survey_completed` telemetry keyed to `badge_id` so answers join
+  the sponsor lead file and per-question distributions (plus abandon
+  points) render in the report — flagged as new portal work, since survey
+  authoring and the config-payload `survey` block don't exist yet. The
+  Experiential Media Lounge machine runs the standard tap-to-play game
+  vending a **mystery Celsius flavor**: high score tracked per play and
+  attached to leads, per-flavor vend reconciliation, unique-players vs
+  total-plays split, and the anonymized organizer aggregate Informa resells
+  from. Acceptance ties every pitched measure to live
+  `telemetry_events`/`leads` rows; a booked Tampa is named as the P1.5
+  badge-scan trigger.
 
 ## [Trade-show photography from the Events drive export] - 2026-08-18
 
