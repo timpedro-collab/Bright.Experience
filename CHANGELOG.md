@@ -4,6 +4,17 @@ All notable changes to the Bright.Experience platform are documented here.
 
 ---
 
+## [Fix: NaN in deal explorer for machine-free levers] - 2026-08-18
+
+- `DealExplorer` divided the remaining fleet capacity by a lever's
+  `unitsPerItem` to cap its count slider. The Loop deploys no machines
+  (`unitsPerItem: 0`), so the division produced Infinity/NaN, which leaked
+  into the slot slider and earnings figures on the live Informa `/pp/`
+  page. Levers with `unitsPerItem: 0` now bypass the fleet ceiling and are
+  capped by `maxItems` (Loop: 90 slots = 6 per machine x 15 pilot
+  machines). Regression tests added; live page re-provisioned and
+  verified.
+
 ## [Informa world-class build: products, pricing, decks, report] - 2026-08-18
 
 The complete Informa go-to-market system, addressing all four of Jiri's
