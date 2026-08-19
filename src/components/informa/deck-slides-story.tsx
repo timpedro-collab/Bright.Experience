@@ -209,7 +209,7 @@ export function GapSlide({}: SlideProps) {
     <SlideFrame>
       <p className="text-overline text-[var(--color-bb-cyan)]">The gap</p>
       <h2 className="text-display-grotesk mt-2 max-w-3xl text-4xl sm:text-5xl">
-        Nobody sells this. Including you.
+        This already sells out. Just not for you.
       </h2>
 
       <motion.div variants={stagger} initial="hidden" animate="visible" className="mt-10 space-y-4">

@@ -81,20 +81,30 @@ export const PLAY_JOURNEY = [
 
 /**
  * The gap argument. Sources: Bright.Blue market research across 30+ organizer
- * prospectuses and rate cards, August 2026 (docs/research/2026-08-market).
+ * prospectuses and rate cards, August 2026 (docs/research/2026-08-market),
+ * plus Freeman's public Envision listings (HIMSS 2023–2026).
+ *
+ * Deliberately NOT "nobody sells this": Freeman's Envision machines at HIMSS
+ * are priced, listed and sold out — and the room can verify that on a phone.
+ * The gap is that the one comparable is the contractor's product, per show,
+ * with no measurement attached. Envision is our demand proof, not a landmine.
  */
 export const GAP_CLAIMS = [
   {
-    claim: "Every prospectus sells \"custom activations.\" None of them price it, and none of them measure it.",
-    support: "Across 30+ organizer prospectuses reviewed, the activation line is always contact-sales, bespoke, and never performance-quantified.",
+    claim:
+      "The demand is proven, and priced: Freeman's Envision machines at HIMSS list at $42–45k for 2026, and the slots show sold.",
+    support:
+      "Sold to Salesforce and CoverMyMeds, up from $25–27.5k in 2023. The one comparable that exists sells out at rising prices — public listings, verifiable in this room.",
   },
   {
-    claim: "No organizer anywhere publishes expected performance next to sponsorship inventory.",
-    support: "Signage, lanyards and banners are sold on position and size. Nobody attaches expected plays, leads, or engagement to the line item.",
+    claim: "But that line belongs to the services contractor, one show at a time — it is not a product in the organizer's book.",
+    support:
+      "Across 30+ organizer prospectuses reviewed, the organizer-side activation line is still \"custom activations\": contact-sales, bespoke, never a rate-carded product a rep can close in one meeting.",
   },
   {
-    claim: "Branded game machines only reach shows when an exhibitor rents one directly.",
-    support: "The format already works. It just is not in any organizer's book, so the organizer earns nothing from it.",
+    claim: "And nobody — Envision included — attaches measured performance to the line item.",
+    support:
+      "Signage, lanyards and banners sell on position and size. No expected plays, leads or engagement next to the price, and no proof-of-performance report after the show.",
   },
 ] as const;
 
