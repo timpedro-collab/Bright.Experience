@@ -241,7 +241,8 @@ export function NrsPricingExplorer() {
             <p className="mt-4 text-sm text-muted-foreground">
               Bright.Blue&rsquo;s 70% share covers the machines, creative
               build, on-site crew, software platform, operational monitoring
-              and post-show reporting. You carry the sale, nothing else.
+              and post-show reporting. You carry the sale and the in-building
+              services on your GSC master contract, nothing else.
             </p>
             {deal.belowPilotMinimum ? (
               <p className="mt-3 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-900 [.theme-dark_&]:bg-amber-950 [.theme-dark_&]:text-amber-200">

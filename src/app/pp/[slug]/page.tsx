@@ -336,6 +336,11 @@ function GenericPartnerPricingPage({
       term: `Pilot: ${pilotMinUnits}–${pilotMaxUnits} units, take-or-pay`,
       detail: `We commit build capacity, you commit placement. Your unit count stays flexible, up or down, until the production lock date, ${cutoffWeeks} weeks before the show. From that date we're building, so the number is fixed.`,
     },
+    {
+      term: "Venue labor, split sensibly",
+      detail:
+        "Everything inside the building — drayage, positioning, electrical, and union labor where the venue requires it — runs through your general-service contract, where organizer rates are a fraction of what an outside exhibitor pays. Everything up to the dock (build, freight, crew, wrap) is ours. The per-unit floor is priced on this split: buying in-building labor at exhibitor rates would push it substantially higher.",
+    },
   ];
 
   return (

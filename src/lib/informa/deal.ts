@@ -58,6 +58,11 @@ export const INFORMA_DEAL_CONFIG: DealConfig = {
       step: stepFor(p.id),
     },
   })),
+  // Floors assume the organizer carries in-building venue services
+  // (drayage, positioning, electrical, union labor where required) on
+  // their general-service master contract at organizer rates, as in the
+  // NRS deal. If Bright.Blue had to buy that labor at outside-exhibitor
+  // rates these floors would rise substantially.
   floorTiers: [
     { label: "Pilot", minUnits: 1, maxUnits: 15, floor: 15_000 },
     { label: "Scale", minUnits: 16, maxUnits: 30, floor: 13_500 },
