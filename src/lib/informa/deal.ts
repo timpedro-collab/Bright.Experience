@@ -25,6 +25,14 @@ function stepFor(productId: string): number {
 }
 
 /**
+ * Cap on Loop slots in the explorer: six 10s slots per machine across the
+ * take-or-pay pilot's 15 machines. Keeps the slot slider on a realistic,
+ * finite range (a lever with `unitsPerItem: 0` has no fleet ceiling to
+ * bound it otherwise).
+ */
+const LOOP_SLOT_CAP = 6 * 15;
+
+/**
  * The four rate-card products as deal levers. The Loop deploys no machines
  * (`unitsPerItem: 0`): slots add revenue to the mix without moving the
  * floor-ladder unit count.
@@ -42,6 +50,7 @@ export const INFORMA_DEAL_CONFIG: DealConfig = {
     key: p.id,
     label: `${p.name} — ${p.descriptor}`,
     unitsPerItem: p.id === "loop" ? 0 : 1,
+    ...(p.id === "loop" ? { maxItems: LOOP_SLOT_CAP } : {}),
     retail: {
       min: p.retail.min,
       max: p.retail.max,

@@ -79,15 +79,37 @@ function effectiveCountsForLevers(
     }, 0);
 
     const raw = Math.max(0, Math.floor(rawCounts[lever.key] ?? 0));
-    const itemCap = lever.maxItems ?? Infinity;
-    const fleetCap = Math.floor(
-      (config.commitment.maxUnits - otherUnits) / lever.unitsPerItem,
+    effective[lever.key] = Math.min(
+      raw,
+      leverItemCap(config, lever, otherUnits),
     );
-    const max = Math.min(itemCap, Math.max(0, fleetCap));
-    effective[lever.key] = Math.min(raw, max);
   }
 
   return effective;
+}
+
+/**
+ * How many items of a lever can still be sold given the units already
+ * consumed by other levers. Levers that deploy no machines (e.g. per-slot
+ * ad inventory, `unitsPerItem: 0`) never touch the fleet ceiling — dividing
+ * by their zero would yield Infinity or NaN — so they are capped only by
+ * their own `maxItems` (with a finite fallback so the slider stays usable).
+ */
+const NO_FLEET_ITEM_FALLBACK_CAP = 60;
+
+function leverItemCap(
+  config: DealConfig,
+  lever: DealConfig["levers"][number],
+  otherUnits: number,
+): number {
+  if (lever.unitsPerItem === 0) {
+    return lever.maxItems ?? NO_FLEET_ITEM_FALLBACK_CAP;
+  }
+  const itemCap = lever.maxItems ?? Infinity;
+  const fleetCap = Math.floor(
+    (config.commitment.maxUnits - otherUnits) / lever.unitsPerItem,
+  );
+  return Math.min(itemCap, Math.max(0, fleetCap));
 }
 
 function countValueLabel(
@@ -95,6 +117,7 @@ function countValueLabel(
   count: number,
 ): string {
   if (count === 0) return "None";
+  if (lever.unitsPerItem === 0) return `${count} sold`;
   if (lever.unitsPerItem === 1) return `${count} units`;
   if (lever.maxItems != null) return `${count} of ${lever.maxItems}`;
   return `${count} units`;
@@ -109,11 +132,7 @@ function maxCountForLever(
     if (other.key === lever.key) return sum;
     return sum + (effective[other.key] ?? 0) * other.unitsPerItem;
   }, 0);
-  const itemCap = lever.maxItems ?? Infinity;
-  const fleetCap = Math.floor(
-    (config.commitment.maxUnits - otherUnits) / lever.unitsPerItem,
-  );
-  return Math.min(itemCap, Math.max(0, fleetCap));
+  return leverItemCap(config, lever, otherUnits);
 }
 
 interface DealExplorerProps {

@@ -29,7 +29,7 @@ insert into public.partner_pricing_pages (
       {"key": "arrival", "label": "The Arrival — Registration Takeover", "unitsPerItem": 1, "retail": {"min": 50000, "max": 75000, "suggested": 60000, "step": 1000}},
       {"key": "draw", "label": "The Draw — Floor & Lounge Activation", "unitsPerItem": 1, "retail": {"min": 30000, "max": 60000, "suggested": 40000, "step": 1000}},
       {"key": "rebooker", "label": "The Rebooker — Organizer Rebooking Engine", "unitsPerItem": 1, "retail": {"min": 35000, "max": 50000, "suggested": 40000, "step": 1000}},
-      {"key": "loop", "label": "The Loop — Screen Ad Network", "unitsPerItem": 0, "retail": {"min": 3000, "max": 8000, "suggested": 5000, "step": 500}}
+      {"key": "loop", "label": "The Loop — Screen Ad Network", "unitsPerItem": 0, "maxItems": 90, "retail": {"min": 3000, "max": 8000, "suggested": 5000, "step": 500}}
     ],
     "floorTiers": [
       {"label": "Pilot", "minUnits": 1, "maxUnits": 15, "floor": 15000},

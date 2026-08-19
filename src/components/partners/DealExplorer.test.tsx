@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 
 import { DealExplorer } from "./DealExplorer";
 import type { DealConfig } from "@/lib/deal-config";
+import { INFORMA_DEAL_CONFIG } from "@/lib/informa/deal";
 
 const TEST_CONFIG: DealConfig = {
   currency: "GBP",
@@ -92,5 +93,44 @@ describe("DealExplorer", () => {
     expect(screen.getByText("£600k")).toBeInTheDocument();
     expect(screen.getByText("£180k")).toBeInTheDocument();
     expect(screen.getByText("£15k")).toBeInTheDocument();
+  });
+
+  // Regression: a lever that deploys no machines (The Loop, unitsPerItem 0)
+  // used to divide the fleet ceiling by zero, leaking NaN into the slot
+  // slider and the earnings figures.
+  it("sells machine-free slot levers without NaN anywhere", () => {
+    const { container } = render(
+      <DealExplorer config={INFORMA_DEAL_CONFIG} partnerName="Informa" />
+    );
+
+    const slotSlider = screen.getByRole("slider", {
+      name: "The Loop — Screen Ad Network count",
+    });
+    expect(slotSlider).toHaveAttribute("aria-valuemax", "90");
+
+    fireEvent.keyDown(slotSlider, { key: "ArrowRight" });
+    fireEvent.keyDown(slotSlider, { key: "ArrowRight" });
+
+    // Slots add revenue but never machines.
+    expect(screen.getByText("12 machines on the floor")).toBeInTheDocument();
+    expect(screen.getByText("2 sold")).toBeInTheDocument();
+    expect(container.textContent).not.toContain("NaN");
+  });
+
+  it("keeps every figure finite when machine levers fill the whole fleet", () => {
+    const { container } = render(
+      <DealExplorer config={INFORMA_DEAL_CONFIG} partnerName="Informa" />
+    );
+
+    for (const name of [
+      "The Arrival — Registration Takeover count",
+      "The Draw — Floor & Lounge Activation count",
+      "The Rebooker — Organizer Rebooking Engine count",
+    ]) {
+      fireEvent.keyDown(screen.getByRole("slider", { name }), { key: "End" });
+    }
+
+    expect(screen.getByText("50 machines on the floor")).toBeInTheDocument();
+    expect(container.textContent).not.toContain("NaN");
   });
 });
