@@ -180,22 +180,32 @@ export const THE_ASK = {
  * Seller's kit copy
  * ---------------------------------------------------------------------- */
 
-/** The 60-second rep script, in three beats. */
+/**
+ * The 60-second rep script, in three beats.
+ *
+ * Structure follows the strategic-narrative school of pitching (Raskin,
+ * Dunford, Klaff): the hook opens on an undeniable change in the buyer's
+ * world — event spend now has to survive a finance review — rather than on
+ * the product; the proof introduces the machine as the way to win that
+ * review and closes the beat on a winners-and-losers contrast; the close
+ * uses genuine scarcity (placements are capped per show) and a small,
+ * reversible ask.
+ */
 export const REP_SCRIPT = [
   {
     beat: "The hook",
     script:
-      "You know the busiest stand at every show is the one with a game on it. We can make that stand yours, wrapped in your brand, and every play captures an opted-in lead with their badge data attached.",
+      "Three weeks from now, someone in your finance meeting is going to ask what this show actually produced. A pile of badge scans doesn't survive that question. The stands that keep their budgets are the ones that come home with opted-in leads and a number they can defend, and we built a machine that does exactly that, wrapped head to toe in your brand.",
   },
   {
     beat: "The proof",
     script:
-      "It is not a novelty. Each machine serves around 150 to 220 plays a day, and it dispenses as well as it plays: drinks, snacks, beauty, merch, prizes. If it fits, it vends. And you get a full proof-of-performance report within 24 hours of close, so you will know exactly what it did.",
+      "It pulls a queue no static stand will: a fast branded game, badge-gated, so every play is a real registrant opting in, with preferences and context a scan alone never carries. Machines benchmark 150 to 220 plays a day, and they dispense as well as they play: drinks, snacks, beauty, merch. If it fits, it vends. Your proof-of-performance report lands within 24 hours of close, while everyone else is still counting scans.",
   },
   {
     beat: "The close",
     script:
-      "It is one line on your sponsorship order, we handle everything else end to end. Want me to hold the placement while you check budget?",
+      "It is one line on your sponsorship order, and we handle build, brand, crew and reporting end to end. Placements are capped per show and go to whoever commits first. Want me to hold one while you check budget?",
   },
 ] as const;
 
