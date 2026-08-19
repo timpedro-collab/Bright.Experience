@@ -4,6 +4,23 @@ All notable changes to the Bright.Experience platform are documented here.
 
 ---
 
+## [Loop slots derive from Informa-controlled machines] - 2026-08-18
+
+- A machine sold outright to one sponsor carries that sponsor's brand
+  alone, so its screens were never sellable ad inventory — but the deal
+  explorer let Loop slots be sold independent of the mix. The engine
+  (`deal-config.ts`) now supports `slotSource`: a slot lever's sellable
+  cap derives live from the machine units of named source levers. For
+  Informa that is the Rebooker (Informa's booth) and a new "show-placed
+  media unit" lever — a show-branded machine Informa deploys in premium
+  footfall spots purely to host the ad loop (zero line price, counts
+  toward the fleet and floor ladder). Six slots per host machine; the
+  slot slider locks at zero until a host is in the mix and pulls sold
+  slots back down when hosts leave. Zod schema, migration, live row,
+  product copy (The Loop's placement, sponsor screen-time bullet) and
+  tests all updated; engine + explorer + config suites cover the
+  clamping.
+
 ## [Informa photography and pitch-script upgrade] - 2026-08-18
 
 - **Real case-study photography** sourced from the Bright.Blue asset library
