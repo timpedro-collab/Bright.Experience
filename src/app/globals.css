@@ -603,38 +603,10 @@ body {
 	animation: connect-fade-in 0.4s var(--bb-ease-enter) both;
 }
 
-/* Machine carousel (redesign's lock-step pair): the outgoing panel exits one
-   side while the incoming one slides in from the other. Same duration and
-   easing on both layers; 115% travel keeps a constant 15% gap in flight. */
-@keyframes machine-slide-in-right {
-	from { transform: translateX(115%); }
-	to { transform: none; }
-}
-@keyframes machine-slide-out-left {
-	from { transform: none; }
-	to { transform: translateX(-115%); }
-}
-@keyframes machine-slide-in-left {
-	from { transform: translateX(-115%); }
-	to { transform: none; }
-}
-@keyframes machine-slide-out-right {
-	from { transform: none; }
-	to { transform: translateX(115%); }
-}
-
-.machine-slide-in-right {
-	animation: machine-slide-in-right 720ms cubic-bezier(0.45, 0.05, 0.25, 1) both;
-}
-.machine-slide-out-left {
-	animation: machine-slide-out-left 720ms cubic-bezier(0.45, 0.05, 0.25, 1) both;
-}
-.machine-slide-in-left {
-	animation: machine-slide-in-left 720ms cubic-bezier(0.45, 0.05, 0.25, 1) both;
-}
-.machine-slide-out-right {
-	animation: machine-slide-out-right 720ms cubic-bezier(0.45, 0.05, 0.25, 1) both;
-}
+/* The redesign's machine-carousel lock-step slide (720ms,
+   cubic-bezier(0.45,0.05,0.25,1), 115% travel) lives in
+   ProductFamily.tsx as framer-motion variants, where enter/exit pairing
+   is managed by AnimatePresence rather than hand-rolled CSS classes. */
 
 /* Mesh drift — three slow-moving gradient blobs behind dark hero slides.
    Long periods (24-36s) so the movement registers as atmosphere, not motion. */
@@ -654,32 +626,6 @@ body {
 .mesh-drift-a { animation: mesh-drift-a 24s ease-in-out infinite; }
 .mesh-drift-b { animation: mesh-drift-b 30s ease-in-out infinite; }
 .mesh-drift-c { animation: mesh-drift-c 36s ease-in-out infinite; }
-
-/* Panel reveal — the section grows from a collapsed grid row to natural
-   height (grid-template-rows 0fr to 1fr) while rows drop in staggered via
-   inline animation-delay. */
-@keyframes panel-list-grow {
-	from { grid-template-rows: 0fr; }
-	to { grid-template-rows: 1fr; }
-}
-@keyframes panel-row-in {
-	from { transform: translateY(-12px); opacity: 0; }
-	to { transform: translateY(0); opacity: 1; }
-}
-
-.panel-list-grow {
-	display: grid;
-	grid-template-rows: 1fr;
-	animation: panel-list-grow 380ms var(--bb-ease-emphasized) both;
-	animation-delay: 80ms;
-}
-.panel-list-grow > * {
-	min-height: 0;
-	overflow: hidden;
-}
-.panel-row-in {
-	animation: panel-row-in 360ms var(--bb-ease-emphasized) both;
-}
 
 /* ───────────────────────────────────────────────────────────
    Live dashboard motion — value pulses, feed entrances, status

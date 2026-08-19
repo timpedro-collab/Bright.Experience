@@ -50,10 +50,11 @@ and art direction from the Bright.Cloud redesign.
   formats) and a compliant data posture: sponsor-owned opted-in leads,
   renewal-conversation reporting, ops telemetry (no audience-profiling or
   live-lead-dashboard claims). Renewal slide links to the sample report.
-- **Motion library** — ported from the Bright.Cloud redesign into
-  `globals.css` (all neutralized under `prefers-reduced-motion`):
-  machine-carousel lock-step slides (720ms), mesh-drift blobs, panel-grow
-  reveal. Screen-slot mockup assets copied to `public/pitch/loop/`.
+- **Motion library** — ported from the Bright.Cloud redesign: mesh-drift
+  blob keyframes in `globals.css` (neutralized under
+  `prefers-reduced-motion`) and the machine-carousel lock-step slide
+  (720ms, 115% travel) as framer-motion variants in `ProductFamily`.
+  Screen-slot mockup assets copied to `public/pitch/loop/`.
 - Files: `src/lib/informa/{products,deal,sample-report,sponsor-content}.ts`
   (+ tests), `src/components/informa/{ProductFamily,RateCard,KitCatalog,
   SampleReportView,SponsorDeck,sponsor-slides-story,sponsor-slides-close,
