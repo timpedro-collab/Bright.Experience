@@ -192,10 +192,10 @@ export function AskSlide({}: SlideProps) {
     <div className="relative flex flex-1">
       <div aria-hidden className="absolute inset-0">
         <Image
-          src="/pitch/photos/magnum-mall-night.png"
+          src="/pitch/photos/magnum-mall-bw.png"
           alt=""
           fill
-          className="object-cover opacity-30"
+          className="object-cover opacity-25"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-background/40" />
       </div>
