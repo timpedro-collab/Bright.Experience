@@ -88,7 +88,7 @@ export function InformaPitchDeck() {
           exit={{ opacity: 0, y: -10 }}
           transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
         >
-          <Component onAdvance={() => goTo(index + 1)} />
+          <Component onAdvance={() => goTo(index + 1)} slideNumber={index + 1} />
         </motion.div>
       </AnimatePresence>
 

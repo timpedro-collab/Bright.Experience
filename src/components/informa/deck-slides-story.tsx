@@ -21,6 +21,12 @@ import { cn } from "@/lib/utils";
 
 export interface SlideProps {
   onAdvance: () => void;
+  /**
+   * This slide's 1-based position, as used in the deck's ?slide= param.
+   * Outbound links to the kit/report carry it so those pages' "Back to
+   * the deck" returns to this exact slide instead of restarting the deck.
+   */
+  slideNumber: number;
 }
 
 /** Shared slide scaffold: centered column with breathing room for the chrome. */

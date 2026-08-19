@@ -101,7 +101,7 @@ export function SkuSlide({}: SlideProps) {
   );
 }
 
-export function RenewalSlide({}: SlideProps) {
+export function RenewalSlide({ slideNumber }: SlideProps) {
   return (
     <SlideFrame>
       <p className="text-overline text-[var(--color-bb-cyan)]">Why organizers care</p>
@@ -134,7 +134,7 @@ export function RenewalSlide({}: SlideProps) {
           </span>
         </span>
         <Link
-          href="/informa/report"
+          href={`/informa/report?slide=${slideNumber}`}
           className="inline-flex items-center gap-2 rounded-full border border-border/70 px-6 py-3 text-sm font-medium transition-colors hover:border-[var(--color-bb-cyan)] hover:text-[var(--color-bb-cyan)]"
         >
           Open the sample report
@@ -145,7 +145,7 @@ export function RenewalSlide({}: SlideProps) {
   );
 }
 
-export function KitPreviewSlide({}: SlideProps) {
+export function KitPreviewSlide({ slideNumber }: SlideProps) {
   return (
     <SlideFrame>
       <p className="text-overline text-[var(--color-bb-cyan)]">Sales enablement</p>
@@ -177,7 +177,7 @@ export function KitPreviewSlide({}: SlideProps) {
       </motion.div>
 
       <Link
-        href="/informa/kit"
+        href={`/informa/kit?slide=${slideNumber}`}
         className="mt-8 inline-flex items-center gap-2 self-start rounded-full bg-[var(--color-bb-cobalt)] px-7 py-3 text-sm font-semibold text-white transition-transform hover:scale-105"
       >
         Open the seller&apos;s kit
@@ -187,7 +187,7 @@ export function KitPreviewSlide({}: SlideProps) {
   );
 }
 
-export function AskSlide({}: SlideProps) {
+export function AskSlide({ slideNumber }: SlideProps) {
   return (
     <div className="relative flex flex-1">
       <div aria-hidden className="absolute inset-0">
@@ -208,7 +208,7 @@ export function AskSlide({}: SlideProps) {
 
         <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
           <Link
-            href="/informa/kit"
+            href={`/informa/kit?slide=${slideNumber}`}
             className="rounded-full bg-[var(--color-bb-cobalt)] px-8 py-3 text-sm font-semibold text-white transition-transform hover:scale-105"
           >
             See what your reps get

@@ -67,6 +67,20 @@ describe("InformaPitchDeck", () => {
     expect(screen.getByText(/World of Concrete/)).toBeInTheDocument();
   });
 
+  it("carries the current slide on outbound links so back returns here", () => {
+    slideParam = "8"; // renewal slide, which links to the sample report
+    render(<InformaPitchDeck />);
+    expect(
+      screen.getByRole("link", { name: /open the sample report/i })
+    ).toHaveAttribute("href", "/informa/report?slide=8");
+
+    slideParam = "10"; // the ask, which links to the seller's kit
+    render(<InformaPitchDeck />);
+    expect(
+      screen.getByRole("link", { name: /see what your reps get/i })
+    ).toHaveAttribute("href", "/informa/kit?slide=10");
+  });
+
   it("disables the back arrow on the first slide", () => {
     slideParam = null;
     render(<InformaPitchDeck />);

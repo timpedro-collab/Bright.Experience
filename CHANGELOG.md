@@ -4,6 +4,20 @@ All notable changes to the Bright.Experience platform are documented here.
 
 ---
 
+## [Back to the deck now resumes the slide you left] - 2026-08-19
+
+- Opening the sample report (or the seller's kit) from inside the deck and
+  clicking "Back to the deck" restarted the presentation at the cover.
+  Deck slides now pass their position on outbound links
+  (`/informa/report?slide=8`), and both satellite pages build their back
+  link from it via the new `deckBackHref` helper (validated, falls back to
+  the cover for direct visits). Works in new tabs too, where browser-back
+  can't.
+- Files: `src/lib/informa/deck-link.{ts,test.ts}`,
+  `src/components/informa/deck-slides-{story,offer}.tsx`,
+  `src/components/informa/InformaPitchDeck.{tsx,test.tsx}`,
+  `src/app/informa/report/page.tsx`, `src/app/informa/kit/page.tsx`.
+
 ## [Informa PDFs now dark by default, matching the suite] - 2026-08-19
 
 - Both downloadable PDFs rendered light while every Informa surface is

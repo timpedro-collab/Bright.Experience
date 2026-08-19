@@ -31,6 +31,7 @@ import {
   SponsorGets,
 } from "@/components/informa/SellerKitSections";
 import { KIT_BRIEF_EMAIL } from "@/lib/informa/content";
+import { deckBackHref } from "@/lib/informa/deck-link";
 
 export const metadata: Metadata = {
   title: { absolute: "Seller's Kit — Bright.Blue for Informa Reps" },
@@ -46,7 +47,13 @@ export const metadata: Metadata = {
   },
 };
 
-export default function InformaSellerKitPage() {
+export default async function InformaSellerKitPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  // Deck links arrive with ?slide=N so "Back to the deck" resumes there.
+  const backHref = deckBackHref(await searchParams);
   return (
     <div className="theme-dark min-h-dvh bg-background text-foreground">
       <div className="mx-auto max-w-5xl px-6 py-12 sm:px-10">
@@ -59,7 +66,7 @@ export default function InformaSellerKitPage() {
             priority
           />
           <Link
-            href="/informa"
+            href={backHref}
             className="inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
           >
             <ArrowLeft className="size-4" aria-hidden />
