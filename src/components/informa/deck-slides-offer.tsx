@@ -134,7 +134,7 @@ export function RenewalSlide({}: SlideProps) {
           </span>
         </span>
         <Link
-          href="/pitch/informa/report"
+          href="/informa/report"
           className="inline-flex items-center gap-2 rounded-full border border-border/70 px-6 py-3 text-sm font-medium transition-colors hover:border-[var(--color-bb-cyan)] hover:text-[var(--color-bb-cyan)]"
         >
           Open the sample report
@@ -177,7 +177,7 @@ export function KitPreviewSlide({}: SlideProps) {
       </motion.div>
 
       <Link
-        href="/pitch/informa/kit"
+        href="/informa/kit"
         className="mt-8 inline-flex items-center gap-2 self-start rounded-full bg-[var(--color-bb-cobalt)] px-7 py-3 text-sm font-semibold text-white transition-transform hover:scale-105"
       >
         Open the seller&apos;s kit
@@ -208,7 +208,7 @@ export function AskSlide({}: SlideProps) {
 
         <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
           <Link
-            href="/pitch/informa/kit"
+            href="/informa/kit"
             className="rounded-full bg-[var(--color-bb-cobalt)] px-8 py-3 text-sm font-semibold text-white transition-transform hover:scale-105"
           >
             See what your reps get

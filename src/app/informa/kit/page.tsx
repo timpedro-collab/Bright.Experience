@@ -6,7 +6,7 @@
  * handling, proof photography, the delivery timeline, and a deal brief
  * builder that sends Bright.Blue everything needed to deliver.
  *
- * Same unlisted, buyer-safe posture as the pitch deck one level up.
+ * Same unlisted, buyer-safe posture as the partnership deck one level up.
  */
 import type { Metadata } from "next";
 import Image from "next/image";
@@ -32,8 +32,17 @@ import {
 import { KIT_BRIEF_EMAIL } from "@/lib/informa/content";
 
 export const metadata: Metadata = {
-  title: "Informa seller's kit · Bright.Blue",
+  title: { absolute: "Seller's Kit — Bright.Blue for Informa Reps" },
+  description:
+    "The whole toolkit for selling a Bright.Blue placement: the 60-second script, rate card, reach calculator, objection answers and deal brief.",
   robots: { index: false, follow: false },
+  openGraph: {
+    title: "Seller's Kit — Bright.Blue for Informa Reps",
+    description:
+      "The whole toolkit for selling a Bright.Blue placement: the 60-second script, rate card, reach calculator, objection answers and deal brief.",
+    images: [{ url: "/pitch/photos/storyblok-expo-crowd.jpg", width: 1920, height: 1080 }],
+    type: "website",
+  },
 };
 
 export default function InformaSellerKitPage() {
@@ -49,11 +58,11 @@ export default function InformaSellerKitPage() {
             priority
           />
           <Link
-            href="/pitch/informa"
+            href="/informa"
             className="inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
           >
             <ArrowLeft className="size-4" aria-hidden />
-            Back to the pitch
+            Back to the deck
           </Link>
         </header>
 
@@ -95,7 +104,7 @@ export default function InformaSellerKitPage() {
                 </p>
               </div>
               <Link
-                href="/pitch/informa/report"
+                href="/informa/report"
                 className="inline-flex items-center gap-2 rounded-lg border border-border/70 px-4 py-2 text-sm font-medium transition-colors hover:border-[var(--color-bb-cyan)] hover:text-[var(--color-bb-cyan)]"
               >
                 Open the sample report

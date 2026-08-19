@@ -87,13 +87,16 @@ export async function generateMetadata({
 
   if (!page) {
     return {
-      title: "Machine inventory for NRS · Bright.Blue",
+      title: { absolute: "Private Pricing — Bright.Blue" },
       robots: { index: false, follow: false },
     };
   }
 
+  // Distinct, self-describing link previews: when this page is shared in
+  // WhatsApp/iMessage alongside the decks, the title must say what it is.
   return {
-    title: `Machine inventory for ${page.partnerName} · Bright.Blue`,
+    title: { absolute: `Private Pricing — ${page.partnerName} × Bright.Blue` },
+    description: `The live commercial page for ${page.partnerName}: build the machine mix and see what the program earns.`,
     robots: { index: false, follow: false },
   };
 }

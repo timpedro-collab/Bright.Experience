@@ -1,5 +1,5 @@
 /**
- * Renders informa-sample-report.html to public/pitch/informa-sample-report.pdf
+ * Renders informa-sample-report.html to public/downloads/Bright.Blue-Informa-Sample-Report.pdf
  * using the Playwright screen-mode pipeline (never print-engine CSS): screen
  * media emulation at a 1080px viewport, scaled onto A4 with 10mm margins.
  *
@@ -11,7 +11,10 @@ import { chromium } from "playwright";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const htmlPath = path.join(here, "informa-sample-report.html");
-const pdfPath = path.resolve(here, "../../public/pitch/informa-sample-report.pdf");
+const pdfPath = path.resolve(
+  here,
+  "../../public/downloads/Bright.Blue-Informa-Sample-Report.pdf"
+);
 
 const VIEWPORT_WIDTH = 1080;
 const A4_W = 210;

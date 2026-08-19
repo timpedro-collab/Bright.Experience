@@ -192,7 +192,7 @@ export function SponsorReportSlide({}: SponsorSlideProps) {
           </dl>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link
-              href="/pitch/informa/report"
+              href="/informa/report"
               className="inline-flex items-center gap-2 rounded-lg bg-[var(--color-bb-cobalt)] px-4 py-2 text-sm font-semibold text-white transition-transform hover:scale-105"
             >
               Open the full sample report

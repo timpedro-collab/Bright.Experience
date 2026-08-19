@@ -1,7 +1,7 @@
 /**
  * The sample proof-of-performance report — the "analytics they get as
- * output" leg of the Informa pitch. Public but unlisted (noindex), like
- * the rest of /pitch. Data and layout are in SampleReportView; this page
+ * output" leg of the Informa offer. Public but unlisted (noindex), like
+ * the rest of /informa. Data and layout are in SampleReportView; this page
  * only composes the shell.
  */
 import type { Metadata } from "next";
@@ -12,8 +12,17 @@ import { ArrowLeft } from "lucide-react";
 import { SampleReportView } from "@/components/informa/SampleReportView";
 
 export const metadata: Metadata = {
-  title: "Sample proof-of-performance report · Bright.Blue",
+  title: { absolute: "Sample Report — Bright.Blue Proof of Performance" },
+  description:
+    "The board-ready report a sponsor receives within 24 hours of show close: plays, opted-in leads, dwell and fulfilment, hour by hour.",
   robots: { index: false, follow: false },
+  openGraph: {
+    title: "Sample Report — Bright.Blue Proof of Performance",
+    description:
+      "The board-ready report a sponsor receives within 24 hours of show close: plays, opted-in leads, dwell and fulfilment, hour by hour.",
+    images: [{ url: "/pitch/photos/biba-leadenhall.jpg", width: 1920, height: 1080 }],
+    type: "website",
+  },
 };
 
 export default function InformaSampleReportPage() {
@@ -29,11 +38,11 @@ export default function InformaSampleReportPage() {
             priority
           />
           <Link
-            href="/pitch/informa"
+            href="/informa"
             className="inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
           >
             <ArrowLeft className="size-4" aria-hidden />
-            Back to the pitch
+            Back to the deck
           </Link>
         </header>
 

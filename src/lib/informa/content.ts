@@ -1,6 +1,6 @@
 /**
  * Bright.Blue × Informa — every fact, claim and line of copy for the pitch
- * deck (`/pitch/informa`) and the seller's kit (`/pitch/informa/kit`).
+ * deck (`/informa`) and the seller's kit (`/informa/kit`).
  *
  * One file on purpose: when a date, placement, or claim changes, it changes
  * here and nowhere else. Components render this data and never hard-code

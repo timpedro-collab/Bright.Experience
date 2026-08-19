@@ -47,8 +47,10 @@ describe("isPublicPath", () => {
   });
 
   it("lets partner pitch decks through without opening prefix-sharing routes", () => {
-    expect(isPublicPath("/pitch/informa")).toBe(true);
-    expect(isPublicPath("/pitch/informa/kit")).toBe(true);
+    expect(isPublicPath("/informa")).toBe(true);
+    expect(isPublicPath("/informa/kit")).toBe(true);
+    expect(isPublicPath("/pitch/photos/example.jpg")).toBe(true);
+    expect(isPublicPath("/downloads/Bright.Blue-Informa-Sample-Report.pdf")).toBe(true);
     expect(isPublicPath("/pitches")).toBe(false);
   });
 

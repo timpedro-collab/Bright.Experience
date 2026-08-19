@@ -4,6 +4,31 @@ All notable changes to the Bright.Experience platform are documented here.
 
 ---
 
+## [Informa suite: shareable URLs and distinct link previews] - 2026-08-19
+
+- Moved the whole Informa suite from `/pitch/informa/*` to `/informa/*` —
+  "pitch" is out of every buyer-visible URL. Permanent redirects in
+  `next.config.ts` keep every previously shared link working; `/informa`
+  and `/downloads` added to the middleware public-route allowlist
+  (`/pitch` stays listed for the photo/mockup assets and redirects).
+- Every page in the suite now carries a distinct, self-describing title,
+  description and OG image (deck, seller's kit, sponsor deck, sample
+  report), so links shared in WhatsApp/iMessage/Slack preview as clearly
+  different documents instead of five identical cards. The private
+  pricing page (`/pp/[slug]`) title became
+  "Private Pricing — {partner} × Bright.Blue".
+- The sample-report PDF moved to a self-labeling filename:
+  `public/downloads/Bright.Blue-Informa-Sample-Report.pdf` (old path
+  redirects; generator script updated).
+- New scoped Cursor rule (`.cursor/rules/informa-links.mdc`) keeps the
+  six labeled Informa links in every related answer.
+- Files: `src/app/informa/**` (moved from `src/app/pitch/informa/**`),
+  `next.config.ts`, `src/lib/auth/public-routes.{ts,test.ts}`,
+  `src/app/pp/[slug]/page.tsx`, `src/components/informa/{deck-slides-offer,
+  SponsorDeck,SampleReportView,sponsor-slides-close}.tsx`,
+  `src/lib/informa/{content,sponsor-content}.ts`,
+  `scripts/informa-report-pdf/generate.mjs`, `README.md`.
+
 ## [Trade-show photography from the Events drive export] - 2026-08-18
 
 - Replaced all retail/mall pitch photography with real trade-show shots

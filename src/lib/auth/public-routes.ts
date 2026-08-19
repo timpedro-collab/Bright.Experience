@@ -56,9 +56,16 @@ const PUBLIC_ROUTES = [
   // Partner pricing microsites — the unguessable slug is the credential,
   // validated against the page's static registry (unknown slugs 404).
   "/pp",
-  // Partner pitch decks + seller kits (e.g. /pitch/informa). Unlisted rather
-  // than secret: noindex, no internal economics, presented live to partners.
+  // Partner decks + seller kits (e.g. /informa and its kit/sponsor/report
+  // pages). Unlisted rather than secret: noindex, no internal economics,
+  // presented live to partners.
+  "/informa",
+  // Static assets under public/pitch/ (placement mockups, deck photography)
+  // that middleware still sees, plus permanent redirects from the retired
+  // /pitch/informa URLs.
   "/pitch",
+  // Labeled shareable downloads under public/downloads/ (sample report PDF).
+  "/downloads",
   // Machine-to-machine endpoints that can never carry a browser session:
   // inbound Cloud/Cal.com webhooks (HMAC) and scheduled crons (CRON_SECRET
   // bearer). Without these the session gate 307s the caller to /login and

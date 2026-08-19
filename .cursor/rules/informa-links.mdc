@@ -1,0 +1,27 @@
+---
+description: When discussing the Informa suite (partnership deck, seller's kit, sponsor deck, sample report, report PDF, or private pricing page), always end the answer with the full labeled link list so the user never scrolls to find them.
+alwaysApply: false
+---
+
+# Informa suite — always include the links
+
+Whenever the conversation touches any of the Informa surfaces (the deck, the
+seller's kit, the sponsor deck, the sample report, the report PDF, or the
+private pricing page), end the answer with this exact labeled list:
+
+- **Informa partnership deck:** https://bright-experience.vercel.app/informa
+- **Seller's kit:** https://bright-experience.vercel.app/informa/kit
+- **Sponsor-facing deck:** https://bright-experience.vercel.app/informa/sponsor
+- **Sample proof-of-performance report:** https://bright-experience.vercel.app/informa/report
+- **Report PDF download:** https://bright-experience.vercel.app/downloads/Bright.Blue-Informa-Sample-Report.pdf
+- **Private Informa pricing page:** https://bright-experience.vercel.app/pp/informa-portfolio-e1820d252a4f
+
+Rules:
+
+- Include the whole list, not only the surface under discussion.
+- If a route is renamed or a surface is added, update this file in the same
+  change.
+- The old `/pitch/informa*` URLs are permanently redirected to `/informa*` —
+  never share the old form.
+- Each page carries its own title/description/OG image so links preview
+  distinctly in WhatsApp/iMessage; keep that true for any new surface.

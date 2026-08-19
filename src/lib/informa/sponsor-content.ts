@@ -1,5 +1,5 @@
 /**
- * Copy and templating for the sponsor-facing deck (`/pitch/informa/sponsor`).
+ * Copy and templating for the sponsor-facing deck (`/informa/sponsor`).
  *
  * The audience is the exhibitor or sponsor an Informa rep is selling to:
  * no organizer economics, no rate-card ask, no splits. The deck templates

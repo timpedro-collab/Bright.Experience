@@ -98,6 +98,30 @@ const nextConfig: NextConfig = {
 
     return { beforeFiles: disabled, afterFiles: [], fallback: [] };
   },
+  async redirects() {
+    return [
+      // The Informa suite moved from /pitch/informa/* to /informa/* (cleaner
+      // links to share; "pitch" stays out of buyer-visible URLs). Old links
+      // are already in circulation, so keep these permanent redirects.
+      {
+        source: "/pitch/informa",
+        destination: "/informa",
+        permanent: true,
+      },
+      {
+        source: "/pitch/informa/:path*",
+        destination: "/informa/:path*",
+        permanent: true,
+      },
+      // The sample-report PDF gained a self-describing filename so link
+      // previews say what it is.
+      {
+        source: "/pitch/informa-sample-report.pdf",
+        destination: "/downloads/Bright.Blue-Informa-Sample-Report.pdf",
+        permanent: true,
+      },
+    ];
+  },
   // Allow the dev server's client JS bundles (/_next/*) to load when the app is
   // opened from a LAN IP on a phone/tablet. Without this, Next.js 16 blocks
   // cross-origin dev resources so the page renders but never hydrates (dead taps).

@@ -66,7 +66,7 @@ function ShowSetupPanel({
 
   const copyLink = async () => {
     try {
-      const url = `${window.location.origin}/pitch/informa/sponsor?${showConfigQuery(config)}`;
+      const url = `${window.location.origin}/informa/sponsor?${showConfigQuery(config)}`;
       await navigator.clipboard.writeText(url);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
