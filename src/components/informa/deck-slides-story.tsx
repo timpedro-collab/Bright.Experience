@@ -58,7 +58,7 @@ export function CoverSlide({ onAdvance }: SlideProps) {
       {/* Real activation photography, dimmed to a backdrop */}
       <div aria-hidden className="absolute inset-0">
         <Image
-          src="/pitch/photos/magnum-mall-night.png"
+          src="/pitch/photos/adyen-play-queue.jpg"
           alt=""
           fill
           priority

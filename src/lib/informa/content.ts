@@ -336,23 +336,23 @@ export const SITE_REQUIREMENTS = [
  */
 export const KIT_GALLERY = [
   {
-    src: "/pitch/photos/ben-jerrys-tub.png",
-    alt: "Giant Ben & Jerry's tub machine drawing a crowd in a shopping centre",
-    position: "center",
+    src: "/pitch/photos/storyblok-expo-crowd.jpg",
+    alt: "Crowd gathered around a sponsor-wrapped machine on a trade show floor, phones out",
+    position: "22% center",
   },
   {
-    src: "/pitch/photos/lush-tower.jpg",
-    alt: "Lush-branded dispensing tower at an outdoor placement",
-    position: "15% center",
-  },
-  {
-    src: "/partners/nrs/gallery/01-hero-pelion.jpg",
+    src: "/pitch/photos/pelion-expo-play.jpg",
     alt: "Attendee playing a fully wrapped machine on a live trade show floor",
-    position: "center",
+    position: "58% center",
   },
   {
-    src: "/pitch/photos/magnum-mall-bw.png",
-    alt: "Magnum-branded machine standing in a mall concourse",
+    src: "/pitch/photos/biba-leadenhall.jpg",
+    alt: "Branded play-to-win machine drawing a queue at a conference activation",
+    position: "35% center",
+  },
+  {
+    src: "/pitch/photos/madfest-duo-machine.jpg",
+    alt: "Two attendees browsing a sponsor machine together at a live event",
     position: "45% center",
   },
 ] as const;

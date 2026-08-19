@@ -139,8 +139,8 @@ export function StandVisionSlide({ config }: SponsorSlideProps) {
           className="relative min-h-72 overflow-hidden rounded-2xl border border-border/70"
         >
           <Image
-            src="/pitch/photos/shopper-play.png"
-            alt="Attendee playing a branded machine at a live activation"
+            src="/pitch/photos/pepsi-tap-play.jpg"
+            alt="Attendee mid-play on a fully wrapped sponsor machine at a live event"
             fill
             sizes="(max-width: 1024px) 100vw, 40vw"
             className="object-cover"

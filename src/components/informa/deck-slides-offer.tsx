@@ -192,7 +192,7 @@ export function AskSlide({}: SlideProps) {
     <div className="relative flex flex-1">
       <div aria-hidden className="absolute inset-0">
         <Image
-          src="/pitch/photos/magnum-mall-bw.png"
+          src="/pitch/photos/madfest-stand-crowd.jpg"
           alt=""
           fill
           className="object-cover opacity-25"

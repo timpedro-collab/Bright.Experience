@@ -4,6 +4,21 @@ All notable changes to the Bright.Experience platform are documented here.
 
 ---
 
+## [Trade-show photography from the Events drive export] - 2026-08-18
+
+- Replaced all retail/mall pitch photography with real trade-show shots
+  pulled from the Events Google Drive export (`~/Downloads/Events`) and
+  the curated `EventsImages` set — including Dean Alexander's
+  professional MAD Fest 2025 stills. New web-optimized assets in
+  `public/pitch/photos/`: the Informa deck cover now runs on the Adyen
+  expo shot (attendee mid-play, badge-wearing queue behind), the ask
+  slide on the Bright.Blue MAD Fest stand crowd ("Activate • Engage •
+  Convert • Repeat" awning), the sponsor deck's stand-vision slide on
+  the Pepsi "tap the can" mid-play still, and the kit's proof gallery on
+  four show-floor moments (Storyblok expo crowd, Pelion play, BIBA
+  Leadenhall queue, MAD Fest duo). The six superseded mall/gym assets
+  were deleted; `KIT_GALLERY` crops re-tuned per photo.
+
 ## [Loop slots derive from Informa-controlled machines] - 2026-08-18
 
 - A machine sold outright to one sponsor carries that sponsor's brand
