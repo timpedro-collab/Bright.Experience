@@ -94,10 +94,15 @@ export async function generateMetadata({
 
   // Distinct, self-describing link previews: when this page is shared in
   // WhatsApp/iMessage alongside the decks, the title must say what it is.
+  // WhatsApp reads og:* over <title>, so OpenGraph is set explicitly —
+  // otherwise the root layout's generic OG card wins.
+  const title = `Private Pricing — ${page.partnerName} × Bright.Blue`;
+  const description = `The live commercial page for ${page.partnerName}: build the machine mix and see what the program earns.`;
   return {
-    title: { absolute: `Private Pricing — ${page.partnerName} × Bright.Blue` },
-    description: `The live commercial page for ${page.partnerName}: build the machine mix and see what the program earns.`,
+    title: { absolute: title },
+    description,
     robots: { index: false, follow: false },
+    openGraph: { title, description, type: "website" },
   };
 }
 
