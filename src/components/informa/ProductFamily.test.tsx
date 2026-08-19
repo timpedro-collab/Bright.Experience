@@ -11,7 +11,7 @@ import { ProductFamily } from "./ProductFamily";
 import { PRODUCT_FAMILY } from "@/lib/informa/products";
 
 describe("ProductFamily", () => {
-  it("renders all four products as selectable tiles, flagship focused", () => {
+  it("renders all five products as selectable tiles, flagship focused", () => {
     render(<ProductFamily />);
     const tabs = screen.getAllByRole("tab");
     expect(tabs).toHaveLength(PRODUCT_FAMILY.length);
@@ -72,7 +72,7 @@ describe("ProductFamily", () => {
     expect(screen.getByRole("button", { name: /previous product/i })).toBeDisabled();
     await user.click(screen.getByRole("button", { name: /next product/i }));
     expect(
-      screen.getByRole("tab", { name: /show-floor activation/i })
+      screen.getByRole("tab", { name: /show-floor takeover/i })
     ).toHaveAttribute("aria-selected", "true");
   });
 });

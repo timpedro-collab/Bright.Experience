@@ -18,12 +18,12 @@ import { InformaPitchDeck } from "@/components/informa/InformaPitchDeck";
 export const metadata: Metadata = {
   title: { absolute: "Informa × Bright.Blue — Partnership Deck" },
   description:
-    "New inventory for the shows you already run: the Tampa showcase, the four-product family, and the proof behind it.",
+    "New inventory for the shows you already run: the Tampa showcase, the five-product family, and the proof behind it.",
   robots: { index: false, follow: false },
   openGraph: {
     title: "Informa × Bright.Blue — Partnership Deck",
     description:
-      "New inventory for the shows you already run: the Tampa showcase, the four-product family, and the proof behind it.",
+      "New inventory for the shows you already run: the Tampa showcase, the five-product family, and the proof behind it.",
     images: [{ url: "/pitch/photos/adyen-play-queue.jpg", width: 2400, height: 1600 }],
     type: "website",
   },

@@ -47,7 +47,8 @@ describe("quoteLinesFor", () => {
     const lines = quoteLinesFor(INFORMA_DEAL_CONFIG, pilotInputs());
     expect(lines.map((l) => l.label)).toEqual([
       "Registration Takeover",
-      "Show-Floor Activation",
+      "Show-Floor Takeover",
+      "In-Booth Machine",
       "House Media Unit",
       "Screen Ad Network",
       "Rebooking Engine",
@@ -73,13 +74,14 @@ describe("quoteFileName", () => {
 describe("buildDealQuoteDoc", () => {
   it("renders the on-screen economics: gross, retained, fees, net", () => {
     const text = allText(buildDealQuoteDoc(pilotContext()));
-    // Pilot preset: gross $410k, Informa retains 30% = $123k,
-    // 2 rebooking engines × $40k = $80k in fees, net $43k.
-    expect(text).toContain("$410,000");
-    expect(text).toContain("+$123,000");
+    // Pilot preset (2 shows): gross 2×$60k + 2×$50k + 4×$30k + 16×$5k =
+    // $420k, Informa retains 30% = $126k, 2 rebooking engines × $40k =
+    // $80k in fees, net $46k.
+    expect(text).toContain("$420,000");
+    expect(text).toContain("+$126,000");
     expect(text).toContain("−$80,000");
     expect(text).toContain("Net to Informa");
-    expect(text).toContain("$43,000");
+    expect(text).toContain("$46,000");
   });
 
   it("names the scenario and the tier in the header", () => {

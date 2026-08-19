@@ -1,5 +1,5 @@
 /**
- * The rate card at a glance: the four products as prospectus-style rows.
+ * The rate card at a glance: the five products as prospectus-style rows.
  * Suggested retail bands only — splits and floors live on the private
  * partner-pricing page, never in the kit.
  */

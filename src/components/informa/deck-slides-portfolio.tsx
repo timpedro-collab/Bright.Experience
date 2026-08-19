@@ -38,7 +38,7 @@ const rise = {
 
 const PROGRAM_CHIPS = [
   "One agreement, portfolio-wide",
-  "Four products, identical at every show",
+  "Five products, identical at every show",
   "One report format sponsors learn once",
 ];
 

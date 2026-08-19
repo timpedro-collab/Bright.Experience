@@ -80,7 +80,8 @@ describe("INFORMA_DEAL_CONFIG", () => {
   it("computes a pilot mix on the shared rails", () => {
     const summary = computeConfigDeal(INFORMA_DEAL_CONFIG, {
       arrival: { count: 3, retail: 60_000 },
-      draw: { count: 8, retail: 40_000 },
+      floor: { count: 4, retail: 50_000 },
+      booth: { count: 4, retail: 30_000 },
       rebooker: { count: 2, retail: 40_000 },
     });
     expect(summary.totalUnits).toBe(13);
@@ -125,6 +126,21 @@ describe("INFORMA_DEAL_CONFIG", () => {
       expect(preset.counts["loop"] ?? 0).toBeLessThanOrEqual(
         hostUnits * loop.slotSource!.slotsPerUnit,
       );
+    }
+  });
+
+  it("keeps every preset inside a floor plan a real show can hold", () => {
+    // Presets are shows-first: the Rebooking Engine count is the show
+    // count (exactly one per show, on the organizer's own booth), and no
+    // per-show quantity may exceed what a venue physically offers — one
+    // registration area, a handful of premium common-area spots.
+    for (const preset of INFORMA_DEAL_CONFIG.presets ?? []) {
+      const shows = preset.counts["rebooker"] ?? 0;
+      expect(shows).toBeGreaterThan(0);
+      expect(preset.counts["arrival"] ?? 0).toBeLessThanOrEqual(shows);
+      expect(preset.counts["floor"] ?? 0).toBeLessThanOrEqual(shows * 3);
+      expect(preset.counts["booth"] ?? 0).toBeLessThanOrEqual(shows * 3);
+      expect(preset.counts["media-unit"] ?? 0).toBeLessThanOrEqual(shows * 2);
     }
   });
 

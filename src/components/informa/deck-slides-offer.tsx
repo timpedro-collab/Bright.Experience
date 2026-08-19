@@ -80,7 +80,7 @@ export function SkuSlide({}: SlideProps) {
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.55, duration: 0.5 }}
-        className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4"
+        className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-5"
       >
         {PRODUCT_FAMILY.map((p) => (
           <div

@@ -23,7 +23,7 @@ export function KitCatalog() {
 
   return (
     <>
-      <KitSection overline="Sell these" title="Four products for your rate card">
+      <KitSection overline="Sell these" title="Five products for your rate card">
         <ProductFamily onPriceProduct={priceProduct} />
         <div className="mt-10">
           <RateCard />

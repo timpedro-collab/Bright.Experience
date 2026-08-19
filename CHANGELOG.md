@@ -4,6 +4,34 @@ All notable changes to the Bright.Experience platform are documented here.
 
 ---
 
+## [Informa rate card split into five products; presets rebuilt shows-first] - 2026-08-19
+
+- The ambiguous "Show-Floor Activation" is now two products with clear
+  ownership of the placement: **Show-Floor Takeover** (sponsor machine in a
+  premium common area the show controls, $40–65k, scarcity-priced) and
+  **In-Booth Machine** (exhibitor's own stand, $25–40k, the volume
+  product). Rate card, seller's kit, decks, sample report and the private
+  pricing page all carry the split; the deck's closing rate-card row grew
+  to five tiles.
+- Deal Explorer presets are now curated shows-first so no count implies an
+  impossible floor plan (the old Portfolio preset asked for 6 rebooking
+  machines with no hint that meant 6 shows). Every scenario is a per-show
+  recipe × show count — exactly 1 Rebooking Engine and 1 Registration
+  Takeover per show — with a stated two-thirds ad-slot sell-through:
+  Pilot = 2 shows/12 machines, Scale = 4/28, Portfolio = 6/48. A new
+  invariant test rejects any future preset a real venue couldn't hold.
+- Clearer money story on the pricing page: the bottom-line box now defines
+  "Net to Informa" in one sentence (your 30% of everything sponsors pay,
+  minus the machines you buy — nothing else ever deducted), and the
+  abrasive "Bright.Blue's 70% share covers…" paragraph was reframed as
+  "Of every sponsorship dollar, 70% funds the delivery itself…".
+- Files: `src/lib/informa/{products,deal}.{ts,test.ts}`,
+  `src/components/partners/DealExplorer.{tsx,test.tsx}`,
+  `src/components/informa/{ProductFamily,RateCard,KitCatalog,deck-slides-offer,deck-slides-portfolio}.tsx`,
+  `src/lib/informa/sample-report.ts`, `src/lib/deal-quote.test.ts`,
+  `supabase/migrations/20260819220000_informa_pp_curated_mixes.sql`,
+  regenerated sample-report PDF.
+
 ## [Back to the deck now resumes the slide you left] - 2026-08-19
 
 - Opening the sample report (or the seller's kit) from inside the deck and

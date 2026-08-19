@@ -23,30 +23,61 @@ export const INFORMA_PP_SLUG = "informa-portfolio-e1820d252a4f";
 const SLOTS_PER_MACHINE = 6;
 
 /**
- * One-click scenarios for the explorer. Counts are portfolio-wide items
- * (a Registration Takeover is one per show, so 4 of them means 4 shows).
- * The first preset is the page's opening mix. Slot counts stay inside the
- * derived ceiling (6 per rebooking engine or house media unit) and every
- * preset's delivery revenue clears its tier floor.
+ * One-click scenarios for the explorer, built shows-first: every preset is
+ * a per-show recipe multiplied by a show count, so no count can imply a
+ * floor plan that couldn't exist (one registration area per show, one
+ * organizer booth per show, only a few premium common-area spots).
+ *
+ * The per-show recipe: 1 Registration Takeover, 1–2 Show-Floor Takeovers,
+ * 2–3 In-Booth Machines, exactly 1 Rebooking Engine and 1 House Media
+ * Unit. Ad slots assume a deliberately honest two-thirds sell-through of
+ * the derived ceiling (6 per show-controlled machine), never a sell-out.
+ * The first preset is the page's opening mix; every preset clears its
+ * tier floor and the pilot minimum, and the totals land inside their
+ * matching floor-ladder tier (12 → Pilot, 28 → Scale, 48 → Portfolio).
  */
 const INFORMA_PRESETS: DealPreset[] = [
   {
     key: "pilot",
     label: "Pilot",
-    description: "12 machines across the first shows, Tampa-style mix",
-    counts: { arrival: 2, draw: 5, rebooker: 2, "media-unit": 3, loop: 18 },
+    description:
+      "Two shows, six machines each: registration, one floor takeover, two in-booth machines, your rebooker and a media unit per show. 16 of 24 ad slots sold.",
+    counts: {
+      arrival: 2,
+      floor: 2,
+      booth: 4,
+      rebooker: 2,
+      "media-unit": 2,
+      loop: 16,
+    },
   },
   {
     key: "scale",
     label: "Scale",
-    description: "24 machines once the pilot proves out",
-    counts: { arrival: 4, draw: 10, rebooker: 4, "media-unit": 6, loop: 42 },
+    description:
+      "Four shows, seven machines each once the pilot proves out — a second floor takeover joins per show. 32 of 48 ad slots sold.",
+    counts: {
+      arrival: 4,
+      floor: 8,
+      booth: 8,
+      rebooker: 4,
+      "media-unit": 4,
+      loop: 32,
+    },
   },
   {
     key: "portfolio",
     label: "Portfolio",
-    description: "40 machines across the show calendar",
-    counts: { arrival: 7, draw: 17, rebooker: 6, "media-unit": 10, loop: 72 },
+    description:
+      "Six shows, eight machines each across the calendar — a third in-booth machine joins per show. 48 of 72 ad slots sold.",
+    counts: {
+      arrival: 6,
+      floor: 12,
+      booth: 18,
+      rebooker: 6,
+      "media-unit": 6,
+      loop: 48,
+    },
   },
 ];
 
@@ -61,8 +92,8 @@ function bandFor(productId: string, step: number) {
  * rate card doesn't carry: the house media unit.
  *
  * Money flows two ways and the config keeps them separate. Sponsor
- * products (Registration Takeover, Show-Floor Activation, Screen Ad
- * Network) are sponsorship revenue Informa sells, split 70/30. The
+ * products (Registration Takeover, Show-Floor Takeover, In-Booth Machine,
+ * Screen Ad Network) are sponsorship revenue Informa sells, split 70/30. The
  * Rebooking Engine is the opposite direction: a flat service fee Informa
  * pays per show (`revenue: "service"`), never split — showing it inside
  * "gross sponsorship revenue" would tell Informa they retain 30% of their
@@ -90,16 +121,24 @@ export const INFORMA_DEAL_CONFIG: DealConfig = {
       label: productById("arrival").name,
       unitsPerItem: 1,
       note:
-        "A sponsor-owned machine at registration or the entrance, sold once per show — counts here span the shows in the program. Its screens carry that sponsor's brand alone.",
+        "One per show — there is only one front door, which is why it commands the top of the rate card. A count of 4 means 4 shows. Screens carry that sponsor's brand alone.",
       retail: bandFor("arrival", 1_000),
     },
     {
-      key: "draw",
-      label: productById("draw").name,
+      key: "floor",
+      label: productById("floor").name,
       unitsPerItem: 1,
       note:
-        "Sponsor-owned machines on the floor or in lounges — several can run per show. Screens carry the sponsor's brand alone.",
-      retail: bandFor("draw", 1_000),
+        "A sponsor machine in a premium common area you control — a main aisle, a lounge, the F&B queue. Realistically two or three of these spots exist per show; the scarcity is what the price buys. Screens carry the sponsor's brand alone.",
+      retail: bandFor("floor", 1_000),
+    },
+    {
+      key: "booth",
+      label: productById("booth").name,
+      unitsPerItem: 1,
+      note:
+        "Sold to exhibitors for their own stands — the volume product, since any booth big enough can take one. The exhibitor already owns the space; they buy the machine, the game and the lead flow. Screens carry the sponsor's brand alone.",
+      retail: bandFor("booth", 1_000),
     },
     {
       key: "rebooker",
@@ -107,7 +146,7 @@ export const INFORMA_DEAL_CONFIG: DealConfig = {
       unitsPerItem: 1,
       revenue: "service",
       note:
-        "A flat service fee you pay per show, not split revenue: it buys the show-branded rebooking machine on your own booth. Its screens are yours, so they host Screen Ad Network slots.",
+        "Exactly one per show, on your own booth — the count here doubles as the show count. A flat service fee you pay, not split revenue. Its screens are yours, so they host Screen Ad Network slots.",
       retail: bandFor("rebooker", 1_000),
     },
     {
@@ -115,7 +154,7 @@ export const INFORMA_DEAL_CONFIG: DealConfig = {
       label: "House Media Unit",
       unitsPerItem: 1,
       note:
-        "A show-branded machine you place in a high-footfall spot. It carries no line price of its own: it exists to host Screen Ad Network slots, and it counts toward the fleet and the floor ladder like any other machine.",
+        "A show-branded machine you place in a high-footfall spot — one or two per show. It carries no line price of its own: it exists to host Screen Ad Network slots, and it counts toward the fleet and the floor ladder like any other machine.",
       retail: { min: 0, max: 0, suggested: 0, step: 500 },
     },
     {
@@ -148,9 +187,9 @@ export const INFORMA_DEAL_CONFIG: DealConfig = {
 export const INFORMA_PP_HERO = {
   title: "The Bright.Blue line for the Informa portfolio",
   subtitle:
-    "Four plain-named products your reps can sell straight off the rate card, running on one set of commercial rails. The numbers below are live: build the mix you would actually sell and watch what the program earns.",
+    "Five plain-named products your reps can sell straight off the rate card, running on one set of commercial rails. The numbers below are live: build the mix you would actually sell and watch what the program earns.",
   explorerNote:
-    "Counts are portfolio-wide, across every show you book into the program — a Registration Takeover is one per show, so four of them means four shows. Start from a scenario, then drag anything.",
+    "Counts are portfolio-wide totals, and every scenario is built shows-first from a recipe a real floor plan can hold: one registration takeover and one rebooking machine per show, a couple of premium floor takeovers, in-booth machines as demand allows. The Rebooking Engine count doubles as the show count. Start from a scenario, then drag anything.",
   links: [
     { label: "Rate card & seller's kit", href: "/informa/kit" },
     { label: "Sample proof-of-performance report", href: "/informa/report" },

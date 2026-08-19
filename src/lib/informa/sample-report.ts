@@ -34,7 +34,7 @@ export interface SampleLeadQualityRow {
 export const SAMPLE_REPORT = {
   meta: {
     label: "Sample report — illustrative data",
-    product: "Show-Floor Activation",
+    product: "Show-Floor Takeover",
     show: "Three-day trade show, 8,000 attendees",
     priceUsd: 40_000,
     disclaimer:

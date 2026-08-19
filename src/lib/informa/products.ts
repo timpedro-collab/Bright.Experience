@@ -1,5 +1,5 @@
 /**
- * The Bright.Blue product family for organizer rate cards — four named,
+ * The Bright.Blue product family for organizer rate cards — five named,
  * repeatable products a sponsorship rep can read straight off the page.
  *
  * Names are deliberately plain and self-explaining ("Registration
@@ -42,7 +42,7 @@ export interface InformaProduct {
   configuratorPrice?: number;
 }
 
-/** The four-product rate-card family, flagship first. */
+/** The five-product rate-card family, flagship first. */
 export const PRODUCT_FAMILY: InformaProduct[] = [
   {
     id: "arrival",
@@ -68,13 +68,14 @@ export const PRODUCT_FAMILY: InformaProduct[] = [
     configuratorPrice: 60_000,
   },
   {
-    id: "draw",
-    name: "Show-Floor Activation",
-    descriptor: "Sponsor machine on the floor or in a lounge",
-    tagline: "The busiest square meter on the show floor, wearing your brand.",
+    id: "floor",
+    name: "Show-Floor Takeover",
+    descriptor: "Sponsor machine in a premium common area",
+    tagline: "The busiest square meter of the show, wearing one sponsor's brand.",
     placement:
-      "A lounge, a main aisle, or inside the sponsor's own stand.",
+      "A high-footfall spot the show controls and the sponsor could never buy on their own: a main aisle crossing, a lounge, the F&B queue. Only two or three of these exist per show — scarcity is the product.",
     includes: [
+      "Premium common-area placement, secured by the show",
       "Machine fully wrapped in the sponsor's brand",
       "Custom branded game, built and loaded by Bright.Blue",
       "Sampling on wins: configured to dispense almost anything that fits, from drinks and snacks to beauty and merch",
@@ -86,9 +87,32 @@ export const PRODUCT_FAMILY: InformaProduct[] = [
       "Cost per opted-in lead against the industry benchmark",
       "Sample and prize fulfilment, reconciled to stock",
     ],
-    retail: { min: 30_000, max: 60_000, suggested: 40_000, unit: "per show" },
+    retail: { min: 40_000, max: 65_000, suggested: 50_000, unit: "per show" },
     buyer: "Sponsor",
-    configuratorPrice: 40_000,
+    configuratorPrice: 50_000,
+  },
+  {
+    id: "booth",
+    name: "In-Booth Machine",
+    descriptor: "Sponsor machine inside their own stand",
+    tagline: "Turns a booth into the stand people queue for.",
+    placement:
+      "Inside the exhibitor's own booth. The space is already theirs — the machine gives every passing aisle a reason to stop, and every stop becomes a scanned, opted-in lead.",
+    includes: [
+      "Machine fully wrapped in the sponsor's brand",
+      "Custom branded game, built and loaded by Bright.Blue",
+      "Sampling on wins: configured to dispense almost anything that fits, from drinks and snacks to beauty and merch",
+      "Badge-gated plays with opted-in lead capture, feeding the sponsor's own lead flow",
+      "Board-ready proof-of-performance report within 24 hours of close",
+    ],
+    measures: [
+      "Plays, opted-in leads and dwell at the stand",
+      "Cost per opted-in lead against the industry benchmark",
+      "Sample and prize fulfilment, reconciled to stock",
+    ],
+    retail: { min: 25_000, max: 40_000, suggested: 30_000, unit: "per show" },
+    buyer: "Sponsor",
+    configuratorPrice: 30_000,
   },
   {
     id: "rebooker",

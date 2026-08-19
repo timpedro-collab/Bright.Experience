@@ -107,23 +107,24 @@ describe("DealExplorer", () => {
     expect(screen.getByText("£15k")).toBeInTheDocument();
   });
 
-  // The Informa config opens on its first preset (Pilot: 2 registration
-  // takeovers, 5 floor activations, 2 rebooking engines, 3 house media
-  // units, 18 ad slots) and its slot ceiling derives live from the
-  // show-controlled machines in the mix (rebooking engines + house media
-  // units, six slots each). Sponsor-sold machines contribute no slots.
+  // The Informa config opens on its first preset (Pilot, two shows: 2
+  // registration takeovers, 2 floor takeovers, 4 in-booth machines, 2
+  // rebooking engines, 2 house media units, 16 ad slots) and its slot
+  // ceiling derives live from the show-controlled machines in the mix
+  // (rebooking engines + house media units, six slots each). Sponsor-sold
+  // machines contribute no slots.
   it("opens on the first preset scenario", () => {
     render(<DealExplorer config={INFORMA_DEAL_CONFIG} partnerName="Informa" />);
     expect(screen.getByText("12 machines on the floor")).toBeInTheDocument();
-    expect(screen.getByText("18 of 30 slots")).toBeInTheDocument();
-    // Gross sponsorship: 2×$60k + 5×$40k + 18×$5k = $410k.
-    expect(screen.getByText("$410k")).toBeInTheDocument();
+    expect(screen.getByText("16 of 24 slots")).toBeInTheDocument();
+    // Gross sponsorship: 2×$60k + 2×$50k + 4×$30k + 16×$5k = $420k.
+    expect(screen.getByText("$420k")).toBeInTheDocument();
   });
 
   it("switches the whole mix when a preset is clicked", () => {
     render(<DealExplorer config={INFORMA_DEAL_CONFIG} partnerName="Informa" />);
     fireEvent.click(screen.getByRole("button", { name: "Scale" }));
-    expect(screen.getByText("24 machines on the floor")).toBeInTheDocument();
+    expect(screen.getByText("28 machines on the floor")).toBeInTheDocument();
     expect(screen.getByText(/once the pilot proves out/)).toBeInTheDocument();
   });
 
@@ -135,10 +136,10 @@ describe("DealExplorer", () => {
       screen.getByText(/You buy: Rebooking Engine × 2, at \$40,000 per show/),
     ).toBeInTheDocument();
     expect(screen.getByText("−$80k")).toBeInTheDocument();
-    expect(screen.getByText("+$123k")).toBeInTheDocument();
+    expect(screen.getByText("+$126k")).toBeInTheDocument();
     expect(screen.getByText("Net to Informa")).toBeInTheDocument();
-    // Net: 30% of $410k = $123k retained, minus $80k in fees.
-    expect(screen.getByText("$43k")).toBeInTheDocument();
+    // Net: 30% of $420k = $126k retained, minus $80k in fees.
+    expect(screen.getByText("$46k")).toBeInTheDocument();
     expect(
       screen.getByRole("slider", {
         name: "Rebooking Engine Flat service fee per show",
@@ -161,7 +162,7 @@ describe("DealExplorer", () => {
 
     // Sponsor placements alone never unlock slots.
     fireEvent.keyDown(
-      screen.getByRole("slider", { name: "Show-Floor Activation count" }),
+      screen.getByRole("slider", { name: "Show-Floor Takeover count" }),
       { key: "ArrowRight" },
     );
     expect(slotSlider).toHaveAttribute("aria-valuemax", "0");
@@ -206,7 +207,8 @@ describe("DealExplorer", () => {
     // Strip everything that earns: only unsold house media units remain.
     for (const name of [
       "Registration Takeover count",
-      "Show-Floor Activation count",
+      "Show-Floor Takeover count",
+      "In-Booth Machine count",
       "Rebooking Engine count",
       "Screen Ad Network count",
     ]) {
@@ -225,7 +227,7 @@ describe("DealExplorer", () => {
 
     for (const name of [
       "Registration Takeover count",
-      "Show-Floor Activation count",
+      "Show-Floor Takeover count",
       "Rebooking Engine count",
     ]) {
       fireEvent.keyDown(screen.getByRole("slider", { name }), { key: "End" });
@@ -239,7 +241,7 @@ describe("DealExplorer", () => {
     const sharedInputs: DealConfigInputs = Object.fromEntries(
       INFORMA_DEAL_CONFIG.levers.map((lever) => [
         lever.key,
-        { count: lever.key === "draw" ? 3 : 0, retail: lever.retail.suggested },
+        { count: lever.key === "booth" ? 3 : 0, retail: lever.retail.suggested },
       ]),
     );
     render(

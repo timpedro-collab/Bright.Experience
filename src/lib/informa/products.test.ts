@@ -8,9 +8,17 @@ import { describe, expect, it } from "vitest";
 import { formatRetailBand, PRODUCT_FAMILY, productById } from "./products";
 
 describe("PRODUCT_FAMILY", () => {
-  it("ships four products, flagship first", () => {
-    expect(PRODUCT_FAMILY).toHaveLength(4);
+  it("ships five products, flagship first", () => {
+    expect(PRODUCT_FAMILY).toHaveLength(5);
     expect(PRODUCT_FAMILY[0].id).toBe("arrival");
+  });
+
+  it("prices the placement ladder by scarcity: booth < floor takeover < registration", () => {
+    const booth = productById("booth").retail;
+    const floor = productById("floor").retail;
+    const arrival = productById("arrival").retail;
+    expect(booth.suggested).toBeLessThan(floor.suggested);
+    expect(floor.suggested).toBeLessThan(arrival.suggested);
   });
 
   it("keeps every retail band ordered with the suggested price inside it", () => {
@@ -31,7 +39,11 @@ describe("PRODUCT_FAMILY", () => {
 
   it("only offers configurator pricing on sponsor machine products", () => {
     const withPreset = PRODUCT_FAMILY.filter((p) => p.configuratorPrice != null);
-    expect(withPreset.map((p) => p.id).sort()).toEqual(["arrival", "draw"]);
+    expect(withPreset.map((p) => p.id).sort()).toEqual([
+      "arrival",
+      "booth",
+      "floor",
+    ]);
   });
 
   it("gives every product a complete rate-card entry", () => {

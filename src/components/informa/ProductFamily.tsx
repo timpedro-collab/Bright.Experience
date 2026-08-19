@@ -1,5 +1,5 @@
 /**
- * The rate-card product family: four named products as selectable tiles,
+ * The rate-card product family: five named products as selectable tiles,
  * with a focused detail panel that changes via the redesign's lock-step
  * carousel (outgoing panel exits one side as the incoming one slides in,
  * same duration and easing, so they fly in formation).
@@ -30,7 +30,7 @@ export function ProductFamily({
   /** Wired by the kit page: presets the configurator and scrolls to it. */
   onPriceProduct?: (priceUsd: number) => void;
   /**
-   * "organizer" (kit): all four products, retail bands, buyer badges.
+   * "organizer" (kit): all five products, retail bands, buyer badges.
    * "sponsor" (sponsor deck): sponsor-relevant products only, no pricing —
    * the price conversation belongs to the Informa rep.
    */

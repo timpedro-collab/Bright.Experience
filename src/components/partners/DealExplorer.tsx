@@ -511,20 +511,22 @@ export function DealExplorer({
                   </div>
                 </dl>
                 <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-                  Sponsor placements are money in: someone else pays, and{" "}
-                  {partnerPct}% stays with you. The machines above are the one
-                  line where you&rsquo;re the buyer — they run your own show
-                  numbers, so they&rsquo;re a straightforward purchase at a
-                  flat fee, never split.
+                  Net to {partnerName} is the cash position of the whole mix:
+                  your {partnerPct}% of everything sponsors and advertisers
+                  pay, minus the show-branded machines you chose to buy for
+                  your own rebooking numbers. Nothing else is ever deducted —
+                  delivery is already funded inside the split, so the{" "}
+                  {partnerPct}% arrives with no costs attached.
                 </p>
               </div>
             ) : null}
             <p className="mt-4 text-sm text-muted-foreground">
-              Bright.Blue&rsquo;s {bbPct}% share covers the machines, creative
-              build, on-site crew, software platform, operational monitoring
-              and post-show proof-of-performance reporting. You carry the
-              sale and the in-building venue services you already contract at
-              organizer rates, nothing else.
+              Of every sponsorship dollar, {bbPct}% funds the delivery itself
+              — machines, creative build, on-site crew, the software
+              platform, operational monitoring and the post-show
+              proof-of-performance report. The {partnerPct}% you retain is
+              pure margin: you carry the sale and the in-building venue
+              services you already contract at organizer rates, nothing else.
             </p>
             {deal.belowPilotMinimum ? (
               <p className="mt-3 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-900 [.theme-dark_&]:bg-amber-950 [.theme-dark_&]:text-amber-200">
