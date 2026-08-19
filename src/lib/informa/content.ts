@@ -256,7 +256,7 @@ export const SPONSOR_GETS = [
   "Sampling on a win: the machine can be configured to dispense almost anything that fits, from drinks and snacks to beauty and merch",
   "Badge-gated plays: every interaction starts with a real registrant",
   "Opted-in leads with preference and context data far richer than a badge scan alone",
-  "Screen time between plays: a rolling loop of six 10 second ad slots, run sole-sponsor or split and sold as separate inventory, on up to three screens depending on the machine",
+  "Screen time between plays: the machine's screens are yours alone, running your creative in a rolling loop on up to three screens depending on the machine",
   "A board-ready proof-of-performance report within 24 hours of close",
 ] as const;
 

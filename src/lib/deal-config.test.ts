@@ -6,6 +6,7 @@ import {
   floorTierForVolume,
   formatDealCurrency,
   formatDealCurrencyCompact,
+  slotCapForLever,
   type DealConfig,
 } from "./deal-config";
 
@@ -125,6 +126,61 @@ describe("computeConfigDeal", () => {
     expect(empty.belowPilotMinimum).toBe(false);
     expect(empty.totalUnits).toBe(0);
     expect(empty.partnerKeepsPerUnit).toBe(0);
+  });
+});
+
+describe("slot-inventory levers", () => {
+  /** CONFIG plus a host lever and a slot lever sourced from it. */
+  const SLOT_CONFIG: DealConfig = {
+    ...CONFIG,
+    levers: [
+      ...CONFIG.levers,
+      {
+        key: "host",
+        label: "Organizer-controlled media unit",
+        unitsPerItem: 1,
+        retail: { min: 0, max: 0, suggested: 0, step: 500 },
+      },
+      {
+        key: "slots",
+        label: "Ad slots",
+        unitsPerItem: 0,
+        slotSource: { slotsPerUnit: 6, sourceLevers: ["host"] },
+        retail: { min: 3_000, max: 8_000, suggested: 5_000, step: 500 },
+      },
+    ],
+  };
+
+  it("derives the sellable-slot cap from host-lever units", () => {
+    const slotLever = SLOT_CONFIG.levers.find((l) => l.key === "slots")!;
+    expect(slotCapForLever(slotLever, { host: 0 })).toBe(0);
+    expect(slotCapForLever(slotLever, { host: 3 })).toBe(18);
+    expect(slotCapForLever(slotLever, {})).toBe(0);
+  });
+
+  it("leaves machine levers uncapped by slot derivation", () => {
+    const single = SLOT_CONFIG.levers.find((l) => l.key === "single")!;
+    expect(slotCapForLever(single, {})).toBe(Infinity);
+  });
+
+  it("never sells a slot with no host machine in the mix", () => {
+    const deal = computeConfigDeal(SLOT_CONFIG, {
+      single: { count: 12, retail: 50_000 },
+      slots: { count: 24, retail: 5_000 },
+    });
+    // No hosts: every requested slot clamps away, gross is machines only.
+    expect(deal.totalUnits).toBe(12);
+    expect(deal.gross).toBe(600_000);
+  });
+
+  it("clamps sold slots to the host fleet and prices hosts at zero", () => {
+    const deal = computeConfigDeal(SLOT_CONFIG, {
+      host: { count: 2, retail: 0 },
+      slots: { count: 24, retail: 5_000 },
+    });
+    // 2 hosts allow 12 slots; hosts count as machines but earn nothing.
+    expect(deal.totalUnits).toBe(2);
+    expect(deal.gross).toBe(60_000);
   });
 });
 

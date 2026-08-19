@@ -24,8 +24,10 @@ describe("INFORMA_DEAL_CONFIG", () => {
     ]);
   });
 
-  it("mirrors the rate-card product family exactly, one lever per product", () => {
-    expect(INFORMA_DEAL_CONFIG.levers).toHaveLength(PRODUCT_FAMILY.length);
+  it("carries every rate-card product as a lever, plus the media unit", () => {
+    // One lever per product, plus the show-placed media unit which is a
+    // deployment mechanic rather than a rate-card SKU.
+    expect(INFORMA_DEAL_CONFIG.levers).toHaveLength(PRODUCT_FAMILY.length + 1);
     for (const p of PRODUCT_FAMILY) {
       const lever = leverForProduct(p.id);
       expect(lever.retail.min).toBe(p.retail.min);
@@ -34,13 +36,37 @@ describe("INFORMA_DEAL_CONFIG", () => {
     }
   });
 
-  it("sells Loop slots without deploying machines", () => {
-    expect(leverForProduct("loop").unitsPerItem).toBe(0);
-    const summary = computeConfigDeal(INFORMA_DEAL_CONFIG, {
+  it("hosts Loop slots only on Informa-controlled machines", () => {
+    const loop = leverForProduct("loop");
+    expect(loop.unitsPerItem).toBe(0);
+    expect(loop.slotSource).toEqual({
+      slotsPerUnit: 6,
+      sourceLevers: ["rebooker", "media-unit"],
+    });
+
+    // Sponsor-sold machines carry the sponsor's brand alone: with no
+    // rebooker or media units, requested slots clamp to zero.
+    const noHosts = computeConfigDeal(INFORMA_DEAL_CONFIG, {
+      arrival: { count: 12, retail: 60_000 },
       loop: { count: 12, retail: 5_000 },
     });
-    expect(summary.totalUnits).toBe(0);
-    expect(summary.gross).toBe(60_000);
+    expect(noHosts.totalUnits).toBe(12);
+    expect(noHosts.gross).toBe(720_000);
+  });
+
+  it("prices media units at zero: they earn through the slots they host", () => {
+    const mediaUnit = INFORMA_DEAL_CONFIG.levers.find((l) => l.key === "media-unit")!;
+    expect(mediaUnit.unitsPerItem).toBe(1);
+    expect(mediaUnit.retail.max).toBe(0);
+
+    const summary = computeConfigDeal(INFORMA_DEAL_CONFIG, {
+      "media-unit": { count: 2, retail: 0 },
+      rebooker: { count: 1, retail: 40_000 },
+      loop: { count: 18, retail: 5_000 },
+    });
+    // 3 host machines allow all 18 slots; media units add machines, not gross.
+    expect(summary.totalUnits).toBe(3);
+    expect(summary.gross).toBe(40_000 + 18 * 5_000);
   });
 
   it("computes a pilot mix on the shared rails", () => {

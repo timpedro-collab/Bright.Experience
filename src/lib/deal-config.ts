@@ -41,7 +41,34 @@ export interface DealLever {
   unitsPerItem: number;
   /** Physical cap on items sold, if one exists (e.g. 4 corridor units). */
   maxItems?: number;
+  /** Optional buyer-facing footnote rendered under the lever's sliders. */
+  note?: string;
+  /**
+   * For screen-inventory levers (ad slots): slots only exist on the
+   * machines the organizer controls, so sellable items are capped at
+   * `slotsPerUnit` x the units currently deployed by `sourceLevers`.
+   * A machine sold outright to one sponsor carries that sponsor's brand
+   * alone and never appears in `sourceLevers`.
+   */
+  slotSource?: { slotsPerUnit: number; sourceLevers: string[] };
   retail: RetailBand;
+}
+
+/**
+ * Sellable-item cap for a slot-inventory lever, given the machine units
+ * deployed per source lever. Levers without `slotSource` have no
+ * derived cap (returns Infinity; `maxItems` still applies separately).
+ */
+export function slotCapForLever(
+  lever: DealLever,
+  unitsByLever: Record<string, number>,
+): number {
+  if (!lever.slotSource) return Infinity;
+  const sourceUnits = lever.slotSource.sourceLevers.reduce(
+    (sum, key) => sum + (unitsByLever[key] ?? 0),
+    0,
+  );
+  return lever.slotSource.slotsPerUnit * sourceUnits;
 }
 
 /** One rung of the volume floor ladder. */
@@ -134,12 +161,33 @@ export function computeConfigDeal(
   let totalUnits = 0;
   let gross = 0;
 
-  for (const lever of config.levers) {
+  // Machine levers resolve first so slot-inventory levers can cap
+  // against the units they put on the floor.
+  const unitsByLever: Record<string, number> = {};
+  const machineLevers = config.levers.filter((l) => !l.slotSource);
+  const slotLevers = config.levers.filter((l) => l.slotSource);
+
+  for (const lever of machineLevers) {
     const input = inputs[lever.key];
     if (!input) continue;
     const rawCount = Math.max(0, Math.floor(input.count));
     const count =
       lever.maxItems != null ? Math.min(rawCount, lever.maxItems) : rawCount;
+    const retail = clampRetail(input.retail, lever.retail);
+    unitsByLever[lever.key] = count * lever.unitsPerItem;
+    totalUnits += count * lever.unitsPerItem;
+    gross += count * retail;
+  }
+
+  for (const lever of slotLevers) {
+    const input = inputs[lever.key];
+    if (!input) continue;
+    const rawCount = Math.max(0, Math.floor(input.count));
+    const cap = Math.min(
+      lever.maxItems ?? Infinity,
+      slotCapForLever(lever, unitsByLever),
+    );
+    const count = Math.min(rawCount, cap);
     const retail = clampRetail(input.retail, lever.retail);
     totalUnits += count * lever.unitsPerItem;
     gross += count * retail;

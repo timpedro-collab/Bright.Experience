@@ -24,18 +24,21 @@ function stepFor(productId: string): number {
   return productId === "loop" ? 500 : 1_000;
 }
 
-/**
- * Cap on Loop slots in the explorer: six 10s slots per machine across the
- * take-or-pay pilot's 15 machines. Keeps the slot slider on a realistic,
- * finite range (a lever with `unitsPerItem: 0` has no fleet ceiling to
- * bound it otherwise).
- */
-const LOOP_SLOT_CAP = 6 * 15;
+/** 10-second slots in one machine's between-plays ad loop. */
+const SLOTS_PER_MACHINE = 6;
 
 /**
- * The four rate-card products as deal levers. The Loop deploys no machines
- * (`unitsPerItem: 0`): slots add revenue to the mix without moving the
- * floor-ladder unit count.
+ * The rate-card products as deal levers, plus one deployment lever the
+ * rate card doesn't carry: the show-placed media unit.
+ *
+ * Screen economics: a machine sold outright to one sponsor (The Arrival,
+ * The Draw) carries that sponsor's brand alone — its screens are never
+ * sold as separate ad inventory. Loop slots therefore only exist on
+ * machines Informa controls: the rebooking engine on Informa's own booth
+ * and show-branded media units Informa places in premium footfall spots.
+ * The Loop's sellable-slot cap derives from those two levers live
+ * (`slotSource`), so the calculator can never sell a slot with no screen
+ * to run it.
  */
 export const INFORMA_DEAL_CONFIG: DealConfig = {
   currency: "USD",
@@ -46,18 +49,47 @@ export const INFORMA_DEAL_CONFIG: DealConfig = {
     maxUnits: 50,
     cutoffWeeks: 25,
   },
-  levers: PRODUCT_FAMILY.map((p) => ({
-    key: p.id,
-    label: `${p.name} — ${p.descriptor}`,
-    unitsPerItem: p.id === "loop" ? 0 : 1,
-    ...(p.id === "loop" ? { maxItems: LOOP_SLOT_CAP } : {}),
-    retail: {
-      min: p.retail.min,
-      max: p.retail.max,
-      suggested: p.retail.suggested,
-      step: stepFor(p.id),
+  levers: [
+    ...PRODUCT_FAMILY.filter((p) => p.id !== "loop").map((p) => ({
+      key: p.id,
+      label: `${p.name} — ${p.descriptor}`,
+      unitsPerItem: 1,
+      retail: {
+        min: p.retail.min,
+        max: p.retail.max,
+        suggested: p.retail.suggested,
+        step: stepFor(p.id),
+      },
+    })),
+    {
+      key: "media-unit",
+      label: "Show-placed media unit — Informa-controlled, premium footfall",
+      unitsPerItem: 1,
+      note:
+        "A show-branded machine Informa places in a high-footfall spot. It carries no line price of its own: it exists to host Loop ad slots, and it counts toward the fleet and the floor ladder like any other machine.",
+      retail: { min: 0, max: 0, suggested: 0, step: 500 },
     },
-  })),
+    (() => {
+      const loop = productById("loop");
+      return {
+        key: loop.id,
+        label: `${loop.name} — ${loop.descriptor}`,
+        unitsPerItem: 0,
+        slotSource: {
+          slotsPerUnit: SLOTS_PER_MACHINE,
+          sourceLevers: ["rebooker", "media-unit"],
+        },
+        note:
+          "Six 10-second slots per Informa-controlled machine: the rebooking engine and show-placed media units. A machine sold to one sponsor carries that sponsor's brand alone, so its screens are never in this inventory.",
+        retail: {
+          min: loop.retail.min,
+          max: loop.retail.max,
+          suggested: loop.retail.suggested,
+          step: stepFor(loop.id),
+        },
+      };
+    })(),
+  ],
   // Floors assume the organizer carries in-building venue services
   // (drayage, positioning, electrical, union labor where required) on
   // their general-service master contract at organizer rates, as in the

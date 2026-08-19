@@ -95,26 +95,85 @@ describe("DealExplorer", () => {
     expect(screen.getByText("£15k")).toBeInTheDocument();
   });
 
-  // Regression: a lever that deploys no machines (The Loop, unitsPerItem 0)
-  // used to divide the fleet ceiling by zero, leaking NaN into the slot
-  // slider and the earnings figures.
-  it("sells machine-free slot levers without NaN anywhere", () => {
-    const { container } = render(
-      <DealExplorer config={INFORMA_DEAL_CONFIG} partnerName="Informa" />
-    );
+  // The Loop sells screen time, not machines: its sellable-slot ceiling
+  // derives live from the Informa-controlled machines in the mix
+  // (rebooker + media units, six slots each). Sponsor-sold machines carry
+  // that sponsor's brand alone and contribute no slots.
+  it("locks the slot slider until an Informa-controlled machine is in the mix", () => {
+    render(<DealExplorer config={INFORMA_DEAL_CONFIG} partnerName="Informa" />);
 
     const slotSlider = screen.getByRole("slider", {
       name: "The Loop — Screen Ad Network count",
     });
-    expect(slotSlider).toHaveAttribute("aria-valuemax", "90");
+    expect(slotSlider).toHaveAttribute("aria-valuemax", "0");
+    expect(screen.getByText("no host machines in the mix")).toBeInTheDocument();
 
-    fireEvent.keyDown(slotSlider, { key: "ArrowRight" });
-    fireEvent.keyDown(slotSlider, { key: "ArrowRight" });
+    // Sponsor placements alone never unlock slots.
+    fireEvent.keyDown(
+      screen.getByRole("slider", { name: "The Draw — Floor & Lounge Activation count" }),
+      { key: "ArrowRight" },
+    );
+    expect(slotSlider).toHaveAttribute("aria-valuemax", "0");
+  });
 
-    // Slots add revenue but never machines.
-    expect(screen.getByText("12 machines on the floor")).toBeInTheDocument();
-    expect(screen.getByText("2 sold")).toBeInTheDocument();
+  it("derives the slot ceiling from rebooker and media units, six each", () => {
+    render(<DealExplorer config={INFORMA_DEAL_CONFIG} partnerName="Informa" />);
+
+    const rebooker = screen.getByRole("slider", {
+      name: "The Rebooker — Organizer Rebooking Engine count",
+    });
+    fireEvent.keyDown(rebooker, { key: "ArrowRight" });
+
+    const mediaUnit = screen.getByRole("slider", {
+      name: "Show-placed media unit — Informa-controlled, premium footfall count",
+    });
+    fireEvent.keyDown(mediaUnit, { key: "ArrowRight" });
+    fireEvent.keyDown(mediaUnit, { key: "ArrowRight" });
+
+    // 3 hosts x 6 slots.
+    const slotSlider = screen.getByRole("slider", {
+      name: "The Loop — Screen Ad Network count",
+    });
+    expect(slotSlider).toHaveAttribute("aria-valuemax", "18");
+
+    fireEvent.keyDown(slotSlider, { key: "End" });
+    expect(screen.getByText("18 of 18 slots")).toBeInTheDocument();
+    // 12 arrival (default) + 1 rebooker + 2 media units on the floor.
+    expect(screen.getByText("15 machines on the floor")).toBeInTheDocument();
+  });
+
+  it("pulls sold slots back down when host machines leave the mix", () => {
+    const { container } = render(
+      <DealExplorer config={INFORMA_DEAL_CONFIG} partnerName="Informa" />
+    );
+
+    const rebooker = screen.getByRole("slider", {
+      name: "The Rebooker — Organizer Rebooking Engine count",
+    });
+    fireEvent.keyDown(rebooker, { key: "ArrowRight" });
+
+    const slotSlider = screen.getByRole("slider", {
+      name: "The Loop — Screen Ad Network count",
+    });
+    fireEvent.keyDown(slotSlider, { key: "End" });
+    expect(screen.getByText("6 of 6 slots")).toBeInTheDocument();
+
+    // Remove the rebooker: its screens leave with it.
+    fireEvent.keyDown(rebooker, { key: "ArrowLeft" });
+    expect(screen.getByText("no host machines in the mix")).toBeInTheDocument();
     expect(container.textContent).not.toContain("NaN");
+  });
+
+  it("hides the price slider for zero-retail host levers", () => {
+    render(<DealExplorer config={INFORMA_DEAL_CONFIG} partnerName="Informa" />);
+    expect(
+      screen.queryByRole("slider", {
+        name: /Show-placed media unit.*Recommended retail/,
+      }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByText(/It carries no line price of its own/),
+    ).toBeInTheDocument();
   });
 
   it("keeps every figure finite when machine levers fill the whole fleet", () => {

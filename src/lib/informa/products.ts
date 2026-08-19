@@ -120,10 +120,10 @@ export const PRODUCT_FAMILY: InformaProduct[] = [
     descriptor: "Screen Ad Network",
     tagline: "The screens between plays are inventory. Sell them once, or six times.",
     placement:
-      "Every deployed machine at the show; sold per slot or bundled across the fleet.",
+      "Machines Informa controls: the rebooking engine on Informa's booth and show-placed media units in premium footfall spots. A machine sold to one sponsor carries that sponsor's brand alone.",
     includes: [
       "A rolling loop of six 10 second ad slots between plays",
-      "Run sole-sponsor or split and sold as separate inventory",
+      "Run sole-advertiser or split across up to six advertisers",
       "Up to three screens depending on the machine",
       "Every content play logged, so impressions are counted, not estimated",
     ],

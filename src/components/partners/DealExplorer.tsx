@@ -17,6 +17,7 @@ import {
   computeConfigDeal,
   formatDealCurrency,
   formatDealCurrencyCompact,
+  slotCapForLever,
   type DealConfig,
   type DealConfigInputs,
 } from "@/lib/deal-config";
@@ -63,15 +64,35 @@ function LeverRow({
   );
 }
 
-/** Effective item counts after fleet ceiling and physical caps. */
+/** Machine units currently deployed per lever, from effective counts. */
+function unitsByLeverFrom(
+  config: DealConfig,
+  effective: Record<string, number>,
+): Record<string, number> {
+  return Object.fromEntries(
+    config.levers.map((lever) => [
+      lever.key,
+      (effective[lever.key] ?? 0) * lever.unitsPerItem,
+    ]),
+  );
+}
+
+/**
+ * Effective item counts after fleet ceiling, physical caps and slot
+ * derivation. Machine levers resolve first; slot-inventory levers then cap
+ * against the machines those levers actually put on the floor, so shrinking
+ * a machine mix pulls sold slots down with it.
+ */
 function effectiveCountsForLevers(
   config: DealConfig,
   rawCounts: Record<string, number>,
 ): Record<string, number> {
   const effective: Record<string, number> = {};
+  const machineLevers = config.levers.filter((l) => !l.slotSource);
+  const slotLevers = config.levers.filter((l) => l.slotSource);
 
-  for (const lever of config.levers) {
-    const otherUnits = config.levers.reduce((sum, other) => {
+  for (const lever of machineLevers) {
+    const otherUnits = machineLevers.reduce((sum, other) => {
       if (other.key === lever.key) return sum;
       const otherCount =
         effective[other.key] ?? Math.max(0, Math.floor(rawCounts[other.key] ?? 0));
@@ -85,15 +106,25 @@ function effectiveCountsForLevers(
     );
   }
 
+  const unitsByLever = unitsByLeverFrom(config, effective);
+  for (const lever of slotLevers) {
+    const raw = Math.max(0, Math.floor(rawCounts[lever.key] ?? 0));
+    const cap = Math.min(
+      lever.maxItems ?? Infinity,
+      slotCapForLever(lever, unitsByLever),
+    );
+    effective[lever.key] = Math.min(raw, cap);
+  }
+
   return effective;
 }
 
 /**
- * How many items of a lever can still be sold given the units already
- * consumed by other levers. Levers that deploy no machines (e.g. per-slot
- * ad inventory, `unitsPerItem: 0`) never touch the fleet ceiling — dividing
- * by their zero would yield Infinity or NaN — so they are capped only by
- * their own `maxItems` (with a finite fallback so the slider stays usable).
+ * How many items of a machine lever can still be sold given the units
+ * already consumed by other levers. Levers that deploy no machines
+ * (`unitsPerItem: 0`) never touch the fleet ceiling — dividing by their
+ * zero would yield Infinity or NaN — so they are capped by `maxItems`
+ * and, for slot-inventory levers, by their derived slot cap.
  */
 const NO_FLEET_ITEM_FALLBACK_CAP = 60;
 
@@ -115,7 +146,12 @@ function leverItemCap(
 function countValueLabel(
   lever: DealConfig["levers"][number],
   count: number,
+  maxCount: number,
 ): string {
+  if (lever.slotSource) {
+    if (maxCount === 0) return "no host machines in the mix";
+    return count === 0 ? `0 of ${maxCount} slots` : `${count} of ${maxCount} slots`;
+  }
   if (count === 0) return "None";
   if (lever.unitsPerItem === 0) return `${count} sold`;
   if (lever.unitsPerItem === 1) return `${count} units`;
@@ -128,6 +164,12 @@ function maxCountForLever(
   lever: DealConfig["levers"][number],
   effective: Record<string, number>,
 ): number {
+  if (lever.slotSource) {
+    return Math.min(
+      lever.maxItems ?? Infinity,
+      slotCapForLever(lever, unitsByLeverFrom(config, effective)),
+    );
+  }
   const otherUnits = config.levers.reduce((sum, other) => {
     if (other.key === lever.key) return sum;
     return sum + (effective[other.key] ?? 0) * other.unitsPerItem;
@@ -204,13 +246,24 @@ export function DealExplorer({ config, partnerName }: DealExplorerProps) {
             const count = effective[lever.key] ?? 0;
             const maxCount = maxCountForLever(config, lever, effective);
             const retail = inputs[lever.key]?.retail ?? lever.retail.suggested;
+            // Levers with a zero retail band earn nothing directly (the
+            // revenue arrives through the slot inventory they host), so a
+            // price slider would be meaningless.
+            const hasRetail = lever.retail.max > 0;
             const retailDisabled = count === 0;
-            const retailUnit = lever.unitsPerItem > 1 ? "bundle" : "placement";
+            const retailUnit =
+              lever.slotSource != null
+                ? "slot"
+                : lever.unitsPerItem > 1
+                  ? "bundle"
+                  : "placement";
             const retailLabel = `Recommended retail per ${retailUnit}`;
             const retailValueLabel = retailDisabled
-              ? lever.unitsPerItem === 1
-                ? "add one above"
-                : "add a bundle above"
+              ? lever.slotSource != null
+                ? "add a slot above"
+                : lever.unitsPerItem === 1
+                  ? "add one above"
+                  : "add a bundle above"
               : formatDealCurrency(config.currency, retail);
 
             return (
@@ -218,24 +271,32 @@ export function DealExplorer({ config, partnerName }: DealExplorerProps) {
                 <LeverRow
                   label={lever.label}
                   ariaLabel={`${lever.label} count`}
-                  valueLabel={countValueLabel(lever, count)}
+                  valueLabel={countValueLabel(lever, count, maxCount)}
                   value={count}
                   min={0}
                   max={maxCount}
                   step={1}
+                  disabled={lever.slotSource != null && maxCount === 0}
                   onChange={(next) => setCount(lever.key, next)}
                 />
-                <LeverRow
-                  label={retailLabel}
-                  ariaLabel={`${lever.label} ${retailLabel}`}
-                  valueLabel={retailValueLabel}
-                  value={retail}
-                  min={lever.retail.min}
-                  max={lever.retail.max}
-                  step={lever.retail.step}
-                  disabled={retailDisabled}
-                  onChange={(next) => setRetail(lever.key, next)}
-                />
+                {hasRetail ? (
+                  <LeverRow
+                    label={retailLabel}
+                    ariaLabel={`${lever.label} ${retailLabel}`}
+                    valueLabel={retailValueLabel}
+                    value={retail}
+                    min={lever.retail.min}
+                    max={lever.retail.max}
+                    step={lever.retail.step}
+                    disabled={retailDisabled}
+                    onChange={(next) => setRetail(lever.key, next)}
+                  />
+                ) : null}
+                {lever.note ? (
+                  <p className="-mt-3 text-xs leading-relaxed text-muted-foreground">
+                    {lever.note}
+                  </p>
+                ) : null}
               </div>
             );
           })}

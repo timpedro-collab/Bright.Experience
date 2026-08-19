@@ -1,11 +1,13 @@
 /** Zod schemas for partner-pricing page actions. */
 import { z } from "zod";
 
+// Zero-retail bands are allowed: a hosting lever (e.g. a show-placed media
+// unit) earns through the slot inventory it carries, not a line price.
 const retailBandSchema = z
   .object({
-    min: z.number().positive("Retail min must be positive"),
-    max: z.number().positive("Retail max must be positive"),
-    suggested: z.number().positive("Retail suggested must be positive"),
+    min: z.number().nonnegative("Retail min cannot be negative"),
+    max: z.number().nonnegative("Retail max cannot be negative"),
+    suggested: z.number().nonnegative("Retail suggested cannot be negative"),
     step: z.number().positive("Retail step must be positive"),
   })
   .refine(
@@ -16,14 +18,27 @@ const retailBandSchema = z
 const dealLeverSchema = z.object({
   key: z.string().min(1, "Lever key is required"),
   label: z.string().min(1, "Lever label is required"),
+  // Zero is legal for slot-inventory levers, which deploy no machines.
   unitsPerItem: z
     .number()
     .int()
-    .positive("Units per item must be a positive integer"),
+    .nonnegative("Units per item cannot be negative"),
   maxItems: z
     .number()
     .int()
     .positive("Max items must be a positive integer")
+    .optional(),
+  note: z.string().max(400, "Lever note is too long").optional(),
+  slotSource: z
+    .object({
+      slotsPerUnit: z
+        .number()
+        .int()
+        .positive("Slots per unit must be a positive integer"),
+      sourceLevers: z
+        .array(z.string().min(1))
+        .min(1, "Slot source needs at least one source lever"),
+    })
     .optional(),
   retail: retailBandSchema,
 });
