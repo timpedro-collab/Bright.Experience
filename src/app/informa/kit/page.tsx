@@ -40,7 +40,7 @@ export const metadata: Metadata = {
     title: "Seller's Kit — Bright.Blue for Informa Reps",
     description:
       "The whole toolkit for selling a Bright.Blue placement: the 60-second script, rate card, reach calculator, objection answers and deal brief.",
-    images: [{ url: "/pitch/photos/storyblok-expo-crowd.jpg", width: 1920, height: 1080 }],
+    images: [{ url: "/pitch/photos/pepsi-midplay-crowd.jpg", width: 2400, height: 1600 }],
     type: "website",
   },
 };

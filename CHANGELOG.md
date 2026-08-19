@@ -4,6 +4,19 @@ All notable changes to the Bright.Experience platform are documented here.
 
 ---
 
+## [Storyblok render replaced with approved MAD Fest photography] - 2026-08-19
+
+- The kit gallery's Storyblok shot was a composited render, not a real
+  machine, so it is deleted outright. Extracting the previously-unopened
+  Dean Alexander MAD Fest zips (184 candids at 6240×4160) surfaced two
+  stronger frames, user-approved: an attendee mid-play on the wrapped
+  Pepsi machine (new gallery lead + the kit page's OG preview image) and
+  the dense badge-wearing crowd at the branded stand (replaces the
+  weaker two-browsers tile). Both exported at 2400px web weight; the
+  superseded `madfest-duo-machine.jpg` was removed with the render.
+- Files: `src/lib/informa/content.ts`, `src/app/informa/kit/page.tsx`,
+  `public/pitch/photos/{pepsi-midplay-crowd,madfest-stand-throng}.jpg`.
+
 ## [Informa suite: shareable URLs and distinct link previews] - 2026-08-19
 
 - Moved the whole Informa suite from `/pitch/informa/*` to `/informa/*` —

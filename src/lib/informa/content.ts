@@ -346,9 +346,9 @@ export const SITE_REQUIREMENTS = [
  */
 export const KIT_GALLERY = [
   {
-    src: "/pitch/photos/storyblok-expo-crowd.jpg",
-    alt: "Crowd gathered around a sponsor-wrapped machine on a trade show floor, phones out",
-    position: "22% center",
+    src: "/pitch/photos/pepsi-midplay-crowd.jpg",
+    alt: "Attendee mid-play on a wrapped Pepsi machine while another films on his phone",
+    position: "30% center",
   },
   {
     src: "/pitch/photos/pelion-expo-play.jpg",
@@ -361,8 +361,8 @@ export const KIT_GALLERY = [
     position: "35% center",
   },
   {
-    src: "/pitch/photos/madfest-duo-machine.jpg",
-    alt: "Two attendees browsing a sponsor machine together at a live event",
-    position: "45% center",
+    src: "/pitch/photos/madfest-stand-throng.jpg",
+    alt: "Dense crowd of badge-wearing attendees in front of a branded activation stand",
+    position: "center",
   },
 ] as const;
