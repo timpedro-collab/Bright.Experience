@@ -13,6 +13,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 
+import { AdNetworkMediaKit } from "@/components/informa/AdNetworkMediaKit";
 import { DealBriefBuilder } from "@/components/informa/DealBriefBuilder";
 import { InventoryListing } from "@/components/informa/InventoryListing";
 import { KitCatalog } from "@/components/informa/KitCatalog";
@@ -92,6 +93,15 @@ export default function InformaSellerKitPage() {
           </KitSection>
 
           <KitCatalog />
+
+          <div id="media-kit">
+            <KitSection
+              overline="Sell the screens"
+              title="The Screen Ad Network, as a media buy"
+            >
+              <AdNetworkMediaKit />
+            </KitSection>
+          </div>
 
           <KitSection overline="Promise this" title="What the sponsor gets">
             <SponsorGets />

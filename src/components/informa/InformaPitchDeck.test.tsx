@@ -39,7 +39,7 @@ describe("InformaPitchDeck", () => {
   });
 
   it("honours a ?slide=N deep link", () => {
-    slideParam = "9";
+    slideParam = "10";
     render(<InformaPitchDeck />);
     expect(screen.getByText(/the ask/i)).toBeInTheDocument();
   });
@@ -51,6 +51,20 @@ describe("InformaPitchDeck", () => {
       screen.getByRole("heading", { name: /tampa runs both/i })
     ).toBeInTheDocument();
     expect(screen.getByText(/built for the format/i)).toBeInTheDocument();
+  });
+
+  it("carries the portfolio map slide with Tampa marked as the pilot", () => {
+    slideParam = "7";
+    render(<InformaPitchDeck />);
+    expect(
+      screen.getByRole("heading", { name: /one program, your whole calendar/i })
+    ).toBeInTheDocument();
+    expect(screen.getByText(/starts here/i)).toBeInTheDocument();
+    expect(
+      screen.getByRole("img", { name: /dotted world map/i })
+    ).toBeInTheDocument();
+    // Cities render as chips naming their marquee shows.
+    expect(screen.getByText(/World of Concrete/)).toBeInTheDocument();
   });
 
   it("disables the back arrow on the first slide", () => {

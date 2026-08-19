@@ -19,7 +19,8 @@ import { NrsPricingExplorer } from "@/components/partners/NrsPricingExplorer";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { COMMITMENT } from "@/lib/partner-pricing";
-import type { DealConfig } from "@/lib/deal-config";
+import type { DealConfig, DealConfigInputs } from "@/lib/deal-config";
+import { decodeDealInputs } from "@/lib/deal-share";
 import { getPartnerPricingPageBySlug } from "@/lib/queries/partner-pricing";
 import { recordLoopEvent } from "@/server/loop-events";
 
@@ -311,11 +312,13 @@ function GenericPartnerPricingPage({
   showLabel,
   config,
   hero,
+  sharedInputs,
 }: {
   partnerName: string;
   showLabel: string;
   config: DealConfig;
   hero: Record<string, unknown> | null;
+  sharedInputs: DealConfigInputs | null;
 }) {
   const bbPct = Math.round(config.split.brightBlue * 100);
   const partnerPct = Math.round(config.split.partner * 100);
@@ -329,6 +332,19 @@ function GenericPartnerPricingPage({
     typeof hero?.subtitle === "string"
       ? hero.subtitle
       : "Interactive brand machines with opted-in lead capture and post-show proof-of-performance reporting, sold through your prospectus like any other sponsorship line. The numbers below are live. Drag them and see what the program earns.";
+  const explorerNote =
+    typeof hero?.explorerNote === "string" ? hero.explorerNote : null;
+  // Optional companion links (rate card, sample report...) provisioned with
+  // the page, so the reader can reach the rest of the suite from here.
+  const heroLinks = Array.isArray(hero?.links)
+    ? hero.links.filter(
+        (l): l is { label: string; href: string } =>
+          typeof l === "object" &&
+          l !== null &&
+          typeof (l as { label?: unknown }).label === "string" &&
+          typeof (l as { href?: unknown }).href === "string",
+      )
+    : [];
 
   const genericTerms = [
     {
@@ -395,8 +411,17 @@ function GenericPartnerPricingPage({
           Build the mix you&rsquo;d actually sell and watch the economics
           respond. Every figure updates live.
         </p>
+        {explorerNote ? (
+          <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+            {explorerNote}
+          </p>
+        ) : null}
         <div className="mt-6">
-          <DealExplorer config={config} partnerName={partnerName} />
+          <DealExplorer
+            config={config}
+            partnerName={partnerName}
+            initialInputs={sharedInputs ?? undefined}
+          />
         </div>
       </section>
 
@@ -417,6 +442,23 @@ function GenericPartnerPricingPage({
         </Card>
       </section>
 
+      {heroLinks.length > 0 ? (
+        <section className="mt-14">
+          <h2 className="text-heading text-xl font-bold">Go deeper</h2>
+          <div className="mt-4 flex flex-wrap gap-3">
+            {heroLinks.map((link) => (
+              <a
+                key={link.href}
+                href={link.href}
+                className="rounded-full border px-4 py-2 text-sm text-muted-foreground transition-colors hover:border-primary hover:text-foreground"
+              >
+                {link.label}
+              </a>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
       <footer className="mt-14 border-t pt-6 text-sm text-muted-foreground">
         <p>
           Prepared by Bright.Blue for {partnerName}. Suggested retail bands
@@ -430,12 +472,22 @@ function GenericPartnerPricingPage({
 
 export default async function PartnerPricingPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { slug } = await params;
   const page = await getPartnerPricingPageBySlug(slug);
   if (!page) notFound();
+
+  // A shared mix in the query string ("?mix=...") reopens the explorer on
+  // the exact scenario the sender built; decoding validates against the
+  // config so a tampered link can't express out-of-band numbers.
+  const sharedInputs =
+    page.template === "generic"
+      ? decodeDealInputs(page.config, await searchParams)
+      : null;
 
   await recordLoopEvent("partner_pricing_view", {
     artifact: "partner_pricing",
@@ -459,6 +511,7 @@ export default async function PartnerPricingPage({
             showLabel={page.showLabel}
             config={page.config}
             hero={page.hero}
+            sharedInputs={sharedInputs}
           />
         )}
       </div>

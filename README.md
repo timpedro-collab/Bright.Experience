@@ -308,6 +308,7 @@ One-off utilities (not npm scripts):
 |---------|-------------|
 | `npx tsx scripts/provision-informa-pp.ts` | Idempotent upsert of the Informa portfolio pricing page into the live DB (needs `NEXT_PUBLIC_SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` in the environment; the canonical seed is the matching migration) |
 | `node scripts/informa-report-pdf/generate.mjs` | Regenerate `public/downloads/Bright.Blue-Informa-Sample-Report.pdf` from its HTML source (Playwright screen-mode pipeline) |
+| `node scripts/generate-world-dots.mjs` | Regenerate `public/pitch/map/world-dots.svg` (the Informa deck's dotted world map) from Natural Earth land data; its geographic crop must match `MAP_BOUNDS` in `src/lib/informa/portfolio-shows.ts`, which a test enforces |
 
 ## Documentation
 

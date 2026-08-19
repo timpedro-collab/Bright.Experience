@@ -167,6 +167,17 @@ export function ProductFamily({
                         Price this in the configurator
                       </Button>
                     ) : null}
+                    {product.id === "loop" ? (
+                      // Slots sell as media, so the pitch continues in the
+                      // media-kit section further down the kit page.
+                      <a
+                        href="#media-kit"
+                        className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-[var(--color-bb-cyan)] hover:underline"
+                      >
+                        See the media kit
+                        <ArrowRight className="size-4" aria-hidden />
+                      </a>
+                    ) : null}
                   </div>
                 ) : null}
               </div>

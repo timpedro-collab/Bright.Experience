@@ -8,9 +8,11 @@
  * ceiling, volume ladder and pilot-minimum warning.
  */
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
+import { FileDown, Link2 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
 import {
@@ -21,6 +23,8 @@ import {
   type DealConfig,
   type DealConfigInputs,
 } from "@/lib/deal-config";
+import { buildDealQuoteDoc, quoteFileName } from "@/lib/deal-quote";
+import { encodeDealInputs } from "@/lib/deal-share";
 import { cn } from "@/lib/utils";
 
 /** One labelled slider row with its live value. */
@@ -180,10 +184,43 @@ function maxCountForLever(
 interface DealExplorerProps {
   config: DealConfig;
   partnerName: string;
+  /**
+   * A shared mix decoded from the page URL (`@/lib/deal-share`), already
+   * validated server-side. When present it wins over the opening preset,
+   * so a forwarded link reproduces the sender's exact scenario.
+   */
+  initialInputs?: DealConfigInputs;
 }
 
-export function DealExplorer({ config, partnerName }: DealExplorerProps) {
+/** Inputs for a named preset: its counts at suggested retail. */
+function inputsForPreset(
+  config: DealConfig,
+  counts: Record<string, number>,
+): DealConfigInputs {
+  const next: DealConfigInputs = {};
+  for (const lever of config.levers) {
+    next[lever.key] = {
+      count: counts[lever.key] ?? 0,
+      retail: lever.retail.suggested,
+    };
+  }
+  return next;
+}
+
+export function DealExplorer({
+  config,
+  partnerName,
+  initialInputs,
+}: DealExplorerProps) {
+  const [activePreset, setActivePreset] = useState<string | null>(
+    initialInputs ? null : (config.presets?.[0]?.key ?? null),
+  );
   const [inputs, setInputs] = useState<DealConfigInputs>(() => {
+    // A shared mix from the URL wins; then the first named preset; then
+    // fall back to the pilot minimum on the first lever.
+    if (initialInputs) return initialInputs;
+    const firstPreset = config.presets?.[0];
+    if (firstPreset) return inputsForPreset(config, firstPreset.counts);
     const initial: DealConfigInputs = {};
     config.levers.forEach((lever, index) => {
       initial[lever.key] = {
@@ -193,6 +230,13 @@ export function DealExplorer({ config, partnerName }: DealExplorerProps) {
     });
     return initial;
   });
+
+  const applyPreset = (key: string) => {
+    const preset = config.presets?.find((p) => p.key === key);
+    if (!preset) return;
+    setActivePreset(key);
+    setInputs(inputsForPreset(config, preset.counts));
+  };
 
   const rawCounts = useMemo(
     () =>
@@ -221,7 +265,20 @@ export function DealExplorer({ config, partnerName }: DealExplorerProps) {
   const bbPct = Math.round(config.split.brightBlue * 100);
   const splitLabel = `${bbPct} / ${partnerPct}`;
 
+  // Service levers the partner is actually buying in this mix, itemised
+  // (count × fee) so the deduction in the bottom-line box explains itself.
+  const serviceLines = config.levers
+    .filter((lever) => lever.revenue === "service")
+    .map((lever) => ({
+      key: lever.key,
+      label: lever.label,
+      count: effective[lever.key] ?? 0,
+      fee: dealInputs[lever.key]?.retail ?? lever.retail.suggested,
+    }))
+    .filter((line) => line.count > 0);
+
   const setCount = (key: string, count: number) => {
+    setActivePreset(null);
     setInputs((prev) => ({
       ...prev,
       [key]: { ...prev[key], count },
@@ -229,10 +286,60 @@ export function DealExplorer({ config, partnerName }: DealExplorerProps) {
   };
 
   const setRetail = (key: string, retail: number) => {
+    setActivePreset(null);
     setInputs((prev) => ({
       ...prev,
       [key]: { ...prev[key], retail },
     }));
+  };
+
+  // A scenario shouldn't die with the tab: the mix can leave as a link
+  // (counts and off-suggested prices in the query string) or as a branded
+  // one-page PDF quote sheet.
+  const [copied, setCopied] = useState(false);
+  const [downloading, setDownloading] = useState(false);
+  const copyResetRef = useRef<number | null>(null);
+
+  const scenarioLabel =
+    config.presets?.find((p) => p.key === activePreset)?.label ?? "Custom mix";
+
+  const shareUrl = () => {
+    const query = encodeDealInputs(config, dealInputs);
+    return `${window.location.origin}${window.location.pathname}?${query}`;
+  };
+
+  const copyMixLink = async () => {
+    const url = shareUrl();
+    // Sync the address bar too, so the rep can also just copy from there.
+    window.history.replaceState(null, "", url);
+    await navigator.clipboard.writeText(url);
+    setCopied(true);
+    if (copyResetRef.current) window.clearTimeout(copyResetRef.current);
+    copyResetRef.current = window.setTimeout(() => setCopied(false), 2500);
+  };
+
+  const downloadMixPdf = async () => {
+    setDownloading(true);
+    try {
+      // pdfmake is browser-only and heavy, so it loads on demand and never
+      // enters the server bundle or the page's initial JS.
+      const [pdfMake, vfsModule] = await Promise.all([
+        import("pdfmake/build/pdfmake"),
+        import("pdfmake/build/vfs_fonts"),
+      ]);
+      pdfMake.addVirtualFileSystem(vfsModule.default);
+      const doc = buildDealQuoteDoc({
+        config,
+        inputs: dealInputs,
+        deal,
+        partnerName,
+        scenarioLabel,
+        pageUrl: shareUrl(),
+      });
+      pdfMake.createPdf(doc).download(quoteFileName(partnerName));
+    } finally {
+      setDownloading(false);
+    }
   };
 
   return (
@@ -242,6 +349,27 @@ export function DealExplorer({ config, partnerName }: DealExplorerProps) {
           <CardTitle className="text-base">Build the inventory mix</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
+          {config.presets?.length ? (
+            <div className="space-y-2">
+              <div className="flex flex-wrap gap-2">
+                {config.presets.map((preset) => (
+                  <Button
+                    key={preset.key}
+                    type="button"
+                    size="sm"
+                    variant={activePreset === preset.key ? "default" : "outline"}
+                    onClick={() => applyPreset(preset.key)}
+                  >
+                    {preset.label}
+                  </Button>
+                ))}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {config.presets.find((p) => p.key === activePreset)?.description ??
+                  "Custom mix — start from a scenario or keep dragging."}
+              </p>
+            </div>
+          ) : null}
           {config.levers.map((lever) => {
             const count = effective[lever.key] ?? 0;
             const maxCount = maxCountForLever(config, lever, effective);
@@ -257,7 +385,12 @@ export function DealExplorer({ config, partnerName }: DealExplorerProps) {
                 : lever.unitsPerItem > 1
                   ? "bundle"
                   : "placement";
-            const retailLabel = `Recommended retail per ${retailUnit}`;
+            // Service levers are fees the partner pays, not retail they
+            // set — the slider label has to say which way the money flows.
+            const retailLabel =
+              lever.revenue === "service"
+                ? "Flat service fee per show"
+                : `Recommended retail per ${retailUnit}`;
             const retailValueLabel = retailDisabled
               ? lever.slotSource != null
                 ? "add a slot above"
@@ -341,6 +474,51 @@ export function DealExplorer({ config, partnerName }: DealExplorerProps) {
                 </dd>
               </div>
             </dl>
+            {deal.serviceFees > 0 ? (
+              <div className="mt-4 rounded-md border px-3 py-2.5">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Your bottom line on this mix
+                </p>
+                <dl className="mt-2 space-y-1.5 text-sm">
+                  <div className="flex items-baseline justify-between gap-4">
+                    <dt className="text-muted-foreground">
+                      You earn: {partnerPct}% of every sponsorship and ad-slot
+                      sale
+                    </dt>
+                    <dd className="tabular-nums">
+                      +{formatDealCurrencyCompact(config.currency, deal.partnerKeeps)}
+                    </dd>
+                  </div>
+                  {serviceLines.map((line) => (
+                    <div
+                      key={line.key}
+                      className="flex items-baseline justify-between gap-4"
+                    >
+                      <dt className="text-muted-foreground">
+                        You buy: {line.label} × {line.count}, at{" "}
+                        {formatDealCurrency(config.currency, line.fee)} per show
+                      </dt>
+                      <dd className="tabular-nums">
+                        −{formatDealCurrencyCompact(config.currency, line.count * line.fee)}
+                      </dd>
+                    </div>
+                  ))}
+                  <div className="flex items-baseline justify-between gap-4 border-t pt-1.5">
+                    <dt className="font-medium">Net to {partnerName}</dt>
+                    <dd className="font-semibold tabular-nums text-primary">
+                      {formatDealCurrencyCompact(config.currency, deal.netToPartner)}
+                    </dd>
+                  </div>
+                </dl>
+                <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+                  Sponsor placements are money in: someone else pays, and{" "}
+                  {partnerPct}% stays with you. The machines above are the one
+                  line where you&rsquo;re the buyer — they run your own show
+                  numbers, so they&rsquo;re a straightforward purchase at a
+                  flat fee, never split.
+                </p>
+              </div>
+            ) : null}
             <p className="mt-4 text-sm text-muted-foreground">
               Bright.Blue&rsquo;s {bbPct}% share covers the machines, creative
               build, on-site crew, software platform, operational monitoring
@@ -355,6 +533,41 @@ export function DealExplorer({ config, partnerName }: DealExplorerProps) {
                 minimum.
               </p>
             ) : null}
+            {deal.floorGap > 0 ? (
+              <p className="mt-3 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-900 [.theme-dark_&]:bg-amber-950 [.theme-dark_&]:text-amber-200">
+                This mix sits{" "}
+                {formatDealCurrencyCompact(config.currency, deal.floorGap)} below
+                the {deal.tier.label} delivery floor of{" "}
+                {formatDealCurrency(config.currency, deal.tier.floor)} per
+                machine, so as built it wouldn&rsquo;t fund its own delivery.
+                Add sellable inventory (placements or ad slots) or remove
+                unsold house units.
+              </p>
+            ) : null}
+            <div className="mt-5 flex flex-wrap items-center gap-2 border-t pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={copyMixLink}
+              >
+                <Link2 className="size-3.5" aria-hidden />
+                {copied ? "Link copied" : "Copy link to this mix"}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={downloading}
+                onClick={downloadMixPdf}
+              >
+                <FileDown className="size-3.5" aria-hidden />
+                {downloading ? "Preparing PDF…" : "Download this mix (PDF)"}
+              </Button>
+              <p className="w-full text-xs text-muted-foreground sm:w-auto sm:flex-1">
+                Both carry the exact counts and prices set above.
+              </p>
+            </div>
           </CardContent>
         </Card>
 

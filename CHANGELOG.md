@@ -4,6 +4,120 @@ All notable changes to the Bright.Experience platform are documented here.
 
 ---
 
+## [Fix: event health flagged events red on their final day in US timezones] - 2026-08-19
+
+- `eventEnd` in `src/lib/event-health.ts` parsed date-only strings as UTC
+  midnight and then set end-of-day hours in local time — in any
+  negative-offset timezone that lands the cutoff a calendar day early, so
+  a running event read "red" through its whole last day (and its test
+  only passed on UTC machines). Dates now parse as local midnight, keeping
+  the computation in one timezone.
+- Files: `src/lib/event-health.ts`.
+
+## [Informa suite: scenario export, portfolio map slide, ad-network media kit] - 2026-08-19
+
+Three additions harvested from proven `bright-blue-im` org-repo patterns.
+
+- **Pricing page scenarios now survive the tab** (pattern:
+  MachinePricingPortal). The Deal Explorer grew two escape hatches: "Copy
+  link to this mix" encodes counts and off-suggested retails into a compact
+  query string (`?mix=arrival.2_draw.5&r=arrival.65000`) that the page
+  decodes and validates server-side, so a forwarded link reopens the exact
+  scenario and a tampered one can't express out-of-band numbers; and
+  "Download this mix (PDF)" renders a branded one-page quote sheet
+  (inventory table, bottom-line P&L with itemised service fees, tier and
+  floor status, warnings, link back to the live mix) via a pure,
+  unit-tested pdfmake docDefinition builder — pdfmake itself loads only in
+  the browser, on click.
+- **The partnership deck now shows portfolio scale instead of asserting
+  it** (pattern: jcdecaux-presentation, which itself fell back from live
+  map tiles to a static map for reliability). New "One program, your whole
+  calendar" slide between the commercial models and the renewal story: a
+  committed dotted-world SVG (generated from Natural Earth land data by
+  `scripts/generate-world-dots.mjs`) with staggered pulse-in markers for
+  13 real Informa flagship-show cities, Tampa highlighted as "starts
+  here", city chips naming the marquee shows. Marker projection and the
+  SVG's crop share one set of bounds, enforced by test.
+- **The Screen Ad Network now sells like media, not a rate-card row**
+  (pattern: CampaignOnePager). New media-kit section in the seller's kit:
+  a three-stage measured funnel (loop content plays → completed sessions →
+  opted-in leads), per-slot delivery stats (logged plays, minutes of brand
+  screen time, share of voice) and slot mechanics — every number derived
+  from the sample report by `src/lib/informa/ad-network.ts` with a
+  consistency test, so the kit can never contradict the report. The
+  product family's Screen Ad Network detail links to it.
+- Dependencies: `pdfmake` (+ types), dev-only `world-atlas` +
+  `topojson-client` for the map generator.
+- Files: `src/lib/deal-share.{ts,test.ts}`, `src/lib/deal-quote.{ts,test.ts}`,
+  `src/components/partners/DealExplorer.{tsx,test.tsx}`,
+  `src/app/pp/[slug]/page.tsx`, `scripts/generate-world-dots.mjs`,
+  `public/pitch/map/world-dots.svg`,
+  `src/lib/informa/portfolio-shows.{ts,test.ts}`,
+  `src/components/informa/deck-slides-portfolio.tsx`,
+  `src/components/informa/InformaPitchDeck.{tsx,test.tsx}`,
+  `src/lib/informa/ad-network.{ts,test.ts}`,
+  `src/components/informa/AdNetworkMediaKit.{tsx,test.tsx}`,
+  `src/components/informa/ProductFamily.tsx`,
+  `src/app/informa/kit/page.tsx`, `README.md`.
+
+## [Pricing page: service-fee box rewritten as a plain bottom-line P&L] - 2026-08-19
+
+- The two-line "Flat service fees you pay directly (not split revenue)"
+  box confused its first real reader. Rebuilt as "Your bottom line on
+  this mix": money in ("You earn: 30% of every sponsorship and ad-slot
+  sale, +$255k"), itemised money out per service lever ("You buy:
+  Rebooking Engine × 4, at $40,000 per show, −$160k"), ruled-off net,
+  plus one footnote sentence explaining why a machine the partner buys
+  for its own numbers is a flat-fee purchase and never split.
+- Files: `src/components/partners/DealExplorer.{tsx,test.tsx}`.
+
+## [Kit gallery: machine-less crowd photo replaced with QR-scan frame] - 2026-08-19
+
+- The fourth kit-gallery tile (`madfest-stand-throng.jpg`) showed a crowd
+  with no machine in frame — rejected for exactly that reason. Replaced
+  with the user-picked Dean Alexander frame of an attendee scanning the
+  machine's on-screen QR code with his phone, bottle lockers lit
+  (IMG_1885, 6061×4041, exported 2400px as
+  `public/pitch/photos/absolut-qr-scan.jpg`). Every gallery tile now
+  shows a machine; the superseded photo was removed.
+- Files: `src/lib/informa/content.ts`,
+  `public/pitch/photos/absolut-qr-scan.jpg`.
+
+## [Informa pricing calculator: audit fixes, plain product names, scenarios] - 2026-08-19
+
+- **Fixed a money-flow error**: the Rebooking Engine is a flat service fee
+  Informa *pays* (buyer: organizer), but the calculator was adding it to
+  "gross sponsorship revenue" and splitting it 70/30 — telling Informa they
+  retain 30% of their own payment. New `revenue: "service"` lever type in
+  the deal engine keeps fees out of gross and the split; the summary now
+  shows the fees and a "Net to Informa" position.
+- **The floor ladder is now enforced, not just displayed**: the engine
+  computes `floorGap` (tier floor × units vs. Bright.Blue's delivery
+  revenue: split share + service fees) and the explorer warns when a mix
+  as built wouldn't fund its own delivery — e.g. house media units with no
+  ad slots sold.
+- **Products renamed to plain, self-explaining names** across every
+  surface (deck, kit, rate card, calculator, sample report, live DB
+  config): Registration Takeover, Show-Floor Activation, Rebooking
+  Engine, Screen Ad Network. The "The Arrival / Draw / Rebooker / Loop"
+  deck poetry is retired; descriptors became one-breath subtitles.
+  "Show-placed media unit" became "House Media Unit".
+- **One-click scenario presets** (Pilot 12 / Scale 24 / Portfolio 40
+  machines) replace the old default of 12 registration takeovers; every
+  lever now carries an explainer note, the page states that counts are
+  portfolio-wide across shows, and a "Go deeper" row links the kit,
+  sample report and deck. Presets are invariant-tested (fleet cap, slot
+  ceiling, floor coverage, pilot minimum).
+- Sample-report PDF regenerated with the new product name; live Supabase
+  row re-provisioned; migration now upserts on conflict.
+- Files: `src/lib/deal-config.{ts,test.ts}`,
+  `src/lib/informa/{deal,products,sample-report}.{ts,test.ts}`,
+  `src/components/partners/DealExplorer.{tsx,test.tsx}`,
+  `src/app/pp/[slug]/page.tsx`, `src/lib/validations/partner-pricing.ts`,
+  `supabase/migrations/20260818210000_informa_portfolio_pricing_page.sql`,
+  `scripts/informa-report-pdf/informa-sample-report.html`,
+  informa component tests.
+
 ## [Storyblok render replaced with approved MAD Fest photography] - 2026-08-19
 
 - The kit gallery's Storyblok shot was a composited render, not a real
