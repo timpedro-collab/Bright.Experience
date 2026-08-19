@@ -180,10 +180,29 @@ export const PORTABILITY = {
   ],
 } as const;
 
-/** The specific, small ask that closes the deck. */
+/**
+ * The close: one small, concrete ask, then the three things that happen
+ * next — each one either already in motion or carried by Bright.Blue, so
+ * saying yes costs Informa almost nothing.
+ */
 export const THE_ASK = {
   headline: "The ask",
-  line: "List Bright.Blue as a named line in the sponsorship prospectus of two or three shows next cycle. Tampa is the proof. Your reps get the kit the same week.",
+  line: "Add the line. We'll make it the one sponsors renew for.",
+  sub: "Name Bright.Blue in the sponsorship inventory of two or three shows next cycle. That's the whole ask — everything below it is already moving.",
+  steps: [
+    {
+      title: "Tampa runs",
+      detail: "Three machines live at Connect Marketplace — proof on your own show floor, not a case study.",
+    },
+    {
+      title: "You name the shows",
+      detail: "Two or three from next cycle's calendar. The rate card and pricing rails are already built.",
+    },
+    {
+      title: "Reps sell, we deliver",
+      detail: "The seller's kit is in their hands the same week. Build, crew, wrap and reporting stay our job.",
+    },
+  ],
 } as const;
 
 /* ------------------------------------------------------------------------

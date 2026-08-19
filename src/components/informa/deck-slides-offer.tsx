@@ -190,28 +190,67 @@ export function KitPreviewSlide({ slideNumber }: SlideProps) {
 export function AskSlide({ slideNumber }: SlideProps) {
   return (
     <div className="relative flex flex-1">
-      <div aria-hidden className="absolute inset-0">
+      {/* The portfolio map returns, faint, as the closing backdrop: the
+          whole calendar is the room this ask opens. No photography — the
+          close stays clean and typographic. */}
+      <div aria-hidden className="absolute inset-0 overflow-hidden">
         <Image
-          src="/pitch/photos/madfest-stand-crowd.jpg"
+          src="/pitch/map/world-dots.svg"
           alt=""
           fill
-          className="object-cover opacity-25"
+          className="scale-110 object-cover opacity-[0.14]"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-background/40" />
+        <div className="absolute inset-0 bg-gradient-to-b from-background via-background/40 to-background" />
       </div>
 
       <SlideFrame className="relative items-center text-center">
         <p className="text-overline text-[var(--color-bb-cyan)]">{THE_ASK.headline}</p>
-        <h2 className="text-display-grotesk mt-4 max-w-3xl text-balance text-4xl leading-tight sm:text-5xl">
+        <h2 className="text-display-grotesk mt-4 max-w-3xl text-balance text-4xl leading-tight sm:text-6xl">
           {THE_ASK.line}
         </h2>
+        <p className="mt-5 max-w-2xl text-balance text-lg text-muted-foreground">
+          {THE_ASK.sub}
+        </p>
 
-        <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
+        <motion.div
+          variants={stagger}
+          initial="hidden"
+          animate="visible"
+          className="mt-10 grid w-full max-w-4xl gap-3 text-left sm:grid-cols-3"
+        >
+          {THE_ASK.steps.map((step, i) => (
+            <motion.div
+              key={step.title}
+              variants={rise}
+              className="rounded-2xl border border-border/70 bg-card/60 p-5 backdrop-blur-sm"
+            >
+              <p className="text-xs font-semibold uppercase tracking-widest text-[var(--color-bb-cyan)]">
+                {String(i + 1).padStart(2, "0")} · {step.title}
+              </p>
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                {step.detail}
+              </p>
+            </motion.div>
+          ))}
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6, duration: 0.5 }}
+          className="mt-10 flex flex-wrap items-center justify-center gap-4"
+        >
           <Link
             href={`/informa/kit?slide=${slideNumber}`}
             className="rounded-full bg-[var(--color-bb-cobalt)] px-8 py-3 text-sm font-semibold text-white transition-transform hover:scale-105"
           >
             See what your reps get
+          </Link>
+          <Link
+            href={`/informa/report?slide=${slideNumber}`}
+            className="rounded-full border border-border/70 px-8 py-3 text-sm font-medium transition-colors hover:border-[var(--color-bb-cyan)] hover:text-[var(--color-bb-cyan)]"
+          >
+            See what sponsors get
           </Link>
           <Image
             src="/brand/bright-blue-wordmark-light.png"
@@ -219,7 +258,7 @@ export function AskSlide({ slideNumber }: SlideProps) {
             width={120}
             height={32}
           />
-        </div>
+        </motion.div>
       </SlideFrame>
     </div>
   );
