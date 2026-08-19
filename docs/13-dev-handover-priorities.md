@@ -205,13 +205,100 @@ Three rules, one per-event config block, on by default for EU-market events:
 
 ---
 
+## P2b — Informa Tampa pilot: tracking requirements per machine
+
+The Tampa show deploys three units. This section specifies the two
+**sponsor-sold** placements — the Registration machine and the Experiential
+Media Lounge machine. (The third, the Rebooker on Informa's own booth, is an
+organizer service with its own participation tracking; spec it when the
+order is signed.) Everything the pitch promises a buyer
+(`src/lib/informa/products.ts` `measures[]`, the sample report in
+`src/lib/informa/sample-report.ts`) must trace back to a tracked datum here —
+nothing in the report may be estimated.
+
+Both units are **badge-gated**: a badge scan unlocks the game, so a booked
+Tampa is the trigger that promotes badge-scan capture (P1.5) from services
+work to platform work — pick the registration provider Informa uses for the
+show as the first P1.5 target. Prerequisites for either machine sending usable data:
+event-ID assignment (P1.1), config push (P1.2), and the capture-quality
+rules (P2.1) enforced at the point of capture.
+
+### Shared baseline — what every Tampa unit must emit
+
+All through the existing inbound contract (`docs/10-integrations.md` §1a),
+keyed by `machine_serial` so every datum attributes to one placement:
+
+| Signal | Wire shape | Feeds |
+|---|---|---|
+| Play started / completed | `telemetry.batch` → `play_started`, `play_completed` (payload: session seconds, game score) | Plays by hour/day, avg session duration, completion rate |
+| Opted-in lead | `lead.captured` — contact resolved from the badge provider, `contact.badge_id`, `contact.consented_at` | Lead counts, CPL vs benchmark, sponsor lead file |
+| Prize / sample dispensed | `telemetry.batch` → `prize_awarded` (payload: SKU) | Fulfilment reconciled to stock, live stock bar + reload estimate (P2.2) |
+| Capture guardrails | `capture_rejected_domain`, `capture_duplicate_blocked` | "Capture quality" report card; duplicate-scan blocking proof |
+| Health | `machine.heartbeat` (status, firmware) | Uptime record for the show-day SLA |
+
+Consent is stamped per lead (`consented_at`), retention runs on the
+per-event window (P2.4), and **leads belong to the sponsor** — Informa
+receives aggregate performance only, never contact data.
+
+### Registration machine — "The Arrival" (Registration Takeover)
+
+The sell is *own the first minutes of every attendee's show*, so tracking
+must prove reach against the whole attendee population:
+
+- **Scan-to-play funnel** — every badge scan resolves to an unlock, a
+  duplicate block, or a failed scan. One play per badge by default
+  (`capture_duplicate_blocked` on rescan, never a reset); the funnel is the
+  proof that gating worked.
+- **Population penetration** — plays and opted-in leads as a share of
+  registered attendance (report divides by the registration count Informa
+  provides; the machine only needs accurate uniques by `badge_id`).
+- **Engagement by hour from doors-open** — hourly play series with the
+  arrival peak visible; this is the headline chart in the sponsor report.
+- **Cost per opted-in lead** — computed against placement price and the
+  industry benchmark (`INDUSTRY_CPL`, `src/lib/informa/kit-math.ts`).
+- **Prize/sample fulfilment** — every win-dispense logged and reconciled to
+  loaded stock.
+
+### Experiential Media Lounge machine — "The Draw" (Floor & Lounge Activation)
+
+Same baseline, but this unit is also the **category showcase** — the proof
+Informa uses to fill next year's prospectus — so it carries extra
+obligations:
+
+- **Dwell** — session seconds on every `play_completed`; avg hands-on dwell
+  is the number that differentiates the format from signage, so it must be
+  measured, not sampled.
+- **Sampling per SKU** — `prize_awarded` carries the SKU so multi-product
+  sampling reconciles per product line, with the live stock/reload signal
+  (P2.2) active during show hours.
+- **Repeat-demand signal** — blocked rescans counted and reported as demand
+  ("N attendees came back for a second play"), not discarded.
+- **Organizer aggregate cut** — alongside the sponsor's report, an
+  anonymized format-performance summary for Informa: plays, dwell, opt-in
+  rate, hourly shape. No contact data — this is the dataset their reps
+  resell from.
+
+### Acceptance
+
+- Every `measures[]` line on the two product cards maps to a query over
+  `telemetry_events` / `leads` rows — demonstrated end-to-end with
+  `scripts/simulate-cloud-webhook.ts` before the show.
+- A rescan of the same badge produces `capture_duplicate_blocked`, not a
+  second lead or prize.
+- The 24-hour proof-of-performance report renders every section of the
+  sample report (`/pitch/informa/report`) from live rows, and the Informa
+  aggregate contains no personally identifiable data.
+
+---
+
 ## P3 — Deferred by design (do not build without a trigger)
 
 - **Badge-scan integration (NRF/Merit etc.)** — per-event licence and
   integration; deliver as bespoke services work per event, not a platform
   feature, until a repeatable pattern emerges across 2–3 events. The portal
   already authors `capture_method` and the wire contract is specified, so
-  promoting this to platform work is **P1.5** once the trigger fires.
+  promoting this to platform work is **P1.5** once the trigger fires — a
+  booked Informa Tampa fires it (see P2b).
 - **CRM sync (Salesforce, Marketo)** — requested as a future step; heavy
   per-tenant work. CSV/Excel/PDF export covers the need today. Revisit when a
   signed global partnership makes it contractual.

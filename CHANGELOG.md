@@ -4,6 +4,20 @@ All notable changes to the Bright.Experience platform are documented here.
 
 ---
 
+## [Tampa per-machine tracking requirements] - 2026-08-19
+
+- New **P2b** section in `docs/13-dev-handover-priorities.md` specifying
+  what the two sponsor-sold Informa Tampa units must track: a shared
+  telemetry baseline (plays, opted-in leads, prize/sample dispensing,
+  capture guardrails, heartbeats) mapped to the existing webhook contract,
+  plus per-machine requirements — the Registration machine's scan-to-play
+  funnel, population penetration and doors-open hourly series; the
+  Experiential Media Lounge machine's dwell measurement, per-SKU sampling
+  reconciliation, repeat-demand signal, and the anonymized organizer
+  aggregate Informa resells from. Acceptance criteria tie every pitch
+  `measures[]` line to live `telemetry_events`/`leads` rows; a booked
+  Tampa is named as the P1.5 badge-scan trigger.
+
 ## [Trade-show photography from the Events drive export] - 2026-08-18
 
 - Replaced all retail/mall pitch photography with real trade-show shots
