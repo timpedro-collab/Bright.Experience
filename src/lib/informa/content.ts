@@ -361,8 +361,8 @@ export const KIT_GALLERY = [
     position: "35% center",
   },
   {
-    src: "/pitch/photos/madfest-stand-throng.jpg",
-    alt: "Dense crowd of badge-wearing attendees in front of a branded activation stand",
-    position: "center",
+    src: "/pitch/photos/absolut-qr-scan.jpg",
+    alt: "Attendee scanning the on-screen QR code with his phone on a bottle-locker machine",
+    position: "42% center",
   },
 ] as const;
