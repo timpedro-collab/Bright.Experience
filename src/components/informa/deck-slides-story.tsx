@@ -55,15 +55,21 @@ const rise = {
 export function CoverSlide({ onAdvance }: SlideProps) {
   return (
     <div className="relative flex flex-1">
-      {/* Real activation photography, dimmed to a backdrop */}
-      <div aria-hidden className="absolute inset-0">
-        <Image
-          src="/pitch/photos/adyen-play-queue.jpg"
-          alt=""
-          fill
-          priority
-          className="object-cover opacity-45"
-        />
+      {/* Live footage of the same Adyen activation the old still came from
+          (bright.blue/events hero reel). Muted loop; the still remains the
+          poster so slow connections see the photo, never a black frame. */}
+      <div aria-hidden className="absolute inset-0 overflow-hidden">
+        <video
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="auto"
+          poster="/pitch/photos/adyen-play-queue.jpg"
+          className="absolute inset-0 h-full w-full object-cover opacity-45"
+        >
+          <source src="/pitch/video/adyen-event-loop.mp4" type="video/mp4" />
+        </video>
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/70 to-background/30" />
       </div>
 
