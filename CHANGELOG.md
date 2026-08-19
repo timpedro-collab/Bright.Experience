@@ -4,6 +4,18 @@ All notable changes to the Bright.Experience platform are documented here.
 
 ---
 
+## [Informa PDFs now dark by default, matching the suite] - 2026-08-19
+
+- Both downloadable PDFs rendered light while every Informa surface is
+  theme-dark. The mix-quote sheet now paints a full-bleed slate page
+  background with the suite's exact tokens (foreground, muted, cyan net
+  figure, cobalt-soft wordmark dot), and the sample proof-of-performance
+  report's HTML source was restyled to the same palette (slate cards,
+  cobalt-soft/cyan bars, cyan hero KPI) and regenerated.
+- Files: `src/lib/deal-quote.ts`,
+  `scripts/informa-report-pdf/informa-sample-report.html`,
+  `public/downloads/Bright.Blue-Informa-Sample-Report.pdf`.
+
 ## [Fix: event health flagged events red on their final day in US timezones] - 2026-08-19
 
 - `eventEnd` in `src/lib/event-health.ts` parsed date-only strings as UTC

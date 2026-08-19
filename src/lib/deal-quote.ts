@@ -25,11 +25,21 @@ import {
   type DealConfigSummary,
 } from "@/lib/deal-config";
 
-/** Bright.Blue cobalt (see `--bb-cobalt` in globals.css). */
-const BRAND_BLUE = "#183EF6";
-const INK_MUTED = "#666666";
-const RULE_GREY = "#cccccc";
-const WARN_AMBER = "#92400E";
+/**
+ * Dark sheet by default, matching the theme-dark Informa suite the quote
+ * is downloaded from (tokens mirror `.theme-dark` in globals.css).
+ */
+const PAGE_BG = "#070B13"; // hsl(222 47% 5%) — the suite's page slate
+const INK = "#EFF4FA"; // hsl(210 40% 96%) — foreground
+const INK_MUTED = "#9AA7C2";
+const RULE_GREY = "#243250";
+const BRAND_BLUE = "#183EF6"; // cobalt, for fills
+const BRAND_BLUE_SOFT = "#5D7BFA"; // cobalt-soft, readable on dark
+const BRAND_CYAN = "#80E8FF"; // the hero-thread accent
+const WARN_AMBER = "#FBBF24";
+
+/** A4 in PDF points, for the full-bleed background rect. */
+const A4_PT = { width: 595.28, height: 841.89 };
 
 /** Everything the quote sheet needs, captured at download time. */
 export interface DealQuoteContext {
@@ -147,7 +157,7 @@ export function buildDealQuoteDoc(ctx: DealQuoteContext): TDocumentDefinitions {
   }
 
   const styles: StyleDictionary = {
-    wordmark: { fontSize: 20, bold: true, color: BRAND_BLUE },
+    wordmark: { fontSize: 20, bold: true, color: INK },
     date: { fontSize: 9, color: INK_MUTED, alignment: "right" },
     title: { fontSize: 15, bold: true, margin: [0, 18, 0, 2] },
     subtitle: { fontSize: 10, color: INK_MUTED, margin: [0, 0, 0, 14] },
@@ -162,15 +172,30 @@ export function buildDealQuoteDoc(ctx: DealQuoteContext): TDocumentDefinitions {
     statLabel: { fontSize: 8, color: INK_MUTED },
     statValue: { fontSize: 13, bold: true },
     netLabel: { fontSize: 10, bold: true },
-    netValue: { fontSize: 10, bold: true, color: BRAND_BLUE, alignment: "right" },
+    netValue: { fontSize: 10, bold: true, color: BRAND_CYAN, alignment: "right" },
     warning: { fontSize: 9, color: WARN_AMBER, margin: [0, 6, 0, 0] },
     terms: { fontSize: 8, color: INK_MUTED, margin: [0, 16, 0, 0] },
-    link: { fontSize: 8, color: BRAND_BLUE, margin: [0, 6, 0, 0] },
+    link: { fontSize: 8, color: BRAND_CYAN, margin: [0, 6, 0, 0] },
   };
 
   return {
     pageSize: "A4",
     pageMargins: [40, 44, 40, 44],
+    // Full-bleed dark slate on every page — the sheet lands dark by
+    // default, like every other Informa surface.
+    background: () => ({
+      canvas: [
+        {
+          type: "rect",
+          x: 0,
+          y: 0,
+          w: A4_PT.width,
+          h: A4_PT.height,
+          color: PAGE_BG,
+        },
+      ],
+    }),
+    defaultStyle: { color: INK },
     info: {
       title: `Bright.Blue × ${partnerName} — deal scenario`,
       author: "Bright.Blue",
@@ -178,7 +203,14 @@ export function buildDealQuoteDoc(ctx: DealQuoteContext): TDocumentDefinitions {
     content: [
       {
         columns: [
-          { width: "*", text: "BRIGHT.BLUE", style: "wordmark" },
+          {
+            width: "*",
+            text: [
+              { text: "BRIGHT", style: "wordmark" },
+              { text: ".", style: "wordmark", color: BRAND_BLUE_SOFT },
+              { text: "BLUE", style: "wordmark" },
+            ],
+          },
           { width: "auto", text: date.toLocaleDateString("en-US"), style: "date" },
         ],
       },
@@ -211,7 +243,7 @@ export function buildDealQuoteDoc(ctx: DealQuoteContext): TDocumentDefinitions {
         layout: {
           hLineWidth: (i) => (i === bottomLine.length - 1 ? 0.6 : 0),
           vLineWidth: () => 0,
-          hLineColor: () => "#000000",
+          hLineColor: () => INK_MUTED,
         },
       },
       {

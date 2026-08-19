@@ -10,59 +10,62 @@
 <meta charset="utf-8" />
 <title>Sample proof-of-performance report — Bright.Blue</title>
 <style>
+  /* Dark by default, mirroring the theme-dark Informa suite the PDF is
+     downloaded from (tokens from `.theme-dark` in globals.css). */
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
     font-family: "Helvetica Neue", Arial, sans-serif;
-    background: #fff;
-    color: #16213a;
+    background: #070b13; /* hsl(222 47% 5%) — the suite's page slate */
+    color: #eff4fa;      /* hsl(210 40% 96%) */
     line-height: 1.5;
     padding: 48px 56px;
   }
   .overline {
     font-size: 11px; font-weight: 700; letter-spacing: 2.5px;
-    text-transform: uppercase; color: #0ba6db;
+    text-transform: uppercase; color: #80e8ff;
   }
   h1 { font-size: 30px; line-height: 1.2; margin-top: 8px; letter-spacing: -0.5px; }
   h2 { font-size: 15px; margin-bottom: 12px; letter-spacing: 0.4px; }
-  .muted { color: #5a6682; }
+  .muted { color: #9aa7c2; }
   .small { font-size: 12px; }
-  .tiny { font-size: 10.5px; color: #8a94ab; }
+  .tiny { font-size: 10.5px; color: #7b88a8; }
   .header-row { display: flex; justify-content: space-between; align-items: flex-start; }
   .badge {
-    display: inline-block; border: 1px solid #0ba6db; color: #0891b2;
+    display: inline-block; border: 1px solid #80e8ff; color: #80e8ff;
     border-radius: 999px; padding: 3px 12px; font-size: 11px; font-weight: 600;
   }
   .wordmark { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; }
-  .wordmark .dot { color: #183df6; }
+  .wordmark .dot { color: #5d7bfa; }
   .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 28px; }
   .kpi {
-    border: 1px solid #e2e8f0; border-radius: 14px; padding: 16px;
+    border: 1px solid #243250; border-radius: 14px; padding: 16px; background: #0d1221;
   }
-  .kpi.hero { border-color: #183df6; background: #f2f5ff; }
-  .kpi .label { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #5a6682; }
+  .kpi.hero { border-color: #5d7bfa; background: #131c3d; }
+  .kpi .label { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #9aa7c2; }
   .kpi .value { font-size: 26px; font-weight: 700; margin-top: 4px; font-variant-numeric: tabular-nums; }
-  .kpi .hint { font-size: 10.5px; color: #8a94ab; margin-top: 4px; }
+  .kpi.hero .value { color: #80e8ff; }
+  .kpi .hint { font-size: 10.5px; color: #7b88a8; margin-top: 4px; }
   .chart-card {
-    border: 1px solid #e2e8f0; border-radius: 14px; padding: 20px; margin-top: 16px;
+    border: 1px solid #243250; border-radius: 14px; padding: 20px; margin-top: 16px; background: #0d1221;
   }
   .chart-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
   .chart-row .chart-card { margin-top: 0; }
   .bars { display: flex; align-items: flex-end; gap: 8px; height: 140px; margin-top: 14px; }
   .bar-col { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; height: 100%; }
-  .bar { width: 100%; border-radius: 5px 5px 0 0; background: #183df6; }
-  .bar.alt { background: #0ba6db; }
-  .bar-label { font-size: 9.5px; color: #8a94ab; margin-top: 6px; }
-  .bar-value { font-size: 10px; font-weight: 600; color: #16213a; margin-bottom: 4px; }
+  .bar { width: 100%; border-radius: 5px 5px 0 0; background: #5d7bfa; }
+  .bar.alt { background: #80e8ff; }
+  .bar-label { font-size: 9.5px; color: #7b88a8; margin-top: 6px; }
+  .bar-value { font-size: 10px; font-weight: 600; color: #eff4fa; margin-bottom: 4px; }
   .pair { display: flex; gap: 3px; width: 100%; align-items: flex-end; height: 100%; }
   .pair .bar { flex: 1; }
-  .legend { display: flex; gap: 16px; margin-top: 10px; font-size: 10.5px; color: #5a6682; }
+  .legend { display: flex; gap: 16px; margin-top: 10px; font-size: 10.5px; color: #9aa7c2; }
   .legend .swatch { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
   .three-col { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 16px; }
   .three-col .chart-card { margin-top: 0; }
   .quality-row { display: flex; justify-content: space-between; align-items: baseline; margin-top: 10px; }
   .quality-row .n { font-weight: 700; font-variant-numeric: tabular-nums; }
   .big-n { font-size: 26px; font-weight: 700; margin-top: 8px; font-variant-numeric: tabular-nums; }
-  .divider { height: 1px; background: #e2e8f0; margin: 28px 0; }
+  .divider { height: 1px; background: #243250; margin: 28px 0; }
   .footer { margin-top: 28px; }
 </style>
 </head>
@@ -150,8 +153,8 @@
         </div>
       </div>
       <p class="legend">
-        <span><span class="swatch" style="background:#183df6"></span>Completed plays</span>
-        <span><span class="swatch" style="background:#0ba6db"></span>Opted-in leads</span>
+        <span><span class="swatch" style="background:#5d7bfa"></span>Completed plays</span>
+        <span><span class="swatch" style="background:#80e8ff"></span>Opted-in leads</span>
       </p>
     </div>
   </div>
