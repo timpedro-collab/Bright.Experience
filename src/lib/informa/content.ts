@@ -329,22 +329,30 @@ export const SITE_REQUIREMENTS = [
   { need: "Everything else", detail: "Build, wrap, freight, install, ops, teardown and reporting are all Bright.Blue's" },
 ] as const;
 
-/** Real activation photography for the kit's proof strip. */
+/**
+ * Real activation photography for the kit's proof strip. `position` is the
+ * CSS object-position for the 3:4 crop, so the machine stays in frame when
+ * a landscape photo is cropped to a portrait tile.
+ */
 export const KIT_GALLERY = [
   {
+    src: "/pitch/photos/ben-jerrys-tub.png",
+    alt: "Giant Ben & Jerry's tub machine drawing a crowd in a shopping centre",
+    position: "center",
+  },
+  {
+    src: "/pitch/photos/lush-tower.jpg",
+    alt: "Lush-branded dispensing tower at an outdoor placement",
+    position: "15% center",
+  },
+  {
     src: "/partners/nrs/gallery/01-hero-pelion.jpg",
-    alt: "Machine fully wrapped in sponsor branding at a live activation",
+    alt: "Attendee playing a fully wrapped machine on a live trade show floor",
+    position: "center",
   },
   {
-    src: "/partners/nrs/gallery/05-play-to-win.jpg",
-    alt: "Machine running a play-to-win interactive game screen",
-  },
-  {
-    src: "/partners/nrs/gallery/02-costa-cup.jpg",
-    alt: "Costa-branded machine with custom creative",
-  },
-  {
-    src: "/partners/nrs/gallery/04-pepsi.jpg",
-    alt: "Pepsi-branded machine on an event floor",
+    src: "/pitch/photos/magnum-mall-bw.png",
+    alt: "Magnum-branded machine standing in a mall concourse",
+    position: "45% center",
   },
 ] as const;

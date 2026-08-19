@@ -59,6 +59,7 @@ export function KitGallery() {
             fill
             sizes="(max-width: 1024px) 50vw, 25vw"
             className="object-cover"
+            style={{ objectPosition: photo.position }}
           />
         </div>
       ))}

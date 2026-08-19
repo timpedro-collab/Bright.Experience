@@ -58,11 +58,11 @@ export function CoverSlide({ onAdvance }: SlideProps) {
       {/* Real activation photography, dimmed to a backdrop */}
       <div aria-hidden className="absolute inset-0">
         <Image
-          src="/partners/nrs/gallery/05-play-to-win.jpg"
+          src="/pitch/photos/red-bull-gym.jpg"
           alt=""
           fill
           priority
-          className="object-cover opacity-25"
+          className="object-cover opacity-35"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/70 to-background/30" />
       </div>
