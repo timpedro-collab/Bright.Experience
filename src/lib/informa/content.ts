@@ -131,6 +131,61 @@ export const RENEWAL_PITCH = {
 } as const;
 
 /**
+ * The 2027 roadmap slide. The sales psychology is deliberate:
+ *
+ *   - "Live today" anchors the frame, so the roadmap reads as momentum on
+ *     a shipping platform, never as promises standing in for product.
+ *   - Each 2027 item extends something already live (the report becomes a
+ *     dashboard, the lead file becomes a CRM sync, one report becomes a
+ *     cross-show comparison) — evolution is believable, invention is not.
+ *   - The closer removes the "let's wait for 2027" objection: releases
+ *     land inside the same agreement, pilot partners first, and portfolio
+ *     benchmarking only works for shows already generating data. Waiting
+ *     costs the buyer, acting early pays them.
+ *
+ * Compliance note: this is the ONE surface allowed to say "live lead
+ * dashboard" — it is dated as in-build, never claimed as a present
+ * capability (see the TWO_MODELS data-posture note below).
+ */
+export const ROADMAP_2027 = {
+  overline: "Where this goes",
+  headline: "Live today. Compounding through 2027.",
+  intro:
+    "Everything on the left ships with Tampa. Everything on the right is in build and lands inside the same agreement — the program grows without a new negotiation.",
+  liveNow: {
+    title: "Live today",
+    items: [
+      "Badge-gated plays with opted-in lead capture",
+      "Board-ready proof-of-performance report within 24 hours of close",
+      "Operational telemetry keeping every deployed machine healthy",
+      "One rate card and reporting format across the portfolio",
+    ],
+  },
+  inBuild: {
+    title: "In build — live in 2027",
+    items: [
+      {
+        title: "Live lead dashboard",
+        detail:
+          "Sponsors watch plays and opted-in leads land in real time, mid-show. The 24-hour report becomes the recap, not the reveal.",
+      },
+      {
+        title: "CRM integrations",
+        detail:
+          "Opted-in leads flow straight into the sponsor's Salesforce or HubSpot, consent attached. No CSV, no manual handoff, no decay.",
+      },
+      {
+        title: "Portfolio benchmarking",
+        detail:
+          "Repeat sponsors compare their numbers across your shows — which quietly turns one good result into a booking at the next city.",
+      },
+    ],
+  },
+  closer:
+    "Pilot partners shape this roadmap and take each release first, inside the agreement they already signed — no new line on the order. And benchmarking only pays off for shows already generating data, so the calendar you start now is the head start.",
+} as const;
+
+/**
  * The two-model decision (Catherine's framing, kept compliant): Informa can
  * resell placements or run the platform for its own show, and Tampa already
  * does both. Data claims stay sponsor-owned: leads belong to the sponsor who

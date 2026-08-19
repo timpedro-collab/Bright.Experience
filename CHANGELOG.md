@@ -4,6 +4,27 @@ All notable changes to the Bright.Experience platform are documented here.
 
 ---
 
+## [Portfolio map targets US/UK shows; 2027 roadmap slide added] - 2026-08-19
+
+- The deck's portfolio map now labels a US/UK target list — Tampa (pilot),
+  Chicago (National Restaurant Show), Las Vegas, Anaheim, Detroit,
+  London — while the wider global portfolio (Dubai, Shanghai, São Paulo…)
+  renders as faint unlabeled dots: worldwide reach stays visible without
+  diluting the target list. Data model gains a `reach` tier with tests
+  pinning the target cities.
+- New "Live today. Compounding through 2027." slide between the renewal
+  and kit slides: what ships with Tampa beside what's in build for 2027
+  (live lead dashboard, CRM integrations, portfolio benchmarking). The
+  structure is deliberate sales psychology — the live column anchors
+  against vaporware, every 2027 item extends something already shipping,
+  and the closer kills the wait-for-it objection (releases land inside the
+  existing agreement, pilot partners first). This is the one surface
+  allowed to say "live lead dashboard", explicitly dated as in-build.
+- The deck grew to 11 slides; deep-link tests updated.
+- Files: `src/lib/informa/{portfolio-shows,content}.ts`,
+  `src/components/informa/{deck-slides-portfolio,deck-slides-roadmap,InformaPitchDeck}.tsx`
+  and their tests.
+
 ## [Informa rate card split into five products; presets rebuilt shows-first] - 2026-08-19
 
 - The ambiguous "Show-Floor Activation" is now two products with clear

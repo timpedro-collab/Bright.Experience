@@ -43,11 +43,14 @@ const PROGRAM_CHIPS = [
 ];
 
 export function PortfolioSlide({}: SlideProps) {
-  // Pilot marker renders last so its label paints above its neighbours.
+  // Paint order: faint reach dots first, then targets, then the pilot so
+  // its label sits above every neighbour.
   const cities = [
-    ...PORTFOLIO_CITIES.filter((c) => !c.pilot),
+    ...PORTFOLIO_CITIES.filter((c) => c.reach),
+    ...PORTFOLIO_CITIES.filter((c) => !c.reach && !c.pilot),
     ...PORTFOLIO_CITIES.filter((c) => c.pilot),
   ];
+  const targets = PORTFOLIO_CITIES.filter((c) => !c.pilot && !c.reach);
 
   return (
     <section className="mx-auto grid w-full max-w-6xl flex-1 content-center items-center gap-10 px-6 pb-24 pt-12 sm:px-10 lg:grid-cols-[2fr_3fr]">
@@ -58,7 +61,9 @@ export function PortfolioSlide({}: SlideProps) {
         </h2>
         <p className="mt-3 text-lg text-muted-foreground">
           The rails get built once, then travel. Tampa is where the program
-          starts; these are the kinds of rooms it walks into next.
+          starts; the bright markers are the US and UK rooms it&rsquo;s aimed
+          at next. The faint dots are the rest of your portfolio — the same
+          rails reach every one of them.
         </p>
         <motion.div
           initial={{ opacity: 0, y: 12 }}
@@ -120,6 +125,8 @@ export function PortfolioSlide({}: SlideProps) {
                       Tampa · Connect Marketplace — starts here
                     </span>
                   </span>
+                ) : city.reach ? (
+                  <span className="block size-1.5 rounded-full bg-[var(--color-bb-cobalt-soft)]/35" />
                 ) : (
                   <span className="block size-2.5 rounded-full border border-background/80 bg-[var(--color-bb-cobalt-soft)]" />
                 )}
@@ -134,7 +141,7 @@ export function PortfolioSlide({}: SlideProps) {
           animate="visible"
           className="mt-5 flex flex-wrap gap-1.5"
         >
-          {PORTFOLIO_CITIES.filter((c) => !c.pilot).map((city) => (
+          {targets.map((city) => (
             <motion.span
               key={city.key}
               variants={rise}

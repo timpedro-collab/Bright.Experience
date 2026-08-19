@@ -1,8 +1,11 @@
 /**
- * Curated Informa flagship shows for the partnership deck's portfolio map
- * slide: one marker per host city, with the marquee shows named. Every
- * entry is a publicly listed Informa brand — the map claims nothing about
- * the portfolio that Informa doesn't publish itself.
+ * Curated Informa shows for the partnership deck's portfolio map slide.
+ * Two tiers, on purpose: the labeled *target* cities are the US and UK
+ * rooms the program is actually aimed at next (Tampa pilots, NRS Chicago
+ * is the marquee target), while `reach` cities render as faint unlabeled
+ * dots — they say "the rails travel worldwide" without diluting the
+ * target list. Every entry is a publicly listed Informa brand — the map
+ * claims nothing about the portfolio that Informa doesn't publish itself.
  *
  * Markers are positioned over `public/pitch/map/world-dots.svg` with
  * `projectToMapPercent`. MAP_BOUNDS here must stay identical to BOUNDS in
@@ -28,9 +31,15 @@ export interface PortfolioCity {
   shows: string[];
   /** The program's first deployment — rendered as the highlighted marker. */
   pilot?: boolean;
+  /**
+   * Wider-portfolio city, not on the target list: rendered as a faint
+   * unlabeled dot and excluded from the chip row.
+   */
+  reach?: boolean;
 }
 
 export const PORTFOLIO_CITIES: PortfolioCity[] = [
+  // The target list: pilot + the US and UK rooms the program walks into next.
   {
     key: "tampa",
     city: "Tampa",
@@ -38,6 +47,13 @@ export const PORTFOLIO_CITIES: PortfolioCity[] = [
     lng: -82.46,
     shows: ["Connect Marketplace"],
     pilot: true,
+  },
+  {
+    key: "chicago",
+    city: "Chicago",
+    lat: 41.88,
+    lng: -87.63,
+    shows: ["National Restaurant Show"],
   },
   {
     key: "las-vegas",
@@ -54,18 +70,27 @@ export const PORTFOLIO_CITIES: PortfolioCity[] = [
     shows: ["Natural Products Expo West"],
   },
   {
-    key: "sao-paulo",
-    city: "São Paulo",
-    lat: -23.55,
-    lng: -46.63,
-    shows: ["Fispal Tecnologia"],
+    key: "detroit",
+    city: "Detroit",
+    lat: 42.33,
+    lng: -83.05,
+    shows: ["The Battery Show"],
   },
   {
     key: "london",
     city: "London",
     lat: 51.51,
     lng: -0.13,
-    shows: ["London Tech Week"],
+    shows: ["London Tech Week", "Black Hat Europe"],
+  },
+  // The wider portfolio: faint dots that say the rails travel, nothing more.
+  {
+    key: "sao-paulo",
+    city: "São Paulo",
+    lat: -23.55,
+    lng: -46.63,
+    shows: ["Fispal Tecnologia"],
+    reach: true,
   },
   {
     key: "monaco",
@@ -73,6 +98,7 @@ export const PORTFOLIO_CITIES: PortfolioCity[] = [
     lat: 43.74,
     lng: 7.43,
     shows: ["Monaco Yacht Show"],
+    reach: true,
   },
   {
     key: "berlin",
@@ -80,6 +106,7 @@ export const PORTFOLIO_CITIES: PortfolioCity[] = [
     lat: 52.52,
     lng: 13.4,
     shows: ["SuperReturn International"],
+    reach: true,
   },
   {
     key: "barcelona",
@@ -87,6 +114,7 @@ export const PORTFOLIO_CITIES: PortfolioCity[] = [
     lat: 41.39,
     lng: 2.17,
     shows: ["Vitafoods Europe"],
+    reach: true,
   },
   {
     key: "dubai",
@@ -94,6 +122,7 @@ export const PORTFOLIO_CITIES: PortfolioCity[] = [
     lat: 25.2,
     lng: 55.27,
     shows: ["Arab Health", "Middle East Energy"],
+    reach: true,
   },
   {
     key: "riyadh",
@@ -101,6 +130,7 @@ export const PORTFOLIO_CITIES: PortfolioCity[] = [
     lat: 24.71,
     lng: 46.68,
     shows: ["Cityscape Global"],
+    reach: true,
   },
   {
     key: "bangkok",
@@ -108,6 +138,7 @@ export const PORTFOLIO_CITIES: PortfolioCity[] = [
     lat: 13.76,
     lng: 100.5,
     shows: ["ProPak Asia"],
+    reach: true,
   },
   {
     key: "hong-kong",
@@ -115,6 +146,7 @@ export const PORTFOLIO_CITIES: PortfolioCity[] = [
     lat: 22.32,
     lng: 114.17,
     shows: ["Jewellery & Gem WORLD"],
+    reach: true,
   },
   {
     key: "shanghai",
@@ -122,6 +154,7 @@ export const PORTFOLIO_CITIES: PortfolioCity[] = [
     lat: 31.23,
     lng: 121.47,
     shows: ["CPHI China"],
+    reach: true,
   },
 ];
 

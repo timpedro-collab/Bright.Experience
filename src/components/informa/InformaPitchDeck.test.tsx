@@ -39,7 +39,7 @@ describe("InformaPitchDeck", () => {
   });
 
   it("honours a ?slide=N deep link", () => {
-    slideParam = "10";
+    slideParam = "11";
     render(<InformaPitchDeck />);
     expect(screen.getByText(/the ask/i)).toBeInTheDocument();
   });
@@ -63,8 +63,24 @@ describe("InformaPitchDeck", () => {
     expect(
       screen.getByRole("img", { name: /dotted world map/i })
     ).toBeInTheDocument();
-    // Cities render as chips naming their marquee shows.
+    // Target cities render as chips naming their marquee shows — the US
+    // and UK calendar, NRS Chicago included.
     expect(screen.getByText(/World of Concrete/)).toBeInTheDocument();
+    expect(screen.getByText(/National Restaurant Show/)).toBeInTheDocument();
+    // Wider-portfolio cities stay unlabeled dots: no chip, no text.
+    expect(screen.queryByText(/Dubai/)).not.toBeInTheDocument();
+  });
+
+  it("carries the 2027 roadmap slide anchored by what is live today", () => {
+    slideParam = "9";
+    render(<InformaPitchDeck />);
+    expect(
+      screen.getByRole("heading", { name: /live today\. compounding through 2027/i })
+    ).toBeInTheDocument();
+    expect(screen.getByText("Live lead dashboard")).toBeInTheDocument();
+    expect(screen.getByText("CRM integrations")).toBeInTheDocument();
+    // The anti-wait framing: releases land inside the existing agreement.
+    expect(screen.getByText(/no new line on the order/i)).toBeInTheDocument();
   });
 
   it("carries the current slide on outbound links so back returns here", () => {
@@ -74,11 +90,11 @@ describe("InformaPitchDeck", () => {
       screen.getByRole("link", { name: /open the sample report/i })
     ).toHaveAttribute("href", "/informa/report?slide=8");
 
-    slideParam = "10"; // the ask, which links to the seller's kit
+    slideParam = "11"; // the ask, which links to the seller's kit
     render(<InformaPitchDeck />);
     expect(
       screen.getByRole("link", { name: /see what your reps get/i })
-    ).toHaveAttribute("href", "/informa/kit?slide=10");
+    ).toHaveAttribute("href", "/informa/kit?slide=11");
   });
 
   it("disables the back arrow on the first slide", () => {

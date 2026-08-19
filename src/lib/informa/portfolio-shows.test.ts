@@ -24,6 +24,22 @@ describe("PORTFOLIO_CITIES", () => {
     expect(pilots[0].city).toBe("Tampa");
   });
 
+  it("keeps the labeled target list US and UK, with NRS Chicago on it", () => {
+    const targets = PORTFOLIO_CITIES.filter((c) => !c.reach);
+    expect(targets.map((c) => c.key).sort()).toEqual([
+      "anaheim",
+      "chicago",
+      "detroit",
+      "las-vegas",
+      "london",
+      "tampa",
+    ]);
+    const chicago = targets.find((c) => c.key === "chicago")!;
+    expect(chicago.shows).toContain("National Restaurant Show");
+    // The pilot is a target, never a faint reach dot.
+    expect(PORTFOLIO_CITIES.find((c) => c.pilot)?.reach).toBeUndefined();
+  });
+
   it("keeps every city inside the map's geographic crop", () => {
     for (const city of PORTFOLIO_CITIES) {
       expect(city.lat).toBeGreaterThan(MAP_BOUNDS.south);
