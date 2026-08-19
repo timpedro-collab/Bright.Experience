@@ -58,12 +58,12 @@ const MODEL_TERMS = [
   {
     term: "Revenue share, 70 / 30",
     detail:
-      "You sell each placement into your prospectus at a price you set. Bright.Blue takes 70%, you retain 30%. The machines, creative, crew, platform and reporting are all carried on our side of the line.",
+      "You sell each placement into your prospectus at a price you set. Of every sale, 30% is yours to keep and 70% funds the delivery: the machines, creative, crew, platform and reporting, all carried on our side of the line.",
   },
   {
     term: "A per-unit floor",
     detail:
-      "Bright.Blue's take never falls below the tier floor, however placements are packaged or discounted. Above the floor, pricing is entirely yours to play with.",
+      "Each unit carries a delivery floor: the tier price that keeps the build, crew and platform funded however placements are packaged or discounted. Above the floor, pricing is entirely yours to play with.",
   },
   {
     term: `Pilot: ${COMMITMENT.pilotMinUnits}–${COMMITMENT.pilotMaxUnits} units, take-or-pay`,
@@ -130,10 +130,10 @@ function NrsPartnerPricingPage({
             <br className="hidden sm:block" /> sold the way you already sell
           </h1>
           <p className="max-w-2xl text-lg text-muted-foreground">
-            Interactive brand machines with lead capture, live dashboards and
-            post-show reporting, sold through your prospectus like any other
-            sponsorship line. The numbers below are live. Drag them and see
-            what the program earns.
+            Interactive brand machines with opted-in lead capture and
+            post-show proof-of-performance reporting, sold through your
+            prospectus like any other sponsorship line. The numbers below are
+            live. Drag them and see what the program earns.
           </p>
         </div>
       </header>
@@ -320,17 +320,17 @@ function GenericPartnerPricingPage({
   const heroSubtitle =
     typeof hero?.subtitle === "string"
       ? hero.subtitle
-      : "Interactive brand machines with lead capture, live dashboards and post-show reporting, sold through your prospectus like any other sponsorship line. The numbers below are live. Drag them and see what the program earns.";
+      : "Interactive brand machines with opted-in lead capture and post-show proof-of-performance reporting, sold through your prospectus like any other sponsorship line. The numbers below are live. Drag them and see what the program earns.";
 
   const genericTerms = [
     {
       term: `Revenue share, ${bbPct} / ${partnerPct}`,
-      detail: `You sell each placement into your prospectus at a price you set. Bright.Blue takes ${bbPct}%, you retain ${partnerPct}%. The machines, creative, crew, platform and reporting are all carried on our side of the line.`,
+      detail: `You sell each placement into your prospectus at a price you set. Of every sale, ${partnerPct}% is yours to keep and ${bbPct}% funds the delivery: the machines, creative, crew, platform and reporting, all carried on our side of the line.`,
     },
     {
       term: "A per-unit floor",
       detail:
-        "Bright.Blue's take never falls below the tier floor, however placements are packaged or discounted. Above the floor, pricing is entirely yours to play with.",
+        "Each unit carries a delivery floor: the tier price that keeps the build, crew and platform funded however placements are packaged or discounted. Above the floor, pricing is entirely yours to play with.",
     },
     {
       term: `Pilot: ${pilotMinUnits}–${pilotMaxUnits} units, take-or-pay`,
