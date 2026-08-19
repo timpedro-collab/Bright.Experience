@@ -93,6 +93,35 @@ export const SAMPLE_REPORT = {
   },
 } as const;
 
+/**
+ * Per-show-day hourly averages, for presentation. The stored `byHour`
+ * rows are whole-run aggregates (tests force them to sum to the headline
+ * total), but a chart of aggregates reads as "87 plays in one hour" —
+ * a number no single machine could physically hit, and exactly the kind
+ * a sponsor's CFO would bounce. Charts show the per-day average instead:
+ * the number a buyer can sanity-check against one machine's real cadence.
+ */
+export function hourlyAveragePlays(
+  byHour: readonly SampleReportHour[],
+  dayCount: number,
+  // Anonymous object type (not the interface) so chart components typed
+  // against Record<string, unknown> accept the rows.
+): { hour: string; plays: number }[] {
+  return byHour.map((h) => ({
+    hour: h.hour,
+    plays: Math.round(h.plays / dayCount),
+  }));
+}
+
+/**
+ * The practical single-machine ceiling: back-to-back guided sessions with
+ * no idle gap. Naming it beside the peak turns realism into the sell —
+ * a peak hour near the ceiling means the machine ran close to capacity.
+ */
+export function playCeilingPerHour(avgSessionSeconds: number): number {
+  return Math.floor(3_600 / avgSessionSeconds);
+}
+
 /** Headline totals, derived from the day-by-day rows so they always agree. */
 export function reportTotals(byDay: readonly SampleReportDay[]): {
   plays: number;

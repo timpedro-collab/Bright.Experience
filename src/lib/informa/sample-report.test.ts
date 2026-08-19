@@ -9,7 +9,9 @@ import { PLAYS_PER_DAY } from "@/lib/reach";
 import { INDUSTRY_CPL } from "./kit-math";
 import {
   benchmarkSavingsPct,
+  hourlyAveragePlays,
   optInRatePct,
+  playCeilingPerHour,
   reportCpl,
   reportTotals,
   SAMPLE_REPORT,
@@ -28,6 +30,22 @@ describe("SAMPLE_REPORT consistency", () => {
       expect(day.plays).toBeLessThanOrEqual(PLAYS_PER_DAY);
       expect(day.leads).toBeLessThanOrEqual(day.plays);
     }
+  });
+
+  it("presents hourly plays a single machine could physically deliver", () => {
+    // Charts show per-day averages, and no averaged hour may exceed the
+    // back-to-back session ceiling — the sniff test a sponsor's CFO runs.
+    const ceiling = playCeilingPerHour(SAMPLE_REPORT.avgSessionSeconds);
+    expect(ceiling).toBe(37); // 3600s / 96s sessions
+    const averaged = hourlyAveragePlays(
+      SAMPLE_REPORT.byHour,
+      SAMPLE_REPORT.byDay.length,
+    );
+    for (const hour of averaged) {
+      expect(hour.plays).toBeLessThanOrEqual(ceiling);
+    }
+    // The peak still lands near capacity, which is the placement argument.
+    expect(Math.max(...averaged.map((h) => h.plays))).toBe(29);
   });
 
   it("keeps the sample opt-in rate at or under the model's 90%", () => {

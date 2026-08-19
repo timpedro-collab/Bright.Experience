@@ -15,7 +15,9 @@ import { Button } from "@/components/ui/button";
 import { formatCount, formatUsdWhole, INDUSTRY_CPL } from "@/lib/informa/kit-math";
 import {
   benchmarkSavingsPct,
+  hourlyAveragePlays,
   optInRatePct,
+  playCeilingPerHour,
   reportCpl,
   reportTotals,
   SAMPLE_REPORT,
@@ -57,6 +59,11 @@ export function SampleReportView() {
   const totals = reportTotals(SAMPLE_REPORT.byDay);
   const cpl = reportCpl(SAMPLE_REPORT.meta.priceUsd, totals.leads);
   const optIn = optInRatePct(totals.plays, totals.leads);
+  const hourlyAvg = hourlyAveragePlays(
+    SAMPLE_REPORT.byHour,
+    SAMPLE_REPORT.byDay.length,
+  );
+  const hourlyCeiling = playCeilingPerHour(SAMPLE_REPORT.avgSessionSeconds);
 
   return (
     <div className="space-y-8">
@@ -108,16 +115,18 @@ export function SampleReportView() {
         <Panel title="Engagement by hour">
           <div className="h-64">
             <CloudAreaChart
-              data={[...SAMPLE_REPORT.byHour]}
+              data={hourlyAvg}
               xKey="hour"
               yKey="plays"
-              name="Completed plays"
+              name="Avg plays per show hour"
             />
           </div>
           <p className="mt-3 text-xs text-muted-foreground">
-            Aggregated across the run, show-floor local time. The shape is the
-            argument for placement: mid-morning and mid-afternoon peaks track
-            aisle traffic.
+            Average per show day, show-floor local time. A{" "}
+            {SAMPLE_REPORT.avgSessionSeconds}-second guided session caps one
+            machine near {hourlyCeiling} plays an hour, so the late-morning
+            peak is running close to capacity — the shape argues for the
+            placement, the ceiling argues for a second machine.
           </p>
         </Panel>
         <Panel title="Day by day">

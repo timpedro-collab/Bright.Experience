@@ -4,6 +4,20 @@ All notable changes to the Bright.Experience platform are documented here.
 
 ---
 
+## [Sample report hourly chart now shows per-day averages a machine can hit] - 2026-08-19
+
+- The "Engagement by hour" chart plotted whole-run aggregates (peak 87),
+  which read as 87 plays in a single hour — physically impossible for one
+  machine running 96-second sessions (~37/hour ceiling) and exactly the
+  number a sponsor's CFO would bounce. The chart (web + PDF) now shows
+  per-show-day averages via a new `hourlyAveragePlays` helper (peak 29),
+  and the caption names the `playCeilingPerHour` ceiling so the near-
+  capacity peak becomes the placement argument. A consistency test keeps
+  every presented hour under the ceiling. Report PDF regenerated.
+- Files: `src/lib/informa/sample-report.{ts,test.ts}`,
+  `src/components/informa/SampleReportView.tsx`,
+  `scripts/informa-report-pdf/informa-sample-report.html`.
+
 ## [Portfolio map targets US/UK shows; 2027 roadmap slide added] - 2026-08-19
 
 - The deck's portfolio map now labels a US/UK target list — Tampa (pilot),
