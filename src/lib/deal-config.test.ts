@@ -184,6 +184,89 @@ describe("slot-inventory levers", () => {
   });
 });
 
+describe("service-fee levers", () => {
+  /** CONFIG plus a flat-fee lever the partner pays (not split). */
+  const SERVICE_CONFIG: DealConfig = {
+    ...CONFIG,
+    levers: [
+      ...CONFIG.levers,
+      {
+        key: "engine",
+        label: "Organizer rebooking engine",
+        unitsPerItem: 1,
+        revenue: "service",
+        retail: { min: 35_000, max: 50_000, suggested: 40_000, step: 1_000 },
+      },
+    ],
+  };
+
+  it("keeps service fees out of gross and reports the partner's net position", () => {
+    const deal = computeConfigDeal(SERVICE_CONFIG, {
+      single: { count: 12, retail: 50_000 },
+      engine: { count: 2, retail: 40_000 },
+    });
+    expect(deal.gross).toBe(600_000);
+    expect(deal.partnerKeeps).toBe(180_000);
+    expect(deal.serviceFees).toBe(80_000);
+    expect(deal.netToPartner).toBe(100_000);
+    // Service machines still stand on the floor and climb the ladder.
+    expect(deal.totalUnits).toBe(14);
+  });
+
+  it("reports zero service fees on sponsorship-only mixes", () => {
+    const deal = computeConfigDeal(CONFIG, {
+      single: { count: 12, retail: 50_000 },
+    });
+    expect(deal.serviceFees).toBe(0);
+    expect(deal.netToPartner).toBe(deal.partnerKeeps);
+  });
+
+  it("counts service fees toward covering the delivery floor", () => {
+    // Two engine machines at $40k each: $80k of delivery revenue against
+    // a 2-unit Pilot floor of $30k — covered, no gap.
+    const deal = computeConfigDeal(SERVICE_CONFIG, {
+      engine: { count: 2, retail: 40_000 },
+    });
+    expect(deal.floorGap).toBe(0);
+  });
+});
+
+describe("floor enforcement", () => {
+  /** CONFIG plus a zero-retail host lever (earns nothing directly). */
+  const HOST_CONFIG: DealConfig = {
+    ...CONFIG,
+    levers: [
+      ...CONFIG.levers,
+      {
+        key: "host",
+        label: "House media unit",
+        unitsPerItem: 1,
+        retail: { min: 0, max: 0, suggested: 0, step: 500 },
+      },
+    ],
+  };
+
+  it("flags mixes whose delivery revenue misses the tier floor", () => {
+    // 12 machines earning nothing: the whole Pilot floor is uncovered.
+    const deal = computeConfigDeal(HOST_CONFIG, {
+      host: { count: 12, retail: 0 },
+    });
+    expect(deal.floorGap).toBe(12 * 15_000);
+  });
+
+  it("keeps the gap at zero when the split share funds the floor", () => {
+    const deal = computeConfigDeal(CONFIG, {
+      single: { count: 12, retail: 50_000 },
+    });
+    // Bright.Blue's $420k share dwarfs the $180k Pilot-floor requirement.
+    expect(deal.floorGap).toBe(0);
+  });
+
+  it("reports no gap on an empty mix", () => {
+    expect(computeConfigDeal(CONFIG, {}).floorGap).toBe(0);
+  });
+});
+
 describe("currency formatting", () => {
   it("formats whole units in both supported currencies", () => {
     expect(formatDealCurrency("USD", 45_000)).toBe("$45,000");

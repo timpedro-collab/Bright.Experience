@@ -29,6 +29,9 @@ const dealLeverSchema = z.object({
     .positive("Max items must be a positive integer")
     .optional(),
   note: z.string().max(400, "Lever note is too long").optional(),
+  // "service" marks flat fees the partner pays Bright.Blue directly
+  // (excluded from gross and the split); absent means sponsorship revenue.
+  revenue: z.enum(["sponsorship", "service"]).optional(),
   slotSource: z
     .object({
       slotsPerUnit: z
@@ -54,6 +57,16 @@ const dealFloorTierSchema = z.object({
     .int()
     .positive("Floor tier max units must be a positive integer"),
   floor: z.number().positive("Floor must be positive"),
+});
+
+const dealPresetSchema = z.object({
+  key: z.string().min(1, "Preset key is required"),
+  label: z.string().min(1, "Preset label is required"),
+  description: z.string().max(200, "Preset description is too long").optional(),
+  counts: z.record(
+    z.string().min(1),
+    z.number().int().nonnegative("Preset counts cannot be negative"),
+  ),
 });
 
 /** Mirrors `DealConfig` in `@/lib/deal-config`. */
@@ -85,6 +98,7 @@ export const dealConfigSchema = z.object({
   floorTiers: z
     .array(dealFloorTierSchema)
     .min(1, "At least one floor tier is required"),
+  presets: z.array(dealPresetSchema).optional(),
 });
 
 /** Input for `createPartnerPricingPage`. */

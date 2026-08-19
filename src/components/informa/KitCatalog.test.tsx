@@ -11,7 +11,9 @@ import { KitCatalog } from "./KitCatalog";
 describe("KitCatalog", () => {
   it("renders the product family, rate card and configurator together", () => {
     render(<KitCatalog />);
-    expect(screen.getByRole("tab", { name: /the arrival/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("tab", { name: /registration takeover/i })
+    ).toBeInTheDocument();
     expect(screen.getByText(/rate-card line/i)).toBeInTheDocument();
     expect(screen.getByRole("slider", { name: /sponsor price/i })).toBeInTheDocument();
   });
@@ -20,7 +22,7 @@ describe("KitCatalog", () => {
     const user = userEvent.setup();
     render(<KitCatalog />);
 
-    // The Arrival is focused by default and suggests $60,000.
+    // Registration Takeover is focused by default and suggests $60,000.
     await user.click(
       screen.getByRole("button", { name: /price this in the configurator/i })
     );

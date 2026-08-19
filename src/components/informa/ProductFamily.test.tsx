@@ -17,7 +17,7 @@ describe("ProductFamily", () => {
     expect(tabs).toHaveLength(PRODUCT_FAMILY.length);
     expect(tabs[0]).toHaveAttribute("aria-selected", "true");
     expect(
-      screen.getByRole("heading", { name: /the arrival/i })
+      screen.getByRole("heading", { name: /registration takeover/i })
     ).toBeInTheDocument();
   });
 
@@ -25,14 +25,13 @@ describe("ProductFamily", () => {
     const user = userEvent.setup();
     render(<ProductFamily />);
 
-    await user.click(screen.getByRole("tab", { name: /the loop/i }));
+    await user.click(screen.getByRole("tab", { name: /screen ad network/i }));
 
-    expect(screen.getByRole("tab", { name: /the loop/i })).toHaveAttribute(
-      "aria-selected",
-      "true"
-    );
     expect(
-      await screen.findByRole("heading", { name: /the loop/i })
+      screen.getByRole("tab", { name: /screen ad network/i })
+    ).toHaveAttribute("aria-selected", "true");
+    expect(
+      await screen.findByRole("heading", { name: /screen ad network/i })
     ).toBeInTheDocument();
   });
 
@@ -53,7 +52,7 @@ describe("ProductFamily", () => {
     const user = userEvent.setup();
     render(<ProductFamily onPriceProduct={onPriceProduct} />);
 
-    await user.click(screen.getByRole("tab", { name: /the rebooker/i }));
+    await user.click(screen.getByRole("tab", { name: /rebooking engine/i }));
 
     // The outgoing panel stays mounted while the carousel exit animation
     // plays; wait for it to unmount before asserting the CTA is gone.
@@ -72,9 +71,8 @@ describe("ProductFamily", () => {
 
     expect(screen.getByRole("button", { name: /previous product/i })).toBeDisabled();
     await user.click(screen.getByRole("button", { name: /next product/i }));
-    expect(screen.getByRole("tab", { name: /the draw/i })).toHaveAttribute(
-      "aria-selected",
-      "true"
-    );
+    expect(
+      screen.getByRole("tab", { name: /show-floor activation/i })
+    ).toHaveAttribute("aria-selected", "true");
   });
 });

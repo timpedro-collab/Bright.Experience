@@ -44,6 +44,14 @@ export interface DealLever {
   /** Optional buyer-facing footnote rendered under the lever's sliders. */
   note?: string;
   /**
+   * How this lever's money flows. "sponsorship" (the default) is revenue
+   * the partner sells and the split applies to. "service" is a flat fee
+   * the partner pays Bright.Blue directly (e.g. an organizer rebooking
+   * engine): it never enters gross sponsorship revenue or the split, and
+   * is reported separately so the partner sees their true net position.
+   */
+  revenue?: "sponsorship" | "service";
+  /**
    * For screen-inventory levers (ad slots): slots only exist on the
    * machines the organizer controls, so sellable items are capped at
    * `slotsPerUnit` x the units currently deployed by `sourceLevers`.
@@ -79,6 +87,18 @@ export interface DealFloorTier {
   floor: number;
 }
 
+/**
+ * A named starting mix ("Pilot", "Scale"...) the explorer offers as a
+ * one-click scenario. Counts are items per lever key; missing keys are zero.
+ */
+export interface DealPreset {
+  key: string;
+  label: string;
+  /** One-line description of the scenario, shown on the preset control. */
+  description?: string;
+  counts: Record<string, number>;
+}
+
 /** The full description of one partner deal. */
 export interface DealConfig {
   currency: DealCurrency;
@@ -94,6 +114,8 @@ export interface DealConfig {
   };
   levers: DealLever[];
   floorTiers: DealFloorTier[];
+  /** Optional one-click scenarios; the first is the explorer's opening mix. */
+  presets?: DealPreset[];
 }
 
 /** The buyer's chosen position on one lever. */
@@ -110,18 +132,29 @@ export type DealConfigInputs = Record<string, LeverInput>;
 export interface DealConfigSummary {
   /** Machines on the floor across all levers. */
   totalUnits: number;
-  /** Partner's gross sponsorship revenue. */
+  /** Partner's gross sponsorship revenue (split-eligible levers only). */
   gross: number;
-  /** Partner's retained share. */
+  /** Partner's retained share of gross. */
   partnerKeeps: number;
-  /** Bright.Blue's share. */
+  /** Bright.Blue's share of gross. */
   brightBlueShare: number;
+  /** Flat service fees the partner pays Bright.Blue directly (not split). */
+  serviceFees: number;
+  /** Partner's true position: retained share minus service fees paid. */
+  netToPartner: number;
   /** Average retained revenue per deployed unit (0-safe). */
   partnerKeepsPerUnit: number;
   /** Floor tier the volume lands in (drives the ladder display). */
   tier: DealFloorTier;
   /** True when volume is non-zero but below the take-or-pay minimum. */
   belowPilotMinimum: boolean;
+  /**
+   * How far the mix's delivery revenue (Bright.Blue's split share plus
+   * service fees) falls short of the tier floor across all deployed units.
+   * Zero when the floor is covered; positive means the mix as built
+   * wouldn't fund delivery and needs sellable inventory added.
+   */
+  floorGap: number;
 }
 
 /** Clamp a retail value into its allowed band — floors are non-negotiable. */
@@ -160,6 +193,12 @@ export function computeConfigDeal(
 ): DealConfigSummary {
   let totalUnits = 0;
   let gross = 0;
+  let serviceFees = 0;
+
+  const addRevenue = (lever: DealLever, count: number, retail: number) => {
+    if (lever.revenue === "service") serviceFees += count * retail;
+    else gross += count * retail;
+  };
 
   // Machine levers resolve first so slot-inventory levers can cap
   // against the units they put on the floor.
@@ -176,7 +215,7 @@ export function computeConfigDeal(
     const retail = clampRetail(input.retail, lever.retail);
     unitsByLever[lever.key] = count * lever.unitsPerItem;
     totalUnits += count * lever.unitsPerItem;
-    gross += count * retail;
+    addRevenue(lever, count, retail);
   }
 
   for (const lever of slotLevers) {
@@ -190,22 +229,36 @@ export function computeConfigDeal(
     const count = Math.min(rawCount, cap);
     const retail = clampRetail(input.retail, lever.retail);
     totalUnits += count * lever.unitsPerItem;
-    gross += count * retail;
+    addRevenue(lever, count, retail);
   }
 
   const partnerKeeps = Math.round(gross * config.split.partner);
   const brightBlueShare = gross - partnerKeeps;
+  const tier = floorTierForVolume(config, totalUnits);
+
+  // The floor is a delivery promise: Bright.Blue's revenue on the mix
+  // (split share plus direct service fees) must cover the tier floor for
+  // every machine on the floor. A positive gap means the mix as built
+  // wouldn't fund its own delivery.
+  const deliveryRevenue = brightBlueShare + serviceFees;
+  const floorGap =
+    totalUnits > 0
+      ? Math.max(0, tier.floor * totalUnits - deliveryRevenue)
+      : 0;
 
   return {
     totalUnits,
     gross,
     partnerKeeps,
     brightBlueShare,
+    serviceFees,
+    netToPartner: partnerKeeps - serviceFees,
     partnerKeepsPerUnit:
       totalUnits > 0 ? Math.round(partnerKeeps / totalUnits) : 0,
-    tier: floorTierForVolume(config, totalUnits),
+    tier,
     belowPilotMinimum:
       totalUnits > 0 && totalUnits < config.commitment.pilotMinUnits,
+    floorGap,
   };
 }
 

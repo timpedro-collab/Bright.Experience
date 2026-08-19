@@ -2,9 +2,11 @@
  * The Bright.Blue product family for organizer rate cards — four named,
  * repeatable products a sponsorship rep can read straight off the page.
  *
- * Two-part naming on purpose: a short brand name for decks ("The Arrival")
- * and a plain descriptor for the rate card ("Registration Takeover"), so a
- * line item explains itself in a sponsorship order.
+ * Names are deliberately plain and self-explaining ("Registration
+ * Takeover", not deck poetry): a line item has to make sense on a
+ * sponsorship order with no one in the room to decode it. The
+ * `descriptor` is the one-breath subtitle: what the thing is and where
+ * it lives.
  *
  * Buyer-safe like the rest of `src/lib/informa`: suggested retail bands
  * only. Splits, floors and internal economics live in the private
@@ -15,9 +17,9 @@ import { formatUsdWhole } from "@/lib/informa/kit-math";
 
 export interface InformaProduct {
   id: string;
-  /** Short brand name for decks and tiles. */
+  /** Plain, self-explaining product name ("Registration Takeover"). */
   name: string;
-  /** Plain rate-card descriptor: what the line item is. */
+  /** One-breath subtitle: what the thing is and where it lives. */
   descriptor: string;
   /** The one-line sell. */
   tagline: string;
@@ -33,9 +35,9 @@ export interface InformaProduct {
   buyer: "Sponsor" | "Organizer" | "Advertisers";
   /**
    * Preset for the placement configurator's price lever, for products the
-   * configurator's per-machine lead math applies to. Omitted for The
-   * Rebooker (organizer service, not sponsor lead-gen) and The Loop
-   * (priced per slot, not per machine).
+   * configurator's per-machine lead math applies to. Omitted for the
+   * Rebooking Engine (organizer service, not sponsor lead-gen) and the
+   * Screen Ad Network (priced per slot, not per machine).
    */
   configuratorPrice?: number;
 }
@@ -44,8 +46,8 @@ export interface InformaProduct {
 export const PRODUCT_FAMILY: InformaProduct[] = [
   {
     id: "arrival",
-    name: "The Arrival",
-    descriptor: "Registration Takeover",
+    name: "Registration Takeover",
+    descriptor: "Sponsor machine at the show's front door",
     tagline: "Own the first minutes of every attendee's show.",
     placement:
       "Registration, the entrance hall, or the main doors: the one spot the entire audience passes.",
@@ -67,8 +69,8 @@ export const PRODUCT_FAMILY: InformaProduct[] = [
   },
   {
     id: "draw",
-    name: "The Draw",
-    descriptor: "Floor & Lounge Activation",
+    name: "Show-Floor Activation",
+    descriptor: "Sponsor machine on the floor or in a lounge",
     tagline: "The busiest square meter on the show floor, wearing your brand.",
     placement:
       "A lounge, a main aisle, or inside the sponsor's own stand.",
@@ -90,8 +92,8 @@ export const PRODUCT_FAMILY: InformaProduct[] = [
   },
   {
     id: "rebooker",
-    name: "The Rebooker",
-    descriptor: "Organizer Rebooking Engine",
+    name: "Rebooking Engine",
+    descriptor: "Show-branded machine on the organizer's own booth",
     tagline: "Attendees play to unlock next year. Your rebooking number moves at the show.",
     placement: "The organizer's own stand or the rebooking desk.",
     includes: [
@@ -116,8 +118,8 @@ export const PRODUCT_FAMILY: InformaProduct[] = [
   },
   {
     id: "loop",
-    name: "The Loop",
-    descriptor: "Screen Ad Network",
+    name: "Screen Ad Network",
+    descriptor: "Ad slots on the machines the show controls",
     tagline: "The screens between plays are inventory. Sell them once, or six times.",
     placement:
       "Machines Informa controls: the rebooking engine on Informa's booth and show-placed media units in premium footfall spots. A machine sold to one sponsor carries that sponsor's brand alone.",
