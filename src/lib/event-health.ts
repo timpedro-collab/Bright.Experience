@@ -43,7 +43,12 @@ function worst(a: HealthStatus, b: HealthStatus): HealthStatus {
 
 /** End of the event's last day (or first day when there's no end date). */
 function eventEnd(input: EventHealthInput): Date {
-  const end = new Date(input.eventDateEnd || input.eventDateStart);
+  // Date-only strings ("2026-08-07") parse as UTC midnight, but setHours
+  // works in local time — in negative-offset timezones that combination
+  // lands end-of-day a calendar day early, flagging events red on their
+  // final day. Parsing as local midnight keeps the whole computation in
+  // one timezone.
+  const end = new Date(`${input.eventDateEnd || input.eventDateStart}T00:00:00`);
   end.setHours(23, 59, 59, 999);
   return end;
 }
