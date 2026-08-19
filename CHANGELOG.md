@@ -4,6 +4,21 @@ All notable changes to the Bright.Experience platform are documented here.
 
 ---
 
+## [Informa photography and pitch-script upgrade] - 2026-08-18
+
+- **Real case-study photography** sourced from the Bright.Blue asset library
+  (`Experiential Pricing Portal`) into `public/pitch/photos/`: the Informa
+  deck cover now runs on the neon Red Bull gym activation (1920px, on-brand
+  blue/purple), the closing ask slide on the Magnum night-mall shot, the
+  sponsor deck's stand slide on the shopper-interaction photo, and the
+  kit/sponsor proof gallery on Ben & Jerry's, Lush, Pelion and Magnum B&W
+  shots. `KIT_GALLERY` entries gained a `position` field so landscape
+  photos crop to portrait tiles without losing the machine.
+- **60-second rep script rewritten** on strategic-narrative lines (Raskin /
+  Dunford / Klaff): the hook now opens on the post-show finance review
+  instead of the product, the proof beat ends on a winners-and-losers
+  contrast, and the close adds genuine scarcity.
+
 ## [Fix: NaN in deal explorer for machine-free levers] - 2026-08-18
 
 - `DealExplorer` divided the remaining fleet capacity by a lever's
