@@ -24,6 +24,7 @@ import {
   RenewalSlide,
   SkuSlide,
 } from "./deck-slides-offer";
+import { TwoModelsSlide } from "./deck-slides-models";
 import { cn } from "@/lib/utils";
 
 const SLIDES = [
@@ -32,6 +33,7 @@ const SLIDES = [
   { id: "journey", Component: JourneySlide },
   { id: "gap", Component: GapSlide },
   { id: "sku", Component: SkuSlide },
+  { id: "models", Component: TwoModelsSlide },
   { id: "renewal", Component: RenewalSlide },
   { id: "kit", Component: KitPreviewSlide },
   { id: "ask", Component: AskSlide },

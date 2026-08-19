@@ -39,9 +39,18 @@ describe("InformaPitchDeck", () => {
   });
 
   it("honours a ?slide=N deep link", () => {
-    slideParam = "8";
+    slideParam = "9";
     render(<InformaPitchDeck />);
     expect(screen.getByText(/the ask/i)).toBeInTheDocument();
+  });
+
+  it("carries the two-model decision slide", () => {
+    slideParam = "6";
+    render(<InformaPitchDeck />);
+    expect(
+      screen.getByRole("heading", { name: /tampa runs both/i })
+    ).toBeInTheDocument();
+    expect(screen.getByText(/built for the format/i)).toBeInTheDocument();
   });
 
   it("disables the back arrow on the first slide", () => {

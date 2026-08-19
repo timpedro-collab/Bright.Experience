@@ -302,6 +302,13 @@ Stage advancement is gated by blocking tasks/milestones (`canAdvanceStage` in [`
 | `npm run test:rls` | pgTAP RLS tests (Docker / Supabase CLI) |
 | `npm run test:e2e` | Playwright end-to-end tests |
 
+One-off utilities (not npm scripts):
+
+| Command | Description |
+|---------|-------------|
+| `npx tsx scripts/provision-informa-pp.ts` | Idempotent upsert of the Informa portfolio pricing page into the live DB (needs `NEXT_PUBLIC_SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` in the environment; the canonical seed is the matching migration) |
+| `node scripts/informa-report-pdf/generate.mjs` | Regenerate `public/pitch/informa-sample-report.pdf` from its HTML source (Playwright screen-mode pipeline) |
+
 ## Documentation
 
 Start at the index — [`docs/00-documentation-index.md`](./docs/00-documentation-index.md) —

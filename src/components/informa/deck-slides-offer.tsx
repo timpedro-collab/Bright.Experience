@@ -15,6 +15,7 @@ import {
   RENEWAL_PITCH,
   THE_ASK,
 } from "@/lib/informa/content";
+import { formatRetailBand, PRODUCT_FAMILY } from "@/lib/informa/products";
 import type { SlideProps } from "./deck-slides-story";
 import { cn } from "@/lib/utils";
 
@@ -61,7 +62,7 @@ export function SkuSlide({}: SlideProps) {
         variants={stagger}
         initial="hidden"
         animate="visible"
-        className="mt-10 grid gap-4 sm:grid-cols-2"
+        className="mt-8 grid gap-4 sm:grid-cols-2"
       >
         {ACTIVATION_SKU.parts.map((part) => (
           <motion.div
@@ -72,6 +73,28 @@ export function SkuSlide({}: SlideProps) {
             <h3 className="font-semibold text-[var(--color-bb-cyan)]">{part.label}</h3>
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{part.detail}</p>
           </motion.div>
+        ))}
+      </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.55, duration: 0.5 }}
+        className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4"
+      >
+        {PRODUCT_FAMILY.map((p) => (
+          <div
+            key={p.id}
+            className="rounded-xl border border-[var(--color-bb-cobalt)]/40 bg-[var(--color-bb-cobalt)]/5 px-4 py-3"
+          >
+            <p className="font-semibold">{p.name}</p>
+            <p className="text-xs uppercase tracking-widest text-[var(--color-bb-cyan)]">
+              {p.descriptor}
+            </p>
+            <p className="mt-1 text-xs tabular-nums text-muted-foreground">
+              {formatRetailBand(p)}
+            </p>
+          </div>
         ))}
       </motion.div>
     </SlideFrame>
@@ -102,12 +125,21 @@ export function RenewalSlide({}: SlideProps) {
         initial={{ opacity: 0, scale: 0.96 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 0.6, duration: 0.5 }}
-        className="mt-10 inline-flex items-center gap-3 self-start rounded-full border border-[var(--color-bb-cobalt)]/50 bg-[var(--color-bb-cobalt)]/10 px-6 py-3"
+        className="mt-10 flex flex-wrap items-center gap-4"
       >
-        <Clock3 className="size-5 text-[var(--color-bb-cyan)]" aria-hidden />
-        <span className="text-sm font-semibold">
-          Report within 24 hours of close. The industry norm is 48 to 72, when it exists at all.
+        <span className="inline-flex items-center gap-3 rounded-full border border-[var(--color-bb-cobalt)]/50 bg-[var(--color-bb-cobalt)]/10 px-6 py-3">
+          <Clock3 className="size-5 text-[var(--color-bb-cyan)]" aria-hidden />
+          <span className="text-sm font-semibold">
+            Report within 24 hours of close. The industry norm is 48 to 72, when it exists at all.
+          </span>
         </span>
+        <Link
+          href="/pitch/informa/report"
+          className="inline-flex items-center gap-2 rounded-full border border-border/70 px-6 py-3 text-sm font-medium transition-colors hover:border-[var(--color-bb-cyan)] hover:text-[var(--color-bb-cyan)]"
+        >
+          Open the sample report
+          <ArrowRight className="size-4" aria-hidden />
+        </Link>
       </motion.div>
     </SlideFrame>
   );

@@ -123,10 +123,34 @@ function BenchmarkPanel({ position }: { position: CplPosition | null }) {
   );
 }
 
-export function PlacementConfigurator() {
-  const [attendees, setAttendees] = useState(3_000);
-  const [days, setDays] = useState(3);
+const PRICE_LEVER = { min: 30_000, max: 75_000, step: 1_000 } as const;
+
+export function PlacementConfigurator({
+  presetPrice,
+  presetSeq = 0,
+  initialAttendees = 3_000,
+  initialDays = 3,
+}: {
+  /** Product-family handoff: sets the price lever to a product's suggested price. */
+  presetPrice?: number;
+  /** Bumped on every handoff so re-picking the same product still resets the lever. */
+  presetSeq?: number;
+  /** Show templating (sponsor deck): start the levers on the show's numbers. */
+  initialAttendees?: number;
+  initialDays?: number;
+} = {}) {
+  const [attendees, setAttendees] = useState(initialAttendees);
+  const [days, setDays] = useState(initialDays);
   const [price, setPrice] = useState(40_000);
+
+  // Apply a product-family preset by adjusting state during render (the
+  // React "information from previous renders" pattern), keyed on the seq so
+  // re-picking the same product still resets a lever the rep has moved.
+  const [appliedSeq, setAppliedSeq] = useState(0);
+  if (presetPrice != null && presetSeq !== appliedSeq) {
+    setAppliedSeq(presetSeq);
+    setPrice(Math.min(PRICE_LEVER.max, Math.max(PRICE_LEVER.min, presetPrice)));
+  }
 
   const v = placementValue({ attendees, days, priceUsd: price });
 
@@ -162,9 +186,9 @@ export function PlacementConfigurator() {
             label="Sponsor price"
             valueLabel={formatUsdWhole(price)}
             value={price}
-            min={30_000}
-            max={75_000}
-            step={1_000}
+            min={PRICE_LEVER.min}
+            max={PRICE_LEVER.max}
+            step={PRICE_LEVER.step}
             onChange={setPrice}
           />
           <p className="text-xs leading-relaxed text-muted-foreground">

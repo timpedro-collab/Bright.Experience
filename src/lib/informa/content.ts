@@ -120,6 +120,56 @@ export const RENEWAL_PITCH = {
   ],
 } as const;
 
+/**
+ * The two-model decision (Catherine's framing, kept compliant): Informa can
+ * resell placements or run the platform for its own show, and Tampa already
+ * does both. Data claims stay sponsor-owned: leads belong to the sponsor who
+ * paid, Informa gets performance reporting for renewal conversations. No
+ * audience-profiling or data-pool claims. Platform monitoring is framed as
+ * operational telemetry, never as live lead dashboards.
+ */
+export const TWO_MODELS = {
+  headline: "Two ways to run it. Tampa runs both.",
+  models: [
+    {
+      name: "Sell it",
+      descriptor: "A premium line in your prospectus",
+      detail:
+        "Your reps sell Bright.Blue placements to sponsors and exhibitors as differentiated, engagement-priced inventory. Bright.Blue delivers; you book the margin.",
+      tampa: "Registration and the Experiential Media Lounge in Tampa run this way.",
+    },
+    {
+      name: "Run it",
+      descriptor: "An Informa-branded experience layer",
+      detail:
+        "Informa uses the platform on its own account: show-branded machines working on show-team numbers, like at-show rebooking, with the same measurement behind them.",
+      tampa: "The rebooking machine on the Informa booth in Tampa runs this way.",
+    },
+  ],
+  note: "Not a fork in the road: the same fleet, agreement and reporting rails carry both, so the mix can change show by show.",
+  dataPosture:
+    "Every lead belongs to the sponsor who paid for the placement, captured with opt-in consent at the machine. Informa receives proof-of-performance reporting for renewal conversations, and Bright.Blue's operational telemetry keeps every deployed machine healthy through the show.",
+} as const;
+
+/** Portfolio portability: one platform across Informa's formats. */
+export const PORTABILITY = {
+  headline: "Built for the format, not just the booth",
+  formats: [
+    {
+      format: "Expo floors",
+      line: "Registration, lounges, aisles and sponsor stands: the classic placements.",
+    },
+    {
+      format: "Conferences",
+      line: "Foyers and networking breaks, where a smaller audience has longer dwell.",
+    },
+    {
+      format: "Festivals and town takeovers",
+      line: "Self-contained and mobile: a square meter and a socket, indoors or under cover, wherever the audience is.",
+    },
+  ],
+} as const;
+
 /** The specific, small ask that closes the deck. */
 export const THE_ASK = {
   headline: "The ask",

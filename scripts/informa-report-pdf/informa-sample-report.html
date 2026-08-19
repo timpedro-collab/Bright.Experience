@@ -1,0 +1,197 @@
+<!doctype html>
+<!--
+  Print-clean source for the sample proof-of-performance PDF shipped at
+  public/pitch/informa-sample-report.pdf. Numbers mirror
+  src/lib/informa/sample-report.ts (plays 601, leads 541, CPL $74) — if that
+  dataset changes, update this file and re-run generate.mjs.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Sample proof-of-performance report — Bright.Blue</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: "Helvetica Neue", Arial, sans-serif;
+    background: #fff;
+    color: #16213a;
+    line-height: 1.5;
+    padding: 48px 56px;
+  }
+  .overline {
+    font-size: 11px; font-weight: 700; letter-spacing: 2.5px;
+    text-transform: uppercase; color: #0ba6db;
+  }
+  h1 { font-size: 30px; line-height: 1.2; margin-top: 8px; letter-spacing: -0.5px; }
+  h2 { font-size: 15px; margin-bottom: 12px; letter-spacing: 0.4px; }
+  .muted { color: #5a6682; }
+  .small { font-size: 12px; }
+  .tiny { font-size: 10.5px; color: #8a94ab; }
+  .header-row { display: flex; justify-content: space-between; align-items: flex-start; }
+  .badge {
+    display: inline-block; border: 1px solid #0ba6db; color: #0891b2;
+    border-radius: 999px; padding: 3px 12px; font-size: 11px; font-weight: 600;
+  }
+  .wordmark { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; }
+  .wordmark .dot { color: #183df6; }
+  .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 28px; }
+  .kpi {
+    border: 1px solid #e2e8f0; border-radius: 14px; padding: 16px;
+  }
+  .kpi.hero { border-color: #183df6; background: #f2f5ff; }
+  .kpi .label { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #5a6682; }
+  .kpi .value { font-size: 26px; font-weight: 700; margin-top: 4px; font-variant-numeric: tabular-nums; }
+  .kpi .hint { font-size: 10.5px; color: #8a94ab; margin-top: 4px; }
+  .chart-card {
+    border: 1px solid #e2e8f0; border-radius: 14px; padding: 20px; margin-top: 16px;
+  }
+  .chart-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
+  .chart-row .chart-card { margin-top: 0; }
+  .bars { display: flex; align-items: flex-end; gap: 8px; height: 140px; margin-top: 14px; }
+  .bar-col { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; height: 100%; }
+  .bar { width: 100%; border-radius: 5px 5px 0 0; background: #183df6; }
+  .bar.alt { background: #0ba6db; }
+  .bar-label { font-size: 9.5px; color: #8a94ab; margin-top: 6px; }
+  .bar-value { font-size: 10px; font-weight: 600; color: #16213a; margin-bottom: 4px; }
+  .pair { display: flex; gap: 3px; width: 100%; align-items: flex-end; height: 100%; }
+  .pair .bar { flex: 1; }
+  .legend { display: flex; gap: 16px; margin-top: 10px; font-size: 10.5px; color: #5a6682; }
+  .legend .swatch { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
+  .three-col { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 16px; }
+  .three-col .chart-card { margin-top: 0; }
+  .quality-row { display: flex; justify-content: space-between; align-items: baseline; margin-top: 10px; }
+  .quality-row .n { font-weight: 700; font-variant-numeric: tabular-nums; }
+  .big-n { font-size: 26px; font-weight: 700; margin-top: 8px; font-variant-numeric: tabular-nums; }
+  .divider { height: 1px; background: #e2e8f0; margin: 28px 0; }
+  .footer { margin-top: 28px; }
+</style>
+</head>
+<body>
+  <div class="no-break">
+    <div class="header-row">
+      <div>
+        <p class="overline">Proof of performance · Sample report</p>
+        <h1>The Draw · Floor &amp; Lounge Activation</h1>
+        <p class="muted small" style="margin-top:6px">
+          Three-day trade show, 8,000 attendees · $40,000 placement ·
+          Delivered within 24 hours of show close
+        </p>
+      </div>
+      <div style="text-align:right">
+        <p class="wordmark">Bright<span class="dot">.</span>Blue</p>
+        <p style="margin-top:8px"><span class="badge">Illustrative data</span></p>
+      </div>
+    </div>
+
+    <div class="kpi-grid">
+      <div class="kpi">
+        <p class="label">Completed plays</p>
+        <p class="value">601</p>
+        <p class="hint">96 seconds of hands-on brand time each, on average</p>
+      </div>
+      <div class="kpi">
+        <p class="label">Opted-in leads</p>
+        <p class="value">541</p>
+        <p class="hint">90% of plays opted in at the machine</p>
+      </div>
+      <div class="kpi hero">
+        <p class="label">Cost per opted-in lead</p>
+        <p class="value">$74</p>
+        <p class="hint">34% under the $112 industry low</p>
+      </div>
+      <div class="kpi">
+        <p class="label">Ad-loop content plays</p>
+        <p class="value">5,430</p>
+        <p class="hint">Logged on the machine, not modelled</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="chart-row">
+    <div class="chart-card">
+      <h2>Engagement by hour</h2>
+      <p class="tiny">Completed plays, aggregated across the run (show-floor local time)</p>
+      <div class="bars">
+        <div class="bar-col"><span class="bar-value">38</span><div class="bar" style="height:44%"></div><span class="bar-label">09</span></div>
+        <div class="bar-col"><span class="bar-value">71</span><div class="bar" style="height:82%"></div><span class="bar-label">10</span></div>
+        <div class="bar-col"><span class="bar-value">87</span><div class="bar" style="height:100%"></div><span class="bar-label">11</span></div>
+        <div class="bar-col"><span class="bar-value">74</span><div class="bar" style="height:85%"></div><span class="bar-label">12</span></div>
+        <div class="bar-col"><span class="bar-value">66</span><div class="bar" style="height:76%"></div><span class="bar-label">13</span></div>
+        <div class="bar-col"><span class="bar-value">83</span><div class="bar" style="height:95%"></div><span class="bar-label">14</span></div>
+        <div class="bar-col"><span class="bar-value">78</span><div class="bar" style="height:90%"></div><span class="bar-label">15</span></div>
+        <div class="bar-col"><span class="bar-value">62</span><div class="bar" style="height:71%"></div><span class="bar-label">16</span></div>
+        <div class="bar-col"><span class="bar-value">42</span><div class="bar" style="height:48%"></div><span class="bar-label">17</span></div>
+      </div>
+    </div>
+    <div class="chart-card">
+      <h2>Day by day</h2>
+      <p class="tiny">Leads track plays because opt-in happens at the machine, before play</p>
+      <div class="bars">
+        <div class="bar-col">
+          <div class="pair">
+            <div class="bar" style="height:92%"></div>
+            <div class="bar alt" style="height:82%"></div>
+          </div>
+          <span class="bar-label">Day 1 · 198 / 178</span>
+        </div>
+        <div class="bar-col">
+          <div class="pair">
+            <div class="bar" style="height:100%"></div>
+            <div class="bar alt" style="height:91%"></div>
+          </div>
+          <span class="bar-label">Day 2 · 216 / 196</span>
+        </div>
+        <div class="bar-col">
+          <div class="pair">
+            <div class="bar" style="height:87%"></div>
+            <div class="bar alt" style="height:77%"></div>
+          </div>
+          <span class="bar-label">Day 3 · 187 / 167</span>
+        </div>
+      </div>
+      <p class="legend">
+        <span><span class="swatch" style="background:#183df6"></span>Completed plays</span>
+        <span><span class="swatch" style="background:#0ba6db"></span>Opted-in leads</span>
+      </p>
+    </div>
+  </div>
+
+  <div class="three-col no-break">
+    <div class="chart-card">
+      <h2>What arrived with each lead</h2>
+      <div class="quality-row"><span class="small">Opted in at the machine</span><span class="n">541</span></div>
+      <p class="tiny">Consent captured before play, per badge scan</p>
+      <div class="quality-row"><span class="small">Declared preferences attached</span><span class="n">489</span></div>
+      <p class="tiny">In-game choices recorded against the lead</p>
+      <div class="quality-row"><span class="small">Played to completion</span><span class="n">522</span></div>
+      <p class="tiny">Full session with game score attached</p>
+    </div>
+    <div class="chart-card">
+      <h2>The screen loop</h2>
+      <p class="big-n">5,430</p>
+      <p class="small muted">content plays across 6 slots and up to 3 screens</p>
+      <p class="tiny" style="margin-top:10px">Every loop play is logged on the machine, so the count is measured, not modelled from footfall.</p>
+    </div>
+    <div class="chart-card">
+      <h2>Fulfilment, reconciled</h2>
+      <p class="big-n">374</p>
+      <p class="small muted">samples dispensed · 0 stock-outs</p>
+      <p class="tiny" style="margin-top:10px">Wins dispense a sample; dispenses reconcile against loaded stock at close-out.</p>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="footer no-break">
+    <p class="tiny">
+      Illustrative dataset for a mid-size three-day show at a $40,000 placement.
+      Live reports carry the sponsor's actuals, delivered within 24 hours of show
+      close. Benchmark: $112 to $186 per trade show lead (Exhibit Surveys 2025,
+      ShowHero State of Trade Shows 2026, CEIR blended average).
+    </p>
+    <p class="tiny" style="margin-top:8px">
+      Bright.Blue · brightexperiences.blue · Prepared for the Informa partnership conversation
+    </p>
+  </div>
+</body>
+</html>

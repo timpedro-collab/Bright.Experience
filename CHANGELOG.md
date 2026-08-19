@@ -4,6 +4,62 @@ All notable changes to the Bright.Experience platform are documented here.
 
 ---
 
+## [Informa world-class build: products, pricing, decks, report] - 2026-08-18
+
+The complete Informa go-to-market system, addressing all four of Jiri's
+requirements (products, pricing, decks for Informa and their clients,
+analytics output) plus Catherine's two-model framing, elevated with motion
+and art direction from the Bright.Cloud redesign.
+
+- **Product family** — four named rate-card products in
+  `src/lib/informa/products.ts` (+ tests): The Arrival (Registration
+  Takeover, $50–75k), The Draw (Floor & Lounge Activation, $30–60k), The
+  Rebooker (Organizer Rebooking Engine, $35–50k flat), The Loop (Screen Ad
+  Network, $3–8k per slot). Rendered in the kit as a selectable tile grid
+  with a lock-step carousel detail (`ProductFamily`), a rate-card table
+  (`RateCard`), and "Price this in the configurator" handoffs that preset
+  the price lever and scroll to it (`KitCatalog`). The deck's SKU slide
+  now names all four products.
+- **Private pricing** — the Informa portfolio deal page is live at
+  `/pp/informa-portfolio-<slug>` on the existing generic deal-config rails:
+  70/30 split, take-or-pay pilot 12–15 units scaling to 50, floor ladder
+  $15k/$13.5k/$12k, levers mapped 1:1 to the product family (The Loop sells
+  slots without deploying machines). Canonical config in
+  `src/lib/informa/deal.ts` (+ tests), seeded by migration
+  `20260818210000_informa_portfolio_pricing_page.sql` and provisioned live
+  via `scripts/provision-informa-pp.ts` (idempotent upsert).
+- **Sample proof-of-performance report** — `/pitch/informa/report`:
+  illustrative dataset in `src/lib/informa/sample-report.ts` (+ consistency
+  tests: hours sum to days sum to headlines, all inside the reach model's
+  ceilings), interactive page with recharts (engagement by hour, day by
+  day, lead quality, logged ad-loop plays, fulfilment), and a pre-generated
+  PDF (`public/pitch/informa-sample-report.pdf`, Playwright screen-mode
+  pipeline in `scripts/informa-report-pdf/`). Linked from the kit, the
+  deck's renewal slide, and the sponsor deck.
+- **Sponsor-facing deck** — `/pitch/informa/sponsor`: 8 slides for the
+  exhibitor audience (no organizer economics), templated per show via
+  `?show=&dates=&attendees=&days=` with Connect Marketplace defaults, plus
+  an inline "Set up your show" editor that retunes the deck live and mints
+  shareable per-show links. Mesh-drift hook slide, sponsor play journey,
+  placement picker (sponsor variant of the product family, no pricing),
+  show-preloaded configurator, proof gallery + client logo marquee, report
+  preview, and the three-step close.
+- **Informa deck upgrades** — new two-model decision slide (resell as
+  sponsor inventory vs. Informa-branded layer, "Tampa runs both") with
+  portfolio-portability strip (expos, conferences, festival/town-takeover
+  formats) and a compliant data posture: sponsor-owned opted-in leads,
+  renewal-conversation reporting, ops telemetry (no audience-profiling or
+  live-lead-dashboard claims). Renewal slide links to the sample report.
+- **Motion library** — ported from the Bright.Cloud redesign into
+  `globals.css` (all neutralized under `prefers-reduced-motion`):
+  machine-carousel lock-step slides (720ms), mesh-drift blobs, panel-grow
+  reveal. Screen-slot mockup assets copied to `public/pitch/loop/`.
+- Files: `src/lib/informa/{products,deal,sample-report,sponsor-content}.ts`
+  (+ tests), `src/components/informa/{ProductFamily,RateCard,KitCatalog,
+  SampleReportView,SponsorDeck,sponsor-slides-story,sponsor-slides-close,
+  deck-slides-models}.tsx` (+ tests), `src/app/pitch/informa/{report,
+  sponsor}/page.tsx`, migration + provisioning script.
+
 ## [Informa pitch deck + seller's kit] - 2026-08-18
 
 Two unlisted, buyer-safe surfaces for the Informa partnership push, anchored

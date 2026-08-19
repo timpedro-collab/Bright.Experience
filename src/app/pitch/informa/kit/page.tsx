@@ -11,11 +11,11 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 
 import { DealBriefBuilder } from "@/components/informa/DealBriefBuilder";
 import { InventoryListing } from "@/components/informa/InventoryListing";
-import { PlacementConfigurator } from "@/components/informa/PlacementConfigurator";
+import { KitCatalog } from "@/components/informa/KitCatalog";
 import {
   DeliveryTimeline,
   KitGallery,
@@ -82,15 +82,26 @@ export default function InformaSellerKitPage() {
             <QualifyingQuestions />
           </KitSection>
 
-          <KitSection
-            overline="Show this"
-            title="Price a placement live, in the meeting"
-          >
-            <PlacementConfigurator />
-          </KitSection>
+          <KitCatalog />
 
           <KitSection overline="Promise this" title="What the sponsor gets">
             <SponsorGets />
+            <div className="mt-8 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-[var(--color-bb-cobalt)]/50 bg-[var(--color-bb-cobalt)]/10 p-6">
+              <div>
+                <h3 className="font-semibold">Show them the report before they sign</h3>
+                <p className="mt-1 max-w-xl text-sm leading-relaxed text-muted-foreground">
+                  A sample proof-of-performance report with illustrative data:
+                  the artefact that wins the renewal conversation, viewable now.
+                </p>
+              </div>
+              <Link
+                href="/pitch/informa/report"
+                className="inline-flex items-center gap-2 rounded-lg border border-border/70 px-4 py-2 text-sm font-medium transition-colors hover:border-[var(--color-bb-cyan)] hover:text-[var(--color-bb-cyan)]"
+              >
+                Open the sample report
+                <ArrowRight className="size-4" aria-hidden />
+              </Link>
+            </div>
           </KitSection>
 
           <KitSection
