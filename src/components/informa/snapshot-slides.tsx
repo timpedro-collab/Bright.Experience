@@ -22,6 +22,7 @@ import type { DeckShellSlideProps } from "@/components/decks/DeckShell";
 import { formatUsdWhole } from "@/lib/informa/kit-math";
 import {
   pilotSnapshot,
+  SNAPSHOT_AD_DEMO,
   SNAPSHOT_COLLAGE,
   SNAPSHOT_COVER,
   SNAPSHOT_PACKAGES,
@@ -30,6 +31,7 @@ import {
   SNAPSHOT_WHAT,
 } from "@/lib/informa/snapshot-content";
 import { cn } from "@/lib/utils";
+import { GLOW_FRAME, MonoIndex } from "@/components/decks/deck-accents";
 
 /** Shared slide scaffold: centered column with breathing room for the chrome. */
 function SlideFrame({
@@ -141,7 +143,7 @@ export function SnapshotWhatSlide({}: DeckShellSlideProps) {
         animate="visible"
         className="mt-12 grid gap-4 sm:grid-cols-2"
       >
-        {SNAPSHOT_WHAT.points.map((point) => {
+        {SNAPSHOT_WHAT.points.map((point, i) => {
           const Icon = WHAT_ICONS[point.id] ?? Gamepad2;
           return (
             <motion.div
@@ -153,7 +155,8 @@ export function SnapshotWhatSlide({}: DeckShellSlideProps) {
                 <Icon className="size-6 text-[var(--color-bb-cyan)]" aria-hidden />
               </span>
               <span>
-                <h3 className="text-lg font-semibold">{point.title}</h3>
+                <MonoIndex index={i} />
+                <h3 className="mt-0.5 text-lg font-semibold">{point.title}</h3>
                 <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
                   {point.line}
                 </p>
@@ -239,28 +242,67 @@ export function SnapshotPackagesSlide({}: DeckShellSlideProps) {
         variants={stagger}
         initial="hidden"
         animate="visible"
-        className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-5"
+        className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-5"
       >
-        {SNAPSHOT_PACKAGES.map((pkg) => (
+        {SNAPSHOT_PACKAGES.map((pkg, i) => (
           <motion.div
             key={pkg.id}
             variants={rise}
             className="flex flex-col rounded-2xl border border-border/70 bg-card/50 p-5"
           >
-            <h3 className="font-semibold leading-snug">{pkg.name}</h3>
+            <MonoIndex index={i} />
+            <h3 className="mt-1 font-semibold leading-snug">{pkg.name}</h3>
             <p className="mt-2 flex-1 text-xs leading-relaxed text-muted-foreground">
               {pkg.descriptor}
             </p>
-            <p className="mt-4 text-sm font-semibold text-[var(--color-bb-cyan)]">
-              {pkg.band}
+            <p className="mt-4 text-2xl font-semibold tracking-tight text-[var(--color-bb-cyan)]">
+              {pkg.bandCompact}
             </p>
+            <p className="mt-0.5 text-[11px] text-muted-foreground">{pkg.bandUnit}</p>
           </motion.div>
         ))}
       </motion.div>
 
-      <p className="mt-6 text-xs text-muted-foreground/70">
+      <p className="mt-4 text-xs text-muted-foreground/70">
         {SNAPSHOT_PACKAGES_COPY.footnote}
       </p>
+
+      {/* The Screen Ad Network, made concrete: where the 10-second slot
+          actually runs on the machine. */}
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+        className="mt-5 flex flex-col gap-5 rounded-2xl border border-border/60 bg-card/40 p-5 sm:flex-row sm:items-center"
+      >
+        <div className="min-w-0 flex-1">
+          <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-bb-cyan)]">
+            Screen Ad Network
+          </p>
+          <h3 className="mt-1 text-lg font-semibold">{SNAPSHOT_AD_DEMO.title}</h3>
+          <p className="mt-1 max-w-md text-sm leading-relaxed text-muted-foreground">
+            {SNAPSHOT_AD_DEMO.line}
+          </p>
+        </div>
+        <div className="flex shrink-0 gap-4">
+          {SNAPSHOT_AD_DEMO.machines.map((m) => (
+            <figure key={m.src} className="w-24 sm:w-28">
+              <div className={GLOW_FRAME}>
+                <Image
+                  src={m.src}
+                  alt={m.alt}
+                  width={670}
+                  height={961}
+                  className="h-auto w-full"
+                />
+              </div>
+              <figcaption className="mt-2 text-center font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+                {m.caption}
+              </figcaption>
+            </figure>
+          ))}
+        </div>
+      </motion.div>
     </SlideFrame>
   );
 }

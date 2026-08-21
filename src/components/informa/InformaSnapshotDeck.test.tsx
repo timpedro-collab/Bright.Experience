@@ -58,10 +58,24 @@ describe("InformaSnapshotDeck", () => {
     expect(screen.getByText("Show-Floor Takeover")).toBeInTheDocument();
     expect(screen.getByText("In-Booth Machine")).toBeInTheDocument();
     expect(screen.getByText("Rebooking Engine")).toBeInTheDocument();
-    expect(screen.getByText("Screen Ad Network")).toBeInTheDocument();
-    // The In-Booth band as set in products.ts.
+    // Product tile plus the ad-demo eyebrow both name the ad network.
+    expect(screen.getAllByText("Screen Ad Network").length).toBeGreaterThan(0);
+    // The In-Booth band as set in products.ts, in price-tag typography.
+    expect(screen.getByText("$45–60k")).toBeInTheDocument();
+    expect(screen.getByText("$3–8k")).toBeInTheDocument();
+  });
+
+  it("demonstrates where the 10-second ad slot runs on the machine", () => {
+    slideParam = "4";
+    render(<InformaSnapshotDeck />);
     expect(
-      screen.getByText("$45,000 to $60,000 per show")
+      screen.getByText(/where the 10-second slot runs/i)
+    ).toBeInTheDocument();
+    expect(
+      screen.getByAltText(/full-screen 10-second video ad slot/i)
+    ).toBeInTheDocument();
+    expect(
+      screen.getByAltText(/full-screen 10-second static ad slot/i)
     ).toBeInTheDocument();
   });
 

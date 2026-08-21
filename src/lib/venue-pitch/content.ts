@@ -124,6 +124,16 @@ export const VENUE_NEEDS = {
   ],
   footnote:
     "Machines fit registration halls, foyers, lounges and main aisles. Indoors or under cover, wherever the audience already walks.",
+  /**
+   * The machine itself, beside the specs: a front-face mockup with the
+   * idle-screen ad state on its display — which doubles as a glimpse of
+   * the screen inventory the building can sell (see the benefits slide).
+   */
+  machine: {
+    src: "/pitch/machines/ad-slot-video.webp",
+    alt: "Bright.Blue machine front face with a full-screen ad running on its display",
+    caption: "Idle screens carry sponsor creative: inventory your building can sell.",
+  },
 } as const;
 
 /**

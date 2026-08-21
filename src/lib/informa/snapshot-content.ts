@@ -104,6 +104,15 @@ export interface SnapshotPackage {
   descriptor: string;
   /** "$45,000 to $60,000 per show" — the retail band line. */
   band: string;
+  /** "$45–60k" — the band as display-size price typography. */
+  bandCompact: string;
+  /** "per show" — the small suffix under the compact band. */
+  bandUnit: string;
+}
+
+/** "$45–60k" — a retail band compacted to price-tag typography. */
+export function compactBand(min: number, max: number): string {
+  return `$${Math.round(min / 1_000)}–${Math.round(max / 1_000)}k`;
 }
 
 /**
@@ -115,6 +124,8 @@ export const SNAPSHOT_PACKAGES: SnapshotPackage[] = PRODUCT_FAMILY.map((p) => ({
   name: p.name,
   descriptor: p.descriptor,
   band: formatRetailBand(p),
+  bandCompact: compactBand(p.retail.min, p.retail.max),
+  bandUnit: p.retail.unit,
 }));
 
 export const SNAPSHOT_PACKAGES_COPY = {
@@ -122,6 +133,30 @@ export const SNAPSHOT_PACKAGES_COPY = {
   headline: "Five products. One rate card.",
   footnote:
     "Suggested retail bands. Your team sets final pricing per show.",
+} as const;
+
+/**
+ * The Screen Ad Network demonstration under the rate-card tiles: machine
+ * front-face mockups showing exactly where a 10-second creative runs.
+ * Assets live in public/pitch/machines/ (from the Bright.Blue pricing
+ * design system; the screens are the generic ad-slot states, not the
+ * retail UI, so they read correctly in an events context).
+ */
+export const SNAPSHOT_AD_DEMO = {
+  title: "Where the 10-second slot runs",
+  line: "Full screen, in the machine's idle rotation between plays, on the machines the show controls.",
+  machines: [
+    {
+      src: "/pitch/machines/ad-slot-video.webp",
+      alt: "Machine front face with a full-screen 10-second video ad slot on its display",
+      caption: "Video · 10s",
+    },
+    {
+      src: "/pitch/machines/ad-slot-image.webp",
+      alt: "Machine front face with a full-screen 10-second static ad slot on its display",
+      caption: "Static · 10s",
+    },
+  ],
 } as const;
 
 /** The worked Pilot example on slide 5, derived from the live deal config. */

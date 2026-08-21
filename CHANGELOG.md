@@ -4,6 +4,27 @@ All notable changes to the Bright.Experience platform are documented here.
 
 ---
 
+## [Snapshot decks adopt the Bright.Blue pricing design language] - 2026-08-21
+
+- Both 5-slide decks pick up the design language from the Local Business
+  Pricing document: mono numbered eyebrows on every card, price-tag
+  typography for the rate-card bands ("$45–60k / per show"), and
+  cyan-glow frames around machine mockups.
+- The Informa packages slide gains a Screen Ad Network demonstration:
+  two machine front-face mockups (extracted from the pricing PDF, ad-slot
+  screens only — the retail UI screens were deliberately excluded as
+  off-message for events) showing exactly where the 10-second video and
+  static slots run in the idle rotation between plays.
+- The venue specs slide now shows the machine itself beside "one square
+  meter and a socket," its idle-screen ad state captioned as inventory
+  the building can sell.
+- Files: `src/components/decks/deck-accents.tsx`,
+  `src/lib/informa/snapshot-content.{ts,test.ts}`,
+  `src/lib/venue-pitch/content.{ts,test.ts}`,
+  `src/components/informa/{snapshot-slides.tsx,InformaSnapshotDeck.test.tsx}`,
+  `src/components/venue-pitch/{venue-slides.tsx,VenueSnapshotDeck.test.tsx}`,
+  `public/pitch/machines/ad-slot-{video,image}.webp`.
+
 ## [Two 5-slide snapshot decks: Informa and venues] - 2026-08-21
 
 - Added `/informa/snapshot`, a forwardable 5-slide companion to the full

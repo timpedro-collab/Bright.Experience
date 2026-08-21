@@ -8,7 +8,9 @@ import { describe, expect, it } from "vitest";
 import { INFORMA_DEAL_CONFIG } from "@/lib/informa/deal";
 import { formatRetailBand, PRODUCT_FAMILY } from "@/lib/informa/products";
 import {
+  compactBand,
   pilotSnapshot,
+  SNAPSHOT_AD_DEMO,
   SNAPSHOT_COLLAGE,
   SNAPSHOT_PACKAGES,
   SNAPSHOT_VALUE,
@@ -22,6 +24,27 @@ describe("SNAPSHOT_PACKAGES", () => {
       const tile = SNAPSHOT_PACKAGES.find((p) => p.id === product.id);
       expect(tile?.name).toBe(product.name);
       expect(tile?.band).toBe(formatRetailBand(product));
+      expect(tile?.bandCompact).toBe(
+        compactBand(product.retail.min, product.retail.max)
+      );
+      expect(tile?.bandUnit).toBe(product.retail.unit);
+    }
+  });
+});
+
+describe("compactBand", () => {
+  it("compacts a retail band to price-tag typography", () => {
+    expect(compactBand(45_000, 60_000)).toBe("$45–60k");
+    expect(compactBand(3_000, 8_000)).toBe("$3–8k");
+  });
+});
+
+describe("SNAPSHOT_AD_DEMO", () => {
+  it("shows the two event-safe ad-slot mockups from public/pitch/machines", () => {
+    expect(SNAPSHOT_AD_DEMO.machines).toHaveLength(2);
+    for (const machine of SNAPSHOT_AD_DEMO.machines) {
+      expect(machine.src).toMatch(/^\/pitch\/machines\/[a-z0-9-]+\.webp$/);
+      expect(machine.alt).toMatch(/10-second/);
     }
   });
 });

@@ -66,6 +66,17 @@ describe("VenueSnapshotDeck", () => {
     expect(screen.queryByText(/\$\d/)).not.toBeInTheDocument();
   });
 
+  it("shows the machine itself beside the specs, screen inventory included", () => {
+    slideParam = "4";
+    render(<VenueSnapshotDeck />);
+    expect(
+      screen.getByAltText(/machine front face with a full-screen ad/i)
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/inventory your building can sell/i)
+    ).toBeInTheDocument();
+  });
+
   it("closes on venue benefits with a contact action", () => {
     slideParam = "5";
     render(<VenueSnapshotDeck />);

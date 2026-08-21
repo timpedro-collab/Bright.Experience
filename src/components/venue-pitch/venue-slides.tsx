@@ -33,6 +33,7 @@ import {
   VENUE_WHAT,
 } from "@/lib/venue-pitch/content";
 import { cn } from "@/lib/utils";
+import { GLOW_FRAME, MonoIndex } from "@/components/decks/deck-accents";
 
 /** Shared slide scaffold: centered column with breathing room for the chrome. */
 function SlideFrame({
@@ -142,7 +143,7 @@ export function VenueWhatSlide({}: DeckShellSlideProps) {
         animate="visible"
         className="mt-12 grid gap-4 sm:grid-cols-2"
       >
-        {VENUE_WHAT.points.map((point) => {
+        {VENUE_WHAT.points.map((point, i) => {
           const Icon = WHAT_ICONS[point.id] ?? Wrench;
           return (
             <motion.div
@@ -154,7 +155,8 @@ export function VenueWhatSlide({}: DeckShellSlideProps) {
                 <Icon className="size-6 text-[var(--color-bb-cyan)]" aria-hidden />
               </span>
               <span>
-                <h3 className="text-lg font-semibold">{point.title}</h3>
+                <MonoIndex index={i} />
+                <h3 className="mt-0.5 text-lg font-semibold">{point.title}</h3>
                 <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
                   {point.line}
                 </p>
@@ -241,31 +243,59 @@ export function VenueNeedsSlide({}: DeckShellSlideProps) {
         {VENUE_NEEDS.headline}
       </h2>
 
-      <motion.div
-        variants={stagger}
-        initial="hidden"
-        animate="visible"
-        className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
-      >
-        {VENUE_NEEDS.specs.map((spec) => {
-          const Icon = NEEDS_ICONS[spec.id] ?? Ruler;
-          return (
-            <motion.div
-              key={spec.id}
-              variants={rise}
-              className="rounded-2xl border border-border/70 bg-card/50 p-6"
-            >
-              <span className="inline-flex rounded-xl bg-[var(--color-bb-cobalt)]/15 p-3">
-                <Icon className="size-6 text-[var(--color-bb-cyan)]" aria-hidden />
-              </span>
-              <h3 className="mt-4 font-semibold">{spec.title}</h3>
-              <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-                {spec.line}
-              </p>
-            </motion.div>
-          );
-        })}
-      </motion.div>
+      <div className="mt-10 grid items-start gap-8 lg:grid-cols-[1fr_auto]">
+        <motion.div
+          variants={stagger}
+          initial="hidden"
+          animate="visible"
+          className="grid gap-4 sm:grid-cols-2"
+        >
+          {VENUE_NEEDS.specs.map((spec, i) => {
+            const Icon = NEEDS_ICONS[spec.id] ?? Ruler;
+            return (
+              <motion.div
+                key={spec.id}
+                variants={rise}
+                className="rounded-2xl border border-border/70 bg-card/50 p-6"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="inline-flex rounded-xl bg-[var(--color-bb-cobalt)]/15 p-3">
+                    <Icon className="size-6 text-[var(--color-bb-cyan)]" aria-hidden />
+                  </span>
+                  <MonoIndex index={i} />
+                </div>
+                <h3 className="mt-4 font-semibold">{spec.title}</h3>
+                <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+                  {spec.line}
+                </p>
+              </motion.div>
+            );
+          })}
+        </motion.div>
+
+        {/* The machine itself, so "one square meter" has a face — its
+            idle-screen ad state doubles as the building's sellable
+            screen inventory (picked up on the benefits slide). */}
+        <motion.figure
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+          className="mx-auto w-48 sm:w-56 lg:mx-0"
+        >
+          <div className={GLOW_FRAME}>
+            <Image
+              src={VENUE_NEEDS.machine.src}
+              alt={VENUE_NEEDS.machine.alt}
+              width={670}
+              height={961}
+              className="h-auto w-full"
+            />
+          </div>
+          <figcaption className="mt-3 text-center text-xs leading-relaxed text-muted-foreground">
+            {VENUE_NEEDS.machine.caption}
+          </figcaption>
+        </motion.figure>
+      </div>
 
       <p className="mt-6 text-xs text-muted-foreground/70">{VENUE_NEEDS.footnote}</p>
     </SlideFrame>
@@ -295,7 +325,7 @@ export function VenueBenefitsSlide({}: DeckShellSlideProps) {
         animate="visible"
         className="mt-10 grid gap-4 sm:grid-cols-2"
       >
-        {VENUE_BENEFITS.points.map((point) => {
+        {VENUE_BENEFITS.points.map((point, i) => {
           const Icon = BENEFIT_ICONS[point.id] ?? Trophy;
           return (
             <motion.div
@@ -307,7 +337,8 @@ export function VenueBenefitsSlide({}: DeckShellSlideProps) {
                 <Icon className="size-6 text-[var(--color-bb-cyan)]" aria-hidden />
               </span>
               <span>
-                <h3 className="text-lg font-semibold">{point.title}</h3>
+                <MonoIndex index={i} />
+                <h3 className="mt-0.5 text-lg font-semibold">{point.title}</h3>
                 <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
                   {point.line}
                 </p>
