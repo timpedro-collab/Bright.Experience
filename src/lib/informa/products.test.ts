@@ -13,12 +13,14 @@ describe("PRODUCT_FAMILY", () => {
     expect(PRODUCT_FAMILY[0].id).toBe("arrival");
   });
 
-  it("prices the placement ladder by scarcity: booth < floor takeover < registration", () => {
+  it("uses the approved 45k–60k band for the in-booth machine", () => {
     const booth = productById("booth").retail;
-    const floor = productById("floor").retail;
-    const arrival = productById("arrival").retail;
-    expect(booth.suggested).toBeLessThan(floor.suggested);
-    expect(floor.suggested).toBeLessThan(arrival.suggested);
+    expect(booth).toEqual({
+      min: 45_000,
+      max: 60_000,
+      suggested: 50_000,
+      unit: "per show",
+    });
   });
 
   it("keeps every retail band ordered with the suggested price inside it", () => {

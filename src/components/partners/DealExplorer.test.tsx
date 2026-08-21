@@ -117,8 +117,8 @@ describe("DealExplorer", () => {
     render(<DealExplorer config={INFORMA_DEAL_CONFIG} partnerName="Informa" />);
     expect(screen.getByText("12 machines on the floor")).toBeInTheDocument();
     expect(screen.getByText("16 of 24 slots")).toBeInTheDocument();
-    // Gross sponsorship: 2×$60k + 2×$50k + 4×$30k + 16×$5k = $420k.
-    expect(screen.getByText("$420k")).toBeInTheDocument();
+    // Gross sponsorship: 2×$60k + 2×$50k + 4×$50k + 16×$5k = $500k.
+    expect(screen.getByText("$500k")).toBeInTheDocument();
   });
 
   it("switches the whole mix when a preset is clicked", () => {
@@ -136,10 +136,10 @@ describe("DealExplorer", () => {
       screen.getByText(/You buy: Rebooking Engine × 2, at \$40,000 per show/),
     ).toBeInTheDocument();
     expect(screen.getByText("−$80k")).toBeInTheDocument();
-    expect(screen.getByText("+$126k")).toBeInTheDocument();
+    expect(screen.getByText("+$150k")).toBeInTheDocument();
     expect(screen.getByText("Net to Informa")).toBeInTheDocument();
-    // Net: 30% of $420k = $126k retained, minus $80k in fees.
-    expect(screen.getByText("$46k")).toBeInTheDocument();
+    // Net: 30% of $500k = $150k retained, minus $80k in fees.
+    expect(screen.getByText("$70k")).toBeInTheDocument();
     expect(
       screen.getByRole("slider", {
         name: "Rebooking Engine Flat service fee per show",

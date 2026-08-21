@@ -81,14 +81,14 @@ describe("INFORMA_DEAL_CONFIG", () => {
     const summary = computeConfigDeal(INFORMA_DEAL_CONFIG, {
       arrival: { count: 3, retail: 60_000 },
       floor: { count: 4, retail: 50_000 },
-      booth: { count: 4, retail: 30_000 },
+      booth: { count: 4, retail: 50_000 },
       rebooker: { count: 2, retail: 40_000 },
     });
     expect(summary.totalUnits).toBe(13);
-    expect(summary.gross).toBe(500_000);
-    expect(summary.partnerKeeps).toBe(150_000);
+    expect(summary.gross).toBe(580_000);
+    expect(summary.partnerKeeps).toBe(174_000);
     expect(summary.serviceFees).toBe(80_000);
-    expect(summary.netToPartner).toBe(70_000);
+    expect(summary.netToPartner).toBe(94_000);
     expect(summary.tier.label).toBe("Pilot");
     expect(summary.belowPilotMinimum).toBe(false);
     expect(summary.floorGap).toBe(0);

@@ -74,14 +74,14 @@ describe("quoteFileName", () => {
 describe("buildDealQuoteDoc", () => {
   it("renders the on-screen economics: gross, retained, fees, net", () => {
     const text = allText(buildDealQuoteDoc(pilotContext()));
-    // Pilot preset (2 shows): gross 2×$60k + 2×$50k + 4×$30k + 16×$5k =
-    // $420k, Informa retains 30% = $126k, 2 rebooking engines × $40k =
-    // $80k in fees, net $46k.
-    expect(text).toContain("$420,000");
-    expect(text).toContain("+$126,000");
+    // Pilot preset (2 shows): gross 2×$60k + 2×$50k + 4×$50k + 16×$5k =
+    // $500k, Informa retains 30% = $150k, 2 rebooking engines × $40k =
+    // $80k in fees, net $70k.
+    expect(text).toContain("$500,000");
+    expect(text).toContain("+$150,000");
     expect(text).toContain("−$80,000");
     expect(text).toContain("Net to Informa");
-    expect(text).toContain("$46,000");
+    expect(text).toContain("$70,000");
   });
 
   it("names the scenario and the tier in the header", () => {

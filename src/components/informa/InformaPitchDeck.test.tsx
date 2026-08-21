@@ -48,8 +48,10 @@ describe("InformaPitchDeck", () => {
     slideParam = "6";
     render(<InformaPitchDeck />);
     expect(
-      screen.getByRole("heading", { name: /tampa runs both/i })
+      screen.getByRole("heading", { name: /tampa demonstrates both/i })
     ).toBeInTheDocument();
+    expect(screen.getByText(/working pilot, not the commercial precedent/i)).toBeInTheDocument();
+    expect(screen.getByText(/not inventory Informa sold for Tampa/i)).toBeInTheDocument();
     expect(screen.getByText(/built for the format/i)).toBeInTheDocument();
   });
 

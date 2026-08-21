@@ -187,33 +187,37 @@ export const ROADMAP_2027 = {
 
 /**
  * The two-model decision (Catherine's framing, kept compliant): Informa can
- * resell placements or run the platform for its own show, and Tampa already
- * does both. Data claims stay sponsor-owned: leads belong to the sponsor who
- * paid, Informa gets performance reporting for renewal conversations. No
- * audience-profiling or data-pool claims. Platform monitoring is framed as
- * operational telemetry, never as live lead dashboards.
+ * resell placements or run the platform for its own show. Tampa demonstrates
+ * both formats as an in-kind working pilot; it is not evidence that either
+ * commercial model was transacted there. Data claims stay sponsor-owned:
+ * under the paid model, leads belong to the sponsor who bought the placement.
+ * No audience-profiling or data-pool claims. Platform monitoring is framed
+ * as operational telemetry, never as live lead dashboards.
  */
 export const TWO_MODELS = {
-  headline: "Two ways to run it. Tampa runs both.",
+  headline: "Two ways to run it. Tampa demonstrates both.",
   models: [
     {
       name: "Sell it",
       descriptor: "A premium line in your prospectus",
       detail:
         "Your reps sell Bright.Blue placements to sponsors and exhibitors as differentiated, engagement-priced inventory. Bright.Blue delivers; you book the margin.",
-      tampa: "Registration and the Experiential Media Lounge in Tampa run this way.",
+      tampa:
+        "Registration and the Experiential Media Lounge demonstrate the sponsor-takeover format; they are pilot placements, not inventory Informa sold for Tampa.",
     },
     {
       name: "Run it",
       descriptor: "An Informa-branded experience layer",
       detail:
         "Informa uses the platform on its own account: show-branded machines working on show-team numbers, like at-show rebooking, with the same measurement behind them.",
-      tampa: "The rebooking machine on the Informa booth in Tampa runs this way.",
+      tampa:
+        "The rebooking machine demonstrates the organizer-use format; it is part of the pilot, not a paid service-fee deployment.",
     },
   ],
-  note: "Not a fork in the road: the same fleet, agreement and reporting rails carry both, so the mix can change show by show.",
+  note:
+    "Tampa is the working pilot, not the commercial precedent. It proves both formats on a live Informa floor; the paid inventory and service-fee models begin with the next program.",
   dataPosture:
-    "Every lead belongs to the sponsor who paid for the placement, captured with opt-in consent at the machine. Informa receives proof-of-performance reporting for renewal conversations, and Bright.Blue's operational telemetry keeps every deployed machine healthy through the show.",
+    "In the paid model, every lead belongs to the sponsor who bought the placement, captured with opt-in consent at the machine. Informa receives proof-of-performance reporting for renewal conversations, and Bright.Blue's operational telemetry keeps every deployed machine healthy through the show.",
 } as const;
 
 /** Portfolio portability: one platform across Informa's formats. */

@@ -1,7 +1,8 @@
 /**
  * The two-model decision slide: resell as sponsor inventory, run as an
- * Informa-branded layer, or both (Tampa already does). Carries the
- * portfolio-portability strip and the compliant data posture line.
+ * Informa-branded layer, or both. Tampa demonstrates both formats as a
+ * working pilot without implying either commercial model was transacted.
+ * Carries the portfolio-portability strip and compliant data posture line.
  */
 "use client";
 
@@ -21,7 +22,7 @@ function SlideFrame({
   return (
     <section
       className={cn(
-        "mx-auto flex w-full max-w-5xl flex-1 flex-col justify-center px-6 pb-24 pt-12 sm:px-10",
+        "mx-auto flex w-full max-w-5xl flex-1 flex-col justify-center px-6 pb-20 pt-10 sm:px-10",
         className
       )}
     >
@@ -81,7 +82,7 @@ export function TwoModelsSlide({}: SlideProps) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.4 }}
-        className="mt-5 max-w-3xl text-sm leading-relaxed text-muted-foreground"
+        className="mt-5 max-w-5xl text-sm leading-relaxed text-muted-foreground"
       >
         {TWO_MODELS.note} {TWO_MODELS.dataPosture}
       </motion.p>

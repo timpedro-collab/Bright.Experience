@@ -110,9 +110,9 @@ export const PRODUCT_FAMILY: InformaProduct[] = [
       "Cost per opted-in lead against the industry benchmark",
       "Sample and prize fulfilment, reconciled to stock",
     ],
-    retail: { min: 25_000, max: 40_000, suggested: 30_000, unit: "per show" },
+    retail: { min: 45_000, max: 60_000, suggested: 50_000, unit: "per show" },
     buyer: "Sponsor",
-    configuratorPrice: 30_000,
+    configuratorPrice: 50_000,
   },
   {
     id: "rebooker",
