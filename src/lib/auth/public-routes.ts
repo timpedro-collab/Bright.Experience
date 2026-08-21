@@ -60,6 +60,9 @@ const PUBLIC_ROUTES = [
   // pages). Unlisted rather than secret: noindex, no internal economics,
   // presented live to partners.
   "/informa",
+  // The venue snapshot deck. Same unlisted posture as /informa; exact-or-
+  // prefix matching means the internal /venues/* portal stays gated.
+  "/venue",
   // Static assets under public/pitch/ (placement mockups, deck photography)
   // that middleware still sees, plus permanent redirects from the retired
   // /pitch/informa URLs.
@@ -112,12 +115,14 @@ function normalise(pathname: string): string {
 
 /**
  * True when the path may be served without a session.
- * The site root is public (it renders the marketing page for signed-out
- * visitors and the dashboard for signed-in ones).
+ *
+ * The site root deliberately stays behind the session gate while
+ * Bright.Experience is not publicly launched. Purpose-built partner
+ * surfaces such as `/informa` and capability URLs remain public through
+ * the explicit allowlist above.
  */
 export function isPublicPath(pathname: string): boolean {
   const path = normalise(pathname);
-  if (path === "/") return true;
   for (const route of PUBLIC_ROUTES) {
     if (path === route || path.startsWith(`${route}/`)) return true;
   }

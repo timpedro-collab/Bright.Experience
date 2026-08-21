@@ -4,6 +4,64 @@ All notable changes to the Bright.Experience platform are documented here.
 
 ---
 
+## [Two 5-slide snapshot decks: Informa and venues] - 2026-08-21
+
+- Added `/informa/snapshot`, a forwardable 5-slide companion to the full
+  partnership deck: cover with the Adyen activation reel, four icon
+  statements of what the product is, a six-photo proof collage, the
+  five-product rate card with retail bands, and the retained-share close
+  with a worked pilot mix ($500K gross, $150K to Informa) computed live
+  from the same deal config as the private calculator.
+- Added `/venue`, a 5-slide overview for convention centers and expo
+  venues: deliberately non-financial (zero cost, zero operations,
+  sponsor-funded), with placement specs instead of prices and a contact
+  close. `/venue` joins the public-routes allowlist without opening the
+  internal `/venues/*` portal.
+- Extracted the fullscreen slide chrome (keyboard nav, progress dots,
+  `?slide=N` deep links) into a shared `DeckShell` used by both new
+  decks; the existing partnership and sponsor decks are untouched.
+- Both pages carry distinct titles and OG images so shared links preview
+  as their own documents, and both are noindexed like the rest of the
+  suite.
+- Files: `src/components/decks/DeckShell.{tsx,test.tsx}`,
+  `src/lib/informa/snapshot-content.{ts,test.ts}`,
+  `src/components/informa/{snapshot-slides.tsx,InformaSnapshotDeck.tsx,InformaSnapshotDeck.test.tsx}`,
+  `src/app/informa/snapshot/page.tsx`,
+  `src/lib/venue-pitch/content.{ts,test.ts}`,
+  `src/components/venue-pitch/{venue-slides.tsx,VenueSnapshotDeck.tsx,VenueSnapshotDeck.test.tsx}`,
+  `src/app/venue/page.tsx`, `src/lib/auth/public-routes.{ts,test.ts}`,
+  `scripts/snapshot-deck-screens.py`.
+
+## [Tampa slide now distinguishes pilot proof from paid deployment] - 2026-08-20
+
+- Replaced "Tampa runs both" with "Tampa demonstrates both." The slide
+  now states that the sponsor-takeover and organizer-use machines are
+  in-kind pilot demonstrations—not inventory Informa sold or a paid
+  service-fee deployment. The close identifies Tampa as the working pilot,
+  with commercial models beginning in the next program.
+- Files: `src/lib/informa/content.ts`,
+  `src/components/informa/InformaPitchDeck.test.tsx`.
+
+## [In-Booth Machine rate updated to $45K–$60K] - 2026-08-20
+
+- Updated the Informa rate card, seller's kit, configurator handoff and
+  private pricing calculator to the approved $45,000–$60,000 per-show
+  band, with $50,000 as the recommended starting price. Preset economics,
+  quote-PDF expectations and the production pricing record move with it.
+- Files: `src/lib/informa/products.{ts,test.ts}`,
+  `src/components/partners/DealExplorer.test.tsx`,
+  `src/lib/deal-quote.test.ts`,
+  `supabase/migrations/20260820140000_informa_booth_price_band.sql`.
+
+## [Unlaunched Bright.Experience homepage moved behind login] - 2026-08-19
+
+- Signed-out visitors to the bare site root now pass through the existing
+  session gate and land on `/login`; the unfinished Bright.Experience
+  homepage is no longer publicly visible. Explicit partner surfaces
+  (`/informa`, `/pp`), capability links, downloads and integration
+  endpoints retain their existing access.
+- Files: `src/lib/auth/public-routes.{ts,test.ts}`.
+
 ## [Sample report hourly chart now shows per-day averages a machine can hit] - 2026-08-19
 
 - The "Engagement by hour" chart plotted whole-run aggregates (peak 87),

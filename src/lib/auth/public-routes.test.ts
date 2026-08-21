@@ -3,8 +3,8 @@ import { describe, it, expect } from "vitest";
 import { isPublicPath } from "./public-routes";
 
 describe("isPublicPath", () => {
-  it("lets the marketing and catalogue pages through", () => {
-    expect(isPublicPath("/")).toBe(true);
+  it("keeps the unlaunched site root private while public resources remain available", () => {
+    expect(isPublicPath("/")).toBe(false);
     expect(isPublicPath("/login")).toBe(true);
     expect(isPublicPath("/catalog")).toBe(true);
     expect(isPublicPath("/catalog/machines/claw-classic")).toBe(true);
@@ -49,9 +49,18 @@ describe("isPublicPath", () => {
   it("lets partner pitch decks through without opening prefix-sharing routes", () => {
     expect(isPublicPath("/informa")).toBe(true);
     expect(isPublicPath("/informa/kit")).toBe(true);
+    expect(isPublicPath("/informa/snapshot")).toBe(true);
     expect(isPublicPath("/pitch/photos/example.jpg")).toBe(true);
     expect(isPublicPath("/downloads/Bright.Blue-Informa-Sample-Report.pdf")).toBe(true);
     expect(isPublicPath("/pitches")).toBe(false);
+  });
+
+  it("lets the venue snapshot deck through without opening the venue portal", () => {
+    expect(isPublicPath("/venue")).toBe(true);
+    expect(isPublicPath("/venue/")).toBe(true);
+    // The internal /venues/* portal must not ride the /venue entry.
+    expect(isPublicPath("/venues")).toBe(false);
+    expect(isPublicPath("/venues/kings-cross/dashboard")).toBe(false);
   });
 
   it("lets the report share exports and player card image through, nothing else under those prefixes", () => {
