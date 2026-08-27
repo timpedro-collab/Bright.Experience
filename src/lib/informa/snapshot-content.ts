@@ -35,22 +35,22 @@ export const SNAPSHOT_WHAT = {
     {
       id: "machines",
       title: "Sponsor-branded machines",
-      line: "Full-size interactive game machines, wrapped edge to edge, on your show floor.",
+      line: "Full-size branded game machines on your show floor.",
     },
     {
       id: "badge",
       title: "Badge scan to play",
-      line: "Every play starts with a real registrant and an opt-in.",
+      line: "Every play is a real registrant, opted in.",
     },
     {
       id: "report",
       title: "Proof in 24 hours",
-      line: "A board-ready proof-of-performance report within 24 hours of close.",
+      line: "Board-ready report within 24 hours of close.",
     },
     {
       id: "delivery",
       title: "We deliver. You sell.",
-      line: "Build, wrap, freight, install, ops and teardown are all Bright.Blue's.",
+      line: "Build, freight, install, ops, teardown: all Bright.Blue.",
     },
   ],
 } as const;
@@ -108,6 +108,8 @@ export interface SnapshotPackage {
   bandCompact: string;
   /** "per show" — the small suffix under the compact band. */
   bandUnit: string;
+  /** "Sponsors buy" — who signs the order for this line item. */
+  buyerLabel: string;
 }
 
 /** "$45–60k" — a retail band compacted to price-tag typography. */
@@ -116,35 +118,46 @@ export function compactBand(min: number, max: number): string {
 }
 
 /**
- * Slide 4: the five-product family as tiles, derived straight from the
- * rate card so names and bands can never fork from `/informa/kit`.
+ * Slide 4: the resale line card only. Organizer-bought services (the
+ * Rebooking Engine) are excluded by design: Informa buys those direct
+ * from Bright.Blue, so they never appear on the inventory reps resell.
+ * Tiles still derive from the rate card so bands can never fork from
+ * `/informa/kit`.
  */
-export const SNAPSHOT_PACKAGES: SnapshotPackage[] = PRODUCT_FAMILY.map((p) => ({
+export const SNAPSHOT_PACKAGES: SnapshotPackage[] = PRODUCT_FAMILY.filter(
+  (p) => p.buyer !== "Organizer"
+).map((p) => ({
   id: p.id,
   name: p.name,
   descriptor: p.descriptor,
   band: formatRetailBand(p),
   bandCompact: compactBand(p.retail.min, p.retail.max),
   bandUnit: p.retail.unit,
+  buyerLabel: p.buyer === "Sponsor" ? "Sponsors buy" : "Advertisers buy",
 }));
 
 export const SNAPSHOT_PACKAGES_COPY = {
-  overline: "The package",
-  headline: "Five products. One rate card.",
+  overline: "Your line card",
+  headline: "Four products. All resale.",
   footnote:
-    "Suggested retail bands. Your team sets final pricing per show.",
+    "Suggested retail. Your team sets the final price. The Rebooking Engine is not resale inventory: Informa buys it direct from Bright.Blue.",
 } as const;
 
 /**
- * The Screen Ad Network demonstration under the rate-card tiles: machine
- * front-face mockups showing exactly where a 10-second creative runs.
+ * The Screen Ad Network demonstration under the rate-card tiles: a complete
+ * event-safe machine showing exactly where a 10-second creative runs, plus
+ * the two supported slot-state labels.
  * Assets live in public/pitch/machines/ (from the Bright.Blue pricing
  * design system; the screens are the generic ad-slot states, not the
  * retail UI, so they read correctly in an events context).
  */
 export const SNAPSHOT_AD_DEMO = {
   title: "Where the 10-second slot runs",
-  line: "Full screen, in the machine's idle rotation between plays, on the machines the show controls.",
+  line: "Full screen, between plays, on the machines the show controls.",
+  completeMachine: {
+    src: "/pitch/machines/ad-slot-machine-complete.png",
+    alt: "Complete Bright.Blue machine showing a full-screen 10-second sponsor ad",
+  },
   machines: [
     {
       src: "/pitch/machines/ad-slot-video.webp",
@@ -206,7 +219,7 @@ export function pilotSnapshot(): PilotSnapshot {
 export const SNAPSHOT_VALUE = {
   overline: "What you make",
   headline: "30% of every sale is yours to keep.",
-  sub: "Bright.Blue builds, delivers and operates every placement. Your reps sell the line; the margin stays with the show.",
+  sub: "Your reps sell the line. Bright.Blue delivers everything else.",
   footnote:
     "Illustrative at suggested retail. Organizer services like the Rebooking Engine are flat-fee and priced separately.",
   links: [

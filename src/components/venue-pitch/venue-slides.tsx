@@ -46,7 +46,7 @@ function SlideFrame({
   return (
     <section
       className={cn(
-        "mx-auto flex w-full max-w-5xl flex-1 flex-col justify-center px-6 pb-24 pt-12 sm:px-10",
+        "mx-auto flex w-full max-w-7xl flex-1 flex-col justify-center px-6 pb-24 pt-10 sm:px-12 lg:px-16",
         className
       )}
     >
@@ -82,9 +82,14 @@ export function VenueCoverSlide({ onAdvance }: DeckShellSlideProps) {
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/70 to-background/30" />
       </div>
 
-      <SlideFrame className="relative items-center text-center">
-        <motion.div variants={stagger} initial="hidden" animate="visible">
-          <motion.div variants={rise} className="mb-8 flex items-center justify-center">
+      <SlideFrame className="relative">
+        <motion.div
+          variants={stagger}
+          initial="hidden"
+          animate="visible"
+          className="max-w-3xl"
+        >
+          <motion.div variants={rise} className="mb-12 flex items-center">
             <Image
               src="/brand/bright-blue-wordmark-light.png"
               alt="Bright.Blue"
@@ -96,7 +101,7 @@ export function VenueCoverSlide({ onAdvance }: DeckShellSlideProps) {
 
           <motion.h1
             variants={rise}
-            className="text-display-grotesk mx-auto max-w-3xl text-balance text-5xl leading-tight sm:text-6xl"
+            className="text-display-grotesk max-w-3xl text-balance text-5xl leading-[0.98] sm:text-7xl"
           >
             {VENUE_COVER.headlineLead}{" "}
             <span className="bg-gradient-to-r from-[var(--color-bb-cobalt)] to-[var(--color-bb-cyan)] bg-clip-text text-transparent">
@@ -104,7 +109,7 @@ export function VenueCoverSlide({ onAdvance }: DeckShellSlideProps) {
             </span>
           </motion.h1>
 
-          <motion.p variants={rise} className="mx-auto mt-6 max-w-xl text-lg text-muted-foreground">
+          <motion.p variants={rise} className="mt-7 max-w-xl text-lg text-muted-foreground">
             {VENUE_COVER.sub}
           </motion.p>
 
@@ -141,7 +146,7 @@ export function VenueWhatSlide({}: DeckShellSlideProps) {
         variants={stagger}
         initial="hidden"
         animate="visible"
-        className="mt-12 grid gap-4 sm:grid-cols-2"
+        className="mt-14 grid gap-8 sm:grid-cols-2 lg:grid-cols-4"
       >
         {VENUE_WHAT.points.map((point, i) => {
           const Icon = WHAT_ICONS[point.id] ?? Wrench;
@@ -149,18 +154,16 @@ export function VenueWhatSlide({}: DeckShellSlideProps) {
             <motion.div
               key={point.id}
               variants={rise}
-              className="flex items-start gap-4 rounded-2xl border border-border/70 bg-card/50 p-6"
+              className="border-t-2 border-[var(--color-bb-cyan)] pt-5"
             >
-              <span className="rounded-xl bg-[var(--color-bb-cobalt)]/15 p-3">
-                <Icon className="size-6 text-[var(--color-bb-cyan)]" aria-hidden />
-              </span>
-              <span>
+              <div className="flex items-center justify-between">
                 <MonoIndex index={i} />
-                <h3 className="mt-0.5 text-lg font-semibold">{point.title}</h3>
-                <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-                  {point.line}
-                </p>
-              </span>
+                <Icon className="size-5 text-[var(--color-bb-cyan)]" aria-hidden />
+              </div>
+              <h3 className="mt-4 text-xl font-semibold leading-tight">{point.title}</h3>
+              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+                {point.line}
+              </p>
             </motion.div>
           );
         })}
@@ -170,9 +173,9 @@ export function VenueWhatSlide({}: DeckShellSlideProps) {
 }
 
 export function VenueProofSlide({}: DeckShellSlideProps) {
-  const [hero, ...rest] = VENUE_COLLAGE.photos;
+  const photos = VENUE_COLLAGE.photos.slice(0, 4);
   return (
-    <SlideFrame className="max-w-6xl">
+    <SlideFrame>
       <p className="text-overline text-[var(--color-bb-cyan)]">
         {VENUE_COLLAGE.overline}
       </p>
@@ -180,46 +183,34 @@ export function VenueProofSlide({}: DeckShellSlideProps) {
         {VENUE_COLLAGE.headline}
       </h2>
 
-      {/* Balanced 3-column mosaic: hero 2x2 left, two stacked right, three
-          across the bottom — six photos, no orphans. */}
       <motion.div
         variants={stagger}
         initial="hidden"
         animate="visible"
-        className="mt-8 grid auto-rows-[7rem] grid-cols-2 gap-3 sm:auto-rows-[10rem] sm:grid-cols-3"
+        className="mt-10 grid grid-cols-2 gap-4 lg:grid-cols-4"
       >
-        <motion.figure
-          variants={rise}
-          className="relative col-span-2 row-span-2 overflow-hidden rounded-2xl border border-border/60"
-        >
-          <Image
-            src={hero.src}
-            alt={hero.alt}
-            fill
-            sizes="(max-width: 640px) 100vw, 66vw"
-            className="object-cover"
-            priority
-          />
-          <figcaption className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-4 pb-3 pt-8 text-xs font-medium text-white">
-            {hero.caption}
-          </figcaption>
-        </motion.figure>
-
-        {rest.map((photo) => (
+        {photos.map((photo, i) => (
           <motion.figure
             key={photo.src}
             variants={rise}
-            className="relative overflow-hidden rounded-2xl border border-border/60"
+            className="min-w-0"
           >
-            <Image
-              src={photo.src}
-              alt={photo.alt}
-              fill
-              sizes="(max-width: 640px) 50vw, 33vw"
-              className="object-cover"
-            />
-            <figcaption className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-3 pb-2 pt-6 text-[11px] font-medium text-white">
-              {photo.caption}
+            <div className={cn(GLOW_FRAME, "relative aspect-[4/5]")}>
+              <Image
+                src={photo.src}
+                alt={photo.alt}
+                fill
+                sizes="(max-width: 640px) 50vw, 25vw"
+                className="object-cover"
+                priority={i === 0}
+              />
+            </div>
+            <figcaption className="mt-4">
+              <MonoIndex index={i} />
+              <p className="mt-1 text-sm font-semibold text-foreground">{photo.caption}</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Live floor. Live audience.
+              </p>
             </figcaption>
           </motion.figure>
         ))}
@@ -243,12 +234,12 @@ export function VenueNeedsSlide({}: DeckShellSlideProps) {
         {VENUE_NEEDS.headline}
       </h2>
 
-      <div className="mt-10 grid items-start gap-8 lg:grid-cols-[1fr_auto]">
+      <div className="mt-10 grid items-center gap-12 lg:grid-cols-[1fr_20rem]">
         <motion.div
           variants={stagger}
           initial="hidden"
           animate="visible"
-          className="grid gap-4 sm:grid-cols-2"
+          className="grid gap-x-8 gap-y-10 sm:grid-cols-2"
         >
           {VENUE_NEEDS.specs.map((spec, i) => {
             const Icon = NEEDS_ICONS[spec.id] ?? Ruler;
@@ -256,7 +247,7 @@ export function VenueNeedsSlide({}: DeckShellSlideProps) {
               <motion.div
                 key={spec.id}
                 variants={rise}
-                className="rounded-2xl border border-border/70 bg-card/50 p-6"
+                className="border-t-2 border-[var(--color-bb-cyan)] pt-4"
               >
                 <div className="flex items-center justify-between">
                   <span className="inline-flex rounded-xl bg-[var(--color-bb-cobalt)]/15 p-3">
@@ -264,7 +255,7 @@ export function VenueNeedsSlide({}: DeckShellSlideProps) {
                   </span>
                   <MonoIndex index={i} />
                 </div>
-                <h3 className="mt-4 font-semibold">{spec.title}</h3>
+                <h3 className="mt-4 text-lg font-semibold">{spec.title}</h3>
                 <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
                   {spec.line}
                 </p>
@@ -280,9 +271,9 @@ export function VenueNeedsSlide({}: DeckShellSlideProps) {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-          className="mx-auto w-48 sm:w-56 lg:mx-0"
+          className="mx-auto w-64 sm:w-72 lg:mx-0"
         >
-          <div className={GLOW_FRAME}>
+          <div>
             <Image
               src={VENUE_NEEDS.machine.src}
               alt={VENUE_NEEDS.machine.alt}
@@ -323,7 +314,7 @@ export function VenueBenefitsSlide({}: DeckShellSlideProps) {
         variants={stagger}
         initial="hidden"
         animate="visible"
-        className="mt-10 grid gap-4 sm:grid-cols-2"
+        className="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-4"
       >
         {VENUE_BENEFITS.points.map((point, i) => {
           const Icon = BENEFIT_ICONS[point.id] ?? Trophy;
@@ -331,18 +322,16 @@ export function VenueBenefitsSlide({}: DeckShellSlideProps) {
             <motion.div
               key={point.id}
               variants={rise}
-              className="flex items-start gap-4 rounded-2xl border border-border/70 bg-card/50 p-6"
+              className="border-t-2 border-[var(--color-bb-cyan)] pt-5"
             >
-              <span className="rounded-xl bg-[var(--color-bb-cobalt)]/15 p-3">
-                <Icon className="size-6 text-[var(--color-bb-cyan)]" aria-hidden />
-              </span>
-              <span>
+              <div className="flex items-center justify-between">
                 <MonoIndex index={i} />
-                <h3 className="mt-0.5 text-lg font-semibold">{point.title}</h3>
-                <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-                  {point.line}
-                </p>
-              </span>
+                <Icon className="size-5 text-[var(--color-bb-cyan)]" aria-hidden />
+              </div>
+              <h3 className="mt-4 text-xl font-semibold leading-tight">{point.title}</h3>
+              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+                {point.line}
+              </p>
             </motion.div>
           );
         })}

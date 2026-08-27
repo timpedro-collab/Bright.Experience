@@ -18,9 +18,11 @@ import {
 } from "./snapshot-content";
 
 describe("SNAPSHOT_PACKAGES", () => {
-  it("mirrors the five-product rate card one to one", () => {
-    expect(SNAPSHOT_PACKAGES).toHaveLength(PRODUCT_FAMILY.length);
-    for (const product of PRODUCT_FAMILY) {
+  it("carries only the resale line card, never organizer purchases", () => {
+    const resale = PRODUCT_FAMILY.filter((p) => p.buyer !== "Organizer");
+    expect(SNAPSHOT_PACKAGES).toHaveLength(resale.length);
+    expect(SNAPSHOT_PACKAGES.some((p) => p.id === "rebooker")).toBe(false);
+    for (const product of resale) {
       const tile = SNAPSHOT_PACKAGES.find((p) => p.id === product.id);
       expect(tile?.name).toBe(product.name);
       expect(tile?.band).toBe(formatRetailBand(product));
@@ -29,6 +31,12 @@ describe("SNAPSHOT_PACKAGES", () => {
       );
       expect(tile?.bandUnit).toBe(product.retail.unit);
     }
+  });
+
+  it("labels who buys each resale line item", () => {
+    const labels = SNAPSHOT_PACKAGES.map((p) => p.buyerLabel);
+    expect(labels.filter((l) => l === "Sponsors buy")).toHaveLength(3);
+    expect(labels.filter((l) => l === "Advertisers buy")).toHaveLength(1);
   });
 });
 
@@ -40,7 +48,11 @@ describe("compactBand", () => {
 });
 
 describe("SNAPSHOT_AD_DEMO", () => {
-  it("shows the two event-safe ad-slot mockups from public/pitch/machines", () => {
+  it("shows a complete machine plus two event-safe ad-slot states", () => {
+    expect(SNAPSHOT_AD_DEMO.completeMachine.src).toBe(
+      "/pitch/machines/ad-slot-machine-complete.png"
+    );
+    expect(SNAPSHOT_AD_DEMO.completeMachine.alt).toMatch(/complete Bright\.Blue/i);
     expect(SNAPSHOT_AD_DEMO.machines).toHaveLength(2);
     for (const machine of SNAPSHOT_AD_DEMO.machines) {
       expect(machine.src).toMatch(/^\/pitch\/machines\/[a-z0-9-]+\.webp$/);

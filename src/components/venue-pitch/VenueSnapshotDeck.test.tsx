@@ -70,7 +70,7 @@ describe("VenueSnapshotDeck", () => {
     slideParam = "4";
     render(<VenueSnapshotDeck />);
     expect(
-      screen.getByAltText(/machine front face with a full-screen ad/i)
+      screen.getByAltText(/complete bright\.blue machine with a full-screen 10-second/i)
     ).toBeInTheDocument();
     expect(
       screen.getByText(/inventory your building can sell/i)

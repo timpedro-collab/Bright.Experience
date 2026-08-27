@@ -44,7 +44,7 @@ function SlideFrame({
   return (
     <section
       className={cn(
-        "mx-auto flex w-full max-w-5xl flex-1 flex-col justify-center px-6 pb-24 pt-12 sm:px-10",
+        "mx-auto flex w-full max-w-7xl flex-1 flex-col justify-center px-6 pb-24 pt-10 sm:px-12 lg:px-16",
         className
       )}
     >
@@ -80,9 +80,14 @@ export function SnapshotCoverSlide({ onAdvance }: DeckShellSlideProps) {
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/70 to-background/30" />
       </div>
 
-      <SlideFrame className="relative items-center text-center">
-        <motion.div variants={stagger} initial="hidden" animate="visible">
-          <motion.div variants={rise} className="mb-8 flex items-center justify-center gap-4">
+      <SlideFrame className="relative">
+        <motion.div
+          variants={stagger}
+          initial="hidden"
+          animate="visible"
+          className="max-w-3xl"
+        >
+          <motion.div variants={rise} className="mb-12 flex items-center gap-4">
             <Image
               src="/brand/bright-blue-wordmark-light.png"
               alt="Bright.Blue"
@@ -96,7 +101,7 @@ export function SnapshotCoverSlide({ onAdvance }: DeckShellSlideProps) {
 
           <motion.h1
             variants={rise}
-            className="text-display-grotesk mx-auto max-w-3xl text-balance text-5xl leading-tight sm:text-6xl"
+            className="text-display-grotesk max-w-3xl text-balance text-5xl leading-[0.98] sm:text-7xl"
           >
             {SNAPSHOT_COVER.headlineLead}{" "}
             <span className="bg-gradient-to-r from-[var(--color-bb-cobalt)] to-[var(--color-bb-cyan)] bg-clip-text text-transparent">
@@ -104,7 +109,7 @@ export function SnapshotCoverSlide({ onAdvance }: DeckShellSlideProps) {
             </span>
           </motion.h1>
 
-          <motion.p variants={rise} className="mx-auto mt-6 max-w-xl text-lg text-muted-foreground">
+          <motion.p variants={rise} className="mt-7 max-w-xl text-lg text-muted-foreground">
             {SNAPSHOT_COVER.sub}
           </motion.p>
 
@@ -141,7 +146,7 @@ export function SnapshotWhatSlide({}: DeckShellSlideProps) {
         variants={stagger}
         initial="hidden"
         animate="visible"
-        className="mt-12 grid gap-4 sm:grid-cols-2"
+        className="mt-14 grid gap-8 sm:grid-cols-2 lg:grid-cols-4"
       >
         {SNAPSHOT_WHAT.points.map((point, i) => {
           const Icon = WHAT_ICONS[point.id] ?? Gamepad2;
@@ -149,18 +154,16 @@ export function SnapshotWhatSlide({}: DeckShellSlideProps) {
             <motion.div
               key={point.id}
               variants={rise}
-              className="flex items-start gap-4 rounded-2xl border border-border/70 bg-card/50 p-6"
+              className="border-t-2 border-[var(--color-bb-cyan)] pt-5"
             >
-              <span className="rounded-xl bg-[var(--color-bb-cobalt)]/15 p-3">
-                <Icon className="size-6 text-[var(--color-bb-cyan)]" aria-hidden />
-              </span>
-              <span>
+              <div className="flex items-center justify-between">
                 <MonoIndex index={i} />
-                <h3 className="mt-0.5 text-lg font-semibold">{point.title}</h3>
-                <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-                  {point.line}
-                </p>
-              </span>
+                <Icon className="size-5 text-[var(--color-bb-cyan)]" aria-hidden />
+              </div>
+              <h3 className="mt-4 text-xl font-semibold leading-tight">{point.title}</h3>
+              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+                {point.line}
+              </p>
             </motion.div>
           );
         })}
@@ -170,9 +173,9 @@ export function SnapshotWhatSlide({}: DeckShellSlideProps) {
 }
 
 export function SnapshotProofSlide({}: DeckShellSlideProps) {
-  const [hero, ...rest] = SNAPSHOT_COLLAGE.photos;
+  const photos = SNAPSHOT_COLLAGE.photos.slice(0, 4);
   return (
-    <SlideFrame className="max-w-6xl">
+    <SlideFrame>
       <p className="text-overline text-[var(--color-bb-cyan)]">
         {SNAPSHOT_COLLAGE.overline}
       </p>
@@ -180,46 +183,31 @@ export function SnapshotProofSlide({}: DeckShellSlideProps) {
         {SNAPSHOT_COLLAGE.headline}
       </h2>
 
-      {/* Balanced 3-column mosaic: hero 2x2 left, two stacked right, three
-          across the bottom — six photos, no orphans. */}
       <motion.div
         variants={stagger}
         initial="hidden"
         animate="visible"
-        className="mt-8 grid auto-rows-[7rem] grid-cols-2 gap-3 sm:auto-rows-[10rem] sm:grid-cols-3"
+        className="mt-10 grid grid-cols-2 gap-4 lg:grid-cols-4"
       >
-        <motion.figure
-          variants={rise}
-          className="relative col-span-2 row-span-2 overflow-hidden rounded-2xl border border-border/60"
-        >
-          <Image
-            src={hero.src}
-            alt={hero.alt}
-            fill
-            sizes="(max-width: 640px) 100vw, 66vw"
-            className="object-cover"
-            priority
-          />
-          <figcaption className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-4 pb-3 pt-8 text-xs font-medium text-white">
-            {hero.caption}
-          </figcaption>
-        </motion.figure>
-
-        {rest.map((photo) => (
+        {photos.map((photo, i) => (
           <motion.figure
             key={photo.src}
             variants={rise}
-            className="relative overflow-hidden rounded-2xl border border-border/60"
+            className="min-w-0"
           >
-            <Image
-              src={photo.src}
-              alt={photo.alt}
-              fill
-              sizes="(max-width: 640px) 50vw, 33vw"
-              className="object-cover"
-            />
-            <figcaption className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-3 pb-2 pt-6 text-[11px] font-medium text-white">
-              {photo.caption}
+            <div className={cn(GLOW_FRAME, "relative aspect-[4/5]")}>
+              <Image
+                src={photo.src}
+                alt={photo.alt}
+                fill
+                sizes="(max-width: 640px) 50vw, 25vw"
+                className="object-cover"
+                priority={i === 0}
+              />
+            </div>
+            <figcaption className="mt-4">
+              <MonoIndex index={i} />
+              <p className="mt-1 text-sm font-semibold text-foreground">{photo.caption}</p>
             </figcaption>
           </motion.figure>
         ))}
@@ -230,7 +218,7 @@ export function SnapshotProofSlide({}: DeckShellSlideProps) {
 
 export function SnapshotPackagesSlide({}: DeckShellSlideProps) {
   return (
-    <SlideFrame className="max-w-6xl">
+    <SlideFrame>
       <p className="text-overline text-[var(--color-bb-cyan)]">
         {SNAPSHOT_PACKAGES_COPY.overline}
       </p>
@@ -242,16 +230,21 @@ export function SnapshotPackagesSlide({}: DeckShellSlideProps) {
         variants={stagger}
         initial="hidden"
         animate="visible"
-        className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-5"
+        className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4"
       >
         {SNAPSHOT_PACKAGES.map((pkg, i) => (
           <motion.div
             key={pkg.id}
             variants={rise}
-            className="flex flex-col rounded-2xl border border-border/70 bg-card/50 p-5"
+            className="flex flex-col border-t-2 border-[var(--color-bb-cyan)] pt-4"
           >
-            <MonoIndex index={i} />
-            <h3 className="mt-1 font-semibold leading-snug">{pkg.name}</h3>
+            <div className="flex items-center justify-between">
+              <MonoIndex index={i} />
+              <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+                {pkg.buyerLabel}
+              </span>
+            </div>
+            <h3 className="mt-2 font-semibold leading-snug">{pkg.name}</h3>
             <p className="mt-2 flex-1 text-xs leading-relaxed text-muted-foreground">
               {pkg.descriptor}
             </p>
@@ -273,9 +266,9 @@ export function SnapshotPackagesSlide({}: DeckShellSlideProps) {
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-        className="mt-5 flex flex-col gap-5 rounded-2xl border border-border/60 bg-card/40 p-5 sm:flex-row sm:items-center"
+        className="mt-5 grid min-h-48 overflow-hidden rounded-2xl border border-[var(--color-bb-cyan)]/35 bg-card/40 sm:grid-cols-[1fr_18rem]"
       >
-        <div className="min-w-0 flex-1">
+        <div className="min-w-0 self-center p-6">
           <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-bb-cyan)]">
             Screen Ad Network
           </p>
@@ -283,24 +276,25 @@ export function SnapshotPackagesSlide({}: DeckShellSlideProps) {
           <p className="mt-1 max-w-md text-sm leading-relaxed text-muted-foreground">
             {SNAPSHOT_AD_DEMO.line}
           </p>
-        </div>
-        <div className="flex shrink-0 gap-4">
-          {SNAPSHOT_AD_DEMO.machines.map((m) => (
-            <figure key={m.src} className="w-24 sm:w-28">
-              <div className={GLOW_FRAME}>
-                <Image
-                  src={m.src}
-                  alt={m.alt}
-                  width={670}
-                  height={961}
-                  className="h-auto w-full"
-                />
+          <div className="mt-5 flex gap-6">
+            {SNAPSHOT_AD_DEMO.machines.map((m, i) => (
+              <div key={m.src}>
+                <MonoIndex index={i} />
+                <p className="mt-1 text-xs font-semibold uppercase tracking-wide">
+                  {m.caption}
+                </p>
               </div>
-              <figcaption className="mt-2 text-center font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
-                {m.caption}
-              </figcaption>
-            </figure>
-          ))}
+            ))}
+          </div>
+        </div>
+        <div className="relative flex items-end justify-center bg-[radial-gradient(circle_at_center,var(--color-bb-cobalt)_0%,transparent_68%)] px-5 pt-4">
+          <Image
+            src={SNAPSHOT_AD_DEMO.completeMachine.src}
+            alt={SNAPSHOT_AD_DEMO.completeMachine.alt}
+            width={1000}
+            height={1400}
+            className="h-52 w-auto object-contain object-bottom"
+          />
         </div>
       </motion.div>
     </SlideFrame>
@@ -330,18 +324,21 @@ export function SnapshotValueSlide({}: DeckShellSlideProps) {
         variants={stagger}
         initial="hidden"
         animate="visible"
-        className="mt-10 grid gap-3 sm:grid-cols-4"
+        className="mt-12 grid gap-8 sm:grid-cols-4"
       >
-        {stats.map((stat) => (
+        {stats.map((stat, i) => (
           <motion.div
             key={stat.label}
             variants={rise}
-            className="rounded-2xl border border-border/70 bg-card/50 p-5"
+            className="border-t-2 border-[var(--color-bb-cyan)] pt-5"
           >
-            <p className="text-2xl font-semibold tracking-tight text-[var(--color-bb-cyan)]">
+            <MonoIndex index={i} />
+            <p className="mt-3 text-4xl font-semibold tracking-tight text-foreground">
               {stat.value}
             </p>
-            <p className="mt-1 text-xs text-muted-foreground">{stat.label}</p>
+            <p className="mt-2 text-xs uppercase tracking-[0.12em] text-muted-foreground">
+              {stat.label}
+            </p>
           </motion.div>
         ))}
       </motion.div>

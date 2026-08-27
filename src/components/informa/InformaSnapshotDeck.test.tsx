@@ -51,15 +51,22 @@ describe("InformaSnapshotDeck", () => {
     expect(screen.getByAltText(/wrapped adyen machine/i)).toBeInTheDocument();
   });
 
-  it("carries all five rate-card products with their bands", () => {
+  it("carries only the resale line card, with buyer labels and bands", () => {
     slideParam = "4";
     render(<InformaSnapshotDeck />);
     expect(screen.getByText("Registration Takeover")).toBeInTheDocument();
     expect(screen.getByText("Show-Floor Takeover")).toBeInTheDocument();
     expect(screen.getByText("In-Booth Machine")).toBeInTheDocument();
-    expect(screen.getByText("Rebooking Engine")).toBeInTheDocument();
     // Product tile plus the ad-demo eyebrow both name the ad network.
     expect(screen.getAllByText("Screen Ad Network").length).toBeGreaterThan(0);
+    // The Rebooking Engine is an organizer purchase, never resale
+    // inventory, so it only appears in the explanatory footnote.
+    expect(screen.queryByText("Rebooking Engine")).not.toBeInTheDocument();
+    expect(
+      screen.getByText(/not resale inventory: Informa buys it direct/i)
+    ).toBeInTheDocument();
+    expect(screen.getAllByText("Sponsors buy")).toHaveLength(3);
+    expect(screen.getByText("Advertisers buy")).toBeInTheDocument();
     // The In-Booth band as set in products.ts, in price-tag typography.
     expect(screen.getByText("$45–60k")).toBeInTheDocument();
     expect(screen.getByText("$3–8k")).toBeInTheDocument();
@@ -72,10 +79,7 @@ describe("InformaSnapshotDeck", () => {
       screen.getByText(/where the 10-second slot runs/i)
     ).toBeInTheDocument();
     expect(
-      screen.getByAltText(/full-screen 10-second video ad slot/i)
-    ).toBeInTheDocument();
-    expect(
-      screen.getByAltText(/full-screen 10-second static ad slot/i)
+      screen.getByAltText(/complete bright\.blue machine showing a full-screen 10-second/i)
     ).toBeInTheDocument();
   });
 
