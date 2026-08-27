@@ -102,6 +102,7 @@ describe("isPublicPath", () => {
     expect(isPublicPath("/settings/security")).toBe(false);
     expect(isPublicPath("/inbox")).toBe(false);
     expect(isPublicPath("/pipeline")).toBe(false);
+    expect(isPublicPath("/commercial-plan")).toBe(false);
   });
 
   it("does not treat a route that merely shares a prefix as public", () => {

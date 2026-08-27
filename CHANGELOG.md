@@ -4,26 +4,58 @@ All notable changes to the Bright.Experience platform are documented here.
 
 ---
 
+## [Snapshot deck shows the resale line card only] - 2026-08-27
+
+- The `/informa/snapshot` packages slide now carries only the four
+  products Informa resells (Registration Takeover, Show-Floor Takeover,
+  In-Booth Machine, Screen Ad Network), each labelled with its buyer.
+  The Rebooking Engine is excluded by a buyer-based filter: it is an
+  organizer service Informa buys direct from Bright.Blue, never resale
+  inventory, and the slide footnote says so.
+- Trimmed copy across the snapshot deck: shorter what-this-is lines,
+  no repeated collage microcopy, and a one-line close.
+- The full partnership deck, seller's kit and venue deck are unchanged.
+- Files: `src/lib/informa/snapshot-content.{ts,test.ts}`,
+  `src/components/informa/{snapshot-slides.tsx,InformaSnapshotDeck.test.tsx}`.
+
+## [Confidential 2027–2029 commercial-plan deck] - 2026-08-26
+
+- Added an authenticated, noindex nine-slide internal deck at
+  `/commercial-plan` covering the Bright.Blue mission, customer outcomes,
+  live-event proof, canonical US pricing, four sales channels, standardized
+  channel-share economics, a three-scenario revenue forecast and a gated
+  2027–2029 timeline.
+- Added a tested planning model for Direct, Organizer, Agency and Venue
+  routes. The deck clearly distinguishes current 70/30 organizer economics
+  from midpoint agency/venue assumptions and labels all scenario volumes as
+  working inputs rather than contracted pipeline or a full P&L.
+- Files: `src/app/commercial-plan/page.tsx`,
+  `src/components/commercial-plan/*`,
+  `src/lib/commercial-plan/*`, `src/lib/auth/public-routes.test.ts`.
+
 ## [Snapshot decks adopt the Bright.Blue pricing design language] - 2026-08-21
 
-- Both 5-slide decks pick up the design language from the Local Business
-  Pricing document: mono numbered eyebrows on every card, price-tag
-  typography for the rate-card bands ("$45–60k / per show"), and
-  cyan-glow frames around machine mockups.
+- Rebuilt the composition of all ten slides in the Local Business Pricing
+  language rather than applying surface decoration to the previous layouts:
+  left-aligned editorial covers, full-width four-column story rails, cyan
+  rules, mono indices, equal-height visual proof panels, generous negative
+  space and large price/stat typography.
 - The Informa packages slide gains a Screen Ad Network demonstration:
   two machine front-face mockups (extracted from the pricing PDF, ad-slot
   screens only — the retail UI screens were deliberately excluded as
   off-message for events) showing exactly where the 10-second video and
   static slots run in the idle rotation between plays.
-- The venue specs slide now shows the machine itself beside "one square
-  meter and a socket," its idle-screen ad state captioned as inventory
-  the building can sell.
+- Replaced the cropped PDF machine on both package/spec slides with a
+  complete 3D event-safe machine visual: full cabinet, dispenser and feet,
+  with 10-second sponsor creative on the front and side displays. The venue
+  caption connects that idle-screen state to inventory the building can sell.
 - Files: `src/components/decks/deck-accents.tsx`,
   `src/lib/informa/snapshot-content.{ts,test.ts}`,
   `src/lib/venue-pitch/content.{ts,test.ts}`,
   `src/components/informa/{snapshot-slides.tsx,InformaSnapshotDeck.test.tsx}`,
   `src/components/venue-pitch/{venue-slides.tsx,VenueSnapshotDeck.test.tsx}`,
-  `public/pitch/machines/ad-slot-{video,image}.webp`.
+  `public/pitch/machines/ad-slot-{video,image}.webp`,
+  `public/pitch/machines/ad-slot-machine-complete.png`.
 
 ## [Two 5-slide snapshot decks: Informa and venues] - 2026-08-21
 
