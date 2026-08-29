@@ -49,7 +49,7 @@ export default async function ProposalOnePagerPage({ params }: PageProps) {
   const deRisk = buildDeRiskItems();
 
   return (
-    <main className="one-pager mx-auto max-w-3xl bg-background px-10 py-10 text-foreground">
+    <main className="one-pager theme-light mx-auto max-w-3xl bg-background px-10 py-10 text-foreground">
       {/* Header */}
       <p className="text-overline tracking-[0.25em] text-[var(--color-bb-cobalt)]">
         Bright.Blue · Proposal in one page

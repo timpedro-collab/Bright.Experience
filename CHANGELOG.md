@@ -4,6 +4,37 @@ All notable changes to the Bright.Experience platform are documented here.
 
 ---
 
+## [Ink rebrand — every surface on the two-theme design language] - 2026-08-29
+
+- The whole app now speaks the Ink design language established by the
+  JCDecaux keynote: Ink (near-black, cinematic) is the default theme and
+  Ink Light is the paper-toned opt-in, toggled from the user menu and
+  persisted in `localStorage` (old "dark" preferences migrate to Ink).
+- Foundation: `globals.css` carries the full two-theme token architecture —
+  Ink values on `:root`, a complete Ink Light remap under `.theme-light`,
+  and a force-Ink `.theme-dark` scope for surfaces that must stay
+  cinematic (decks, login). Cobalt→cyan gradient accents
+  (`.text-brand-gradient`, `.chip-brand-gradient`, `text-brand-cyan`) and
+  ambient corner glows (`.ink-glows`) are shared utilities.
+- Every domain surface was swept onto semantic tokens — events, pipeline,
+  admin, portals, auth, decks, public marketing, catalog, onboarding tour,
+  reports and dataviz — with hardcoded hex/slate/white classes retired.
+  Charts resolve colors from CSS tokens at runtime (theme-scoped via
+  `useChartColors`), so they re-skin correctly in both themes and on
+  locally-scoped print pages.
+- Keep-light boundary audited: print/PDF, OG images and email templates
+  stay on light, self-contained styling and are unaffected by the app
+  theme.
+- `docs/design-language.md` is the new binding style contract;
+  `docs/09-design-system.md`, `.cursorrules` and the component-pattern
+  rules point at it. `scripts/visual-crawl.py` screenshots every route in
+  both themes for visual QA.
+- Files: `src/app/globals.css`, `src/components/theme/ThemeProvider.tsx`,
+  `src/app/layout.tsx`, ~180 component/page files across
+  `src/components/` and `src/app/`, `docs/design-language.md`,
+  `docs/09-design-system.md`, `.cursorrules`,
+  `.cursor/rules/component-patterns.mdc`, `scripts/visual-crawl.py`.
+
 ## [Snapshot deck shows the resale line card only] - 2026-08-27
 
 - The `/informa/snapshot` packages slide now carries only the four

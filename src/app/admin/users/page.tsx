@@ -118,7 +118,7 @@ export default async function AdminUsersPage({ searchParams }: UsersPageProps) {
                     </Badge>
                   </td>
                   <td className="py-2.5 pr-4 text-muted-foreground tabular-nums">
-                    {formatDateMedium(p.createdAt)}
+                    {p.createdAt ? formatDateMedium(p.createdAt) : "—"}
                   </td>
                   <td className="py-2.5">
                     <UserToggleButton
