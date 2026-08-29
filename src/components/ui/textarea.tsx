@@ -16,7 +16,7 @@ const Textarea = React.forwardRef<
       rows={rows}
       className={cn(
         "flex w-full rounded-[var(--radius-control)] border border-input",
-        "bg-[hsl(233,48%,15%,0.6)] backdrop-blur-sm",
+        "bg-card/60 backdrop-blur-sm",
         "px-3.5 py-2.5 text-sm text-foreground leading-relaxed",
         "ring-offset-background transition-all duration-150",
         "placeholder:text-muted-foreground",

@@ -17,10 +17,11 @@
  *   │ <EditionFooter>      bright.blue locations · ⌘K · next page   │
  *   └───────────────────────────────────────────────────────────────┘
  *
- * The shell is theme-aware and defaults to light (the canonical mode).
- * Pass `theme="dark"` to swap the entire subtree into Cloud slate. Theme
- * switching is just a `.theme-dark` class on the outer div — all child
- * surfaces inherit through CSS variables.
+ * The shell is theme-aware. By default it follows the app theme (Ink, or
+ * Ink Light when the user toggles it). Pass `theme="dark"` to force the
+ * subtree into Ink regardless of the user's theme — that adds the
+ * `.theme-dark` force-Ink class on the outer div, and all child surfaces
+ * inherit through CSS variables.
  */
 import * as React from "react";
 import Link from "next/link";
@@ -36,9 +37,9 @@ export type EditionTheme = "dark" | "light";
 
 interface EditionShellProps extends React.HTMLAttributes<HTMLDivElement> {
   /**
-   * Which palette to render this subtree in. Defaults to `light` (the
-   * canonical Cloud cool-white). Pass `dark` for the few intentionally
-   * cinematic operational surfaces that opt into Cloud slate.
+   * Which palette to render this subtree in. The default (`light`) follows
+   * the app theme — Ink, or Ink Light when the user toggles it. Pass `dark`
+   * to force Ink for intentionally cinematic surfaces.
    */
   theme?: EditionTheme;
 }
@@ -53,7 +54,7 @@ export function EditionShell({
     <div
       className={cn(
         theme === "dark" ? "theme-dark" : "",
-        "relative isolate min-h-screen bg-background text-foreground",
+        "relative isolate min-h-screen bg-background text-foreground ink-glows",
         className,
       )}
       data-theme={theme}
@@ -205,7 +206,7 @@ export function RidgeHero({
         <div className="relative flex flex-col gap-4 pt-10 pb-2 sm:flex-row sm:items-end sm:justify-between">
           <div className="min-w-0">
             {eyebrow && (
-              <div className="mb-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-primary">
+              <div className="mb-1.5 text-xs font-semibold uppercase tracking-[0.22em] text-brand-cyan">
                 {eyebrow}
               </div>
             )}

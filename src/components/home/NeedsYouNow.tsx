@@ -41,8 +41,8 @@ const KIND_ICON: Record<FocusKind, React.ElementType> = {
 const TONE_ICON_WRAP: Record<FocusTone, string> = {
   critical: "bg-destructive/10 text-destructive border-destructive/25",
   warning: "bg-warning/10 text-warning border-warning/25",
-  info: "bg-info/10 text-info border-info/25",
-  default: "bg-muted text-muted-foreground border-border",
+  info: "chip-brand-gradient",
+  default: "chip-brand-gradient",
 };
 
 export function NeedsYouNow({ items }: { items: FocusItem[] }) {

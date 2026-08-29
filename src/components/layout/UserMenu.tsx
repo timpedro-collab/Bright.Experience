@@ -73,7 +73,7 @@ export function UserMenu({ user, roleLabel }: UserMenuProps) {
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           )}
         >
-          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[linear-gradient(135deg,hsl(230,93%,53%),hsl(189,100%,75%))] text-xs font-semibold text-white shadow-[0_4px_12px_-4px_hsl(230,93%,53%,0.55)]">
+          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[linear-gradient(120deg,var(--color-bb-cobalt),var(--color-brand-cyan))] text-xs font-semibold text-white shadow-[0_4px_12px_-4px_hsl(230,93%,53%,0.55)]">
             {initials}
           </span>
           <span className="hidden md:flex flex-col items-start leading-tight">
@@ -122,7 +122,7 @@ export function UserMenu({ user, roleLabel }: UserMenuProps) {
           }}
         >
           {isDark ? <Sun className="size-4" /> : <Moon className="size-4" />}
-          {isDark ? "Switch to light" : "Switch to dark"}
+          {isDark ? "Switch to Ink Light" : "Switch to Ink"}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem

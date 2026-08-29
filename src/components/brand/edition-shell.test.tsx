@@ -10,7 +10,7 @@ import {
 } from "./edition-shell";
 
 describe("EditionShell", () => {
-  it("applies the theme-dark class when theme=dark", () => {
+  it("applies the force-Ink class when theme=dark", () => {
     const { container } = render(
       <EditionShell theme="dark">
         <p>hello</p>
@@ -20,7 +20,7 @@ describe("EditionShell", () => {
     expect(container.firstElementChild?.getAttribute("data-theme")).toBe("dark");
   });
 
-  it("omits the theme-dark class and defaults to light", () => {
+  it("omits the force-Ink class by default so the subtree follows the app theme", () => {
     const { container } = render(
       <EditionShell>
         <p>hi</p>

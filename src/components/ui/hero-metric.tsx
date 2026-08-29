@@ -52,8 +52,8 @@ export function HeroMetric({
   return (
     <div
       className={cn(
-        "rounded-[var(--radius-card)] border border-white/[0.06]",
-        "bg-[hsl(233,50%,9%)] p-7 sm:p-8",
+        "rounded-[var(--radius-card)] border border-border",
+        "bg-card p-7 sm:p-8",
         className
       )}
     >
@@ -102,7 +102,7 @@ export function HeroMetric({
         <p className="mt-2 text-sm text-muted-foreground">{hint}</p>
       )}
       {satellites && (
-        <div className="mt-6 grid grid-cols-3 gap-6 border-t border-white/[0.06] pt-5">
+        <div className="mt-6 grid grid-cols-3 gap-6 border-t border-border pt-5">
           {satellites}
         </div>
       )}

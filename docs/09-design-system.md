@@ -4,6 +4,12 @@ Premium, calm, intentional. The portal is a sibling to bright.blue, not a clone 
 
 This doc is the canonical reference for everyone landing fresh on the codebase. If something on screen contradicts what's here, the screen is wrong, not the doc.
 
+> **Aug 2026 — Ink rebrand.** The app now speaks the Ink design language
+> (from the JCDecaux keynote deck): Ink near-black default theme, Ink Light
+> paper toggle, cobalt→cyan gradient accents, ambient corner glows.
+> **`docs/design-language.md` is the binding style contract** — read it
+> first; this doc covers the wider system (typography, chassis, motion).
+
 ---
 
 ## 1. The locked palette
@@ -31,14 +37,20 @@ Status semantics layer on top:
 
 ## 2. Themes
 
-The portal supports two themes, picked via a class on `<html>`:
+The app supports two themes, picked via a class on `<html>` (toggled by
+`ThemeProvider`, persisted as `bright.theme`):
 
-- **Deep Ink** — default, no class needed. Sets the deep-ink ground, cobalt accents, soft white text, dim hairlines.
-- **Linen** — add `class="theme-light"` on `<html>`. Sets the linen ground, deep-ink text, warmer hairlines, paper card surfaces.
+- **Ink** — default, no class needed. `#050519` near-black canvas,
+  translucent-white cards, `#00BFE8` accent cyan, ambient corner glows.
+- **Ink Light** — add `class="theme-light"`. Blue-white paper ground, white
+  cards, deep blue-ink text, darkened accent cyan, muted glows.
+- **`.theme-dark`** is a force-Ink scope for cinematic surfaces (decks,
+  login, tour overlays, `/pp/*`) — it pins a subtree to Ink even under a
+  `.theme-light` `<html>`.
 
-Both modes consume the same semantic tokens (`--background`, `--card`, `--border`, `--foreground`, `--muted-foreground`). **Never hard-code a colour in a component** — always read a semantic token so the component flips correctly when the theme switches.
+Both modes consume the same semantic tokens (`--color-background`, `--color-card`, `--color-border`, `--color-foreground`, `--color-muted-foreground`). **Never hard-code a colour in a component** — always read a semantic token so the component flips correctly when the theme switches.
 
-`EditionShell` accepts a `theme` prop (`"dark" | "light" | undefined`) and writes the class on its wrapper, so a single component can be requested in either mode.
+`EditionShell` accepts a `theme` prop (`"dark" | "light" | undefined`); the default follows the app theme, `"dark"` forces Ink for the subtree.
 
 ---
 

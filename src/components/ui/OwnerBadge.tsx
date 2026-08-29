@@ -35,7 +35,7 @@ export function OwnerBadge({
         "inline-flex items-center gap-1.5 rounded-full font-semibold whitespace-nowrap",
         size === "sm" ? "px-2 py-0.5 text-[0.6rem]" : "px-2.5 py-1 text-xs",
         isYou
-          ? "bg-[var(--color-bb-cobalt)] text-white shadow-sm"
+          ? "bg-primary text-primary-foreground shadow-sm"
           : "bg-muted text-muted-foreground",
         className,
       )}

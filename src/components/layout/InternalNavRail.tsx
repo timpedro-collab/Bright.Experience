@@ -95,14 +95,14 @@ export function InternalNavRail({ role }: { role: UserRole }) {
                     "group relative flex items-center gap-3 rounded-[var(--radius-control)] px-3 py-2 text-sm transition-colors",
                     collapsed && "justify-center px-0",
                     active
-                      ? "bg-primary/10 text-primary font-medium"
+                      ? "chip-brand-gradient font-medium shadow-[0_8px_20px_-8px_rgba(24,62,246,0.65)]"
                       : "text-muted-foreground hover:bg-accent hover:text-foreground",
                   )}
                 >
                   {active && (
                     <span
                       aria-hidden
-                      className="absolute left-0 top-1/2 h-5 w-0.5 -translate-y-1/2 rounded-r-full bg-primary"
+                      className="absolute left-0 top-1/2 h-5 w-0.5 -translate-y-1/2 rounded-r-full bg-white/70"
                     />
                   )}
                   <Icon size={18} className="shrink-0" />

@@ -49,10 +49,10 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  // Match the light cool-white default background; dark is opt-in per user.
+  // Match the Ink default background; Ink Light is opt-in per user.
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f5f8fc" },
-    { media: "(prefers-color-scheme: dark)", color: "#0a0d29" },
+    { media: "(prefers-color-scheme: light)", color: "#050519" },
+    { media: "(prefers-color-scheme: dark)", color: "#050519" },
   ],
   width: "device-width",
   initialScale: 1,

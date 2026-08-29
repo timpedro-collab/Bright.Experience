@@ -1,10 +1,12 @@
 /**
- * App-wide light/dark theme, persisted to localStorage.
+ * App-wide Ink/Ink-Light theme, persisted to localStorage.
  *
- * Light (the Cloud cool-white palette) is the default and the CSS baseline.
- * Dark (Cloud slate) is opt-in, applied by toggling the `.theme-dark` class on
+ * Ink (the deck near-black palette) is the default and the CSS baseline.
+ * Ink Light is opt-in, applied by toggling the `.theme-light` class on
  * <html>, which remaps every semantic token (see globals.css). A blocking
- * inline script in the root layout sets the class before paint to avoid a flash.
+ * inline script in the root layout sets the class before paint to avoid a
+ * flash. Print/PDF/email surfaces apply `.theme-light` locally and never
+ * consult this provider.
  */
 "use client";
 
@@ -25,16 +27,18 @@ const THEME_STORAGE_KEY = "bright.theme";
 
 function applyTheme(theme: Theme) {
   const root = document.documentElement;
-  root.classList.toggle("theme-dark", theme === "dark");
-  root.style.colorScheme = theme === "dark" ? "dark" : "light";
+  root.classList.toggle("theme-light", theme === "light");
+  root.style.colorScheme = theme === "light" ? "light" : "dark";
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = React.useState<Theme>(() => {
-    if (typeof window === "undefined") return "light";
-    return window.localStorage.getItem(THEME_STORAGE_KEY) === "dark"
-      ? "dark"
-      : "light";
+    if (typeof window === "undefined") return "dark";
+    // Stored "light" opts into Ink Light; anything else (including the
+    // pre-rebrand "dark" value) resolves to the Ink default.
+    return window.localStorage.getItem(THEME_STORAGE_KEY) === "light"
+      ? "light"
+      : "dark";
   });
 
   const setTheme = React.useCallback((next: Theme) => {
@@ -71,8 +75,8 @@ export function useTheme(): ThemeContextValue {
   if (!ctx) {
     // Safe fallback so components don't crash outside the provider.
     return {
-      theme: "light",
-      isDark: false,
+      theme: "dark",
+      isDark: true,
       setTheme: () => {},
       toggleTheme: () => {},
     };
@@ -81,4 +85,4 @@ export function useTheme(): ThemeContextValue {
 }
 
 /** Inline, render-blocking script that sets the theme class before paint. */
-export const themeInitScript = `(function(){try{var t=localStorage.getItem('${THEME_STORAGE_KEY}');if(t==='dark'){document.documentElement.classList.add('theme-dark');document.documentElement.style.colorScheme='dark';}}catch(e){}})();`;
+export const themeInitScript = `(function(){try{var t=localStorage.getItem('${THEME_STORAGE_KEY}');if(t==='light'){document.documentElement.classList.add('theme-light');document.documentElement.style.colorScheme='light';}}catch(e){}})();`;

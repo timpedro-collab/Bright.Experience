@@ -9,15 +9,19 @@
 
    SURFACE STRATEGY (CTO: read this first)
    ────────────────────────────────────────
+   • Two themes, one design language ("Ink", per docs/design-language.md):
+     - Ink (DEFAULT): deck near-black canvas, translucent-white cards,
+       cobalt→cyan gradient accents, ambient corner glows.
+     - Ink Light: the same vocabulary on blue-white paper. Applied via
+       `.theme-light` on any ancestor (ThemeProvider toggles it on
+       <html>; print/PDF/email surfaces apply it locally).
    • EditionShell / EventPageShell / AdminPageShell pages:
      Use hairline rows, EditionPlate, flat bordered sections.
      Cards use tone="default" (flat bg-card). EmptyState tone="flat".
    • Public marketing pages (catalog, quiz, book):
      Glass surfaces OK — Card tone="glass", EmptyState tone="glass".
-   • AppShell legacy pages (partner/venue portals):
-     Being migrated to EditionShell. Use editorial tokens.
-   • Theme switching: add `.theme-light` class to any ancestor
-     element — all child tokens remap automatically to Linen.
+   • Accent budget: one gradient accent per visual zone; status colors
+     (success/warning/destructive/info) are information, never gradient.
    ─────────────────────────────────────────────────────────── */
 
 @theme {
@@ -34,8 +38,12 @@
 	--color-bb-cobalt: hsl(230, 93%, 53%);
 	--color-bb-cobalt-soft: hsl(230, 93%, 68%);
 	--color-bb-cobalt-deep: hsl(230, 78%, 30%);
-	--color-primary-tint: #E8EEFF;
+	/* Cobalt tint chip surface — ink default; remapped light under `.theme-light`. */
+	--color-primary-tint: hsl(230, 60%, 18%);
 	--color-bb-cyan: hsl(189, 100%, 75%);
+	/* Accent cyan for the Ink design language (deck `colors.cyan`).
+	   Darkened under `.theme-light` so small accent text passes contrast. */
+	--color-brand-cyan: #00bfe8;
 	--color-bb-ink: hsl(233, 70%, 8%);
 	--color-bb-ink-soft: hsl(233, 56%, 12%);
 	/* Deep ink alias — the darkest brand surface, used by gradient panels
@@ -53,50 +61,50 @@
 	--color-warning: hsl(43, 90%, 56%);
 	--color-info: hsl(199, 89%, 58%);
 
-	/* Legacy aliases (still consumed by un-migrated code). Default = light;
-	   remapped to dark under `.theme-dark`. */
-	--color-dark-bg: hsl(210, 40%, 98%);
-	--color-card-dark: hsl(0, 0%, 100%);
-	--color-surface-glass: hsl(0, 0%, 100%);
-	--color-glass-border: hsl(214, 32%, 91%);
-	--color-text-primary: hsl(222, 47%, 11%);
-	--color-text-secondary: hsl(215, 16%, 47%);
-	--color-text-muted: hsl(215, 16%, 55%);
+	/* Legacy aliases (still consumed by un-migrated code). Default = Ink;
+	   remapped light under `.theme-light`. */
+	--color-dark-bg: hsl(240, 67%, 6%);
+	--color-card-dark: hsl(240, 45%, 10%);
+	--color-surface-glass: rgba(255, 255, 255, 0.05);
+	--color-glass-border: rgba(255, 255, 255, 0.12);
+	--color-text-primary: hsl(0, 0%, 100%);
+	--color-text-secondary: rgba(255, 255, 255, 0.64);
+	--color-text-muted: rgba(255, 255, 255, 0.4);
 
-	/* ── Semantic surface tokens (default = Cloud cool-white / light) ──
-	   Light is the canonical default — it is what every surface renders
-	   in unless an ancestor opts into `.theme-dark`. The `.theme-dark`
-	   selector below remaps every one of these to the Cloud slate palette
-	   so every consumer (cards, buttons, badges) inherits the mode switch
-	   automatically. Crisp SaaS cool-white: slate-50 page, pure-white
-	   cards, slate-200 hairlines, slate-950 text, slate-500 muted. */
-	--color-background: hsl(210, 40%, 98%);
-	--color-foreground: hsl(222, 47%, 11%);
-	--color-card: hsl(0, 0%, 100%);
-	--color-card-foreground: hsl(222, 47%, 11%);
-	--color-popover: hsl(0, 0%, 100%);
-	--color-popover-foreground: hsl(222, 47%, 11%);
+	/* ── Semantic surface tokens (default = Ink) ──
+	   Ink is the canonical default — every surface renders in it unless
+	   an ancestor opts into `.theme-light`. The `.theme-light` selector
+	   below remaps every one of these to the Ink Light paper palette so
+	   every consumer (cards, buttons, badges) inherits the mode switch
+	   automatically. Values mirror jcdecaux-presentation src/theme.ts:
+	   #050519 page, rgba-white 4% cards, rgba-white 10% hairlines. */
+	--color-background: hsl(240, 67%, 6%); /* #050519 */
+	--color-foreground: hsl(0, 0%, 100%);
+	--color-card: rgba(255, 255, 255, 0.04);
+	--color-card-foreground: hsl(0, 0%, 100%);
+	--color-popover: hsl(240, 45%, 10%);
+	--color-popover-foreground: hsl(0, 0%, 100%);
 	--color-primary: var(--color-bb-cobalt);
 	--color-primary-foreground: hsl(0, 0%, 100%);
-	--color-secondary: hsl(210, 40%, 96%);
-	--color-secondary-foreground: hsl(222, 47%, 11%);
-	--color-muted: hsl(210, 40%, 96%);
-	--color-muted-foreground: hsl(215, 16%, 47%);
-	--color-accent: hsl(210, 40%, 96%);
-	--color-accent-foreground: hsl(222, 47%, 11%);
-	--color-destructive: hsl(0, 72%, 48%);
+	--color-secondary: rgba(255, 255, 255, 0.07);
+	--color-secondary-foreground: hsl(0, 0%, 100%);
+	--color-muted: rgba(255, 255, 255, 0.06);
+	--color-muted-foreground: rgba(255, 255, 255, 0.64);
+	--color-accent: rgba(255, 255, 255, 0.08);
+	--color-accent-foreground: hsl(0, 0%, 100%);
+	--color-destructive: hsl(0, 72%, 55%);
 	--color-destructive-foreground: hsl(0, 0%, 100%);
-	--color-border: hsl(214, 32%, 91%);
-	--color-input: hsl(214, 32%, 91%);
+	--color-border: rgba(255, 255, 255, 0.1);
+	--color-input: rgba(255, 255, 255, 0.12);
 	--color-ring: var(--color-bb-cobalt);
 
-	--color-sidebar: hsl(0, 0%, 100%);
-	--color-sidebar-foreground: hsl(222, 47%, 11%);
+	--color-sidebar: hsl(240, 67%, 4%); /* bgDeep #03030F */
+	--color-sidebar-foreground: rgba(255, 255, 255, 0.85);
 	--color-sidebar-primary: var(--color-bb-cobalt);
 	--color-sidebar-primary-foreground: hsl(0, 0%, 100%);
-	--color-sidebar-accent: hsl(210, 40%, 96%);
-	--color-sidebar-accent-foreground: hsl(222, 47%, 11%);
-	--color-sidebar-border: hsl(214, 32%, 91%);
+	--color-sidebar-accent: rgba(255, 255, 255, 0.07);
+	--color-sidebar-accent-foreground: hsl(0, 0%, 100%);
+	--color-sidebar-border: rgba(255, 255, 255, 0.1);
 	--color-sidebar-ring: var(--color-bb-cobalt);
 
 	/* ── Typography ──────────────────────────────────────────────
@@ -148,14 +156,14 @@
 	--bb-success: hsl(143, 72%, 42%);
 	--bb-warning: hsl(43, 90%, 56%);
 	--bb-destructive: hsl(0, 84%, 60%);
-	/* Light-default legacy aliases (dark values live under `.theme-dark`). */
-	--bb-dark-bg: hsl(210, 40%, 98%);
-	--bb-card-dark: hsl(0, 0%, 100%);
-	--bb-surface-glass: hsl(0, 0%, 100%);
-	--bb-glass-border: hsl(214, 32%, 91%);
-	--bb-text-primary: hsl(222, 47%, 11%);
-	--bb-text-secondary: hsl(215, 16%, 47%);
-	--bb-text-muted: hsl(215, 16%, 55%);
+	/* Legacy aliases — Ink defaults (light values live under `.theme-light`). */
+	--bb-dark-bg: hsl(240, 67%, 6%);
+	--bb-card-dark: hsl(240, 45%, 10%);
+	--bb-surface-glass: rgba(255, 255, 255, 0.05);
+	--bb-glass-border: rgba(255, 255, 255, 0.12);
+	--bb-text-primary: hsl(0, 0%, 100%);
+	--bb-text-secondary: rgba(255, 255, 255, 0.64);
+	--bb-text-muted: rgba(255, 255, 255, 0.4);
 	--bb-font-heading: var(--font-bright-headings), system-ui, sans-serif;
 	--bb-font-body: var(--font-bright-body), system-ui, sans-serif;
 	--bb-font-overline: var(--font-bright-overline), system-ui, sans-serif;
@@ -200,81 +208,147 @@
    ─────────────────────────────────────────────────────────── */
 
 html {
-	color-scheme: light;
-}
-
-.theme-dark {
 	color-scheme: dark;
 }
 
-/* ───────────────────────────────────────────────────────────────
-   Dark mode (Cloud Slate) — applied via `.theme-dark` on any ancestor.
+.theme-light {
+	color-scheme: light;
+}
 
-   The light (Cloud cool-white) palette in @theme above is the default.
-   This selector remaps every semantic surface token to the deep-slate
-   palette. Brand cobalt and cyan stay the same in both modes so the
-   brand mark, the ridges, and the cobalt CTAs read the same regardless
-   of theme. EditionShell applies this class on a <div> wrapper (when
-   `theme="dark"`) so it works without mutating <html>; the global
-   ThemeProvider toggles it on <html>. Editorial / customer-facing
-   surfaces stay light; the cinematic onboarding tour and a few
-   intentionally-cinematic moments opt into dark.
+/* ───────────────────────────────────────────────────────────────
+   Ink Light — applied via `.theme-light` on any ancestor.
+
+   The Ink (deck near-black) palette in @theme above is the default.
+   This selector remaps every semantic surface token to the light
+   expression of the SAME design language: crisp blue-white paper,
+   white cards, cool ink text, identical cobalt→cyan accent system
+   (with cyan darkened for small-text contrast). Brand cobalt stays
+   constant in both modes so the brand mark and CTAs read the same.
+   The ThemeProvider toggles this class on <html>; print/PDF/email
+   surfaces apply it locally so they always render light.
+
+   The old Cloud Slate `.theme-dark` palette is retired — Ink IS the
+   dark theme now.
    ─────────────────────────────────────────────────────────────── */
-.theme-dark {
-	/* Cloud dark mode: near-black slate page, slate-900 cards, slate-800
-	   hairlines, cool slate text. */
-	--color-background: hsl(222, 47%, 5%);
-	--color-foreground: hsl(210, 40%, 96%);
-	--color-card: hsl(222, 44%, 9%);
-	--color-card-foreground: hsl(210, 40%, 96%);
-	--color-popover: hsl(222, 44%, 9%);
-	--color-popover-foreground: hsl(210, 40%, 96%);
+.theme-light {
+	/* Ink Light: blue-white paper page, white cards, cool hairlines,
+	   deep blue-ink text. */
+	--color-background: hsl(228, 36%, 97%);
+	--color-foreground: hsl(233, 60%, 10%);
+	--color-card: hsl(0, 0%, 100%);
+	--color-card-foreground: hsl(233, 60%, 10%);
+	--color-popover: hsl(0, 0%, 100%);
+	--color-popover-foreground: hsl(233, 60%, 10%);
 	--color-primary: var(--color-bb-cobalt);
 	--color-primary-foreground: hsl(0, 0%, 100%);
-	--color-secondary: hsl(217, 33%, 14%);
-	--color-secondary-foreground: hsl(210, 40%, 96%);
-	--color-muted: hsl(217, 33%, 14%);
-	--color-muted-foreground: hsl(215, 20%, 65%);
-	--color-accent: hsl(217, 33%, 17%);
-	--color-accent-foreground: hsl(210, 40%, 98%);
-	--color-destructive: hsl(0, 84%, 60%);
+	--color-secondary: hsl(228, 32%, 94%);
+	--color-secondary-foreground: hsl(233, 60%, 10%);
+	--color-muted: hsl(228, 32%, 94%);
+	--color-muted-foreground: hsl(233, 14%, 40%);
+	--color-accent: hsl(228, 36%, 92%);
+	--color-accent-foreground: hsl(233, 60%, 10%);
+	--color-destructive: hsl(0, 72%, 48%);
 	--color-destructive-foreground: hsl(0, 0%, 100%);
-	--color-border: hsl(217, 33%, 18%);
-	--color-input: hsl(217, 33%, 18%);
+	--color-border: hsl(229, 26%, 89%);
+	--color-input: hsl(229, 26%, 86%);
 	--color-ring: var(--color-bb-cobalt);
 
-	--color-sidebar: hsl(222, 47%, 7%);
-	--color-sidebar-foreground: hsl(210, 40%, 96%);
+	--color-sidebar: hsl(0, 0%, 100%);
+	--color-sidebar-foreground: hsl(233, 40%, 22%);
 	--color-sidebar-primary: var(--color-bb-cobalt);
 	--color-sidebar-primary-foreground: hsl(0, 0%, 100%);
-	--color-sidebar-accent: hsl(217, 33%, 14%);
-	--color-sidebar-accent-foreground: hsl(210, 40%, 98%);
-	--color-sidebar-border: hsl(217, 33%, 18%);
+	--color-sidebar-accent: hsl(228, 32%, 94%);
+	--color-sidebar-accent-foreground: hsl(233, 60%, 10%);
+	--color-sidebar-border: hsl(229, 26%, 89%);
 
-	/* Legacy aliases remap to dark too */
-	--color-dark-bg: hsl(222, 47%, 5%);
-	--color-card-dark: hsl(222, 44%, 9%);
-	--color-surface-glass: hsl(222, 44%, 11%);
-	--color-glass-border: hsl(215, 20%, 65%);
-	--color-text-primary: hsl(210, 40%, 96%);
-	--color-text-secondary: hsl(215, 20%, 65%);
-	--color-text-muted: hsl(215, 16%, 50%);
-	--bb-dark-bg: hsl(222, 47%, 5%);
-	--bb-card-dark: hsl(222, 44%, 9%);
-	--bb-surface-glass: hsl(222, 44%, 11%);
-	--bb-glass-border: hsl(215, 20%, 65%);
-	--bb-text-primary: hsl(210, 40%, 96%);
-	--bb-text-secondary: hsl(215, 20%, 65%);
-	--bb-text-muted: hsl(215, 16%, 50%);
+	/* Accent system: darker cyan so gradient/eyebrow text passes
+	   contrast on paper; cobalt tint chip goes back to pale blue. */
+	--color-brand-cyan: hsl(191, 100%, 32%);
+	--color-primary-tint: #e8eeff;
+
+	/* Legacy aliases remap to light too */
+	--color-dark-bg: hsl(228, 36%, 97%);
+	--color-card-dark: hsl(0, 0%, 100%);
+	--color-surface-glass: hsl(0, 0%, 100%);
+	--color-glass-border: hsl(229, 26%, 89%);
+	--color-text-primary: hsl(233, 60%, 10%);
+	--color-text-secondary: hsl(233, 14%, 40%);
+	--color-text-muted: hsl(233, 12%, 52%);
+	--bb-dark-bg: hsl(228, 36%, 97%);
+	--bb-card-dark: hsl(0, 0%, 100%);
+	--bb-surface-glass: hsl(0, 0%, 100%);
+	--bb-glass-border: hsl(229, 26%, 89%);
+	--bb-text-primary: hsl(233, 60%, 10%);
+	--bb-text-secondary: hsl(233, 14%, 40%);
+	--bb-text-muted: hsl(233, 12%, 52%);
+}
+
+/* ───────────────────────────────────────────────────────────────
+   Force-Ink scope — `.theme-dark` on any ancestor.
+
+   Ink is already the app default, so this class is inert on a dark
+   page. Its job is cinematic surfaces that must stay Ink even when
+   the user has toggled Ink Light on <html>: decks, the login hero,
+   tour overlays, the wrapped report, private pricing pages, the
+   public site footer. It re-declares the Ink values so the nearest
+   ancestor wins the custom-property cascade inside `.theme-light`.
+   ─────────────────────────────────────────────────────────────── */
+.theme-dark {
+	color-scheme: dark;
+
+	--color-background: hsl(240, 67%, 6%);
+	--color-foreground: hsl(0, 0%, 100%);
+	--color-card: rgba(255, 255, 255, 0.04);
+	--color-card-foreground: hsl(0, 0%, 100%);
+	--color-popover: hsl(240, 45%, 10%);
+	--color-popover-foreground: hsl(0, 0%, 100%);
+	--color-primary: var(--color-bb-cobalt);
+	--color-primary-foreground: hsl(0, 0%, 100%);
+	--color-secondary: rgba(255, 255, 255, 0.07);
+	--color-secondary-foreground: hsl(0, 0%, 100%);
+	--color-muted: rgba(255, 255, 255, 0.06);
+	--color-muted-foreground: rgba(255, 255, 255, 0.64);
+	--color-accent: rgba(255, 255, 255, 0.08);
+	--color-accent-foreground: hsl(0, 0%, 100%);
+	--color-destructive: hsl(0, 72%, 55%);
+	--color-destructive-foreground: hsl(0, 0%, 100%);
+	--color-border: rgba(255, 255, 255, 0.1);
+	--color-input: rgba(255, 255, 255, 0.12);
+	--color-ring: var(--color-bb-cobalt);
+
+	--color-sidebar: hsl(240, 67%, 4%);
+	--color-sidebar-foreground: rgba(255, 255, 255, 0.85);
+	--color-sidebar-primary: var(--color-bb-cobalt);
+	--color-sidebar-primary-foreground: hsl(0, 0%, 100%);
+	--color-sidebar-accent: rgba(255, 255, 255, 0.07);
+	--color-sidebar-accent-foreground: hsl(0, 0%, 100%);
+	--color-sidebar-border: rgba(255, 255, 255, 0.1);
+
+	--color-brand-cyan: #00bfe8;
+	--color-primary-tint: hsl(230, 60%, 18%);
+
+	--color-dark-bg: hsl(240, 67%, 6%);
+	--color-card-dark: hsl(240, 45%, 10%);
+	--color-surface-glass: rgba(255, 255, 255, 0.05);
+	--color-glass-border: rgba(255, 255, 255, 0.12);
+	--color-text-primary: hsl(0, 0%, 100%);
+	--color-text-secondary: rgba(255, 255, 255, 0.64);
+	--color-text-muted: rgba(255, 255, 255, 0.4);
+	--bb-dark-bg: hsl(240, 67%, 6%);
+	--bb-card-dark: hsl(240, 45%, 10%);
+	--bb-surface-glass: rgba(255, 255, 255, 0.05);
+	--bb-glass-border: rgba(255, 255, 255, 0.12);
+	--bb-text-primary: hsl(0, 0%, 100%);
+	--bb-text-secondary: rgba(255, 255, 255, 0.64);
+	--bb-text-muted: rgba(255, 255, 255, 0.4);
 }
 
 body {
 	font-family: var(--font-body);
 	background-color: var(--color-background);
-	/* Light default: pull the cobalt glow right back — it reads as a smudge
-	   on cool-white. The fuller glow returns under `.theme-dark` below. */
+	/* Ink default: the cobalt glow is beautiful on ink — keep it forward. */
 	background-image:
-		radial-gradient(ellipse 1200px 800px at 50% -320px, hsl(230 93% 53% / 0.04), transparent 72%);
+		radial-gradient(ellipse 900px 600px at 50% -260px, hsl(230 93% 53% / 0.07), transparent 70%);
 	background-attachment: fixed;
 	color: var(--color-foreground);
 	margin: 0;
@@ -282,11 +356,69 @@ body {
 	-moz-osx-font-smoothing: grayscale;
 }
 
-/* In dark mode the cobalt glow is beautiful on ink — bring it forward. */
-.theme-dark body,
-.theme-dark {
+/* Ink Light: pull the cobalt glow right back — it reads as a smudge on paper. */
+.theme-light body,
+.theme-light {
 	background-image:
-		radial-gradient(ellipse 900px 600px at 50% -260px, hsl(230 93% 53% / 0.07), transparent 70%);
+		radial-gradient(ellipse 1200px 800px at 50% -320px, hsl(230 93% 53% / 0.04), transparent 72%);
+}
+
+/* ───────────────────────────────────────────────────────────
+   Ink accent vocabulary — the deck design language at app scale.
+   Mirrors jcdecaux-presentation gradient.primary and SlideGlow.
+   Theme-aware: the gradient endpoint reads `--color-brand-cyan`,
+   which darkens under `.theme-light` for contrast on paper.
+
+   Budget: one gradient accent per visual zone (hero, card header,
+   nav). Status colors (success/warning/destructive) are information
+   and are never replaced with gradient. See docs/design-language.md.
+   ─────────────────────────────────────────────────────────── */
+
+.text-brand-gradient {
+	background: linear-gradient(120deg, var(--color-bb-cobalt) 0%, var(--color-brand-cyan) 100%);
+	-webkit-background-clip: text;
+	background-clip: text;
+	-webkit-text-fill-color: transparent;
+}
+
+.chip-brand-gradient {
+	background: linear-gradient(120deg, var(--color-bb-cobalt) 0%, var(--color-brand-cyan) 100%);
+	color: #fff;
+	border-color: transparent;
+}
+
+/* Ambient corner glows — the deck's SlideGlow, page-scale. */
+.ink-glows {
+	overflow: hidden;
+}
+.ink-glows::before,
+.ink-glows::after {
+	content: "";
+	position: absolute;
+	border-radius: 50%;
+	pointer-events: none;
+}
+.ink-glows::before {
+	top: -360px;
+	right: -260px;
+	width: 900px;
+	height: 900px;
+	background: radial-gradient(circle, rgba(24, 62, 246, 0.24) 0%, rgba(24, 62, 246, 0) 68%);
+}
+.ink-glows::after {
+	bottom: -420px;
+	left: -300px;
+	width: 820px;
+	height: 820px;
+	background: radial-gradient(circle, rgba(0, 191, 232, 0.13) 0%, rgba(0, 191, 232, 0) 66%);
+}
+
+/* On paper the glows whisper instead of bloom. */
+.theme-light .ink-glows::before {
+	background: radial-gradient(circle, rgba(24, 62, 246, 0.08) 0%, rgba(24, 62, 246, 0) 68%);
+}
+.theme-light .ink-glows::after {
+	background: radial-gradient(circle, rgba(0, 191, 232, 0.05) 0%, rgba(0, 191, 232, 0) 66%);
 }
 
 /* ───────────────────────────────────────────────────────────
@@ -318,10 +450,10 @@ body {
 
 /* Four-step text ramp (Linear pattern): foreground > muted-foreground > tertiary > quaternary.
    Lets a dense row carry title / subtitle / metadata / timestamp without competition. */
-.text-tertiary { color: hsl(215, 16%, 57%); }
-.text-quaternary { color: hsl(215, 16%, 68%); }
-.theme-dark .text-tertiary { color: hsl(215, 14%, 58%); }
-.theme-dark .text-quaternary { color: hsl(215, 10%, 44%); }
+.text-tertiary { color: hsl(215, 14%, 58%); }
+.text-quaternary { color: hsl(215, 10%, 44%); }
+.theme-light .text-tertiary { color: hsl(233, 12%, 50%); }
+.theme-light .text-quaternary { color: hsl(233, 10%, 62%); }
 
 /* Per-size tracking: small UI text needs tighter tracking to read crisp (Linear ships these exact values). */
 .text-ui-15 { font-size: 0.9375rem; letter-spacing: -0.011em; }
@@ -364,66 +496,65 @@ body {
 }
 
 /* Theme-aware "whisper" opacity for the maze-of-lines ridge artwork.
-   Saturated cobalt reads noticeably stronger on the light linen surface
-   than it does dissolving into deep ink, so we dial the lines back in the
-   default light theme and lift them again under .theme-dark — keeping the
-   ridge a consistent faint presence rather than a loud graphic in either. */
+   Saturated cobalt dissolves into deep ink but reads noticeably stronger
+   on light paper, so the lines run full under the Ink default and pull
+   back under `.theme-light` — a consistent faint presence in either. */
 .ridge-veil {
-	opacity: 0.6;
-}
-
-.theme-dark .ridge-veil {
 	opacity: 1;
 }
 
-.ridge-veil-faint {
-	opacity: 0.07;
+.theme-light .ridge-veil {
+	opacity: 0.6;
 }
 
-.theme-dark .ridge-veil-faint {
+.ridge-veil-faint {
 	opacity: 0.12;
+}
+
+.theme-light .ridge-veil-faint {
+	opacity: 0.07;
 }
 
 /* ───────────────────────────────────────────────────────────
    Glass surface utilities (composed via cn() in components)
    ─────────────────────────────────────────────────────────── */
 
-/* Glass surfaces — light default (frosted white over cool-white). Dark mode
-   restores the deep-ink frosted panel below. */
+/* Glass surfaces — Ink default (deep-ink frosted panel). Ink Light
+   restores the frosted-white panel below. */
 .glass {
 	backdrop-filter: blur(16px) saturate(120%);
 	-webkit-backdrop-filter: blur(16px) saturate(120%);
-	background-color: hsl(0 0% 100% / 0.72);
-	border: 1px solid hsl(214 32% 70% / 0.28);
+	background-color: hsl(233 56% 11% / 0.72);
+	border: 1px solid hsl(222 24% 68% / 0.12);
 }
 
 .glass-subtle {
 	backdrop-filter: blur(10px) saturate(110%);
 	-webkit-backdrop-filter: blur(10px) saturate(110%);
-	background-color: hsl(0 0% 100% / 0.5);
-	border: 1px solid hsl(214 32% 70% / 0.2);
+	background-color: hsl(233 56% 11% / 0.45);
+	border: 1px solid hsl(222 24% 68% / 0.08);
 }
 
 .glass-strong {
 	backdrop-filter: blur(24px) saturate(140%);
 	-webkit-backdrop-filter: blur(24px) saturate(140%);
-	background-color: hsl(0 0% 100% / 0.9);
-	border: 1px solid hsl(214 32% 70% / 0.32);
-}
-
-.theme-dark .glass {
-	background-color: hsl(233 56% 11% / 0.72);
-	border-color: hsl(222 24% 68% / 0.12);
-}
-
-.theme-dark .glass-subtle {
-	background-color: hsl(233 56% 11% / 0.45);
-	border-color: hsl(222 24% 68% / 0.08);
-}
-
-.theme-dark .glass-strong {
 	background-color: hsl(233 56% 11% / 0.88);
-	border-color: hsl(222 24% 68% / 0.16);
+	border: 1px solid hsl(222 24% 68% / 0.16);
+}
+
+.theme-light .glass {
+	background-color: hsl(0 0% 100% / 0.72);
+	border-color: hsl(214 32% 70% / 0.28);
+}
+
+.theme-light .glass-subtle {
+	background-color: hsl(0 0% 100% / 0.5);
+	border-color: hsl(214 32% 70% / 0.2);
+}
+
+.theme-light .glass-strong {
+	background-color: hsl(0 0% 100% / 0.9);
+	border-color: hsl(214 32% 70% / 0.32);
 }
 
 /* ───────────────────────────────────────────────────────────
@@ -433,7 +564,7 @@ body {
 .skeleton {
 	position: relative;
 	overflow: hidden;
-	background-color: hsl(214 32% 88% / 0.8);
+	background-color: hsl(233 48% 15% / 0.6);
 	border-radius: var(--radius-chip);
 	animation: skeleton-breathe 2s ease-in-out infinite;
 }
@@ -445,25 +576,25 @@ body {
 	background: linear-gradient(
 		90deg,
 		transparent 0%,
-		hsl(0 0% 100% / 0.25) 40%,
-		hsl(0 0% 100% / 0.55) 50%,
-		hsl(0 0% 100% / 0.25) 60%,
+		hsl(222 24% 68% / 0.06) 40%,
+		hsl(222 24% 68% / 0.12) 50%,
+		hsl(222 24% 68% / 0.06) 60%,
 		transparent 100%
 	);
 	animation: skeleton-sweep 1.8s ease-in-out infinite;
 }
 
-.theme-dark .skeleton {
-	background-color: hsl(233 48% 15% / 0.6);
+.theme-light .skeleton {
+	background-color: hsl(214 32% 88% / 0.8);
 }
 
-.theme-dark .skeleton::after {
+.theme-light .skeleton::after {
 	background: linear-gradient(
 		90deg,
 		transparent 0%,
-		hsl(222 24% 68% / 0.06) 40%,
-		hsl(222 24% 68% / 0.12) 50%,
-		hsl(222 24% 68% / 0.06) 60%,
+		hsl(0 0% 100% / 0.25) 40%,
+		hsl(0 0% 100% / 0.55) 50%,
+		hsl(0 0% 100% / 0.25) 60%,
 		transparent 100%
 	);
 }
@@ -672,7 +803,7 @@ body {
 	background-image: linear-gradient(
 		90deg,
 		transparent,
-		hsl(215 28% 50% / 0.28),
+		hsl(222 24% 68% / 0.18),
 		transparent
 	);
 }
@@ -682,25 +813,25 @@ body {
 	background-image: linear-gradient(
 		180deg,
 		transparent,
+		hsl(222 24% 68% / 0.18),
+		transparent
+	);
+}
+
+.theme-light .hairline {
+	background-image: linear-gradient(
+		90deg,
+		transparent,
 		hsl(215 28% 50% / 0.28),
 		transparent
 	);
 }
 
-.theme-dark .hairline {
-	background-image: linear-gradient(
-		90deg,
-		transparent,
-		hsl(222 24% 68% / 0.18),
-		transparent
-	);
-}
-
-.theme-dark .hairline-vertical {
+.theme-light .hairline-vertical {
 	background-image: linear-gradient(
 		180deg,
 		transparent,
-		hsl(222 24% 68% / 0.18),
+		hsl(215 28% 50% / 0.28),
 		transparent
 	);
 }
@@ -791,6 +922,19 @@ body {
    ─────────────────────────────────────────────────────────── */
 
 [data-sonner-toaster] {
+	--normal-bg: hsl(233 56% 13% / 0.96);
+	--normal-border: hsl(222 24% 68% / 0.18);
+	--normal-text: hsl(220 20% 90%);
+	--success-bg: hsl(143 72% 18% / 0.96);
+	--success-border: hsl(143 72% 42% / 0.4);
+	--success-text: hsl(143 72% 80%);
+	--error-bg: hsl(0 60% 18% / 0.96);
+	--error-border: hsl(0 84% 60% / 0.4);
+	--error-text: hsl(0 84% 86%);
+	font-family: var(--font-body) !important;
+}
+
+.theme-light [data-sonner-toaster] {
 	--normal-bg: hsl(0 0% 100% / 0.98);
 	--normal-border: hsl(214 32% 88%);
 	--normal-text: hsl(222 47% 16%);
@@ -800,7 +944,70 @@ body {
 	--error-bg: hsl(0 80% 97%);
 	--error-border: hsl(0 72% 48% / 0.4);
 	--error-text: hsl(0 72% 36%);
-	font-family: var(--font-body) !important;
+}
+
+/* ───────────────────────────────────────────────────────────
+   Force-Ink utility mirrors. Declared last so a `.theme-dark`
+   scope nested inside a `.theme-light` page wins the tie against
+   the `.theme-light .X` overrides above (equal specificity —
+   source order decides).
+   ─────────────────────────────────────────────────────────── */
+
+.theme-dark .text-tertiary { color: hsl(215, 14%, 58%); }
+.theme-dark .text-quaternary { color: hsl(215, 10%, 44%); }
+
+.theme-dark .ridge-veil { opacity: 1; }
+.theme-dark .ridge-veil-faint { opacity: 0.12; }
+
+.theme-dark .glass {
+	background-color: hsl(233 56% 11% / 0.72);
+	border-color: hsl(222 24% 68% / 0.12);
+}
+.theme-dark .glass-subtle {
+	background-color: hsl(233 56% 11% / 0.45);
+	border-color: hsl(222 24% 68% / 0.08);
+}
+.theme-dark .glass-strong {
+	background-color: hsl(233 56% 11% / 0.88);
+	border-color: hsl(222 24% 68% / 0.16);
+}
+
+.theme-dark .skeleton {
+	background-color: hsl(233 48% 15% / 0.6);
+}
+.theme-dark .skeleton::after {
+	background: linear-gradient(
+		90deg,
+		transparent 0%,
+		hsl(222 24% 68% / 0.06) 40%,
+		hsl(222 24% 68% / 0.12) 50%,
+		hsl(222 24% 68% / 0.06) 60%,
+		transparent 100%
+	);
+}
+
+.theme-dark .hairline {
+	background-image: linear-gradient(
+		90deg,
+		transparent,
+		hsl(222 24% 68% / 0.18),
+		transparent
+	);
+}
+.theme-dark .hairline-vertical {
+	background-image: linear-gradient(
+		180deg,
+		transparent,
+		hsl(222 24% 68% / 0.18),
+		transparent
+	);
+}
+
+.theme-dark .ink-glows::before {
+	background: radial-gradient(circle, rgba(24, 62, 246, 0.24) 0%, rgba(24, 62, 246, 0) 68%);
+}
+.theme-dark .ink-glows::after {
+	background: radial-gradient(circle, rgba(0, 191, 232, 0.13) 0%, rgba(0, 191, 232, 0) 66%);
 }
 
 .theme-dark [data-sonner-toaster] {

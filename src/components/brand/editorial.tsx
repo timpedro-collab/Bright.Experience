@@ -13,7 +13,7 @@ import { cn } from "@/lib/utils";
 // ─── Eyebrow ──────────────────────────────────────────────────────────────
 
 interface EditorialEyebrowProps extends React.HTMLAttributes<HTMLSpanElement> {
-  /** Render in cobalt brand color instead of muted foreground. */
+  /** Render in the Ink accent cyan instead of muted foreground. */
   accent?: boolean;
 }
 
@@ -27,7 +27,7 @@ export function EditorialEyebrow({
     <span
       className={cn(
         "text-overline",
-        accent ? "text-[var(--color-bb-cobalt)]" : "text-muted-foreground",
+        accent ? "text-brand-cyan" : "text-muted-foreground",
         className,
       )}
       {...props}

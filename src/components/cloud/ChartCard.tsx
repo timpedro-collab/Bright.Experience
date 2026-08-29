@@ -42,18 +42,18 @@ export interface ChartColors {
   foreground: string;
 }
 
-// Light-theme defaults — used during SSR / first paint before the live
-// design tokens are read off <html>, so charts don't flash dark-mode colours
-// on the now light-default app. useChartColors() overwrites these on mount
-// and tracks theme switches thereafter.
+// Ink defaults — used during SSR / first paint before the live design
+// tokens are read off <html>, so charts don't flash light-mode colours on
+// the Ink-default app. useChartColors() overwrites these on mount and
+// tracks theme switches thereafter.
 const FALLBACK: ChartColors = {
   primary: "hsl(230, 93%, 53%)",
-  accent: "hsl(190, 90%, 45%)",
-  grid: "hsl(214, 32%, 82%)",
-  axis: "hsl(215, 16%, 47%)",
-  tooltipBg: "hsl(0, 0%, 100%)",
-  tooltipBorder: "hsl(214, 32%, 82%)",
-  foreground: "hsl(222, 47%, 11%)",
+  accent: "#00bfe8",
+  grid: "rgba(255, 255, 255, 0.1)",
+  axis: "rgba(255, 255, 255, 0.64)",
+  tooltipBg: "hsl(240, 45%, 10%)",
+  tooltipBorder: "rgba(255, 255, 255, 0.12)",
+  foreground: "hsl(0, 0%, 100%)",
 };
 
 function readColors(): ChartColors {
@@ -63,13 +63,16 @@ function readColors(): ChartColors {
     cs.getPropertyValue(name).trim() || fb;
   return {
     primary: get("--color-primary", FALLBACK.primary),
+    // Theme-aware accent cyan (darkened under `.theme-light`).
     accent: get(
-      "--color-bb-cyan",
+      "--color-brand-cyan",
       get("--color-bb-cobalt-soft", FALLBACK.accent),
     ),
     grid: get("--color-border", FALLBACK.grid),
     axis: get("--color-muted-foreground", FALLBACK.axis),
-    tooltipBg: get("--color-card", FALLBACK.tooltipBg),
+    // Popover, not card — the Ink card token is translucent white and
+    // would render tooltips see-through over chart bars.
+    tooltipBg: get("--color-popover", FALLBACK.tooltipBg),
     tooltipBorder: get("--color-border", FALLBACK.tooltipBorder),
     foreground: get("--color-foreground", FALLBACK.foreground),
   };

@@ -9,10 +9,10 @@ describe("EditorialEyebrow", () => {
     expect(label.className).toContain("text-overline");
   });
 
-  it("applies the cobalt accent when `accent` is set", () => {
+  it("applies the brand accent when `accent` is set", () => {
     render(<EditorialEyebrow accent>Live</EditorialEyebrow>);
     const label = screen.getByText("Live");
-    expect(label.className).toContain("text-[var(--color-bb-cobalt)]");
+    expect(label.className).toContain("text-brand-cyan");
   });
 });
 

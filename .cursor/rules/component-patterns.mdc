@@ -6,9 +6,17 @@ alwaysApply: false
 
 # Component Patterns
 
-## Editorial design language
+## The Ink design language
 
-Bright.Experience uses a single editorial design language. Every authenticated page composes from the same chassis — never roll a bespoke layout.
+Bright.Experience uses the Ink design language (see `docs/design-language.md` — the binding style contract). Two themes, one vocabulary: Ink (near-black default) and Ink Light (`.theme-light` toggle). Semantic tokens only — never `bg-white`, `slate-*`, `gray-*`, or arbitrary hex for anything the theme controls. Every authenticated page composes from the same chassis — never roll a bespoke layout.
+
+### Ink accent vocabulary
+
+- `<EditorialEyebrow accent>` or `text-brand-cyan` — theme-aware accent cyan eyebrows.
+- `.text-brand-gradient` — cobalt→cyan gradient text for ONE emphasized phrase per hero/zone. Never body copy, never status text.
+- `.chip-brand-gradient` — gradient chip for the single "active/featured" signal in a zone (active nav item, featured icon chip).
+- `.ink-glows` — ambient corner glows, applied by `EditionShell`; don't stack a second one.
+- Accent budget: one gradient accent per visual zone. Status colors (success/warning/destructive/info) are information and are never replaced with gradient.
 
 ### Page chassis primitives (in `src/components/brand/`)
 
@@ -60,7 +68,8 @@ For any new event sub-page, use `EventPageShell`. For any new internal admin vie
 
 - **No legacy `.btn`/`.card`/`.badge`/`.input` CSS classes.** They were removed in May 2026. Use the shadcn primitives instead.
 - **No ad-hoc `rounded-2xl` / `rounded-3xl`.** Use `var(--radius-card)`, `var(--radius-control)`, or `var(--radius-chip)`.
-- **No `bg-clip-text`** outside of the brand mark itself.
+- **No hand-rolled `bg-clip-text` gradients.** Use the sanctioned `.text-brand-gradient` utility (respecting the one-accent-per-zone budget).
+- **No hardcoded theme colors.** `bg-white`, `text-slate-*`, `bg-[#hex]` are banned for theme-controlled surfaces; use semantic tokens (photography scrims like `bg-black/80` are the exception).
 - **No more than one `tone="glass"` `<Card>` per page.**
 - **No emoji** in product UI unless explicitly added by the user.
 - **No "book/chapter/edition" metaphor.** That language was removed in May 2026 — use "events", "stages", "milestones".

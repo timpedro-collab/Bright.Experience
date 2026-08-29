@@ -17,16 +17,17 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        // Brand-aligned primary — gradient + premium shadow
+        // Brand-aligned primary — the Ink cobalt→cyan gradient + premium
+        // shadow. Token-based so `.theme-light` darkens the cyan endpoint.
         default: cn(
           "text-primary-foreground",
-          "bg-[linear-gradient(135deg,hsl(230,93%,53%),hsl(230,93%,60%))]",
+          "bg-[linear-gradient(120deg,var(--color-bb-cobalt),var(--color-brand-cyan))]",
           "shadow-[var(--bb-shadow-premium)]",
           "hover:shadow-[var(--bb-shadow-float)] hover:brightness-110"
         ),
         brand: cn(
           "text-primary-foreground",
-          "bg-[linear-gradient(135deg,hsl(230,93%,53%),hsl(230,93%,60%))]",
+          "bg-[linear-gradient(120deg,var(--color-bb-cobalt),var(--color-brand-cyan))]",
           "shadow-[var(--bb-shadow-premium)]",
           "hover:shadow-[var(--bb-shadow-float)] hover:brightness-110"
         ),

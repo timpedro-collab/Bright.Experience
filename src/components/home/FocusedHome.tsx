@@ -82,7 +82,14 @@ export function FocusedHome({
           variant="compact"
           seed={user.id}
           eyebrow={`${labelForRole(user.role)} · Command centre`}
-          title={`Welcome back, ${firstName(user.name)}.`}
+          title={
+            <>
+              Welcome back,{" "}
+              <span className="text-brand-gradient">
+                {firstName(user.name)}.
+              </span>
+            </>
+          }
           subtitle={focusSentence}
           rightSlot={<StreakIndicator streak={streak} />}
         />
@@ -96,9 +103,10 @@ export function FocusedHome({
                 <Link
                   href="/pipeline"
                   data-tour="pipeline-link"
-                  className="inline-flex items-center gap-1.5 text-sm font-medium text-primary transition-opacity hover:opacity-80"
+                  className="inline-flex items-center gap-1.5 text-sm font-medium transition-opacity hover:opacity-80"
                 >
-                  Open pipeline <ArrowRight className="size-4" />
+                  <span className="text-brand-gradient">Open pipeline</span>{" "}
+                  <ArrowRight className="size-4 text-brand-cyan" />
                 </Link>
               }
             />
