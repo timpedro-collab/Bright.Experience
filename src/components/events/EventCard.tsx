@@ -129,7 +129,7 @@ function ActionsPill({
 }) {
   if (count === 0) {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full border border-success/25 bg-success/[0.07] px-2 py-0.5 text-[10px] font-medium text-success/90 whitespace-nowrap">
+      <span className="inline-flex items-center gap-1 rounded-full border border-success/30 bg-success/15 px-2 py-0.5 text-[10px] font-medium text-success whitespace-nowrap">
         <CheckCircle2 size={10} />
         All clear
       </span>
@@ -140,7 +140,7 @@ function ActionsPill({
     <span
       className={cn(
         "inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold tabular-nums whitespace-nowrap",
-        "border-warning/30 bg-warning/[0.12] text-warning"
+        "border-warning/30 bg-warning/15 text-warning"
       )}
     >
       {count} {label}

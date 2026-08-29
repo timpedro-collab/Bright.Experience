@@ -16,12 +16,12 @@ const STATUS_META: Record<
   approved: {
     label: "Approved",
     icon: CheckCircle2,
-    className: "text-emerald-500",
+    className: "text-success",
   },
   revision_requested: {
     label: "Revision requested",
     icon: RotateCcw,
-    className: "text-amber-500",
+    className: "text-warning",
   },
   pending_review: {
     label: "Pending review",

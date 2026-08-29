@@ -12,10 +12,12 @@ interface EventProgressRingProps {
   showLabel?: boolean;
 }
 
-function ringColor(pct: number): string {
-  if (pct >= 100) return "hsl(143, 72%, 42%)";
-  if (pct >= 50) return "hsl(189, 100%, 75%)";
-  return "rgba(255,255,255,0.3)";
+// Token classes so the ring reads on both the Ink and Ink Light canvases:
+// complete = success, past halfway = theme-aware accent cyan, early = muted.
+function ringToneClass(pct: number): string {
+  if (pct >= 100) return "text-success";
+  if (pct >= 50) return "text-brand-cyan";
+  return "text-muted-foreground";
 }
 
 export function EventProgressRing({
@@ -31,7 +33,6 @@ export function EventProgressRing({
   const r = (size - strokeWidth) / 2;
   const circ = 2 * Math.PI * r;
   const offset = circ * (1 - pct / 100);
-  const color = ringColor(pct);
 
   return (
     <div className={cn("relative inline-flex items-center justify-center", className)}>
@@ -50,7 +51,8 @@ export function EventProgressRing({
           cy={size / 2}
           r={r}
           fill="none"
-          stroke={color}
+          stroke="currentColor"
+          className={ringToneClass(pct)}
           strokeWidth={strokeWidth}
           strokeLinecap="round"
           strokeDasharray={circ}

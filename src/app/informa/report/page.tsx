@@ -54,7 +54,7 @@ export default async function InformaSampleReportPage({
         </header>
 
         <div className="mt-14 max-w-3xl">
-          <p className="text-overline text-[var(--color-bb-cyan)]">
+          <p className="text-overline text-brand-cyan">
             The report every sponsor receives
           </p>
           <h1 className="text-display-grotesk mt-3 text-4xl leading-tight sm:text-5xl">

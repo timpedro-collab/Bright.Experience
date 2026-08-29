@@ -180,7 +180,7 @@ export function VenuePlacementBoard({
                       onChange={(e) => handleStatusChange(p.id, e.target.value)}
                       disabled={isPending}
                       aria-label="Placement status"
-                      className="rounded-md border border-border/40 bg-transparent px-2 py-1 text-xs outline-none focus:border-[var(--color-bb-cobalt)]"
+                      className="rounded-md border border-border/40 bg-transparent px-2 py-1 text-xs outline-none focus:border-primary"
                     >
                       {STATUS_OPTIONS.map((s) => (
                         <option key={s} value={s} className="bg-background">

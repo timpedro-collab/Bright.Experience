@@ -74,15 +74,17 @@ export function TierCard({ tier, region, selfContained = false }: TierCardProps)
   return (
     <div
       className={cn(
-        "relative flex h-full flex-col rounded-2xl border p-6",
+        "relative flex h-full flex-col rounded-[var(--radius-card)] border p-6",
         featured
-          ? "border-[var(--color-bb-cobalt)]/50 bg-[var(--color-bb-cobalt)]/[0.04] ring-1 ring-[var(--color-bb-cobalt)]/30"
-          : "border-border bg-muted/30",
+          ? "border-primary/50 bg-primary/5 ring-1 ring-primary/30"
+          : "border-border bg-card",
         bespoke && "border-dashed",
       )}
     >
+      {/* Solid primary, not gradient: the featured card's brand CTA is the
+          zone's one gradient accent. */}
       {featured && (
-        <span className="absolute -top-3 left-6 rounded-full bg-[var(--color-bb-cobalt)] px-3 py-0.5 text-xs font-semibold text-white">
+        <span className="absolute -top-3 left-6 rounded-full bg-primary px-3 py-0.5 text-xs font-semibold text-primary-foreground">
           Most popular
         </span>
       )}
@@ -108,7 +110,7 @@ export function TierCard({ tier, region, selfContained = false }: TierCardProps)
         {bullets.items.map((item) => (
           <li key={item} className="flex items-start gap-2 text-sm text-foreground/90">
             <Check
-              className="mt-0.5 h-4 w-4 shrink-0 text-[hsl(189,100%,75%)]"
+              className="mt-0.5 h-4 w-4 shrink-0 text-brand-cyan"
               aria-hidden
             />
             <span>{item}</span>

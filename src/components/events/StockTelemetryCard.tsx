@@ -37,7 +37,7 @@ export function StockTelemetryCard({
       : percent < CRITICAL_STOCK_PERCENT
         ? "[&>div]:bg-destructive"
         : percent < LOW_STOCK_PERCENT
-          ? "[&>div]:bg-amber-500"
+          ? "[&>div]:bg-warning"
           : "[&>div]:bg-primary";
 
   return (

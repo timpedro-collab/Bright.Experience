@@ -98,7 +98,7 @@ export function CoverSlide({ onAdvance }: SlideProps) {
             className="text-display-grotesk mx-auto max-w-3xl text-balance text-5xl leading-tight sm:text-6xl"
           >
             New inventory for the shows{" "}
-            <span className="bg-gradient-to-r from-[var(--color-bb-cobalt)] to-[var(--color-bb-cyan)] bg-clip-text text-transparent">
+            <span className="text-brand-gradient">
               you already run.
             </span>
           </motion.h1>
@@ -112,7 +112,7 @@ export function CoverSlide({ onAdvance }: SlideProps) {
             variants={rise}
             type="button"
             onClick={onAdvance}
-            className="mt-10 rounded-full bg-[var(--color-bb-cobalt)] px-8 py-3 text-sm font-semibold text-white transition-transform hover:scale-105"
+            className="mt-10 rounded-full bg-primary px-8 py-3 text-sm font-semibold text-primary-foreground transition-transform hover:scale-105"
           >
             Start with Tampa
           </motion.button>
@@ -127,7 +127,7 @@ export function TampaSlide({}: SlideProps) {
 
   return (
     <SlideFrame>
-      <p className="text-overline text-[var(--color-bb-cyan)]">Act one</p>
+      <p className="text-overline text-brand-cyan">Act one</p>
       <h2 className="text-display-grotesk mt-2 text-4xl sm:text-5xl">
         {TAMPA_SHOW.name}
       </h2>
@@ -150,8 +150,8 @@ export function TampaSlide({}: SlideProps) {
               className={cn(
                 "rounded-2xl border p-6 text-left transition-colors",
                 isOpen
-                  ? "border-[var(--color-bb-cobalt)] bg-[var(--color-bb-cobalt)]/10"
-                  : "border-border/70 bg-card/50 hover:border-[var(--color-bb-cobalt)]/50"
+                  ? "border-primary bg-primary/10"
+                  : "border-border/70 bg-card/50 hover:border-primary/50"
               )}
             >
               <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
@@ -162,7 +162,7 @@ export function TampaSlide({}: SlideProps) {
                 {isOpen ? p.detail : "Tap to open"}
               </p>
               {isOpen && (
-                <p className="mt-3 text-sm font-medium text-[var(--color-bb-cyan)]">
+                <p className="mt-3 text-sm font-medium text-brand-cyan">
                   {p.beneficiary}
                 </p>
               )}
@@ -172,7 +172,7 @@ export function TampaSlide({}: SlideProps) {
       </div>
 
       <div className="mt-8 flex items-center gap-3 rounded-xl border border-border/60 bg-card/40 px-5 py-4">
-        <ScanLine className="size-5 shrink-0 text-[var(--color-bb-cyan)]" aria-hidden />
+        <ScanLine className="size-5 shrink-0 text-brand-cyan" aria-hidden />
         <p className="text-sm text-muted-foreground">{BADGE_CLAIM}</p>
       </div>
     </SlideFrame>
@@ -182,7 +182,7 @@ export function TampaSlide({}: SlideProps) {
 export function JourneySlide({}: SlideProps) {
   return (
     <SlideFrame>
-      <p className="text-overline text-[var(--color-bb-cyan)]">The format</p>
+      <p className="text-overline text-brand-cyan">The format</p>
       <h2 className="text-display-grotesk mt-2 max-w-2xl text-4xl sm:text-5xl">
         What one play creates
       </h2>
@@ -199,7 +199,7 @@ export function JourneySlide({}: SlideProps) {
             variants={rise}
             className="rounded-2xl border border-border/70 bg-card/50 p-5"
           >
-            <span className="text-xs font-semibold text-[var(--color-bb-cobalt)]">
+            <span className="text-xs font-semibold text-primary">
               {String(i + 1).padStart(2, "0")}
             </span>
             <h3 className="mt-1 font-semibold">{s.step}</h3>
@@ -219,7 +219,7 @@ export function JourneySlide({}: SlideProps) {
 export function GapSlide({}: SlideProps) {
   return (
     <SlideFrame>
-      <p className="text-overline text-[var(--color-bb-cyan)]">The gap</p>
+      <p className="text-overline text-brand-cyan">The gap</p>
       <h2 className="text-display-grotesk mt-2 max-w-3xl text-4xl sm:text-5xl">
         This already sells out. Just not for you.
       </h2>

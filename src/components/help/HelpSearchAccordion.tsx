@@ -76,7 +76,7 @@ export function HelpSearchAccordion({ grouped }: HelpSearchAccordionProps) {
                     {article.body.length > 200 && "…"}
                     <Link
                       href={`/help/${article.slug}`}
-                      className="ml-2 text-[var(--color-bb-cobalt)] underline underline-offset-4"
+                      className="ml-2 text-primary underline underline-offset-4"
                     >
                       Read more →
                     </Link>

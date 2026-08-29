@@ -113,8 +113,8 @@ export function PartnerOnboardingWizard() {
     return (
       <Card className="mx-auto max-w-lg border-border/60 bg-muted/40 backdrop-blur-sm">
         <CardContent className="flex flex-col items-center gap-4 p-12 text-center">
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500/10">
-            <CheckCircle2 size={32} className="text-emerald-400" />
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-success/15">
+            <CheckCircle2 size={32} className="text-success" />
           </div>
           <h2 className="text-heading text-xl font-semibold text-foreground">
             Application Submitted
@@ -141,7 +141,7 @@ export function PartnerOnboardingWizard() {
           {step === 3 && <StepReview form={form} />}
 
           {error && (
-            <p className="mt-4 text-sm text-red-400">{error}</p>
+            <p className="mt-4 text-sm text-destructive">{error}</p>
           )}
 
           <div className="mt-8 flex items-center justify-between">
@@ -156,10 +156,7 @@ export function PartnerOnboardingWizard() {
             </Button>
 
             {step < 3 ? (
-              <Button
-                onClick={() => setStep((s) => s + 1)}
-                className="bg-brand text-white hover:bg-brand/90"
-              >
+              <Button onClick={() => setStep((s) => s + 1)} variant="brand">
                 Continue
                 <ArrowRight size={14} className="ml-2" />
               </Button>
@@ -167,7 +164,7 @@ export function PartnerOnboardingWizard() {
               <Button
                 onClick={handleSubmit}
                 disabled={submitting}
-                className="bg-brand text-white hover:bg-brand/90"
+                variant="brand"
               >
                 {submitting ? "Submitting…" : "Submit Application"}
               </Button>
@@ -192,8 +189,8 @@ function StepIndicator({ currentStep }: { currentStep: number }) {
               <div
                 className={cn(
                   "flex h-10 w-10 items-center justify-center rounded-full border transition-colors",
-                  isActive && "border-brand bg-brand/10 text-brand",
-                  isComplete && "border-emerald-500/20 bg-emerald-500/10 text-emerald-400",
+                  isActive && "border-primary bg-primary/10 text-primary",
+                  isComplete && "border-success/30 bg-success/15 text-success",
                   !isActive && !isComplete && "border-border/60 bg-muted/40 text-muted-foreground"
                 )}
               >
@@ -202,7 +199,7 @@ function StepIndicator({ currentStep }: { currentStep: number }) {
               <span
                 className={cn(
                   "hidden sm:block text-xs font-medium",
-                  isActive ? "text-brand" : "text-muted-foreground"
+                  isActive ? "text-primary" : "text-muted-foreground"
                 )}
               >
                 {s.label}
@@ -212,7 +209,7 @@ function StepIndicator({ currentStep }: { currentStep: number }) {
               <div
                 className={cn(
                   "mx-1.5 sm:mx-2 h-px flex-1",
-                  isComplete ? "bg-emerald-500/30" : "bg-border"
+                  isComplete ? "bg-success/30" : "bg-border"
                 )}
               />
             )}
@@ -304,7 +301,7 @@ function StepType({
             className={cn(
               "flex flex-col gap-1 rounded-xl border p-4 text-left transition-colors",
               form.partnerType === pt.value
-                ? "border-brand/30 bg-brand/5"
+                ? "border-primary/30 bg-primary/5"
                 : "border-border/60 bg-muted/40 hover:bg-accent"
             )}
           >
@@ -403,7 +400,7 @@ function FieldGroup({
     <div className="space-y-1.5">
       <Label className="text-muted-foreground">
         {label}
-        {required && <span className="ml-0.5 text-red-400">*</span>}
+        {required && <span className="ml-0.5 text-destructive">*</span>}
       </Label>
       {children}
     </div>

@@ -163,7 +163,9 @@ export function ProposalDocumentView({
   showVolumeLadder = false,
 }: ProposalDocumentViewProps) {
   return (
-    <div className="space-y-20 md:space-y-28">
+    // Keep-light surface: printable/PDF proposal brochure — always Ink Light paper
+    // regardless of the user's portal theme (design-language.md §8).
+    <div className="theme-light space-y-20 md:space-y-28">
       {/* Mini-nav for desktop scannability */}
       <nav className="sticky top-4 z-10 hidden md:block">
         <div className="flex flex-wrap gap-x-4 gap-y-1 rounded-full border border-border/60 bg-background/80 px-4 py-1.5 text-xs text-muted-foreground backdrop-blur">
@@ -255,6 +257,7 @@ export function ProposalDocumentView({
       {doc.reach && (
         <section>
           <Card tone="elevated" className="relative overflow-hidden p-8">
+            {/* Keep-light brand wash — literal cobalt→cyan gradient on proposal brochure */}
             <div
               aria-hidden
               className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,hsl(230,93%,53%,0.08),hsl(189,100%,75%,0.05))]"

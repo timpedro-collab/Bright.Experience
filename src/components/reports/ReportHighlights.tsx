@@ -21,12 +21,14 @@ interface ReportHighlightsProps {
   highlights: Highlight[];
 }
 
+// Decorative tile fills stay in the cobalt→cyan brand family — status
+// colours (success/warning/destructive) are information, never decoration.
 const GRADIENT_PLACEHOLDERS = [
   "from-brand/30 to-brand-soft/20",
-  "from-brand-soft/30 to-success/20",
-  "from-success/30 to-warning/20",
-  "from-warning/30 to-brand/20",
-  "from-brand/20 to-destructive/15",
+  "from-brand-soft/30 to-brand-cyan/15",
+  "from-brand-cyan/25 to-brand/15",
+  "from-brand-deep/35 to-brand-soft/20",
+  "from-brand/20 to-brand-cyan/25",
   "from-brand-soft/20 to-brand/30",
 ];
 
@@ -76,7 +78,9 @@ export function ReportHighlights({ highlights }: ReportHighlightsProps) {
               )}
 
               {item.caption && (
-                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-3 rounded-b-2xl">
+                /* Literal scrim + white caption over photography — correct in
+                   both themes, don't tokenize (contract §2.7). */
+                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-3 rounded-b-[var(--radius-card)]">
                   <p className="text-xs text-white font-medium">
                     {item.caption}
                   </p>

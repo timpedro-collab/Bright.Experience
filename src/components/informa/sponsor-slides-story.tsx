@@ -60,9 +60,9 @@ export function SponsorHookSlide({ config, onAdvance }: SponsorSlideProps) {
     <div className="relative flex flex-1 overflow-hidden">
       {/* Theo's near-black hook: slow mesh blobs as atmosphere, not decoration */}
       <div aria-hidden className="absolute inset-0 bg-[hsl(233,56%,7%)]">
-        <div className="mesh-drift-a absolute -left-1/4 top-[-20%] size-[60vw] rounded-full bg-[var(--color-bb-cobalt)]/25 blur-[120px]" />
-        <div className="mesh-drift-b absolute bottom-[-30%] right-[-15%] size-[55vw] rounded-full bg-[var(--color-bb-cyan)]/15 blur-[130px]" />
-        <div className="mesh-drift-c absolute left-[30%] top-[40%] size-[35vw] rounded-full bg-[var(--color-bb-cobalt)]/15 blur-[100px]" />
+        <div className="mesh-drift-a absolute -left-1/4 top-[-20%] size-[60vw] rounded-full bg-primary/25 blur-[120px]" />
+        <div className="mesh-drift-b absolute bottom-[-30%] right-[-15%] size-[55vw] rounded-full bg-brand-cyan/15 blur-[130px]" />
+        <div className="mesh-drift-c absolute left-[30%] top-[40%] size-[35vw] rounded-full bg-primary/15 blur-[100px]" />
       </div>
 
       <SlideFrame className="relative items-center text-center">
@@ -77,7 +77,7 @@ export function SponsorHookSlide({ config, onAdvance }: SponsorSlideProps) {
             />
           </motion.div>
 
-          <motion.p variants={rise} className="text-overline text-[var(--color-bb-cyan)]">
+          <motion.p variants={rise} className="text-overline text-brand-cyan">
             {config.show} · {config.dates}
           </motion.p>
 
@@ -86,7 +86,7 @@ export function SponsorHookSlide({ config, onAdvance }: SponsorSlideProps) {
             className="text-display-grotesk mx-auto mt-4 max-w-3xl text-balance text-5xl leading-tight sm:text-6xl"
           >
             {formatCount(config.attendees)}+ people will walk this floor.{" "}
-            <span className="bg-gradient-to-r from-[var(--color-bb-cobalt)] to-[var(--color-bb-cyan)] bg-clip-text text-transparent">
+            <span className="text-brand-gradient">
               Be the stand they remember.
             </span>
           </motion.h1>
@@ -101,7 +101,7 @@ export function SponsorHookSlide({ config, onAdvance }: SponsorSlideProps) {
             variants={rise}
             type="button"
             onClick={onAdvance}
-            className="mt-10 rounded-full bg-[var(--color-bb-cobalt)] px-8 py-3 text-sm font-semibold text-white transition-transform hover:scale-105"
+            className="mt-10 rounded-full bg-primary px-8 py-3 text-sm font-semibold text-primary-foreground transition-transform hover:scale-105"
           >
             See what your stand could be
           </motion.button>
@@ -114,7 +114,7 @@ export function SponsorHookSlide({ config, onAdvance }: SponsorSlideProps) {
 export function StandVisionSlide({ config }: SponsorSlideProps) {
   return (
     <SlideFrame>
-      <p className="text-overline text-[var(--color-bb-cyan)]">The idea</p>
+      <p className="text-overline text-brand-cyan">The idea</p>
       <h2 className="text-display-grotesk mt-2 max-w-3xl text-4xl sm:text-5xl">
         What your presence at {config.show} could be
       </h2>
@@ -127,7 +127,7 @@ export function StandVisionSlide({ config }: SponsorSlideProps) {
               variants={rise}
               className="rounded-2xl border border-border/70 bg-card/50 p-6"
             >
-              <h3 className="font-semibold text-[var(--color-bb-cyan)]">{item.label}</h3>
+              <h3 className="font-semibold text-brand-cyan">{item.label}</h3>
               <p className="mt-2 leading-relaxed text-muted-foreground">{item.line}</p>
             </motion.div>
           ))}
@@ -154,7 +154,7 @@ export function StandVisionSlide({ config }: SponsorSlideProps) {
 export function SponsorJourneySlide({}: SponsorSlideProps) {
   return (
     <SlideFrame>
-      <p className="text-overline text-[var(--color-bb-cyan)]">The format</p>
+      <p className="text-overline text-brand-cyan">The format</p>
       <h2 className="text-display-grotesk mt-2 max-w-2xl text-4xl sm:text-5xl">
         What one play does for your brand
       </h2>
@@ -171,7 +171,7 @@ export function SponsorJourneySlide({}: SponsorSlideProps) {
             variants={rise}
             className="rounded-2xl border border-border/70 bg-card/50 p-5"
           >
-            <span className="text-xs font-semibold text-[var(--color-bb-cobalt)]">
+            <span className="text-xs font-semibold text-primary">
               {String(i + 1).padStart(2, "0")}
             </span>
             <h3 className="mt-1 font-semibold">{s.step}</h3>
@@ -191,7 +191,7 @@ export function SponsorJourneySlide({}: SponsorSlideProps) {
 export function SponsorPlacementSlide({}: SponsorSlideProps) {
   return (
     <SlideFrame>
-      <p className="text-overline text-[var(--color-bb-cyan)]">The menu</p>
+      <p className="text-overline text-brand-cyan">The menu</p>
       <h2 className="text-display-grotesk mt-2 max-w-2xl text-4xl sm:text-5xl">
         Pick your placement
       </h2>

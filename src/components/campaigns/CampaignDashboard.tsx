@@ -25,16 +25,16 @@ interface CampaignDashboardProps {
 }
 
 const STATUS_STYLES: Record<string, { label: string; className: string }> = {
-  draft: { label: "Draft", className: "bg-muted text-muted-foreground" },
-  active: { label: "Active", className: "bg-brand/20 text-brand" },
-  completed: { label: "Completed", className: "bg-success/20 text-success" },
-  archived: { label: "Archived", className: "bg-muted text-muted-foreground" },
+  draft: { label: "Draft", className: "bg-muted text-muted-foreground border-border" },
+  active: { label: "Active", className: "bg-primary/15 text-primary border-primary/30" },
+  completed: { label: "Completed", className: "bg-success/15 text-success border-success/30" },
+  archived: { label: "Archived", className: "bg-muted text-muted-foreground border-border" },
 };
 
-const HEALTH_MAP: Record<string, string> = {
-  green: "text-success",
-  amber: "text-warning",
-  red: "text-destructive",
+const HEALTH_BADGE_STYLES: Record<string, string> = {
+  green: "bg-success/15 text-success border-success/30",
+  amber: "bg-warning/15 text-warning border-warning/30",
+  red: "bg-destructive/15 text-destructive border-destructive/30",
 };
 
 export function CampaignDashboard({
@@ -147,11 +147,9 @@ export function CampaignDashboard({
                       )}
                       <Badge
                         className={cn(
-                          "border-0 text-xs",
-                          HEALTH_MAP[health] ?? "text-muted-foreground",
-                          health === "green" && "bg-success/10",
-                          health === "amber" && "bg-warning/10",
-                          health === "red" && "bg-destructive/10"
+                          "text-xs",
+                          HEALTH_BADGE_STYLES[health] ??
+                            "bg-muted text-muted-foreground border-border"
                         )}
                       >
                         {STAGE_CONFIG[String(evt.current_stage ?? "confirmed") as Stage]?.shortLabel ?? "Confirmed"}

@@ -28,7 +28,7 @@ export function CommercialSlideFrame({
 /** Cyan mono eyebrow used above each slide headline. */
 export function CommercialOverline({ children }: { children: React.ReactNode }) {
   return (
-    <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--color-bb-cyan)]">
+    <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.2em] text-brand-cyan">
       {children}
     </p>
   );
@@ -37,7 +37,7 @@ export function CommercialOverline({ children }: { children: React.ReactNode }) 
 /** Two-digit mono index used on columns and proof panels. */
 export function CommercialIndex({ index }: { index: number }) {
   return (
-    <span className="font-mono text-[10px] font-semibold tracking-[0.18em] text-[var(--color-bb-cobalt)]">
+    <span className="font-mono text-[10px] font-semibold tracking-[0.18em] text-primary">
       {String(index + 1).padStart(2, "0")}
     </span>
   );

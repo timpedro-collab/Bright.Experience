@@ -55,7 +55,7 @@ export function PortfolioSlide({}: SlideProps) {
   return (
     <section className="mx-auto grid w-full max-w-6xl flex-1 content-center items-center gap-10 px-6 pb-24 pt-12 sm:px-10 lg:grid-cols-[2fr_3fr]">
       <div>
-        <p className="text-overline text-[var(--color-bb-cyan)]">The portfolio</p>
+        <p className="text-overline text-brand-cyan">The portfolio</p>
         <h2 className="text-display-grotesk mt-2 text-4xl sm:text-5xl">
           One program, your whole calendar
         </h2>
@@ -74,7 +74,7 @@ export function PortfolioSlide({}: SlideProps) {
           {PROGRAM_CHIPS.map((chip) => (
             <div
               key={chip}
-              className="rounded-xl border border-[var(--color-bb-cobalt)]/40 bg-[var(--color-bb-cobalt)]/5 px-4 py-2.5 text-sm font-medium"
+              className="rounded-xl border border-primary/40 bg-primary/5 px-4 py-2.5 text-sm font-medium"
             >
               {chip}
             </div>
@@ -116,12 +116,12 @@ export function PortfolioSlide({}: SlideProps) {
                   <span className="relative block">
                     <motion.span
                       aria-hidden
-                      className="absolute left-1/2 top-1/2 block size-8 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[var(--color-bb-cyan)]/30"
+                      className="absolute left-1/2 top-1/2 block size-8 -translate-x-1/2 -translate-y-1/2 rounded-full bg-brand-cyan/30"
                       animate={{ scale: [1, 1.9], opacity: [0.7, 0] }}
                       transition={{ duration: 1.8, repeat: Infinity, ease: "easeOut" }}
                     />
-                    <span className="relative block size-3.5 rounded-full border-2 border-background bg-[var(--color-bb-cyan)]" />
-                    <span className="absolute left-1/2 top-full mt-2 -translate-x-1/2 whitespace-nowrap rounded-full border border-[var(--color-bb-cyan)]/50 bg-background/85 px-3 py-1 text-xs font-semibold text-[var(--color-bb-cyan)] backdrop-blur">
+                    <span className="relative block size-3.5 rounded-full border-2 border-background bg-brand-cyan" />
+                    <span className="absolute left-1/2 top-full mt-2 -translate-x-1/2 whitespace-nowrap rounded-full border border-brand-cyan/50 bg-background/85 px-3 py-1 text-xs font-semibold text-brand-cyan backdrop-blur">
                       Tampa · Connect Marketplace — starts here
                     </span>
                   </span>

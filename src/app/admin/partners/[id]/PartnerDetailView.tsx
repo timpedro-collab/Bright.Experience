@@ -41,15 +41,15 @@ interface PartnerDetailViewProps {
 }
 
 const STATUS_MAP: Record<string, { label: string; className: string }> = {
-  active: { label: "Active", className: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" },
-  pending: { label: "Pending", className: "bg-amber-500/10 text-amber-400 border-amber-500/20" },
-  suspended: { label: "Suspended", className: "bg-red-500/10 text-red-400 border-red-500/20" },
+  active: { label: "Active", className: "bg-success/15 text-success border-success/30" },
+  pending: { label: "Pending", className: "bg-warning/15 text-warning border-warning/30" },
+  suspended: { label: "Suspended", className: "bg-destructive/15 text-destructive border-destructive/30" },
 };
 
 const COMMISSION_STATUS_MAP: Record<string, { label: string; className: string }> = {
-  pending: { label: "Pending", className: "bg-amber-500/10 text-amber-400 border-amber-500/20" },
-  approved: { label: "Approved", className: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" },
-  paid: { label: "Paid", className: "bg-brand/10 text-brand border-brand/20" },
+  pending: { label: "Pending", className: "bg-warning/15 text-warning border-warning/30" },
+  approved: { label: "Approved", className: "bg-success/15 text-success border-success/30" },
+  paid: { label: "Paid", className: "bg-primary/15 text-primary border-primary/30" },
 };
 
 /** Commission amounts are integer cents. */
@@ -95,7 +95,7 @@ export function PartnerDetailView({ partner, attributions }: PartnerDetailViewPr
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <Card className="border-glass-border/10 bg-card lg:col-span-2">
+        <Card className="border-border bg-card lg:col-span-2">
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-heading text-lg">Partner Information</CardTitle>
             <Badge className={cn("border", statusConfig.className)}>{statusConfig.label}</Badge>
@@ -109,7 +109,7 @@ export function PartnerDetailView({ partner, attributions }: PartnerDetailViewPr
         </Card>
 
         <div className="space-y-6">
-          <Card className="border-glass-border/10 bg-card">
+          <Card className="border-border bg-card">
             <CardHeader>
               <CardTitle className="text-heading text-lg">Actions</CardTitle>
             </CardHeader>
@@ -136,7 +136,7 @@ export function PartnerDetailView({ partner, attributions }: PartnerDetailViewPr
         </div>
       </div>
 
-      <Card className="border-glass-border/10 bg-card">
+      <Card className="border-border bg-card">
         <CardHeader>
           <CardTitle className="text-heading text-lg">Attributions & Commissions</CardTitle>
         </CardHeader>
@@ -217,7 +217,7 @@ export function PartnerDetailView({ partner, attributions }: PartnerDetailViewPr
 /** Email-invite a team member into this partner organisation's portal. */
 function InviteTeamMemberCard({ partnerId }: { partnerId: string }) {
   return (
-    <Card className="border-glass-border/10 bg-card">
+    <Card className="border-border bg-card">
       <CardHeader>
         <CardTitle className="text-heading text-lg flex items-center gap-2">
           <UserPlus size={16} /> Invite Team Member

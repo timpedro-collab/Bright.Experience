@@ -67,7 +67,7 @@ export default function ForOrganizersPage() {
       <Section spacing="md" className="border-b border-border/60">
         <Container>
           <div className="max-w-3xl">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground mb-3">
+            <p className="text-overline text-brand-cyan mb-3">
               For event organizers
             </p>
             <h1 className="text-display-grotesk text-4xl text-foreground md:text-6xl">
@@ -97,7 +97,7 @@ export default function ForOrganizersPage() {
       <Section className="border-b border-border/60">
         <Container>
           <div className="mx-auto max-w-2xl text-center mb-14">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground mb-3">
+            <p className="text-overline text-muted-foreground mb-3">
               Why organizers resell it
             </p>
             <h2 className="text-display-grotesk text-3xl text-foreground md:text-5xl text-balance">
@@ -108,11 +108,11 @@ export default function ForOrganizersPage() {
             {SELL_POINTS.map((point) => (
               <div
                 key={point.title}
-                className="rounded-2xl border border-border bg-muted/40 p-8"
+                className="rounded-[var(--radius-card)] border border-border bg-muted/40 p-8"
               >
-                <div className="mb-5 flex size-12 items-center justify-center rounded-xl bg-[var(--color-bb-cobalt)]/10 ring-1 ring-[var(--color-bb-cobalt)]/20">
+                <div className="mb-5 flex size-12 items-center justify-center rounded-[var(--radius-control)] bg-primary/10 ring-1 ring-primary/20">
                   <point.icon
-                    className="h-5 w-5 text-[var(--color-bb-cobalt)]"
+                    className="h-5 w-5 text-primary"
                     aria-hidden
                   />
                 </div>
@@ -132,7 +132,7 @@ export default function ForOrganizersPage() {
         <Container>
           <div className="grid gap-10 md:grid-cols-[1fr_1.3fr] md:items-start">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground mb-3">
+              <p className="text-overline text-muted-foreground mb-3">
                 The motion
               </p>
               <h2 className="text-display-grotesk text-3xl text-foreground md:text-4xl">
@@ -150,7 +150,7 @@ export default function ForOrganizersPage() {
                   key={step.title}
                   className="flex gap-4 rounded-[var(--radius-card)] border border-border/60 bg-muted/30 p-5"
                 >
-                  <span className="text-lg font-semibold tabular-nums text-[var(--color-bb-cobalt)]">
+                  <span className="text-lg font-semibold tabular-nums text-primary">
                     {i + 1}
                   </span>
                   <div>
@@ -170,7 +170,7 @@ export default function ForOrganizersPage() {
 
       <Section>
         <Container>
-          <div className="rounded-2xl border border-border bg-muted/30 p-8 text-center md:p-12">
+          <div className="rounded-[var(--radius-card)] border border-border bg-muted/30 p-8 text-center md:p-12">
             <h2 className="text-display-grotesk text-3xl text-foreground md:text-4xl">
               Put a machine in your next prospectus.
             </h2>

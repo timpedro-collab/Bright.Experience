@@ -56,12 +56,13 @@ export function TourWelcomeScreen() {
       aria-modal="true"
       aria-label={config.welcomeTitle}
       tabIndex={-1}
-      className="theme-dark fixed inset-0 z-[10000] flex items-center justify-center text-foreground outline-none"
+      className="theme-dark ink-glows fixed inset-0 z-[10000] flex items-center justify-center text-foreground outline-none"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
     >
-      <div className="absolute inset-0 bg-gradient-to-br from-[var(--color-bb-deep-ink)] via-[#0d1147] to-[var(--color-bb-cobalt)]" />
+      {/* Ink canvas + ambient corner glows — the deck's cinematic backdrop. */}
+      <div className="absolute inset-0 bg-background" />
 
       <motion.div
         className="relative z-10 flex flex-col items-center text-center px-6 max-w-lg"
@@ -73,10 +74,10 @@ export function TourWelcomeScreen() {
           {ICONS.map((Icon, i) => (
             <motion.div
               key={i}
-              className="flex items-center justify-center size-12 rounded-xl border border-white/10 bg-white/[0.04]"
+              className="flex items-center justify-center size-12 rounded-xl border border-border bg-card"
               whileHover={{ scale: 1.08, rotate: 3 }}
             >
-              <Icon className="size-5 text-[var(--color-bb-cyan)]" />
+              <Icon className="size-5 text-brand-cyan" />
             </motion.div>
           ))}
         </motion.div>
@@ -84,7 +85,7 @@ export function TourWelcomeScreen() {
         {/* The title animates in character by character, which a screen
             reader would otherwise spell out one letter at a time. */}
         <motion.h1
-          className="text-[clamp(1.75rem,4vw,2.75rem)] font-bold text-white leading-tight"
+          className="text-[clamp(1.75rem,4vw,2.75rem)] font-bold text-foreground leading-tight"
           variants={itemVariants}
           aria-label={config.welcomeTitle}
         >
@@ -102,7 +103,7 @@ export function TourWelcomeScreen() {
         </motion.h1>
 
         <motion.p
-          className="mt-4 text-base text-white/60 max-w-[42ch] leading-relaxed"
+          className="mt-4 text-base text-muted-foreground max-w-[42ch] leading-relaxed"
           variants={itemVariants}
         >
           {config.welcomeSubtitle}
@@ -120,7 +121,7 @@ export function TourWelcomeScreen() {
           <Button
             variant="ghost"
             size="lg"
-            className="text-white/40 hover:text-white/60 text-sm"
+            className="text-muted-foreground/60 hover:text-muted-foreground text-sm"
             onClick={handleSkip}
           >
             Skip tour

@@ -217,7 +217,7 @@ export default async function WelcomePage() {
                     />
                   </div>
                   <CardContent className="flex-1 p-5">
-                    <p className="text-overline text-[var(--color-bb-cobalt)]">
+                    <p className="text-overline text-primary">
                       Your event
                     </p>
                     <p className="mt-1 text-lg font-semibold text-foreground">

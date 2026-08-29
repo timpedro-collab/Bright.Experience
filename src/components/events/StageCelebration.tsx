@@ -89,8 +89,9 @@ export function StageCelebration({ stage, onComplete }: StageCelebrationProps) {
           exit={{ opacity: 0 }}
           transition={{ duration: 0.3 }}
         >
-          <div className="absolute inset-0 bg-[#060924]" />
-          <div className="absolute inset-0 bg-gradient-to-br from-[var(--color-bb-deep-ink)] via-[#0a0e33] to-[var(--color-bb-cobalt)]" />
+          {/* Cinematic force-Ink backdrop — deck gradient scrim over photography-style surface */}
+          <div className="absolute inset-0 bg-background" />
+          <div className="absolute inset-0 bg-gradient-to-br from-[var(--color-bb-deep-ink)] via-[var(--color-bb-ink-soft)] to-[var(--color-bb-cobalt)]" />
 
           <motion.div
             className="relative z-10 flex flex-col items-center text-center px-6 max-w-md"
@@ -99,16 +100,16 @@ export function StageCelebration({ stage, onComplete }: StageCelebrationProps) {
             transition={{ type: "spring", stiffness: 300, damping: 24, delay: 0.15 }}
           >
             <motion.div
-              className="flex items-center justify-center size-20 rounded-2xl border border-white/10 bg-white/[0.04] mb-8"
+              className="flex items-center justify-center size-20 rounded-2xl border border-border bg-card mb-8"
               initial={{ scale: 0, rotate: -20 }}
               animate={{ scale: 1, rotate: 0 }}
               transition={{ type: "spring", stiffness: 400, damping: 20, delay: 0.2 }}
             >
-              <Icon className="size-10 text-[var(--color-bb-cyan)]" />
+              <Icon className="size-10 text-brand-cyan" />
             </motion.div>
 
             <motion.h1
-              className="text-[clamp(1.75rem,4vw,2.75rem)] font-bold text-white leading-tight"
+              className="text-[clamp(1.75rem,4vw,2.75rem)] font-bold text-foreground leading-tight"
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.35 }}
@@ -117,7 +118,7 @@ export function StageCelebration({ stage, onComplete }: StageCelebrationProps) {
             </motion.h1>
 
             <motion.p
-              className="mt-3 text-base text-white/50 max-w-[36ch]"
+              className="mt-3 text-base text-muted-foreground max-w-[36ch]"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.5 }}

@@ -70,36 +70,38 @@ export default async function WrappedPage({ params }: Props) {
   if (!story) return notFound();
 
   return (
-    <div className="min-h-screen bg-[#070b26] text-white">
+    // Cinematic year-in-review surface — force-Ink via `theme-dark` so it
+    // stays near-black even when the viewer prefers Ink Light.
+    <div className="theme-dark min-h-screen bg-background text-foreground">
       <div className="mx-auto max-w-3xl px-6 py-16 sm:py-24">
         {/* Act 1 — the setup */}
         <header className="text-center">
-          <p className="text-xs font-semibold uppercase tracking-[0.35em] text-[#8fd8ff]">
+          <p className="text-xs font-semibold uppercase tracking-[0.35em] text-brand-cyan">
             Your activation, wrapped
           </p>
           <h1 className="mt-4 text-4xl font-bold leading-tight sm:text-5xl">
             {story.eventName}
           </h1>
           {story.credit && (
-            <p className="mt-3 text-sm text-white/60">{story.credit}</p>
+            <p className="mt-3 text-sm text-muted-foreground">{story.credit}</p>
           )}
         </header>
 
-        {/* Act 2 — the number */}
+        {/* Act 2 — the number (the page's single gradient hero stat) */}
         <section className="mt-20 text-center sm:mt-28">
-          <p className="text-[clamp(4.5rem,16vw,9rem)] font-bold leading-none tabular-nums">
+          <p className="text-brand-gradient text-[clamp(4.5rem,16vw,9rem)] font-bold leading-none tabular-nums">
             {story.headline.value}
           </p>
-          <p className="mt-3 text-xl text-[#c7d2fe] sm:text-2xl">
+          <p className="mt-3 text-xl text-muted-foreground sm:text-2xl">
             {story.headline.label}
           </p>
           {story.headline.support && (
-            <p className="mt-2 text-sm text-white/50">
+            <p className="text-tertiary mt-2 text-sm">
               {story.headline.support}
             </p>
           )}
           {story.optInLine && (
-            <p className="mt-6 inline-block rounded-full border border-white/15 px-4 py-1.5 text-sm text-white/70">
+            <p className="mt-6 inline-block rounded-full border border-border px-4 py-1.5 text-sm text-muted-foreground">
               {story.optInLine}
             </p>
           )}
@@ -109,27 +111,27 @@ export default async function WrappedPage({ params }: Props) {
         {story.placement && (
           <section className="mt-20 text-center sm:mt-28">
             {story.placement.badge ? (
-              <div className="inline-flex flex-col items-center gap-4 rounded-3xl border border-[#8fd8ff]/40 bg-[#8fd8ff]/5 px-10 py-8">
-                <Award size={36} className="text-[#8fd8ff]" strokeWidth={1.5} />
-                <p className="text-2xl font-bold text-[#8fd8ff]">
+              <div className="inline-flex flex-col items-center gap-4 rounded-[var(--radius-card)] border border-brand-cyan/40 bg-brand-cyan/5 px-10 py-8">
+                <Award size={36} className="text-brand-cyan" strokeWidth={1.5} />
+                <p className="text-2xl font-bold text-brand-cyan">
                   {story.placement.badge}
                 </p>
-                <p className="max-w-sm text-sm leading-relaxed text-white/60">
+                <p className="max-w-sm text-sm leading-relaxed text-muted-foreground">
                   {story.placement.label}, measured on {story.placement.metricLabel}{" "}
                   across {story.placement.sampleSize} comparable events.
                 </p>
               </div>
             ) : (
-              <p className="mx-auto max-w-md text-lg leading-relaxed text-white/70">
+              <p className="mx-auto max-w-md text-lg leading-relaxed text-muted-foreground">
                 {story.placement.label} — measured on{" "}
                 {story.placement.metricLabel} across{" "}
                 {story.placement.sampleSize} comparable events.
               </p>
             )}
-            <p className="mt-4 text-xs text-white/40">
+            <p className="text-quaternary mt-4 text-xs">
               <Link
                 href="/bright-index"
-                className="underline underline-offset-4 hover:text-white/70"
+                className="underline underline-offset-4 hover:text-muted-foreground"
               >
                 How the Bright Index places events
               </Link>
@@ -140,11 +142,11 @@ export default async function WrappedPage({ params }: Props) {
         {/* Act 4 — the human moment */}
         {story.humanMoment && (
           <section className="mt-20 text-center sm:mt-28">
-            <blockquote className="mx-auto max-w-lg text-xl italic leading-relaxed text-white/85">
+            <blockquote className="mx-auto max-w-lg text-xl italic leading-relaxed text-foreground/85">
               &ldquo;{story.humanMoment.text}&rdquo;
             </blockquote>
             {story.humanMoment.author && (
-              <p className="mt-4 text-sm text-white/50">
+              <p className="text-tertiary mt-4 text-sm">
                 — {story.humanMoment.author}, Bright.Blue delivery team
               </p>
             )}
@@ -153,11 +155,11 @@ export default async function WrappedPage({ params }: Props) {
 
         {/* Act 5 — share it */}
         <section className="mt-20 sm:mt-28">
-          <div className="rounded-3xl border border-white/10 bg-white/5 p-8 text-center">
-            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-white/50">
+          <div className="rounded-[var(--radius-card)] border border-border bg-card p-8 text-center">
+            <p className="text-tertiary text-xs font-semibold uppercase tracking-[0.3em]">
               Post it
             </p>
-            <p className="mx-auto mt-4 max-w-lg text-base leading-relaxed text-white/85">
+            <p className="mx-auto mt-4 max-w-lg text-base leading-relaxed text-foreground/85">
               {story.shareText}
             </p>
             <div className="mt-6">
@@ -172,14 +174,13 @@ export default async function WrappedPage({ params }: Props) {
         <footer className="mt-16 space-y-6 text-center">
           <Link
             href={`/report/${token}`}
-            className="inline-flex items-center gap-2 text-sm text-white/60 transition-colors hover:text-white"
+            className="inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
           >
             <ArrowLeft size={14} />
             See the full report
           </Link>
-          <div className="theme-dark">
-            <InvitationFooter artifact="wrapped" fromEvent={story.eventName} />
-          </div>
+          {/* Page root is already `theme-dark` — no extra scope needed. */}
+          <InvitationFooter artifact="wrapped" fromEvent={story.eventName} />
         </footer>
       </div>
     </div>

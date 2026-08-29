@@ -29,7 +29,7 @@ export function HeroSection() {
           seed="landing::home"
           lines={40}
           amplitude={120}
-          className="text-[hsl(230,93%,53%)]"
+          className="text-bb-cobalt"
         />
         <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-background to-transparent" />
       </div>
@@ -37,7 +37,7 @@ export function HeroSection() {
       <Container className="relative pt-24 pb-16 md:pt-32 md:pb-24">
         <div className="mx-auto max-w-4xl text-center">
           <FadeIn duration={0.6} y={10}>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--color-bb-cobalt)] mb-5">
+            <p className="text-overline text-brand-cyan mb-5">
               Make your moment count
             </p>
           </FadeIn>
@@ -46,7 +46,8 @@ export function HeroSection() {
           <FadeIn duration={0.9} delay={0.05} y={16}>
             <h1 className="text-display-grotesk text-[clamp(2.75rem,7vw,5.5rem)] text-foreground text-balance">
               Crowd-stopping activations.{" "}
-              <span className="bg-gradient-to-r from-[var(--color-bb-cobalt)] to-[var(--color-bb-cyan)] bg-clip-text text-transparent">
+              {/* The hero's one gradient statement (sanctioned utility). */}
+              <span className="text-brand-gradient">
                 Measured to the play.
               </span>
             </h1>
@@ -91,6 +92,7 @@ export function HeroSection() {
                 sizes="(min-width: 1280px) 1024px, 100vw"
                 className="w-full object-cover"
               />
+              {/* Photography scrim — literal by design (design-language §2.7). */}
               <div
                 aria-hidden
                 className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent"

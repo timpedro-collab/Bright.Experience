@@ -163,7 +163,7 @@ export function TemplateEditor({ template }: TemplateEditorProps) {
               className="flex items-center gap-3 w-full px-5 py-3.5 text-left hover:bg-accent transition-colors"
             >
               {isOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-              <Icon size={16} className="text-[var(--color-bb-cobalt)]" />
+              <Icon size={16} className="text-primary" />
               <span className="text-sm font-medium">{section.label}</span>
               {items && (
                 <span className="text-overline text-muted-foreground ml-auto">
@@ -245,14 +245,14 @@ function ArraySectionEditor({
                   type="text"
                   value={String(item[field] ?? "")}
                   onChange={(e) => onUpdate(jsonField, idx, field, e.target.value)}
-                  className="w-full px-2 py-1.5 text-xs bg-transparent border border-border/40 rounded outline-none focus:border-[var(--color-bb-cobalt)] transition-colors"
+                  className="w-full px-2 py-1.5 text-xs bg-transparent border border-border/40 rounded outline-none focus:border-primary transition-colors"
                 />
               )}
             </label>
           ))}
           <button
             onClick={() => onRemove(jsonField, idx)}
-            className="self-end text-red-400/60 hover:text-red-400 transition-colors p-1"
+            className="self-end text-destructive/60 hover:text-destructive transition-colors p-1"
           >
             <Trash2 size={14} />
           </button>
@@ -304,10 +304,10 @@ function ObjectSectionEditor({
         rows={8}
         className={cn(
           "w-full font-mono text-xs bg-transparent border rounded-md p-3 outline-none transition-colors",
-          err ? "border-red-400" : "border-border/40 focus:border-[var(--color-bb-cobalt)]"
+          err ? "border-destructive" : "border-border/40 focus:border-primary"
         )}
       />
-      {err && <p className="text-xs text-red-400">{err}</p>}
+      {err && <p className="text-xs text-destructive">{err}</p>}
     </div>
   );
 }

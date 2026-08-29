@@ -129,7 +129,7 @@ export default async function NotificationSettingsPage() {
               <EditorialEyebrow>The classes</EditorialEyebrow>
               <ul className="mt-3 flex flex-col divide-y divide-border/40 border-t border-b border-border/40">
                 <li className="py-3">
-                  <p className="text-overline text-[var(--color-bb-cobalt)]">
+                  <p className="text-overline text-primary">
                     Class A · Action items
                   </p>
                   <p className="mt-1 text-sm text-foreground">
@@ -162,7 +162,7 @@ export default async function NotificationSettingsPage() {
               </p>
               <Link
                 href="mailto:hello@brightblue.com"
-                className="mt-3 inline-block text-overline text-[var(--color-bb-cobalt)] underline decoration-from-font underline-offset-4 font-medium"
+                className="mt-3 inline-block text-overline text-primary underline decoration-from-font underline-offset-4 font-medium"
               >
                 Email us →
               </Link>

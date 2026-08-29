@@ -32,7 +32,7 @@ export function HowItWorks() {
     <Section spacing="lg" className="border-t border-border/60">
       <Container>
         <div className="mx-auto mb-12 max-w-2xl text-center">
-          <p className="text-overline text-muted-foreground mb-2">How it works</p>
+          <p className="text-overline text-brand-cyan mb-2">How it works</p>
           <h2 className="text-display-grotesk text-4xl text-foreground md:text-5xl">
             From discovery to ROI in three moves
           </h2>

@@ -198,7 +198,7 @@ export default async function LoopPulsePage() {
                       {r.source}
                     </span>
                     <span
-                      className="h-2 rounded-full bg-[var(--color-bb-cobalt)]/60"
+                      className="h-2 rounded-full bg-primary/60"
                       style={{
                         width: `${Math.max(6, Math.round((r.count / max) * 100))}%`,
                       }}

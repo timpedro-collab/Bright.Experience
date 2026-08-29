@@ -48,7 +48,7 @@ export function PublicMobileMenu({ links }: PublicMobileMenuProps) {
               onClick={() => setOpen(false)}
               className="group flex items-baseline gap-3 rounded-[var(--radius-control)] px-3 py-3 hover:bg-accent transition-colors"
             >
-              <span className="text-xs tabular-nums text-muted-foreground/60 transition-colors group-hover:text-[var(--color-bb-cobalt)]">
+              <span className="text-xs tabular-nums text-muted-foreground/60 transition-colors group-hover:text-primary">
                 {String(i + 1).padStart(2, "0")}
               </span>
               <span className="text-heading text-xl font-bold text-foreground/90 group-hover:text-foreground">

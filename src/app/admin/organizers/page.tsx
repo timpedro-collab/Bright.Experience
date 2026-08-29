@@ -97,7 +97,7 @@ function OrganizerCard({ organizer }: { organizer: OrganizerAdminRow }) {
 
   return (
     <Link href={`/admin/organizers/${organizer.id}`} className="group block">
-      <Card className="h-full transition-colors group-hover:border-[var(--color-bb-cobalt)]/40">
+      <Card className="h-full transition-colors group-hover:border-primary/40">
         <CardContent className="p-5">
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0">

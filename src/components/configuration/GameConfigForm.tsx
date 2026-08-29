@@ -142,7 +142,7 @@ export function GameConfigForm({
         <div className="flex items-center gap-2 text-sm text-success">
           <CheckCircle2 size={14} />
           Configuration {config?.status === "tested" ? "tested and ready" : "submitted"}
-          <Badge className="text-[10px] bg-emerald-500/15 text-emerald-400 border-emerald-500/30 ml-auto">
+          <Badge className="text-[10px] bg-success/15 text-success border-success/30 ml-auto">
             {config?.status}
           </Badge>
         </div>
@@ -176,7 +176,7 @@ export function GameConfigForm({
               className={cn(
                 "p-3 rounded-lg border text-left text-sm transition-colors",
                 prizeMode === mode.value
-                  ? "border-[var(--color-bb-cobalt)] bg-[var(--color-bb-cobalt)]/10"
+                  ? "border-primary bg-primary/10"
                   : "border-border bg-muted/40 hover:bg-accent"
               )}
             >
@@ -266,7 +266,7 @@ export function GameConfigForm({
                     next[i] = { ...next[i], required: e.target.checked };
                     setFormFields(next);
                   }}
-                  className="accent-[var(--color-bb-cobalt)]"
+                  className="accent-primary"
                 />
                 Req
               </label>
@@ -295,7 +295,7 @@ export function GameConfigForm({
               className={cn(
                 "p-3 rounded-lg border text-left text-sm transition-colors",
                 captureMethod === method.value
-                  ? "border-[var(--color-bb-cobalt)] bg-[var(--color-bb-cobalt)]/10"
+                  ? "border-primary bg-primary/10"
                   : "border-border bg-muted/40 hover:bg-accent"
               )}
             >
@@ -329,7 +329,7 @@ export function GameConfigForm({
             type="checkbox"
             checked={leaderboard}
             onChange={(e) => setLeaderboard(e.target.checked)}
-            className="accent-[var(--color-bb-cobalt)]"
+            className="accent-primary"
           />
           Enable leaderboard
         </label>
@@ -338,7 +338,7 @@ export function GameConfigForm({
             type="checkbox"
             checked={includeScore}
             onChange={(e) => setIncludeScore(e.target.checked)}
-            className="accent-[var(--color-bb-cobalt)]"
+            className="accent-primary"
           />
           Include scores in lead export
         </label>

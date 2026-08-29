@@ -27,6 +27,9 @@ export function LetsPlanSection() {
       <span
         aria-hidden
         className="pointer-events-none absolute -right-[4vw] -top-[7vw] select-none text-[22vw] font-bold leading-none text-transparent opacity-[0.35]"
+        /* Ghost outline in brand cobalt at 14% — a decorative literal that
+           reads as a whisper on both ink and paper (theme tokens can't be
+           used in WebkitTextStroke shorthand reliably). */
         style={{ WebkitTextStroke: "2px hsl(230, 93%, 53%, 0.14)" }}
       >
         Plan
@@ -35,7 +38,7 @@ export function LetsPlanSection() {
       <Container className="relative">
         <div className="grid gap-10 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:gap-20">
           <Reveal>
-            <p className="text-overline text-muted-foreground mb-3">
+            <p className="text-overline text-brand-cyan mb-3">
               Where to begin
             </p>
             <h2 className="text-display-grotesk text-5xl text-foreground md:text-6xl">
@@ -60,7 +63,7 @@ export function LetsPlanSection() {
                     </span>
                     <ArrowRight
                       aria-hidden
-                      className="size-5 shrink-0 text-muted-foreground/50 transition-all duration-[var(--bb-duration-base)] group-hover:translate-x-1 group-hover:text-[var(--color-bb-cobalt)]"
+                      className="size-5 shrink-0 text-muted-foreground/50 transition-all duration-[var(--bb-duration-base)] group-hover:translate-x-1 group-hover:text-primary"
                     />
                   </Link>
                 </li>

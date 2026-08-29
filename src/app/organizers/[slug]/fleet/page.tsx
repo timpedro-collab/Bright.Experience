@@ -88,7 +88,7 @@ export default async function OrganizerFleetPage({ params }: Props) {
                   </p>
                   <Link
                     href={`/organizers/${slug}/shows/${eventId}`}
-                    className="text-xs font-medium text-[var(--color-bb-cobalt)] hover:underline"
+                    className="text-xs font-medium text-primary hover:underline"
                   >
                     Open show
                   </Link>

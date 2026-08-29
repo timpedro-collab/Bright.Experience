@@ -42,7 +42,7 @@ export function InventoryListing() {
   return (
     <div className="space-y-4">
       <div className="rounded-2xl border border-border/70 bg-card/50 p-6 sm:p-8">
-        <p className="text-xs font-semibold uppercase tracking-widest text-[var(--color-bb-cyan)]">
+        <p className="text-xs font-semibold uppercase tracking-widest text-brand-cyan">
           {INVENTORY_LISTING.tier}
         </p>
         <h3 className="text-display-grotesk mt-2 text-2xl">{INVENTORY_LISTING.title}</h3>
@@ -50,7 +50,7 @@ export function InventoryListing() {
         <ul className="mt-5 grid gap-2 sm:grid-cols-2">
           {INVENTORY_LISTING.includes.map((item) => (
             <li key={item} className="flex items-start gap-2 text-sm text-muted-foreground">
-              <Check className="mt-0.5 size-4 shrink-0 text-[var(--color-bb-cyan)]" aria-hidden />
+              <Check className="mt-0.5 size-4 shrink-0 text-brand-cyan" aria-hidden />
               {item}
             </li>
           ))}

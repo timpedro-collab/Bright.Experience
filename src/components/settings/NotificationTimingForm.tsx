@@ -62,7 +62,7 @@ function getServerTimezone(): string | undefined {
 }
 
 const selectClass =
-  "w-full bg-card text-foreground px-3 py-2 rounded-md border border-border focus:outline-none focus:ring-2 focus:ring-[var(--color-bb-cobalt)] focus:border-[var(--color-bb-cobalt)] transition text-sm";
+  "w-full bg-card text-foreground px-3 py-2 rounded-md border border-border focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition text-sm";
 
 export function NotificationTimingForm({ initial }: Props) {
   // The browser's timezone is only known client-side; reading it during

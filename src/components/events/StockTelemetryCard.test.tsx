@@ -19,7 +19,7 @@ describe("StockTelemetryCard", () => {
     expect(screen.getByText(/prizes dispensed/i)).toBeInTheDocument();
   });
 
-  it("uses amber styling under 25% and red under 15%", () => {
+  it("uses warning styling under 25% and destructive under 15%", () => {
     const { rerender } = render(
       <StockTelemetryCard
         stockRemaining={20}
@@ -27,7 +27,7 @@ describe("StockTelemetryCard", () => {
         totalPrizes={80}
       />,
     );
-    expect(document.querySelector(".\\[\\&\\>div\\]\\:bg-amber-500")).toBeTruthy();
+    expect(document.querySelector(".\\[\\&\\>div\\]\\:bg-warning")).toBeTruthy();
 
     rerender(
       <StockTelemetryCard

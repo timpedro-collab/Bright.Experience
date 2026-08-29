@@ -95,7 +95,7 @@ function DueBadge({ item }: { item: CustomerActionItem }) {
         overdue
           ? "text-destructive"
           : soon
-            ? "text-amber-400"
+            ? "text-warning"
             : "text-muted-foreground",
       )}
     >
@@ -197,7 +197,7 @@ export function OverToYou({
           </div>
           <Link
             href={primaryHref}
-            className="mt-4 inline-flex items-center gap-2 rounded-sm bg-[var(--color-bb-cobalt)] px-5 py-2.5 text-sm font-medium text-white transition-opacity hover:opacity-90"
+            className="mt-4 inline-flex items-center gap-2 rounded-sm bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
           >
             {primaryLabel}
             <ArrowRight size={16} />

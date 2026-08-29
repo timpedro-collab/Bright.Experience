@@ -39,7 +39,7 @@ export default async function CatalogPage() {
       <Section spacing="md">
         <Container>
           <div className="max-w-2xl">
-            <p className="text-overline text-muted-foreground mb-2">The catalogue</p>
+            <p className="text-overline text-brand-cyan mb-2">The catalogue</p>
             <h1 className="text-heading text-4xl font-bold text-foreground md:text-5xl">
               Browse the range
             </h1>
@@ -48,7 +48,7 @@ export default async function CatalogPage() {
               and instrumented for proof. Not sure where to start?{" "}
               <Link
                 href="/quiz"
-                className="font-medium text-[var(--color-bb-cobalt)] underline decoration-from-font underline-offset-4"
+                className="font-medium text-primary underline decoration-from-font underline-offset-4"
               >
                 Take the 60-second quiz
               </Link>
@@ -178,7 +178,7 @@ function SectionHeader({
     <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
       <div className="max-w-2xl">
         {eyebrow && (
-          <p className="text-overline text-muted-foreground mb-2">{eyebrow}</p>
+          <p className="text-overline text-brand-cyan mb-2">{eyebrow}</p>
         )}
         <h2 className="text-heading text-3xl font-bold text-foreground md:text-4xl">
           {title}
@@ -212,7 +212,7 @@ function IndexLinkCard({
   return (
     <Link
       href={href}
-      className="group flex items-start gap-5 rounded-[var(--radius-card)] border border-white/[0.06] bg-[hsl(233,56%,11%,0.45)] p-7 backdrop-blur-md transition-all hover:border-white/20 hover:-translate-y-0.5"
+      className="glass-subtle group flex items-start gap-5 rounded-[var(--radius-card)] p-7 transition-all hover:border-ring/40 hover:-translate-y-0.5"
     >
       <div className="flex size-12 shrink-0 items-center justify-center rounded-[var(--radius-control)] border border-primary/30 bg-primary/10 text-primary">
         <Icon className="h-5 w-5" />
@@ -222,7 +222,7 @@ function IndexLinkCard({
           {title}
         </h3>
         <p className="mt-1 text-sm text-muted-foreground">{description}</p>
-        <span className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-[var(--color-bb-cobalt)] group-hover:gap-2.5 transition-all">
+        <span className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-primary group-hover:gap-2.5 transition-all">
           {cta} <ArrowRight className="size-3.5" />
         </span>
       </div>

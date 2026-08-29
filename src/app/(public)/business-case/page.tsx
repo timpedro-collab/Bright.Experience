@@ -31,7 +31,7 @@ export default function BusinessCasePage() {
       <Section spacing="md" className="border-b border-border/60">
         <Container>
           <div className="max-w-3xl">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground mb-3">
+            <p className="text-overline text-brand-cyan mb-3">
               Build your business case
             </p>
             <h1 className="text-display-grotesk text-4xl text-foreground md:text-6xl">
@@ -66,7 +66,7 @@ export default function BusinessCasePage() {
         <Container>
           <div className="grid gap-10 md:grid-cols-[1fr_1.2fr] md:items-start">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground mb-3">
+              <p className="text-overline text-muted-foreground mb-3">
                 Why the leads are worth more
               </p>
               <h2 className="text-display-grotesk text-3xl text-foreground md:text-4xl">
@@ -81,8 +81,8 @@ export default function BusinessCasePage() {
                 sales team feels on the follow-up call.
               </p>
             </div>
-            <div className="rounded-2xl border border-border bg-muted/30 p-6 md:p-8">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+            <div className="rounded-[var(--radius-card)] border border-border bg-muted/30 p-6 md:p-8">
+              <p className="text-overline text-muted-foreground">
                 What lands in the report
               </p>
               <ul className="mt-4 space-y-3">
@@ -90,7 +90,7 @@ export default function BusinessCasePage() {
                   <li key={item} className="flex items-start gap-2 text-sm text-foreground/90">
                     <span
                       aria-hidden
-                      className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--color-bb-cobalt)]"
+                      className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary"
                     />
                     <span>{item}</span>
                   </li>
@@ -115,7 +115,7 @@ export default function BusinessCasePage() {
 
       <Section>
         <Container>
-          <div className="rounded-2xl border border-border bg-muted/30 p-8 text-center md:p-12">
+          <div className="rounded-[var(--radius-card)] border border-border bg-muted/30 p-8 text-center md:p-12">
             <h2 className="text-display-grotesk text-3xl text-foreground md:text-4xl">
               Get the numbers for your event.
             </h2>

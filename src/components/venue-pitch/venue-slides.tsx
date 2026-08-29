@@ -104,7 +104,7 @@ export function VenueCoverSlide({ onAdvance }: DeckShellSlideProps) {
             className="text-display-grotesk max-w-3xl text-balance text-5xl leading-[0.98] sm:text-7xl"
           >
             {VENUE_COVER.headlineLead}{" "}
-            <span className="bg-gradient-to-r from-[var(--color-bb-cobalt)] to-[var(--color-bb-cyan)] bg-clip-text text-transparent">
+            <span className="text-brand-gradient">
               {VENUE_COVER.headlineAccent}
             </span>
           </motion.h1>
@@ -117,7 +117,7 @@ export function VenueCoverSlide({ onAdvance }: DeckShellSlideProps) {
             variants={rise}
             type="button"
             onClick={onAdvance}
-            className="mt-10 rounded-full bg-[var(--color-bb-cobalt)] px-8 py-3 text-sm font-semibold text-white transition-transform hover:scale-105"
+            className="mt-10 rounded-full bg-primary px-8 py-3 text-sm font-semibold text-primary-foreground transition-transform hover:scale-105"
           >
             {VENUE_COVER.cta}
           </motion.button>
@@ -137,7 +137,7 @@ const WHAT_ICONS: Record<string, LucideIcon> = {
 export function VenueWhatSlide({}: DeckShellSlideProps) {
   return (
     <SlideFrame>
-      <p className="text-overline text-[var(--color-bb-cyan)]">{VENUE_WHAT.overline}</p>
+      <p className="text-overline text-brand-cyan">{VENUE_WHAT.overline}</p>
       <h2 className="text-display-grotesk mt-2 max-w-3xl text-4xl sm:text-5xl">
         {VENUE_WHAT.headline}
       </h2>
@@ -154,11 +154,11 @@ export function VenueWhatSlide({}: DeckShellSlideProps) {
             <motion.div
               key={point.id}
               variants={rise}
-              className="border-t-2 border-[var(--color-bb-cyan)] pt-5"
+              className="border-t-2 border-brand-cyan pt-5"
             >
               <div className="flex items-center justify-between">
                 <MonoIndex index={i} />
-                <Icon className="size-5 text-[var(--color-bb-cyan)]" aria-hidden />
+                <Icon className="size-5 text-brand-cyan" aria-hidden />
               </div>
               <h3 className="mt-4 text-xl font-semibold leading-tight">{point.title}</h3>
               <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
@@ -176,7 +176,7 @@ export function VenueProofSlide({}: DeckShellSlideProps) {
   const photos = VENUE_COLLAGE.photos.slice(0, 4);
   return (
     <SlideFrame>
-      <p className="text-overline text-[var(--color-bb-cyan)]">
+      <p className="text-overline text-brand-cyan">
         {VENUE_COLLAGE.overline}
       </p>
       <h2 className="text-display-grotesk mt-2 text-4xl sm:text-5xl">
@@ -229,7 +229,7 @@ const NEEDS_ICONS: Record<string, LucideIcon> = {
 export function VenueNeedsSlide({}: DeckShellSlideProps) {
   return (
     <SlideFrame>
-      <p className="text-overline text-[var(--color-bb-cyan)]">{VENUE_NEEDS.overline}</p>
+      <p className="text-overline text-brand-cyan">{VENUE_NEEDS.overline}</p>
       <h2 className="text-display-grotesk mt-2 max-w-3xl text-4xl sm:text-5xl">
         {VENUE_NEEDS.headline}
       </h2>
@@ -247,11 +247,11 @@ export function VenueNeedsSlide({}: DeckShellSlideProps) {
               <motion.div
                 key={spec.id}
                 variants={rise}
-                className="border-t-2 border-[var(--color-bb-cyan)] pt-4"
+                className="border-t-2 border-brand-cyan pt-4"
               >
                 <div className="flex items-center justify-between">
-                  <span className="inline-flex rounded-xl bg-[var(--color-bb-cobalt)]/15 p-3">
-                    <Icon className="size-6 text-[var(--color-bb-cyan)]" aria-hidden />
+                  <span className="inline-flex rounded-xl bg-primary/15 p-3">
+                    <Icon className="size-6 text-brand-cyan" aria-hidden />
                   </span>
                   <MonoIndex index={i} />
                 </div>
@@ -303,7 +303,7 @@ const BENEFIT_ICONS: Record<string, LucideIcon> = {
 export function VenueBenefitsSlide({}: DeckShellSlideProps) {
   return (
     <SlideFrame>
-      <p className="text-overline text-[var(--color-bb-cyan)]">
+      <p className="text-overline text-brand-cyan">
         {VENUE_BENEFITS.overline}
       </p>
       <h2 className="text-display-grotesk mt-2 max-w-3xl text-4xl sm:text-5xl">
@@ -322,11 +322,11 @@ export function VenueBenefitsSlide({}: DeckShellSlideProps) {
             <motion.div
               key={point.id}
               variants={rise}
-              className="border-t-2 border-[var(--color-bb-cyan)] pt-5"
+              className="border-t-2 border-brand-cyan pt-5"
             >
               <div className="flex items-center justify-between">
                 <MonoIndex index={i} />
-                <Icon className="size-5 text-[var(--color-bb-cyan)]" aria-hidden />
+                <Icon className="size-5 text-brand-cyan" aria-hidden />
               </div>
               <h3 className="mt-4 text-xl font-semibold leading-tight">{point.title}</h3>
               <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
@@ -344,7 +344,7 @@ export function VenueBenefitsSlide({}: DeckShellSlideProps) {
       <div className="mt-8">
         <a
           href={VENUE_BENEFITS.contact.href}
-          className="inline-flex items-center gap-1.5 rounded-full bg-[var(--color-bb-cobalt)] px-7 py-3 text-sm font-semibold text-white transition-transform hover:scale-105"
+          className="inline-flex items-center gap-1.5 rounded-full bg-primary px-7 py-3 text-sm font-semibold text-primary-foreground transition-transform hover:scale-105"
         >
           {VENUE_BENEFITS.contact.label}
           <ArrowUpRight className="size-4" aria-hidden />

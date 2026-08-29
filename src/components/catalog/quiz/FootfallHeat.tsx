@@ -12,7 +12,7 @@ export function FootfallHeat({ level }: { level: number }) {
           key={i}
           className={cn(
             "w-1.5 rounded-sm",
-            i <= level ? "bg-[hsl(230,93%,60%)]" : "bg-muted-foreground/25"
+            i <= level ? "bg-primary" : "bg-muted-foreground/25"
           )}
           style={{ height: `${4 + i * 3}px` }}
         />

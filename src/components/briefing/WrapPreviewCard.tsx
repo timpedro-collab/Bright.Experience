@@ -64,8 +64,8 @@ export function WrapPreviewCard({
           className="object-contain mix-blend-multiply p-3"
         />
         {logoUrl && (
-          // Signed storage URL, unknown dimensions — a plain img keeps this
-          // outside Next image optimisation, which can't fetch signed URLs.
+          // Light logo chip — dark-ink client SVGs stay visible on Ink canvas
+          // (design-language §6); bg-white/85 is intentional, not a theme surface.
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={logoUrl}

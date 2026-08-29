@@ -49,7 +49,7 @@ export function SecurityForm({ email, createdAt }: { email: string; createdAt?: 
             placeholder="Repeat new password" required minLength={8} />
         </div>
         {errorMsg && <p className="text-sm text-destructive">{errorMsg}</p>}
-        {status === "success" && <p className="text-sm text-green-500">Password updated successfully.</p>}
+        {status === "success" && <p className="text-sm text-success">Password updated successfully.</p>}
         <Button type="submit" disabled={status === "saving"}>
           {status === "saving" ? "Updating…" : "Update password"}
         </Button>

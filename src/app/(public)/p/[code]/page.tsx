@@ -157,7 +157,7 @@ function Tile({
   return (
     <Link
       href={href}
-      className="group rounded-[var(--radius-card)] border border-border/60 bg-muted/40 p-6 transition-all hover:border-white/20 hover:-translate-y-0.5"
+      className="group rounded-[var(--radius-card)] border border-border/60 bg-card p-6 transition-all hover:border-ring/40 hover:-translate-y-0.5"
     >
       <Icon className="h-6 w-6 text-primary" />
       <h3 className="mt-4 text-heading text-lg font-semibold text-foreground">

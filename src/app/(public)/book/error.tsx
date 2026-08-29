@@ -26,7 +26,7 @@ export default function BookError({
   return (
     <div className="min-h-screen flex items-center justify-center bg-background text-foreground px-6">
       <div className="max-w-md text-center space-y-6">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-destructive/20 bg-destructive/10">
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-[var(--radius-card)] border border-destructive/20 bg-destructive/10">
           <AlertTriangle size={28} className="text-destructive" />
         </div>
 

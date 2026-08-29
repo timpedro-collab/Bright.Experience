@@ -66,7 +66,7 @@ export function BriefingSidebar({ activeTab, eventId, isInternal = false }: Brie
           </p>
           <Link
             href={`/events/${eventId}/communications`}
-            className="mt-3 inline-block text-overline text-[var(--color-bb-cobalt)] underline decoration-from-font underline-offset-4 font-medium"
+            className="mt-3 inline-block text-overline text-primary underline decoration-from-font underline-offset-4 font-medium"
           >
             Message the customer →
           </Link>
@@ -133,7 +133,7 @@ export function BriefingSidebar({ activeTab, eventId, isInternal = false }: Brie
         </p>
         <Link
           href={`/events/${eventId}/communications`}
-          className="mt-3 inline-block text-overline text-[var(--color-bb-cobalt)] underline decoration-from-font underline-offset-4 font-medium"
+          className="mt-3 inline-block text-overline text-primary underline decoration-from-font underline-offset-4 font-medium"
         >
           Message your team →
         </Link>

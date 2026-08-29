@@ -90,7 +90,7 @@ export default async function VenueAdvertisePage({ params }: Props) {
   return (
     <PublicSiteChrome>
       {/* Hero */}
-      <Section className="border-b border-border/40 bg-[radial-gradient(circle_at_20%_20%,hsl(218,90%,30%,0.18),transparent_55%)]">
+      <Section className="border-b border-border/40 bg-[radial-gradient(circle_at_20%_20%,color-mix(in_srgb,var(--color-primary)_18%,transparent),transparent_55%)]">
         <Container className="py-16">
           <Badge variant="info" className="mb-4">
             Venue media · {venue.name}
@@ -126,7 +126,7 @@ export default async function VenueAdvertisePage({ params }: Props) {
         <Container className="py-14">
           <div className="mb-6 flex items-end justify-between gap-4">
             <div>
-              <p className="text-overline text-[var(--color-bb-cobalt)]">
+              <p className="text-overline text-brand-cyan">
                 Open inventory
               </p>
               <h2 className="text-heading mt-1 text-2xl font-bold">
@@ -142,7 +142,7 @@ export default async function VenueAdvertisePage({ params }: Props) {
       {packages.length > 0 && (
         <Section className="border-t border-border/40">
           <Container className="py-14">
-            <p className="text-overline text-[var(--color-bb-cobalt)]">
+            <p className="text-overline text-brand-cyan">
               Turnkey buys
             </p>
             <h2 className="text-heading mt-1 text-2xl font-bold">Packages</h2>
@@ -189,7 +189,7 @@ export default async function VenueAdvertisePage({ params }: Props) {
           <div className="mt-6 flex justify-center">
             <Link
               href="/proposal"
-              className="inline-flex items-center gap-1.5 rounded-sm bg-[var(--color-bb-cobalt)] px-5 py-2.5 text-sm font-medium text-white transition-opacity hover:opacity-90"
+              className="inline-flex items-center gap-1.5 rounded-sm bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
             >
               Talk to the team <ArrowUpRight className="h-4 w-4" />
             </Link>

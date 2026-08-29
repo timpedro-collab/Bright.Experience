@@ -155,7 +155,7 @@ export function ScheduledExportManager({
           <div className="flex items-center gap-1.5 shrink-0">
             <button
               onClick={() => handleRunNow(exp.id)}
-              className="p-1.5 text-muted-foreground hover:text-[var(--color-bb-cobalt)] transition-colors"
+              className="p-1.5 text-muted-foreground hover:text-primary transition-colors"
               title="Run now"
             >
               <Download size={14} />
@@ -169,7 +169,7 @@ export function ScheduledExportManager({
             </button>
             <button
               onClick={() => handleDelete(exp.id)}
-              className="p-1.5 text-red-400/60 hover:text-red-400 transition-colors"
+              className="p-1.5 text-destructive/60 hover:text-destructive transition-colors"
               title="Delete"
             >
               <Trash2 size={14} />
@@ -179,13 +179,13 @@ export function ScheduledExportManager({
       ))}
 
       {downloadUrl && (
-        <div className="flex items-center gap-2 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-md text-sm">
-          <CheckCircle2 size={14} className="text-emerald-400 shrink-0" />
+        <div className="flex items-center gap-2 p-3 bg-success/15 border border-success/30 rounded-md text-sm">
+          <CheckCircle2 size={14} className="text-success shrink-0" />
           <a
             href={downloadUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-emerald-400 underline underline-offset-2"
+            className="text-success underline underline-offset-2"
           >
             Download export
           </a>

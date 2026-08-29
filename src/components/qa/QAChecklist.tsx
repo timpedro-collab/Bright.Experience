@@ -37,9 +37,9 @@ const CATEGORY_LABELS: Record<QACategory, string> = {
 
 const STATUS_CONFIG = {
   pending: { label: "Pending", className: "bg-muted text-muted-foreground" },
-  passed: { label: "Passed", className: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30" },
+  passed: { label: "Passed", className: "bg-success/15 text-success border-success/30" },
   failed: { label: "Failed", className: "bg-destructive/15 text-destructive border-destructive/30" },
-  fixed: { label: "Fixed", className: "bg-brand/15 text-brand border-brand/30" },
+  fixed: { label: "Fixed", className: "bg-primary/15 text-primary border-primary/30" },
   na: { label: "N/A", className: "bg-muted text-muted-foreground" },
 } as const;
 
@@ -176,7 +176,7 @@ function QARow({ item, isInternal }: { item: QAItem; isInternal: boolean }) {
                   className={cn(
                     "px-3.5 py-1 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                     answer === "yes"
-                      ? "bg-emerald-500/15 text-emerald-400"
+                      ? "bg-success/15 text-success"
                       : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
                   )}
                 >
@@ -226,10 +226,10 @@ function QARow({ item, isInternal }: { item: QAItem; isInternal: boolean }) {
                 className={cn(
                   "flex h-6 w-6 shrink-0 items-center justify-center rounded-md border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                   isComplete
-                    ? "border-emerald-500/40 bg-emerald-500/15 text-emerald-400"
+                    ? "border-success/40 bg-success/15 text-success"
                     : item.status === "failed"
                       ? "border-destructive/40 text-destructive"
-                      : "border-border bg-muted/40 text-transparent hover:border-emerald-500/50 hover:text-emerald-400/60",
+                      : "border-border bg-muted/40 text-transparent hover:border-success/50 hover:text-success/60",
                   (pending || item.status === "na") && "opacity-60",
                 )}
               >
@@ -393,7 +393,7 @@ function StatusIcon({ status }: { status: QAItem["status"] }) {
   if (status === "passed") {
     return (
       <span className="shrink-0">
-        <CelebrationCheck size={14} className="text-emerald-400" />
+        <CelebrationCheck size={14} className="text-success" />
       </span>
     );
   }

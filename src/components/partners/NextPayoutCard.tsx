@@ -26,9 +26,9 @@ export function NextPayoutCard({
   paidCents: number;
 }) {
   return (
-    <Card className="bg-gradient-to-br from-[var(--color-bb-cobalt)] to-[#1230b8] text-white">
+    <Card className="bg-gradient-to-br from-primary to-[var(--color-bb-cobalt-deep)] text-primary-foreground">
       <CardContent className="p-6">
-        <div className="flex items-center gap-2 text-white/80">
+        <div className="flex items-center gap-2 text-primary-foreground/80">
           <Wallet className="h-4 w-4" />
           <span className="text-xs font-semibold uppercase tracking-wider">
             Next payout
@@ -37,22 +37,22 @@ export function NextPayoutCard({
         <p className="mt-3 text-4xl font-bold tabular-nums">
           {formatMoneyFromPence(approvedCents)}
         </p>
-        <p className="mt-1 text-sm text-white/80">
+        <p className="mt-1 text-sm text-primary-foreground/80">
           Lands {nextPayoutDate()}
         </p>
 
-        <div className="mt-5 grid grid-cols-2 gap-4 border-t border-white/20 pt-4">
+        <div className="mt-5 grid grid-cols-2 gap-4 border-t border-primary-foreground/20 pt-4">
           <div>
             <p className="text-lg font-semibold tabular-nums">
               {formatMoneyFromPence(pendingCents)}
             </p>
-            <p className="text-xs text-white/70">In pipeline</p>
+            <p className="text-xs text-primary-foreground/70">In pipeline</p>
           </div>
           <div>
             <p className="text-lg font-semibold tabular-nums">
               {formatMoneyFromPence(paidCents)}
             </p>
-            <p className="text-xs text-white/70">Paid to date</p>
+            <p className="text-xs text-primary-foreground/70">Paid to date</p>
           </div>
         </div>
       </CardContent>

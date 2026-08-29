@@ -69,7 +69,7 @@ export default async function StateOfPlayPage() {
       <Section spacing="md" className="border-b border-border/60">
         <Container>
           <div className="max-w-3xl">
-            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+            <p className="text-overline text-brand-cyan mb-3">
               State of Play · 2026 edition
             </p>
             <h1 className="text-display-grotesk text-4xl text-foreground md:text-6xl">
@@ -107,12 +107,12 @@ export default async function StateOfPlayPage() {
 
       <Section className="border-b border-border/60">
         <Container>
-          <p className="mb-8 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+          <p className="text-overline text-muted-foreground mb-8">
             The year in three numbers
           </p>
           <div className="grid gap-6 md:grid-cols-3">
             {topPlays && (
-              <div className="rounded-2xl border border-border bg-muted/40 p-8">
+              <div className="rounded-[var(--radius-card)] border border-border bg-muted/40 p-8">
                 <p className="text-4xl font-semibold tabular-nums tracking-tight text-foreground">
                   {Math.round(topPlays.median).toLocaleString("en-GB")}
                 </p>
@@ -123,7 +123,7 @@ export default async function StateOfPlayPage() {
               </div>
             )}
             {topLeads && (
-              <div className="rounded-2xl border border-border bg-muted/40 p-8">
+              <div className="rounded-[var(--radius-card)] border border-border bg-muted/40 p-8">
                 <p className="text-4xl font-semibold tabular-nums tracking-tight text-foreground">
                   {Math.round(topLeads.median).toLocaleString("en-GB")}
                 </p>
@@ -133,7 +133,7 @@ export default async function StateOfPlayPage() {
                 </p>
               </div>
             )}
-            <div className="rounded-2xl border border-border bg-muted/40 p-8">
+            <div className="rounded-[var(--radius-card)] border border-border bg-muted/40 p-8">
               <p className="text-4xl font-semibold tabular-nums tracking-tight text-foreground">
                 {TRUST_STATS[0].value}
               </p>
@@ -149,7 +149,7 @@ export default async function StateOfPlayPage() {
       <Section className="border-b border-border/60">
         <Container>
           <div className="mx-auto max-w-2xl text-center">
-            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+            <p className="text-overline text-muted-foreground mb-3">
               The findings
             </p>
             <h2 className="text-display-grotesk text-3xl text-foreground md:text-5xl text-balance">
@@ -162,7 +162,7 @@ export default async function StateOfPlayPage() {
                 key={finding.number}
                 className="grid gap-4 md:grid-cols-[4rem_1fr]"
               >
-                <p className="text-2xl font-semibold tabular-nums text-[var(--color-bb-cobalt)]/60">
+                <p className="text-2xl font-semibold tabular-nums text-primary/60">
                   {finding.number}
                 </p>
                 <div>
@@ -183,7 +183,7 @@ export default async function StateOfPlayPage() {
         <Container>
           <div className="grid gap-10 md:grid-cols-[1fr_1.2fr] md:items-start">
             <div>
-              <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+              <p className="text-overline text-muted-foreground mb-3">
                 Where the data comes from
               </p>
               <h2 className="text-display-grotesk text-3xl text-foreground">
@@ -220,7 +220,7 @@ export default async function StateOfPlayPage() {
 
       <Section>
         <Container>
-          <div className="rounded-2xl border border-border bg-muted/30 p-8 text-center md:p-12">
+          <div className="rounded-[var(--radius-card)] border border-border bg-muted/30 p-8 text-center md:p-12">
             <h2 className="text-display-grotesk text-3xl text-foreground md:text-4xl">
               Put your next event on the right side of the data.
             </h2>

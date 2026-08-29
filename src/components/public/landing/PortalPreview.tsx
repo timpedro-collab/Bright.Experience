@@ -29,6 +29,8 @@ export function PortalPreview() {
     <div className="overflow-hidden rounded-[var(--radius-card)] border border-border bg-card shadow-[var(--bb-shadow-premium)]">
       {/* Window chrome */}
       <div className="flex items-center gap-3 border-b border-border bg-muted/60 px-4 py-2.5">
+        {/* macOS traffic lights — deliberate literals: they mimic real
+            window chrome, not a theme-controlled surface. */}
         <div className="flex gap-1.5" aria-hidden>
           <span className="size-2.5 rounded-full bg-[#ff5f57]" />
           <span className="size-2.5 rounded-full bg-[#febc2e]" />
@@ -44,10 +46,10 @@ export function PortalPreview() {
           <p className="text-xs font-semibold text-foreground">
             Summer Launch — Day 2
           </p>
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[0.625rem] font-semibold uppercase tracking-widest text-emerald-600">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-success/30 bg-success/15 px-2 py-0.5 text-[0.625rem] font-semibold uppercase tracking-widest text-success">
             <span className="relative flex size-1.5">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-60" />
-              <span className="relative inline-flex size-1.5 rounded-full bg-emerald-500" />
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-60" />
+              <span className="relative inline-flex size-1.5 rounded-full bg-success" />
             </span>
             Live
           </span>
@@ -84,7 +86,7 @@ export function PortalPreview() {
               >
                 <item.icon
                   aria-hidden
-                  className="size-3.5 shrink-0 text-[var(--color-bb-cobalt)]"
+                  className="size-3.5 shrink-0 text-primary"
                 />
                 <span className="flex-1 truncate text-foreground/90">
                   {item.text}

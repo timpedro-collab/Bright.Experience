@@ -62,7 +62,7 @@ export function CaptureQualitySection({
     <div className="space-y-4">
       <div>
         <label className="flex items-center gap-1.5 text-sm font-medium text-foreground">
-          <ShieldCheck size={14} className="text-[var(--color-bb-cobalt)]" aria-hidden />
+          <ShieldCheck size={14} className="text-primary" aria-hidden />
           Capture quality
         </label>
         <p className="text-xs text-muted-foreground mt-0.5">
@@ -80,7 +80,7 @@ export function CaptureQualitySection({
             onChange={(e) =>
               onRulesChange({ ...rules, businessEmailsOnly: e.target.checked })
             }
-            className="accent-[var(--color-bb-cobalt)]"
+            className="accent-primary"
           />
           Business emails only
           <span className="text-xs text-muted-foreground">
@@ -154,7 +154,7 @@ export function CaptureQualitySection({
           onChange={(e) =>
             onRulesChange({ ...rules, blockDuplicates: e.target.checked })
           }
-          className="accent-[var(--color-bb-cobalt)]"
+          className="accent-primary"
         />
         One entry per person
         <span className="text-xs text-muted-foreground">
@@ -171,7 +171,7 @@ export function CaptureQualitySection({
             onChange={(e) =>
               onRulesChange({ ...rules, consentRequired: e.target.checked })
             }
-            className="accent-[var(--color-bb-cobalt)]"
+            className="accent-primary"
           />
           Require GDPR consent checkbox
         </label>
@@ -219,7 +219,7 @@ export function CaptureQualitySection({
         className={cn(
           "rounded-lg border p-3 transition-colors",
           brandedLanding
-            ? "border-[var(--color-bb-cobalt)] bg-[var(--color-bb-cobalt)]/10"
+            ? "border-primary bg-primary/10"
             : "border-border bg-muted/30"
         )}
       >
@@ -228,11 +228,11 @@ export function CaptureQualitySection({
             type="checkbox"
             checked={brandedLanding}
             onChange={(e) => onBrandedLandingChange(e.target.checked)}
-            className="mt-0.5 accent-[var(--color-bb-cobalt)]"
+            className="mt-0.5 accent-primary"
           />
           <span>
             <span className="flex items-center gap-1.5 font-medium">
-              <Sparkles size={13} className="text-[var(--color-bb-cobalt)]" aria-hidden />
+              <Sparkles size={13} className="text-primary" aria-hidden />
               Branded capture landing page
             </span>
             <span className="block text-xs text-muted-foreground mt-0.5">

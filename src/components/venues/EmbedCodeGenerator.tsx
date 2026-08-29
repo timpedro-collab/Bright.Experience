@@ -132,7 +132,7 @@ export function EmbedCodeGenerator({ venueSlug }: EmbedCodeGeneratorProps) {
               variant="outline"
               className={cn(
                 "absolute top-3 right-3 gap-1.5",
-                copied && "text-emerald-400 border-emerald-400/40",
+                copied && "text-success border-success/40",
               )}
               onClick={handleCopy}
             >

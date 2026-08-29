@@ -56,9 +56,12 @@ export default async function PlayerResultPage({ params }: Props) {
     .join(" ");
 
   return (
-    <div className="min-h-screen bg-[#070b26] text-white">
-      <div className="mx-auto max-w-xl px-6 py-16 text-center sm:py-24">
-        <p className="text-xs font-semibold uppercase tracking-[0.35em] text-[#8fd8ff]">
+    /* Cinematic share surface — force-Ink (`theme-dark`) like the wrapped
+       report, so the player card always reads as the night-mode keepsake
+       regardless of the visitor's theme. */
+    <div className="theme-dark ink-glows relative min-h-screen bg-background text-foreground">
+      <div className="relative mx-auto max-w-xl px-6 py-16 text-center sm:py-24">
+        <p className="text-xs font-semibold uppercase tracking-[0.35em] text-brand-cyan">
           {result.eventName}
         </p>
 
@@ -67,13 +70,14 @@ export default async function PlayerResultPage({ params }: Props) {
         </h1>
 
         {result.score != null && (
-          <p className="mt-12 text-[clamp(4rem,20vw,8rem)] font-bold leading-none tabular-nums">
+          /* The page's one gradient accent — the score is the key metric. */
+          <p className="text-brand-gradient mt-12 text-[clamp(4rem,20vw,8rem)] font-bold leading-none tabular-nums">
             {result.score.toLocaleString("en-GB")}
           </p>
         )}
 
         {(standing || fallbackLine) && (
-          <p className="mt-6 inline-flex items-center gap-2 rounded-full border border-[#8fd8ff]/40 bg-[#8fd8ff]/5 px-5 py-2 text-base font-semibold text-[#8fd8ff]">
+          <p className="mt-6 inline-flex items-center gap-2 rounded-full border border-brand-cyan/40 bg-brand-cyan/10 px-5 py-2 text-base font-semibold text-brand-cyan">
             <Trophy size={16} />
             {standing?.line ?? fallbackLine}
           </p>
@@ -86,14 +90,14 @@ export default async function PlayerResultPage({ params }: Props) {
           />
         </div>
 
-        <div className="theme-dark mt-16">
+        <div className="mt-16">
           <InvitationFooter
             artifact="player_card"
             fromEvent={result.eventName}
           />
         </div>
 
-        <p className="mt-8 text-xs text-white/40">
+        <p className="mt-8 text-xs text-muted-foreground/60">
           Measured live at the machine · bright.blue
         </p>
       </div>

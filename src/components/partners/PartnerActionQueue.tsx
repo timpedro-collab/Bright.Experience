@@ -56,7 +56,7 @@ export function PartnerActionQueue({
         <CardTitle className="flex items-center justify-between">
           <span>Needs your attention</span>
           {actions.length > 0 && (
-            <span className="rounded-full bg-[var(--color-bb-cobalt)] px-2 py-0.5 text-xs font-semibold text-white">
+            <span className="rounded-full bg-primary px-2 py-0.5 text-xs font-semibold text-primary-foreground">
               {actions.length}
             </span>
           )}
@@ -77,7 +77,7 @@ export function PartnerActionQueue({
                   key={item.id}
                   className="flex items-start gap-3 rounded-[var(--radius-control)] border border-border/60 bg-muted/30 p-3"
                 >
-                  <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--color-bb-cobalt)]/10 text-[var(--color-bb-cobalt)]">
+                  <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
                     <Icon className="h-3.5 w-3.5" />
                   </span>
                   <div className="min-w-0">
@@ -95,7 +95,7 @@ export function PartnerActionQueue({
         {openQuotes.length > 0 && (
           <Link
             href={quotesHref}
-            className="mt-4 inline-flex items-center gap-1 text-xs font-medium text-[var(--color-bb-cobalt)] hover:underline"
+            className="mt-4 inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
           >
             Manage your quote pipeline <ArrowRight className="h-3 w-3" />
           </Link>

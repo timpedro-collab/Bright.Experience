@@ -50,7 +50,7 @@ const rise = {
 export function SkuSlide({}: SlideProps) {
   return (
     <SlideFrame>
-      <p className="text-overline text-[var(--color-bb-cyan)]">The offer</p>
+      <p className="text-overline text-brand-cyan">The offer</p>
       <h2 className="text-display-grotesk mt-2 text-4xl sm:text-5xl">
         {ACTIVATION_SKU.name}
       </h2>
@@ -70,7 +70,7 @@ export function SkuSlide({}: SlideProps) {
             variants={rise}
             className="rounded-2xl border border-border/70 bg-card/50 p-6"
           >
-            <h3 className="font-semibold text-[var(--color-bb-cyan)]">{part.label}</h3>
+            <h3 className="font-semibold text-brand-cyan">{part.label}</h3>
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{part.detail}</p>
           </motion.div>
         ))}
@@ -85,10 +85,10 @@ export function SkuSlide({}: SlideProps) {
         {PRODUCT_FAMILY.map((p) => (
           <div
             key={p.id}
-            className="rounded-xl border border-[var(--color-bb-cobalt)]/40 bg-[var(--color-bb-cobalt)]/5 px-4 py-3"
+            className="rounded-xl border border-primary/40 bg-primary/5 px-4 py-3"
           >
             <p className="font-semibold">{p.name}</p>
-            <p className="text-xs uppercase tracking-widest text-[var(--color-bb-cyan)]">
+            <p className="text-xs uppercase tracking-widest text-brand-cyan">
               {p.descriptor}
             </p>
             <p className="mt-1 text-xs tabular-nums text-muted-foreground">
@@ -104,7 +104,7 @@ export function SkuSlide({}: SlideProps) {
 export function RenewalSlide({ slideNumber }: SlideProps) {
   return (
     <SlideFrame>
-      <p className="text-overline text-[var(--color-bb-cyan)]">Why organizers care</p>
+      <p className="text-overline text-brand-cyan">Why organizers care</p>
       <h2 className="text-display-grotesk mt-2 max-w-3xl text-4xl sm:text-5xl">
         {RENEWAL_PITCH.headline}
       </h2>
@@ -127,15 +127,15 @@ export function RenewalSlide({ slideNumber }: SlideProps) {
         transition={{ delay: 0.6, duration: 0.5 }}
         className="mt-10 flex flex-wrap items-center gap-4"
       >
-        <span className="inline-flex items-center gap-3 rounded-full border border-[var(--color-bb-cobalt)]/50 bg-[var(--color-bb-cobalt)]/10 px-6 py-3">
-          <Clock3 className="size-5 text-[var(--color-bb-cyan)]" aria-hidden />
+        <span className="inline-flex items-center gap-3 rounded-full border border-primary/50 bg-primary/10 px-6 py-3">
+          <Clock3 className="size-5 text-brand-cyan" aria-hidden />
           <span className="text-sm font-semibold">
             Report within 24 hours of close. The industry norm is 48 to 72, when it exists at all.
           </span>
         </span>
         <Link
           href={`/informa/report?slide=${slideNumber}`}
-          className="inline-flex items-center gap-2 rounded-full border border-border/70 px-6 py-3 text-sm font-medium transition-colors hover:border-[var(--color-bb-cyan)] hover:text-[var(--color-bb-cyan)]"
+          className="inline-flex items-center gap-2 rounded-full border border-border/70 px-6 py-3 text-sm font-medium transition-colors hover:border-brand-cyan hover:text-brand-cyan"
         >
           Open the sample report
           <ArrowRight className="size-4" aria-hidden />
@@ -148,7 +148,7 @@ export function RenewalSlide({ slideNumber }: SlideProps) {
 export function KitPreviewSlide({ slideNumber }: SlideProps) {
   return (
     <SlideFrame>
-      <p className="text-overline text-[var(--color-bb-cyan)]">Sales enablement</p>
+      <p className="text-overline text-brand-cyan">Sales enablement</p>
       <h2 className="text-display-grotesk mt-2 max-w-3xl text-4xl sm:text-5xl">
         Your reps can sell this tomorrow
       </h2>
@@ -178,7 +178,7 @@ export function KitPreviewSlide({ slideNumber }: SlideProps) {
 
       <Link
         href={`/informa/kit?slide=${slideNumber}`}
-        className="mt-8 inline-flex items-center gap-2 self-start rounded-full bg-[var(--color-bb-cobalt)] px-7 py-3 text-sm font-semibold text-white transition-transform hover:scale-105"
+        className="mt-8 inline-flex items-center gap-2 self-start rounded-full bg-primary px-7 py-3 text-sm font-semibold text-primary-foreground transition-transform hover:scale-105"
       >
         Open the seller&apos;s kit
         <ArrowRight className="size-4" aria-hidden />
@@ -204,7 +204,7 @@ export function AskSlide({ slideNumber }: SlideProps) {
       </div>
 
       <SlideFrame className="relative items-center text-center">
-        <p className="text-overline text-[var(--color-bb-cyan)]">{THE_ASK.headline}</p>
+        <p className="text-overline text-brand-cyan">{THE_ASK.headline}</p>
         <h2 className="text-display-grotesk mt-4 max-w-3xl text-balance text-4xl leading-tight sm:text-6xl">
           {THE_ASK.line}
         </h2>
@@ -224,7 +224,7 @@ export function AskSlide({ slideNumber }: SlideProps) {
               variants={rise}
               className="rounded-2xl border border-border/70 bg-card/60 p-5 backdrop-blur-sm"
             >
-              <p className="text-xs font-semibold uppercase tracking-widest text-[var(--color-bb-cyan)]">
+              <p className="text-xs font-semibold uppercase tracking-widest text-brand-cyan">
                 {String(i + 1).padStart(2, "0")} · {step.title}
               </p>
               <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
@@ -242,13 +242,13 @@ export function AskSlide({ slideNumber }: SlideProps) {
         >
           <Link
             href={`/informa/kit?slide=${slideNumber}`}
-            className="rounded-full bg-[var(--color-bb-cobalt)] px-8 py-3 text-sm font-semibold text-white transition-transform hover:scale-105"
+            className="rounded-full bg-primary px-8 py-3 text-sm font-semibold text-primary-foreground transition-transform hover:scale-105"
           >
             See what your reps get
           </Link>
           <Link
             href={`/informa/report?slide=${slideNumber}`}
-            className="rounded-full border border-border/70 px-8 py-3 text-sm font-medium transition-colors hover:border-[var(--color-bb-cyan)] hover:text-[var(--color-bb-cyan)]"
+            className="rounded-full border border-border/70 px-8 py-3 text-sm font-medium transition-colors hover:border-brand-cyan hover:text-brand-cyan"
           >
             See what sponsors get
           </Link>

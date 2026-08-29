@@ -79,7 +79,7 @@ export function AssetRow({ asset, comments = [], commentCount = 0, annotations =
             overdue
               ? "bg-destructive"
               : needsAction
-                ? "bg-[var(--color-bb-cobalt)]"
+                ? "bg-primary"
                 : asset.status === "accepted"
                   ? "bg-success/50"
                   : "bg-transparent"
@@ -168,7 +168,7 @@ export function AssetRow({ asset, comments = [], commentCount = 0, annotations =
                   href={asset.fileUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-[var(--color-bb-cobalt)] hover:underline"
+                  className="inline-flex items-center gap-1 text-primary hover:underline"
                 >
                   {asset.fileName}
                   <ExternalLink size={10} className="shrink-0" />
@@ -204,8 +204,8 @@ export function AssetRow({ asset, comments = [], commentCount = 0, annotations =
           })()}
 
           {asset.uploadWarnings && asset.uploadWarnings.length > 0 && (
-            <div className="mt-3 border-l-2 border-amber-400/60 pl-3 py-1">
-              <p className="text-overline text-amber-400 mb-1">Upload warnings</p>
+            <div className="mt-3 border-l-2 border-warning/60 pl-3 py-1">
+              <p className="text-overline text-warning mb-1">Upload warnings</p>
               <ul className="text-xs text-foreground/80 space-y-0.5">
                 {asset.uploadWarnings.map((w, i) => (
                   <li key={i}>⚠ {w}</li>
@@ -227,14 +227,14 @@ export function AssetRow({ asset, comments = [], commentCount = 0, annotations =
             )}
 
           {openAnnotations.length > 0 && (
-            <div className="mt-3 border-l-2 border-[var(--color-bb-cobalt)]/60 pl-3 py-1">
-              <p className="text-overline text-[var(--color-bb-cobalt)] mb-1.5">
+            <div className="mt-3 border-l-2 border-primary/60 pl-3 py-1">
+              <p className="text-overline text-primary mb-1.5">
                 Marked-up notes from creative
               </p>
               <ul className="space-y-1.5">
                 {openAnnotations.map((a, i) => (
                   <li key={a.id} className="flex items-start gap-2 text-sm">
-                    <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-[var(--color-bb-cobalt)]/15 text-[10px] font-semibold text-[var(--color-bb-cobalt)]">
+                    <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-primary/15 text-[10px] font-semibold text-primary">
                       {i + 1}
                     </span>
                     <span className="min-w-0 flex-1 break-words text-foreground/90 leading-snug">

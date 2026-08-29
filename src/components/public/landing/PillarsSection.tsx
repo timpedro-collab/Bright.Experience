@@ -32,7 +32,7 @@ export function PillarsSection() {
     <Section className="border-t border-border/60">
       <Container>
         <div className="mx-auto max-w-2xl text-center mb-14">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground mb-3">
+          <p className="text-overline text-brand-cyan mb-3">
             Own Every Room
           </p>
           <h2 className="text-display-grotesk text-4xl text-foreground md:text-5xl text-balance">
@@ -48,12 +48,12 @@ export function PillarsSection() {
           {PILLARS.map((p, i) => (
             <div
               key={p.title}
-              className="group relative rounded-2xl border border-border bg-muted/40 p-8 transition-colors hover:border-[var(--color-bb-cyan)]/30"
+              className="group relative rounded-[var(--radius-card)] border border-border bg-card p-8 transition-colors hover:border-brand-cyan/30"
             >
               <span className="absolute right-6 top-6 text-sm font-semibold tabular-nums text-muted-foreground/40">
                 0{i + 1}
               </span>
-              <div className="mb-5 flex size-14 items-center justify-center rounded-xl bg-[var(--color-bb-cobalt)]/10 ring-1 ring-[var(--color-bb-cobalt)]/20">
+              <div className="mb-5 flex size-14 items-center justify-center rounded-[var(--radius-control)] bg-primary/10 ring-1 ring-primary/20">
                 <Image
                   src={p.icon}
                   alt=""

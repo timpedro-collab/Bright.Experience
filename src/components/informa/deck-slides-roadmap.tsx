@@ -27,7 +27,7 @@ const rise = {
 export function RoadmapSlide({}: SlideProps) {
   return (
     <section className="mx-auto flex w-full max-w-6xl flex-1 flex-col justify-center px-6 pb-24 pt-12 sm:px-10">
-      <p className="text-overline text-[var(--color-bb-cyan)]">
+      <p className="text-overline text-brand-cyan">
         {ROADMAP_2027.overline}
       </p>
       <h2 className="text-display-grotesk mt-2 max-w-3xl text-4xl sm:text-5xl">
@@ -55,7 +55,7 @@ export function RoadmapSlide({}: SlideProps) {
                 className="flex items-start gap-2 text-sm leading-relaxed text-muted-foreground"
               >
                 <Check
-                  className="mt-0.5 size-4 shrink-0 text-[var(--color-bb-cyan)]"
+                  className="mt-0.5 size-4 shrink-0 text-brand-cyan"
                   aria-hidden
                 />
                 {item}
@@ -70,18 +70,18 @@ export function RoadmapSlide({}: SlideProps) {
           animate="visible"
           className="grid gap-3"
         >
-          <p className="text-xs font-semibold uppercase tracking-widest text-[var(--color-bb-cyan)]">
+          <p className="text-xs font-semibold uppercase tracking-widest text-brand-cyan">
             {ROADMAP_2027.inBuild.title}
           </p>
           {ROADMAP_2027.inBuild.items.map((item) => (
             <motion.div
               key={item.title}
               variants={rise}
-              className="rounded-2xl border border-[var(--color-bb-cobalt)]/40 bg-[var(--color-bb-cobalt)]/5 p-5"
+              className="rounded-2xl border border-primary/40 bg-primary/5 p-5"
             >
               <div className="flex items-baseline justify-between gap-3">
                 <p className="font-semibold">{item.title}</p>
-                <span className="shrink-0 rounded-full border border-[var(--color-bb-cyan)]/50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-[var(--color-bb-cyan)]">
+                <span className="shrink-0 rounded-full border border-brand-cyan/50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-brand-cyan">
                   2027
                 </span>
               </div>

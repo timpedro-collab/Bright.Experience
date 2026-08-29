@@ -125,7 +125,7 @@ export default async function MachineDetailPage({ params }: PageProps) {
                 $30–65 CPM.
               </p>
             </div>
-            <div className="relative aspect-[4/3] overflow-hidden rounded-[var(--radius-card)] border border-border bg-[radial-gradient(ellipse_at_center,hsl(230,93%,53%,0.25),transparent_55%)]">
+            <div className="relative aspect-[4/3] overflow-hidden rounded-[var(--radius-card)] border border-border bg-muted bg-[radial-gradient(ellipse_at_center,color-mix(in_srgb,var(--color-bb-cobalt)_25%,transparent),transparent_55%)]">
               {machine.hero_image_url ? (
                 <Image
                   src={machine.hero_image_url}
@@ -137,7 +137,7 @@ export default async function MachineDetailPage({ params }: PageProps) {
                 />
               ) : (
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="text-heading text-8xl font-bold text-white/15">
+                  <span className="text-heading text-8xl font-bold text-foreground/15">
                     {machine.name[0]}
                   </span>
                 </div>
@@ -160,7 +160,7 @@ export default async function MachineDetailPage({ params }: PageProps) {
           <Section className="border-b border-border/60">
             <Container>
               <div className="mb-6">
-                <p className="text-overline text-muted-foreground mb-2">Gallery</p>
+                <p className="text-overline text-brand-cyan mb-2">Gallery</p>
                 <h2 className="text-heading text-3xl font-bold text-foreground md:text-4xl">
                   See it in action
                 </h2>
@@ -193,14 +193,14 @@ export default async function MachineDetailPage({ params }: PageProps) {
             <Container>
               <div className="grid gap-12 md:grid-cols-2">
                 <div>
-                  <p className="text-overline text-muted-foreground mb-2">Specifications</p>
+                  <p className="text-overline text-brand-cyan mb-2">Specifications</p>
                   <h2 className="text-heading text-3xl font-bold text-foreground md:text-4xl">
                     At a glance
                   </h2>
                   <dl className="mt-6 space-y-5">
                     {capacity && (
                       <div className="flex items-start gap-3">
-                        <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border/60 bg-muted/40 text-[hsl(189,100%,75%)]">
+                        <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border/60 bg-muted/40 text-brand-cyan">
                           <Boxes className="h-4 w-4" />
                         </span>
                         <div>
@@ -211,7 +211,7 @@ export default async function MachineDetailPage({ params }: PageProps) {
                     )}
                     {mechanisms.length > 0 && (
                       <div className="flex items-start gap-3">
-                        <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border/60 bg-muted/40 text-[hsl(189,100%,75%)]">
+                        <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border/60 bg-muted/40 text-brand-cyan">
                           <Cog className="h-4 w-4" />
                         </span>
                         <div>
@@ -251,7 +251,7 @@ export default async function MachineDetailPage({ params }: PageProps) {
 
                 {bestFor.length > 0 && (
                   <div>
-                    <p className="text-overline text-muted-foreground mb-2 flex items-center gap-2">
+                    <p className="text-overline text-brand-cyan mb-2 flex items-center gap-2">
                       <MapPin className="h-3.5 w-3.5" /> Where it works well
                     </p>
                     <h2 className="text-heading text-3xl font-bold text-foreground md:text-4xl">
@@ -263,7 +263,7 @@ export default async function MachineDetailPage({ params }: PageProps) {
                           key={b}
                           className="flex items-start gap-3 rounded-[var(--radius-card)] border border-border/50 bg-muted/20 p-4"
                         >
-                          <Check className="mt-0.5 h-5 w-5 shrink-0 text-[hsl(189,100%,75%)]" />
+                          <Check className="mt-0.5 h-5 w-5 shrink-0 text-brand-cyan" />
                           <span className="text-sm leading-relaxed text-foreground/90 md:text-base">
                             {b}
                           </span>
@@ -282,7 +282,7 @@ export default async function MachineDetailPage({ params }: PageProps) {
         <Section className="border-b border-border/60">
           <Container>
             <div className="mb-8">
-              <p className="text-overline text-muted-foreground mb-2">Compatible games</p>
+              <p className="text-overline text-brand-cyan mb-2">Compatible games</p>
               <h2 className="text-heading text-3xl font-bold text-foreground md:text-4xl">
                 Games that run on the {machine.name}
               </h2>
@@ -310,7 +310,7 @@ export default async function MachineDetailPage({ params }: PageProps) {
           <Container>
             <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
               <div>
-                <p className="text-overline text-muted-foreground mb-2">Packages</p>
+                <p className="text-overline text-brand-cyan mb-2">Packages</p>
                 <h2 className="text-heading text-3xl font-bold text-foreground md:text-4xl">
                   Configure your activation
                 </h2>

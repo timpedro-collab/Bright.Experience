@@ -146,6 +146,8 @@ export default async function PublicReportPage({ params }: Props) {
             </Link>
           ) : (
             <Link href="/catalog" className="flex items-center gap-3">
+              {/* Brand logo chip — cobalt is constant across themes, so white
+                  foreground is a justified literal, not a theme leak. */}
               <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand text-white font-bold text-sm">
                 B
               </div>

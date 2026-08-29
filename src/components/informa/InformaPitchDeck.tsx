@@ -120,7 +120,7 @@ export function InformaPitchDeck() {
               className={cn(
                 "size-2 rounded-full transition-all",
                 i === index
-                  ? "w-6 bg-[var(--color-bb-cobalt)]"
+                  ? "w-6 bg-primary"
                   : "bg-muted-foreground/30 hover:bg-muted-foreground/60"
               )}
             />

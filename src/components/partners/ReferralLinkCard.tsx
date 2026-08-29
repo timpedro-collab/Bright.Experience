@@ -29,6 +29,7 @@ export function ReferralLinkCard({
   );
 
   // Encode QR via Google Charts API (zero deps, works offline-cached)
+  // QR API requires literal fg/bg hex — not theme-controlled surface colours.
   const qrUrl = useMemo(
     () =>
       `https://api.qrserver.com/v1/create-qr-code/?size=160x160&margin=0&format=svg&color=ffffff&bgcolor=0d1640&data=${encodeURIComponent(referralUrl)}`,
@@ -66,7 +67,7 @@ export function ReferralLinkCard({
           </p>
 
           <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center">
-            <code className="flex-1 truncate rounded-[var(--radius-control)] border border-white/8 bg-black/30 px-3 py-2 font-mono text-xs text-foreground">
+            <code className="flex-1 truncate rounded-[var(--radius-control)] border border-border bg-muted/30 px-3 py-2 font-mono text-xs text-foreground">
               {referralUrl}
             </code>
             <div className="flex gap-2">
@@ -90,7 +91,8 @@ export function ReferralLinkCard({
         </div>
 
         <div className="flex flex-col items-center gap-2">
-          <div className="rounded-[var(--radius-card)] border border-white/12 bg-[hsl(233,56%,11%)] p-3">
+          <div className="rounded-[var(--radius-card)] border border-border bg-card p-3">
+            {/* QR API requires literal fg/bg hex — not theme-controlled surface colours. */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={qrUrl}

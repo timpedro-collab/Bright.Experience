@@ -40,7 +40,7 @@ export default function AdminLoading() {
         {/* Loading indicator */}
         <div className="flex items-center justify-center py-6">
           <div className="flex items-center gap-3">
-            <div className="h-5 w-5 rounded-full border-2 border-[var(--color-bb-cobalt)] border-t-transparent animate-spin" />
+            <div className="h-5 w-5 rounded-full border-2 border-primary border-t-transparent animate-spin" />
             <p className="text-sm text-muted-foreground animate-pulse">
               Loading…
             </p>

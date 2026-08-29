@@ -314,7 +314,7 @@ export default async function ShowCommandPage({ params }: Props) {
             />
             <Link
               href={`/organizers/${slug}/sponsors`}
-              className="inline-flex items-center gap-1 text-xs font-medium text-[var(--color-bb-cobalt)] hover:underline"
+              className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
             >
               All shows <ArrowRight size={12} />
             </Link>

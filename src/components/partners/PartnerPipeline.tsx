@@ -19,7 +19,7 @@ const STATUS: Record<
   },
   approved: {
     label: "Approved — payout due",
-    className: "bg-[var(--color-bb-cobalt)]/15 text-[var(--color-bb-cobalt)]",
+    className: "bg-primary/15 text-primary",
   },
   paid: {
     label: "Paid",
@@ -73,7 +73,7 @@ export function PartnerDealList({
                   "mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full",
                   deal.kind === "event"
                     ? "bg-success/10 text-success"
-                    : "bg-[var(--color-bb-cobalt)]/10 text-[var(--color-bb-cobalt)]",
+                    : "bg-primary/10 text-primary",
                 )}
               >
                 {deal.kind === "event" ? (

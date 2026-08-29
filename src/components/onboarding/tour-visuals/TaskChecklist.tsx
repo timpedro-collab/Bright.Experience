@@ -25,26 +25,28 @@ export function TaskChecklist() {
   return (
     <div className="w-full max-w-sm mx-auto">
       <motion.div
-        className="rounded-2xl border border-white/10 bg-white/[0.03] overflow-hidden"
+        className="rounded-2xl border border-border bg-card overflow-hidden"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3, type: "spring", stiffness: 200 }}
       >
-        <div className="px-5 py-3 border-b border-white/5 flex items-center justify-between">
-          <span className="text-[10px] uppercase tracking-widest text-white/40">
+        <div className="px-5 py-3 border-b border-border/50 flex items-center justify-between">
+          <span className="text-[10px] uppercase tracking-widest text-muted-foreground/60">
             Waiting on you
           </span>
           <motion.span
             className="text-xs tabular-nums font-medium"
             animate={{
-              color: completed.length >= 2 ? "rgba(0,212,255,0.9)" : "rgba(255,255,255,0.5)",
+              // framer-motion can't interpolate var() — literal accent cyan
+              // (#00BFE8) and 50% white, matching the Ink tokens.
+              color: completed.length >= 2 ? "rgba(0,191,232,1)" : "rgba(255,255,255,0.5)",
             }}
           >
             {completed.length}/{TASKS.length}
           </motion.span>
         </div>
 
-        <ul className="divide-y divide-white/5">
+        <ul className="divide-y divide-border/50">
           {TASKS.map((task) => {
             const isDone = completed.includes(task.id);
             return (
@@ -59,28 +61,28 @@ export function TaskChecklist() {
                   {isDone ? (
                     <motion.div
                       key="done"
-                      className="flex items-center justify-center size-5 rounded-full bg-[var(--color-bb-cyan)]"
+                      className="flex items-center justify-center size-5 rounded-full bg-primary"
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
                       transition={{ type: "spring", stiffness: 500, damping: 20 }}
                     >
-                      <Check className="size-3 text-[var(--color-bb-deep-ink)]" strokeWidth={3} />
+                      <Check className="size-3 text-primary-foreground" strokeWidth={3} />
                     </motion.div>
                   ) : (
                     <motion.div key="open">
-                      <Circle className="size-5 text-white/20" />
+                      <Circle className="size-5 text-muted-foreground/30" />
                     </motion.div>
                   )}
                 </AnimatePresence>
                 <span
                   className={`flex-1 text-sm transition-all duration-500 ${
-                    isDone ? "line-through text-white/30" : "text-white/80"
+                    isDone ? "line-through text-muted-foreground/50" : "text-foreground/85"
                   }`}
                 >
                   {task.label}
                 </span>
                 {!isDone && (
-                  <ArrowRight className="size-3.5 text-[var(--color-bb-cobalt)]" />
+                  <ArrowRight className="size-3.5 text-primary" />
                 )}
               </motion.li>
             );
@@ -88,14 +90,14 @@ export function TaskChecklist() {
         </ul>
 
         <motion.div
-          className="px-5 py-3 border-t border-white/5"
+          className="px-5 py-3 border-t border-border/50"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 2.5 }}
         >
-          <div className="h-1 rounded-full bg-white/5 overflow-hidden">
+          <div className="h-1 rounded-full bg-muted overflow-hidden">
             <motion.div
-              className="h-full bg-[var(--color-bb-cyan)] rounded-full"
+              className="h-full bg-primary rounded-full"
               initial={{ width: "0%" }}
               animate={{ width: `${(completed.length / TASKS.length) * 100}%` }}
               transition={{ type: "spring", stiffness: 100, damping: 20 }}

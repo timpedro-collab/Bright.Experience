@@ -25,7 +25,7 @@ export function SaveAsTemplateButton({ eventId }: { eventId: string }) {
 
   if (done) {
     return (
-      <div className="flex items-center gap-2 text-xs text-emerald-400">
+      <div className="flex items-center gap-2 text-xs text-success">
         <CheckCircle2 size={14} /> Template saved
       </div>
     );
@@ -46,7 +46,7 @@ export function SaveAsTemplateButton({ eventId }: { eventId: string }) {
         value={name}
         onChange={(e) => setName(e.target.value)}
         placeholder="Template name…"
-        className="px-2 py-1.5 text-xs bg-transparent border border-border/40 rounded outline-none focus:border-[var(--color-bb-cobalt)] transition-colors"
+        className="px-2 py-1.5 text-xs bg-transparent border border-border/40 rounded outline-none focus:border-primary transition-colors"
         autoFocus
         onKeyDown={(e) => e.key === "Enter" && handleSave()}
       />

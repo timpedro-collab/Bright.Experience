@@ -41,7 +41,7 @@ export function NetworkSection() {
     <Section className="border-t border-border/60">
       <Container>
         <div className="mx-auto max-w-3xl text-center mb-14">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground mb-3">
+          <p className="text-overline text-brand-cyan mb-3">
             One connected market
           </p>
           <h2 className="text-display-grotesk text-4xl text-foreground md:text-5xl text-balance">
@@ -59,15 +59,15 @@ export function NetworkSection() {
             <Link
               key={door.role}
               href={door.href}
-              className="group relative flex flex-col rounded-2xl border border-border bg-muted/40 p-8 transition-colors hover:border-[var(--color-bb-cyan)]/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="group relative flex flex-col rounded-[var(--radius-card)] border border-border bg-card p-8 transition-colors hover:border-brand-cyan/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
-              <div className="mb-5 flex size-12 items-center justify-center rounded-xl bg-[var(--color-bb-cobalt)]/10 ring-1 ring-[var(--color-bb-cobalt)]/20">
+              <div className="mb-5 flex size-12 items-center justify-center rounded-[var(--radius-control)] bg-primary/10 ring-1 ring-primary/20">
                 <door.icon
-                  className="h-5 w-5 text-[var(--color-bb-cobalt)]"
+                  className="h-5 w-5 text-primary"
                   aria-hidden
                 />
               </div>
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+              <p className="text-overline text-muted-foreground">
                 For {door.role}
               </p>
               <h3 className="mt-2 text-lg font-semibold text-foreground">

@@ -59,10 +59,10 @@ export function KpiCard({
               className={cn(
                 "inline-flex items-center gap-0.5 font-medium",
                 trend === "down"
-                  ? "text-rose-500"
+                  ? "text-destructive"
                   : trend === "flat"
                     ? "text-muted-foreground"
-                    : "text-emerald-500"
+                    : "text-success"
               )}
             >
               {trend === "down" ? (

@@ -39,9 +39,9 @@ export function StreakIndicator({ streak, className }: StreakIndicatorProps) {
           className={cn(
             "fill-current",
             streak >= 7
-              ? "text-[var(--color-bb-cyan)]"
+              ? "text-brand-cyan"
               : streak >= 3
-                ? "text-[hsl(43,90%,60%)]"
+                ? "text-warning"
                 : "text-muted-foreground"
           )}
         />

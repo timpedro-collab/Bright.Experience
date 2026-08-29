@@ -2,7 +2,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import {
   Download,
   FileText,
@@ -21,12 +20,15 @@ interface PartnerResourceCardProps {
   viewInBrowser?: boolean;
 }
 
-const CATEGORY_STYLES: Record<string, string> = {
-  "pitch-deck": "bg-violet-500/10 text-violet-400 border-violet-500/20",
-  "product-sheet": "bg-sky-500/10 text-sky-400 border-sky-500/20",
-  "case-study": "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
-  branding: "bg-amber-500/10 text-amber-400 border-amber-500/20",
-  video: "bg-rose-500/10 text-rose-400 border-rose-500/20",
+const CATEGORY_VARIANTS: Record<
+  string,
+  "default" | "info" | "success" | "warning" | "destructive" | "muted"
+> = {
+  "pitch-deck": "default",
+  "product-sheet": "info",
+  "case-study": "success",
+  branding: "warning",
+  video: "destructive",
 };
 
 const CATEGORY_ICONS: Record<string, React.ElementType> = {
@@ -45,7 +47,7 @@ export function PartnerResourceCard({
   viewInBrowser = false,
 }: PartnerResourceCardProps) {
   const Icon = CATEGORY_ICONS[category] ?? FileText;
-  const badgeClass = CATEGORY_STYLES[category] ?? "bg-muted/40 text-muted-foreground border-border/60";
+  const badgeVariant = CATEGORY_VARIANTS[category] ?? "muted";
 
   return (
     <Card className="border-border/60 bg-muted/40 backdrop-blur-sm transition-colors hover:bg-accent">
@@ -54,7 +56,7 @@ export function PartnerResourceCard({
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-muted/40">
             <Icon size={20} className="text-muted-foreground" />
           </div>
-          <Badge className={cn("border text-xs capitalize", badgeClass)}>
+          <Badge variant={badgeVariant} className="text-xs capitalize">
             {category.replace(/-/g, " ")}
           </Badge>
         </div>

@@ -22,9 +22,9 @@ interface AdminPartnerTableProps {
 }
 
 const STATUS_MAP: Record<string, { label: string; className: string }> = {
-  active: { label: "Active", className: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" },
-  pending: { label: "Pending", className: "bg-amber-500/10 text-amber-400 border-amber-500/20" },
-  suspended: { label: "Suspended", className: "bg-red-500/10 text-red-400 border-red-500/20" },
+  active: { label: "Active", className: "bg-success/15 text-success border-success/30" },
+  pending: { label: "Pending", className: "bg-warning/15 text-warning border-warning/30" },
+  suspended: { label: "Suspended", className: "bg-destructive/15 text-destructive border-destructive/30" },
 };
 
 export function AdminPartnerTable({ partners }: AdminPartnerTableProps) {
@@ -108,7 +108,7 @@ export function AdminPartnerTable({ partners }: AdminPartnerTableProps) {
                         size="sm"
                         onClick={() => handleApprove(id)}
                         disabled={acting === id}
-                        className="bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/20"
+                        className="bg-success/15 text-success hover:bg-success/25 border border-success/30"
                       >
                         <CheckCircle2 size={14} className="mr-1" />
                         Approve
@@ -120,7 +120,7 @@ export function AdminPartnerTable({ partners }: AdminPartnerTableProps) {
                         variant="ghost"
                         onClick={() => handleSuspend(id)}
                         disabled={acting === id}
-                        className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
                       >
                         <Ban size={14} className="mr-1" />
                         Suspend

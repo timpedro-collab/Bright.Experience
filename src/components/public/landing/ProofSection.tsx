@@ -34,7 +34,7 @@ export function ProofSection({ caseStudies }: { caseStudies: ProofCaseStudy[] })
       <Container>
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div className="max-w-2xl">
-            <p className="text-overline text-muted-foreground mb-2">The proof</p>
+            <p className="text-overline text-brand-cyan mb-2">The proof</p>
             <h2 className="text-display-grotesk text-4xl text-foreground md:text-5xl">
               Real activations, real numbers
             </h2>
@@ -93,9 +93,9 @@ export function ProofSection({ caseStudies }: { caseStudies: ProofCaseStudy[] })
 
 function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
   return (
-    <figure className="flex flex-col justify-between rounded-2xl border border-border bg-muted/40 p-8">
+    <figure className="flex flex-col justify-between rounded-[var(--radius-card)] border border-border bg-card p-8">
       <div>
-        <Quote aria-hidden className="mb-4 h-6 w-6 text-[var(--color-bb-cobalt)]/70" />
+        <Quote aria-hidden className="mb-4 h-6 w-6 text-primary/70" />
         <blockquote className="text-heading text-lg leading-relaxed text-foreground text-balance">
           &ldquo;{testimonial.text}&rdquo;
         </blockquote>
@@ -109,14 +109,18 @@ function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
           <span className="text-foreground/80">{testimonial.company}</span>
         </div>
         {testimonial.logoSrc && (
-          <Image
-            src={testimonial.logoSrc}
-            alt={testimonial.company}
-            width={90}
-            height={24}
-            unoptimized
-            className="h-5 w-auto shrink-0 opacity-60 brightness-0"
-          />
+          /* Light chip so dark-ink client logos survive the Ink canvas
+             (design-language §6) — bg-white/90 is a justified literal. */
+          <span className="shrink-0 rounded-md bg-white/90 px-2 py-1.5">
+            <Image
+              src={testimonial.logoSrc}
+              alt={testimonial.company}
+              width={90}
+              height={24}
+              unoptimized
+              className="h-4 w-auto brightness-0"
+            />
+          </span>
         )}
       </figcaption>
     </figure>

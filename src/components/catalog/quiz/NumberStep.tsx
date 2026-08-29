@@ -57,7 +57,7 @@ export function NumberStep({
         value={value}
         onChange={(e) => onChange(clamp(Number(e.target.value)))}
         aria-label={step.question}
-        className="w-full accent-[hsl(230,93%,53%)]"
+        className="w-full accent-primary"
       />
 
       <ReachPreview

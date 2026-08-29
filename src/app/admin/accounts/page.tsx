@@ -85,7 +85,7 @@ export default async function AdminAccountsPage({
                   <td className="py-2.5">
                     <Link
                       href={`/admin/accounts/${acct.id}`}
-                      className="text-overline text-[var(--color-bb-cobalt)] hover:underline"
+                      className="text-overline text-primary hover:underline"
                     >
                       View →
                     </Link>

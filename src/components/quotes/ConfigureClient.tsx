@@ -143,7 +143,7 @@ export function ConfigureClient({
               className={cn(
                 "flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold transition-colors",
                 i < step && "bg-foreground text-background",
-                i === step && "bg-[hsl(230,93%,53%)] text-white",
+                i === step && "bg-primary text-primary-foreground",
                 i > step && "bg-muted text-muted-foreground"
               )}
             >

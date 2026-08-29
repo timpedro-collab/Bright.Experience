@@ -1,6 +1,7 @@
 /** Benchmark comparison chart — horizontal bar chart comparing event metrics against category averages */
 "use client";
 
+import * as React from "react";
 import {
   BarChart,
   Bar,
@@ -17,6 +18,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { useChartColors } from "@/components/cloud";
 
 interface BenchmarkComparisonProps {
   eventMetrics: Record<string, number>;
@@ -37,6 +39,12 @@ export function BenchmarkComparison({
   benchmarks,
   labels,
 }: BenchmarkComparisonProps) {
+  // Recharts colours are SVG attributes — read live theme tokens so the
+  // chart tracks Ink / Ink Light switches (contract §5). Scoped to this
+  // card's subtree so the locally `.theme-light` print report resolves
+  // paper tokens even when <html> is Ink (e.g. headless PDF export).
+  const scopeRef = React.useRef<HTMLDivElement | null>(null);
+  const colors = useChartColors(scopeRef);
   const data = Object.keys(eventMetrics).map((key) => ({
     name: labels?.[key] ?? formatLabel(key),
     "Your Event": eventMetrics[key] ?? 0,
@@ -51,6 +59,7 @@ export function BenchmarkComparison({
         </CardTitle>
       </CardHeader>
       <CardContent className="pt-0">
+        <div ref={scopeRef}>
         <ResponsiveContainer width="100%" height={data.length * 56 + 60}>
           <BarChart
             data={data}
@@ -59,50 +68,58 @@ export function BenchmarkComparison({
           >
             <CartesianGrid
               strokeDasharray="3 3"
-              stroke="hsl(222 24% 68% / 0.08)"
+              stroke={colors.grid}
+              strokeOpacity={0.5}
               horizontal={false}
             />
             <XAxis
               type="number"
-              tick={{ fill: "hsl(222 15% 55%)", fontSize: 11 }}
-              axisLine={{ stroke: "hsl(222 24% 68% / 0.12)" }}
+              tick={{ fill: colors.axis, fontSize: 11 }}
+              axisLine={false}
               tickLine={false}
             />
             <YAxis
               type="category"
               dataKey="name"
               width={120}
-              tick={{ fill: "hsl(220 20% 90%)", fontSize: 12 }}
+              tick={{ fill: colors.foreground, fontSize: 12 }}
               axisLine={false}
               tickLine={false}
             />
             <Tooltip
               contentStyle={{
-                backgroundColor: "hsl(233 56% 11%)",
-                border: "1px solid hsl(222 24% 68% / 0.15)",
+                backgroundColor: colors.tooltipBg,
+                border: `1px solid ${colors.tooltipBorder}`,
                 borderRadius: "0.75rem",
-                color: "hsl(220 20% 90%)",
+                color: colors.foreground,
                 fontSize: "0.8125rem",
               }}
-              cursor={{ fill: "hsl(222 24% 68% / 0.04)" }}
+              labelStyle={{ color: colors.axis }}
+              itemStyle={{ color: colors.foreground }}
+              cursor={{ fill: colors.grid, fillOpacity: 0.25 }}
             />
             <Legend
-              wrapperStyle={{ fontSize: "0.75rem", paddingTop: "0.5rem" }}
+              wrapperStyle={{
+                fontSize: "0.75rem",
+                paddingTop: "0.5rem",
+                color: colors.axis,
+              }}
             />
             <Bar
               dataKey="Your Event"
-              fill="hsl(230 93% 53%)"
+              fill={colors.primary}
               radius={[0, 4, 4, 0]}
               barSize={16}
             />
             <Bar
               dataKey="Category Average"
-              fill="hsl(222 15% 55% / 0.4)"
+              fill={colors.accent}
               radius={[0, 4, 4, 0]}
               barSize={16}
             />
           </BarChart>
         </ResponsiveContainer>
+        </div>
       </CardContent>
     </Card>
   );

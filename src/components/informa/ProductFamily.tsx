@@ -75,12 +75,12 @@ export function ProductFamily({
               className={cn(
                 "rounded-2xl border p-5 text-left transition-colors",
                 active
-                  ? "border-[var(--color-bb-cobalt)] bg-[var(--color-bb-cobalt)]/10"
-                  : "border-border/70 bg-card/50 hover:border-[var(--color-bb-cobalt)]/50"
+                  ? "border-primary bg-primary/10"
+                  : "border-border/70 bg-card/50 hover:border-primary/50"
               )}
             >
               <p className="text-display-grotesk text-xl">{p.name}</p>
-              <p className="mt-0.5 text-xs font-semibold uppercase tracking-widest text-[var(--color-bb-cyan)]">
+              <p className="mt-0.5 text-xs font-semibold uppercase tracking-widest text-brand-cyan">
                 {p.descriptor}
               </p>
               <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{p.tagline}</p>
@@ -117,7 +117,7 @@ export function ProductFamily({
                 </p>
               </div>
               {showPricing ? (
-                <Badge variant="outline" className="shrink-0 border-[var(--color-bb-cobalt)]/50">
+                <Badge variant="outline" className="shrink-0 border-primary/50">
                   Buyer: {product.buyer}
                 </Badge>
               ) : null}
@@ -131,7 +131,7 @@ export function ProductFamily({
                 <ul className="mt-3 space-y-2">
                   {product.includes.map((item) => (
                     <li key={item} className="flex items-start gap-2 text-sm leading-relaxed text-muted-foreground">
-                      <Check className="mt-0.5 size-4 shrink-0 text-[var(--color-bb-cyan)]" aria-hidden />
+                      <Check className="mt-0.5 size-4 shrink-0 text-brand-cyan" aria-hidden />
                       {item}
                     </li>
                   ))}
@@ -145,14 +145,14 @@ export function ProductFamily({
                   <ul className="mt-3 space-y-2">
                     {product.measures.map((item) => (
                       <li key={item} className="flex items-start gap-2 text-sm leading-relaxed text-muted-foreground">
-                        <Check className="mt-0.5 size-4 shrink-0 text-[var(--color-bb-cyan)]" aria-hidden />
+                        <Check className="mt-0.5 size-4 shrink-0 text-brand-cyan" aria-hidden />
                         {item}
                       </li>
                     ))}
                   </ul>
                 </div>
                 {showPricing ? (
-                  <div className="rounded-xl border border-[var(--color-bb-cobalt)]/50 bg-[var(--color-bb-cobalt)]/10 p-4">
+                  <div className="rounded-xl border border-primary/50 bg-primary/10 p-4">
                     <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
                       Suggested retail
                     </p>
@@ -172,7 +172,7 @@ export function ProductFamily({
                       // media-kit section further down the kit page.
                       <a
                         href="#media-kit"
-                        className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-[var(--color-bb-cyan)] hover:underline"
+                        className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-brand-cyan hover:underline"
                       >
                         See the media kit
                         <ArrowRight className="size-4" aria-hidden />

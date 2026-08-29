@@ -11,26 +11,26 @@ import { cn } from "@/lib/utils";
 const SLOT_STATUS_STYLES: Record<string, { label: string; className: string }> = {
   available: {
     label: "Available",
-    className: "bg-muted text-muted-foreground",
+    className: "bg-muted text-muted-foreground border-border",
   },
   reserved: {
     label: "Reserved",
-    className: "bg-warning/10 text-warning",
+    className: "bg-warning/15 text-warning border-warning/30",
   },
   active: {
     label: "Live",
-    className: "bg-success/10 text-success",
+    className: "bg-primary/15 text-primary border-primary/30",
   },
   completed: {
     label: "Complete",
-    className: "bg-brand/10 text-brand",
+    className: "bg-success/15 text-success border-success/30",
   },
 };
 
 export function SlotStatusBadge({ status }: { status: string }) {
   const style = SLOT_STATUS_STYLES[status] ?? SLOT_STATUS_STYLES.available;
   return (
-    <Badge className={cn("border-0 text-[0.65rem]", style.className)}>
+    <Badge className={cn("text-[0.65rem]", style.className)}>
       {style.label}
     </Badge>
   );

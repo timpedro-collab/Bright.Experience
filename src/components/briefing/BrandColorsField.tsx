@@ -120,7 +120,7 @@ export function BrandColorsField({ value, onChange, readOnly }: BrandColorsField
       <button
         type="button"
         onClick={() => commit([...rows, ""])}
-        className="inline-flex items-center gap-1.5 text-xs font-medium text-[var(--color-bb-cobalt)] hover:underline"
+        className="inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:underline"
       >
         <Plus size={13} /> Add colour
       </button>

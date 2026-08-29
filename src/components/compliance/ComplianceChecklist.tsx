@@ -44,17 +44,17 @@ const STATUS_CONFIG: Record<ComplianceStatus, { label: string; icon: React.React
   uploaded: {
     label: "Uploaded",
     icon: <Clock size={14} />,
-    className: "bg-amber-500/15 text-amber-400 border-amber-500/30",
+    className: "bg-warning/15 text-warning border-warning/30",
   },
   under_review: {
     label: "Under review",
     icon: <Clock size={14} />,
-    className: "bg-brand/15 text-brand border-brand/30",
+    className: "bg-info/15 text-info border-info/30",
   },
   approved: {
     label: "Approved",
     icon: <CheckCircle2 size={14} />,
-    className: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30",
+    className: "bg-success/15 text-success border-success/30",
   },
   expired: {
     label: "Expired",
@@ -89,7 +89,7 @@ function expiryBadge(expiresAt: string | null) {
   }
   if (diffDays <= 30) {
     return (
-      <Badge className="text-[10px] bg-amber-500/15 text-amber-400 border-amber-500/30">
+      <Badge className="text-[10px] bg-warning/15 text-warning border-warning/30">
         Expires in {diffDays}d
       </Badge>
     );
@@ -211,7 +211,7 @@ function ComplianceRow({
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-emerald-400"
+                className="text-success"
                 onClick={() => handleReview("approved")}
               >
                 <CheckCircle2 size={12} /> Approve

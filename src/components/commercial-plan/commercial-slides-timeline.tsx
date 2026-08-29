@@ -34,11 +34,11 @@ export function CommercialTimelineSlide({}: DeckShellSlideProps) {
           <motion.div
             key={year.year}
             variants={commercialRise}
-            className="border-t-2 border-[var(--color-bb-cyan)] pt-5"
+            className="border-t-2 border-brand-cyan pt-5"
           >
             <div className="flex items-center justify-between">
               <CommercialIndex index={index} />
-              <p className="text-2xl font-semibold text-[var(--color-bb-cyan)]">
+              <p className="text-2xl font-semibold text-brand-cyan">
                 {year.year}
               </p>
             </div>
@@ -52,7 +52,7 @@ export function CommercialTimelineSlide({}: DeckShellSlideProps) {
                   key={point}
                   className="grid grid-cols-[1.5rem_1fr] gap-3 text-sm leading-relaxed text-muted-foreground"
                 >
-                  <span className="font-mono text-[10px] text-[var(--color-bb-cobalt)]">
+                  <span className="font-mono text-[10px] text-primary">
                     {String(pointIndex + 1).padStart(2, "0")}
                   </span>
                   {point}

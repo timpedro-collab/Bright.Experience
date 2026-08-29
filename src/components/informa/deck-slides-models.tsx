@@ -47,7 +47,7 @@ const rise = {
 export function TwoModelsSlide({}: SlideProps) {
   return (
     <SlideFrame>
-      <p className="text-overline text-[var(--color-bb-cyan)]">The decision</p>
+      <p className="text-overline text-brand-cyan">The decision</p>
       <h2 className="text-display-grotesk mt-2 max-w-3xl text-4xl sm:text-5xl">
         {TWO_MODELS.headline}
       </h2>
@@ -65,13 +65,13 @@ export function TwoModelsSlide({}: SlideProps) {
             className="rounded-2xl border border-border/70 bg-card/50 p-6"
           >
             <h3 className="text-display-grotesk text-2xl">{model.name}</h3>
-            <p className="mt-0.5 text-xs font-semibold uppercase tracking-widest text-[var(--color-bb-cyan)]">
+            <p className="mt-0.5 text-xs font-semibold uppercase tracking-widest text-brand-cyan">
               {model.descriptor}
             </p>
             <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
               {model.detail}
             </p>
-            <p className="mt-3 text-sm font-medium text-[var(--color-bb-cyan)]">
+            <p className="mt-3 text-sm font-medium text-brand-cyan">
               {model.tampa}
             </p>
           </motion.div>
@@ -100,7 +100,7 @@ export function TwoModelsSlide({}: SlideProps) {
           {PORTABILITY.formats.map((f) => (
             <div
               key={f.format}
-              className="rounded-xl border border-[var(--color-bb-cobalt)]/40 bg-[var(--color-bb-cobalt)]/5 px-4 py-3"
+              className="rounded-xl border border-primary/40 bg-primary/5 px-4 py-3"
             >
               <p className="text-sm font-semibold">{f.format}</p>
               <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{f.line}</p>

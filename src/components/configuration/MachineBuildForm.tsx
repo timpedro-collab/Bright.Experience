@@ -362,7 +362,7 @@ export function MachineBuildForm({
             type="checkbox"
             checked={samplesTested}
             onChange={(e) => setSamplesTested(e.target.checked)}
-            className="size-4 rounded border-border accent-[var(--color-bb-cobalt)]"
+            className="size-4 rounded border-border accent-primary"
           />
           Samples tested and vending correctly
         </label>

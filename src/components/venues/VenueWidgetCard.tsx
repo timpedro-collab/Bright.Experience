@@ -11,7 +11,7 @@ export interface VenueWidgetCardProps {
 }
 
 const CTA_CLASS =
-  "inline-flex items-center gap-1.5 rounded-sm bg-[var(--color-bb-cobalt)] px-5 py-2.5 text-sm font-medium text-white transition-opacity hover:opacity-90";
+  "inline-flex items-center gap-1.5 rounded-sm bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90";
 
 /** Compact venue advertising card for iframe embeds. */
 export function VenueWidgetCard({

@@ -57,13 +57,13 @@ export default async function QuoteDetailPage({
     >
       <div className="py-8 space-y-8">
         {quote.walkthrough_scheduled_at && (
-          <Card tone="elevated" className="border-[hsl(142_60%_40%)]/30 bg-[hsl(142_60%_40%)]/[0.06]">
+          <Card tone="elevated" className="border-success/30 bg-success/15">
             <CardContent className="flex items-center gap-4 p-5">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[hsl(142_60%_38%)] text-white">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-success text-primary-foreground">
                 <CalendarCheck className="h-5 w-5" aria-hidden />
               </div>
               <div className="min-w-0">
-                <p className="text-overline text-[hsl(142_50%_45%)]">Walkthrough booked</p>
+                <p className="text-overline text-success">Walkthrough booked</p>
                 <p className="text-sm font-semibold text-foreground">
                   {quote.walkthrough_slot_label ??
                     new Date(quote.walkthrough_scheduled_at as string).toLocaleString("en-GB", {

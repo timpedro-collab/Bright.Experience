@@ -56,12 +56,12 @@ export function CommercialPricingSlide({}: DeckShellSlideProps) {
           <motion.div
             key={tier.slug}
             variants={commercialRise}
-            className="border-t-2 border-[var(--color-bb-cyan)] pt-5"
+            className="border-t-2 border-brand-cyan pt-5"
           >
             <div className="flex items-center justify-between">
               <CommercialIndex index={index} />
               {tier.badge === "most-popular" ? (
-                <span className="rounded-full bg-[var(--color-bb-cobalt)] px-3 py-1 text-[10px] font-semibold uppercase tracking-wide text-white">
+                <span className="rounded-full bg-primary px-3 py-1 text-[10px] font-semibold uppercase tracking-wide text-primary-foreground">
                   Most popular
                 </span>
               ) : null}
@@ -70,7 +70,7 @@ export function CommercialPricingSlide({}: DeckShellSlideProps) {
             <p className="mt-2 min-h-10 text-sm text-muted-foreground">
               {tier.strapline}
             </p>
-            <p className="mt-6 text-3xl font-semibold tracking-tight text-[var(--color-bb-cyan)]">
+            <p className="mt-6 text-3xl font-semibold tracking-tight text-brand-cyan">
               {formatTierBand(tier, "us")}
             </p>
             <p className="mt-2 text-xs uppercase tracking-[0.12em] text-muted-foreground">
@@ -107,14 +107,14 @@ export function SalesChannelsSlide({}: DeckShellSlideProps) {
           <motion.div
             key={channel.key}
             variants={commercialRise}
-            className="border-t-2 border-[var(--color-bb-cyan)] pt-5"
+            className="border-t-2 border-brand-cyan pt-5"
           >
             <CommercialIndex index={index} />
             <h3 className="mt-4 text-2xl font-semibold">{channel.label}</h3>
             <p className="mt-3 min-h-12 text-sm leading-relaxed text-muted-foreground">
               {channel.route}
             </p>
-            <p className="mt-7 font-mono text-[10px] uppercase tracking-[0.15em] text-[var(--color-bb-cyan)]">
+            <p className="mt-7 font-mono text-[10px] uppercase tracking-[0.15em] text-brand-cyan">
               Average modeled sale
             </p>
             <p className="mt-2 text-3xl font-semibold">
@@ -151,7 +151,7 @@ export function ChannelEconomicsSlide({}: DeckShellSlideProps) {
             <motion.div
               key={channel.key}
               variants={commercialRise}
-              className="border-t-2 border-[var(--color-bb-cyan)] pt-5"
+              className="border-t-2 border-brand-cyan pt-5"
             >
               <div className="flex items-center justify-between">
                 <CommercialIndex index={index} />
@@ -161,7 +161,7 @@ export function ChannelEconomicsSlide({}: DeckShellSlideProps) {
                 <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
                   Channel gets · {percent(channel.channelShare)}
                 </p>
-                <p className="mt-2 text-3xl font-semibold text-[var(--color-bb-cyan)]">
+                <p className="mt-2 text-3xl font-semibold text-brand-cyan">
                   {formatExactUsd(split.channelGetsUsd)}
                 </p>
               </div>
@@ -202,7 +202,7 @@ export function BusinessForecastSlide({}: DeckShellSlideProps) {
           <motion.div
             key={year.year}
             variants={commercialRise}
-            className="border-t-2 border-[var(--color-bb-cyan)] pt-5"
+            className="border-t-2 border-brand-cyan pt-5"
           >
             <div className="flex items-center justify-between">
               <CommercialIndex index={index} />
@@ -211,7 +211,7 @@ export function BusinessForecastSlide({}: DeckShellSlideProps) {
             <p className="mt-6 text-5xl font-semibold tracking-tight">
               {formatCompactUsd(year.brightBlueRevenueUsd)}
             </p>
-            <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-bb-cyan)]">
+            <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.14em] text-brand-cyan">
               Base Bright.Blue revenue
             </p>
             <p className="mt-5 text-sm text-muted-foreground">

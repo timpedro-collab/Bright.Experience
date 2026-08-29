@@ -47,7 +47,7 @@ export default async function QuizPage({ searchParams }: QuizPageProps) {
             seed="quiz::intake"
             lines={26}
             amplitude={80}
-            className="text-[hsl(230,93%,53%)]"
+            className="text-bb-cobalt"
           />
           <div
             aria-hidden

@@ -76,7 +76,7 @@ export function PartnerQuoteForm({ slug }: { slug: string }) {
           Send a quote
         </Button>
         {done && (
-          <span className="flex items-center gap-1.5 text-xs text-emerald-400">
+          <span className="flex items-center gap-1.5 text-xs text-success">
             <Check size={14} />
             Quote sent and added to your pipeline.
           </span>
@@ -129,7 +129,7 @@ export function PartnerQuoteForm({ slug }: { slug: string }) {
                 id="q-type"
                 value={eventType}
                 onChange={(e) => setEventType(e.target.value)}
-                className="flex h-9 w-full rounded-md border border-border/60 bg-transparent px-3 py-1 text-sm outline-none focus:border-[var(--color-bb-cobalt)]"
+                className="flex h-9 w-full rounded-md border border-border/60 bg-transparent px-3 py-1 text-sm outline-none focus:border-primary"
               >
                 {EVENT_TYPES.map((t) => (
                   <option key={t.value} value={t.value} className="bg-background">

@@ -44,7 +44,7 @@ export function LocationStep({
               className={cn(
                 "group relative flex flex-col gap-2 rounded-[var(--radius-control)] border border-border bg-muted/40 p-4 text-left transition-all duration-150",
                 "hover:border-primary/40 hover:bg-primary/8 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                isSelected && "border-primary bg-primary/10 shadow-[0_0_0_1px_hsl(230,93%,53%,0.5),var(--bb-shadow-premium)]"
+                isSelected && "border-primary bg-primary/10 shadow-[0_0_0_1px_color-mix(in_srgb,var(--color-bb-cobalt)_50%,transparent),var(--bb-shadow-premium)]"
               )}
             >
               <div className="flex items-start justify-between gap-2">

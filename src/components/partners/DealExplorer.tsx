@@ -529,14 +529,14 @@ export function DealExplorer({
               services you already contract at organizer rates, nothing else.
             </p>
             {deal.belowPilotMinimum ? (
-              <p className="mt-3 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-900 [.theme-dark_&]:bg-amber-950 [.theme-dark_&]:text-amber-200">
+              <p className="mt-3 rounded-md border border-warning/30 bg-warning/15 px-3 py-2 text-sm text-warning">
                 The pilot commitment is {config.commitment.pilotMinUnits}–
                 {config.commitment.pilotMaxUnits} units. Add placements to reach the
                 minimum.
               </p>
             ) : null}
             {deal.floorGap > 0 ? (
-              <p className="mt-3 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-900 [.theme-dark_&]:bg-amber-950 [.theme-dark_&]:text-amber-200">
+              <p className="mt-3 rounded-md border border-warning/30 bg-warning/15 px-3 py-2 text-sm text-warning">
                 This mix sits{" "}
                 {formatDealCurrencyCompact(config.currency, deal.floorGap)} below
                 the {deal.tier.label} delivery floor of{" "}

@@ -106,7 +106,7 @@ export function QuoteQueueTable({ quotes }: QuoteQueueTableProps) {
             value={trackFilter}
             onChange={(e) => setTrackFilter(e.target.value as QuoteTrack | "all")}
             aria-label="Filter by track"
-            className="h-10 rounded-[var(--radius-control)] border border-input bg-[hsl(233,48%,15%,0.6)] px-3.5 text-sm text-foreground"
+            className="h-10 rounded-[var(--radius-control)] border border-input bg-muted px-3.5 text-sm text-foreground"
           >
             <option value="all">All tracks</option>
             <option value="book_now">Book Now</option>

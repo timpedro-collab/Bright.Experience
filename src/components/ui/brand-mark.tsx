@@ -52,6 +52,43 @@ export const BrandMark = React.forwardRef<HTMLDivElement, BrandMarkProps>(
 );
 BrandMark.displayName = "BrandMark";
 
+const wordmarkHeights = {
+  sm: 18,
+  md: 22,
+} as const;
+
+/**
+ * bright.blue wordmark — CSS-only theme swap (design-language §6).
+ * Light-ink PNG on Ink / `.theme-dark`; dark-ink PNG on Ink Light.
+ */
+function BrightBlueWordmark({ size = "sm" }: { size?: "sm" | "md" }) {
+  const h = wordmarkHeights[size];
+  return (
+    <span className="relative inline-flex shrink-0 items-center">
+      {/* Light-on-dark — default Ink + force-Ink scopes */}
+      <Image
+        src="/brand/bright-blue-wordmark-light.png"
+        alt="bright.blue"
+        width={Math.round(h * 5.2)}
+        height={h}
+        className="h-[var(--bb-wordmark-h)] w-auto object-contain [.theme-light_&]:hidden [.theme-dark_&]:!block"
+        style={{ "--bb-wordmark-h": `${h}px` } as React.CSSProperties}
+        priority
+      />
+      {/* Dark-on-light — Ink Light only (hidden inside `.theme-dark`) */}
+      <Image
+        src="/brand/bright-blue-wordmark-dark.png"
+        alt="bright.blue"
+        width={Math.round(h * 5.2)}
+        height={h}
+        className="hidden h-[var(--bb-wordmark-h)] w-auto object-contain [.theme-light_&]:block [.theme-dark_&]:!hidden"
+        style={{ "--bb-wordmark-h": `${h}px` } as React.CSSProperties}
+        priority
+      />
+    </span>
+  );
+}
+
 interface BrandLockupProps extends React.HTMLAttributes<HTMLDivElement> {
   size?: "sm" | "md";
   tagline?: string;
@@ -67,9 +104,12 @@ export function BrandLockup({
     <div className={cn("flex items-center gap-2.5", className)} {...props}>
       <BrandMark size={size} />
       <div className="flex flex-col leading-tight">
-        <span className="text-heading text-sm font-semibold text-foreground">
-          Bright.Experience
-        </span>
+        <div className="flex items-baseline gap-1">
+          <BrightBlueWordmark size={size} />
+          <span className="text-heading text-sm font-semibold text-foreground">
+            Experience
+          </span>
+        </div>
         {tagline && (
           <span className="text-overline text-[0.6rem] text-muted-foreground">
             {tagline}

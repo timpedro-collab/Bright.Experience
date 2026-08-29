@@ -30,7 +30,7 @@ export function GameCard({ game, index = 0 }: GameCardProps) {
       )}
       style={{ "--stagger-index": index } as React.CSSProperties}
     >
-      <div className="relative aspect-video overflow-hidden bg-[radial-gradient(circle_at_50%_50%,hsl(230,93%,53%,0.18),transparent_60%)]">
+      <div className="relative aspect-video overflow-hidden bg-[radial-gradient(circle_at_50%_50%,color-mix(in_srgb,var(--color-bb-cobalt)_18%,transparent),transparent_60%)]">
         {game.thumbnailUrl ? (
           <Image
             src={game.thumbnailUrl}
@@ -46,6 +46,7 @@ export function GameCard({ game, index = 0 }: GameCardProps) {
             </span>
           </div>
         )}
+        {/* Photography scrim + play chip over it — literal by design (§2.7). */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
         <span className="absolute bottom-3 left-3 inline-flex h-7 w-7 items-center justify-center rounded-full border border-white/20 bg-black/40 text-white backdrop-blur-md transition-all group-hover:bg-primary group-hover:border-primary">
           <Play className="h-3 w-3 fill-current" />

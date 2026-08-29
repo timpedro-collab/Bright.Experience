@@ -62,7 +62,7 @@ export default async function CaseStudyDetailPage({ params }: Props) {
             />
           </div>
         ) : (
-          <div className="flex h-64 w-full items-center justify-center bg-gradient-to-br from-primary/20 via-card-dark to-brand-soft/10 md:h-96">
+          <div className="flex h-64 w-full items-center justify-center bg-gradient-to-br from-primary/20 via-popover to-brand-soft/10 md:h-96">
             <span className="text-heading text-4xl font-bold text-primary/30">
               {cs.title}
             </span>
@@ -113,7 +113,7 @@ export default async function CaseStudyDetailPage({ params }: Props) {
       {/* Description */}
       {cs.description && (
         <Card className="mt-10">
-          <CardContent className="prose prose-invert max-w-none p-6 leading-relaxed text-foreground/85">
+          <CardContent className="max-w-none p-6 leading-relaxed text-foreground/85">
             {cs.description}
           </CardContent>
         </Card>
@@ -132,7 +132,7 @@ export default async function CaseStudyDetailPage({ params }: Props) {
         if (galleryItems.length === 0) return null;
         return (
           <div className="mt-10">
-            <p className="text-overline text-muted-foreground mb-4">Gallery</p>
+            <p className="text-overline text-brand-cyan mb-4">Gallery</p>
             <MediaGallery items={galleryItems} />
           </div>
         );
@@ -248,7 +248,7 @@ function ActivationDetails({ details }: { details: ActivationDetailsData }) {
       {/* Activation performance */}
       {performance && performance.length > 0 && (
         <section>
-          <p className="text-overline text-muted-foreground mb-4">
+          <p className="text-overline text-brand-cyan mb-4">
             Activation performance
           </p>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -272,7 +272,7 @@ function ActivationDetails({ details }: { details: ActivationDetailsData }) {
       {/* Demographics */}
       {(demographics?.gender?.length || demographics?.age?.length) && (
         <section>
-          <p className="text-overline text-muted-foreground mb-4">
+          <p className="text-overline text-brand-cyan mb-4">
             Who engaged
           </p>
           <div className="grid gap-6 md:grid-cols-2">
@@ -307,7 +307,7 @@ function ActivationDetails({ details }: { details: ActivationDetailsData }) {
       {/* Footprint */}
       {footprint && footprint.length > 0 && (
         <section>
-          <p className="text-overline text-muted-foreground mb-4">
+          <p className="text-overline text-brand-cyan mb-4">
             Activation footprint
           </p>
           <Card>
@@ -347,7 +347,7 @@ function ActivationDetails({ details }: { details: ActivationDetailsData }) {
       {/* Key insight */}
       {(insight || note) && (
         <section>
-          <p className="text-overline text-muted-foreground mb-4">
+          <p className="text-overline text-brand-cyan mb-4">
             Key insights
           </p>
           <Card className="border-primary/20 bg-primary/[0.03]">

@@ -87,7 +87,7 @@ export default async function VenueEarningsPage({ params }: Props) {
       <Card className="mt-6">
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2">
-            <Wallet className="h-4 w-4 text-[var(--color-bb-cobalt)]" />
+            <Wallet className="h-4 w-4 text-primary" />
             By placement
           </CardTitle>
         </CardHeader>

@@ -179,7 +179,7 @@ export function StudioRequestForm({
           }`}
         >
           <div
-            className={`absolute top-0.5 h-4 w-4 rounded-full bg-white transition-transform ${
+            className={`absolute top-0.5 h-4 w-4 rounded-full bg-primary-foreground transition-transform ${
               express ? "translate-x-4" : "translate-x-0.5"
             }`}
           />

@@ -144,7 +144,7 @@ export function MessageThread({
                   {msg.isInternal && (
                     <Badge
                       variant="outline"
-                      className="text-[10px] px-1.5 py-0 border-amber-500/40 text-amber-400"
+                      className="text-[10px] px-1.5 py-0 border-warning/40 text-warning bg-warning/10"
                     >
                       Internal
                     </Badge>
@@ -272,7 +272,7 @@ function ComposeArea({
             className={cn(
               "flex items-center gap-1.5 text-xs px-2 py-1 rounded-lg transition-colors",
               internalOnly
-                ? "bg-amber-500/10 text-amber-400"
+                ? "bg-warning/10 text-warning"
                 : "text-muted-foreground hover:text-muted-foreground"
             )}
           >

@@ -56,9 +56,13 @@ const FALLBACK: ChartColors = {
   foreground: "hsl(0, 0%, 100%)",
 };
 
-function readColors(): ChartColors {
+function readColors(scope?: HTMLElement | null): ChartColors {
   if (typeof window === "undefined") return FALLBACK;
-  const cs = getComputedStyle(document.documentElement);
+  // Read from the chart's own subtree when a scope is provided, so charts
+  // inside a locally-scoped `.theme-light` / `.theme-dark` wrapper (print
+  // pages, force-Ink surfaces) resolve the nearest theme's tokens instead
+  // of whatever <html> happens to carry.
+  const cs = getComputedStyle(scope ?? document.documentElement);
   const get = (name: string, fb: string) =>
     cs.getPropertyValue(name).trim() || fb;
   return {
@@ -78,12 +82,21 @@ function readColors(): ChartColors {
   };
 }
 
-/** Live design-token colours for charts, reactive to theme switches. */
-export function useChartColors(): ChartColors {
+/**
+ * Live design-token colours for charts, reactive to theme switches.
+ *
+ * Pass a `scopeRef` pointing at an element inside the chart's subtree when
+ * the chart can render under a local theme scope (e.g. a `.theme-light`
+ * print page or a `.theme-dark` cinematic surface); without it, tokens are
+ * read off `<html>` and only track the global theme.
+ */
+export function useChartColors(
+  scopeRef?: React.RefObject<HTMLElement | null>
+): ChartColors {
   const [colors, setColors] = React.useState<ChartColors>(FALLBACK);
 
   React.useEffect(() => {
-    const update = () => setColors(readColors());
+    const update = () => setColors(readColors(scopeRef?.current));
     update();
     // The theme toggle flips a class on <html>; re-read tokens on change.
     const observer = new MutationObserver(update);
@@ -92,7 +105,7 @@ export function useChartColors(): ChartColors {
       attributeFilter: ["class"],
     });
     return () => observer.disconnect();
-  }, []);
+  }, [scopeRef]);
 
   return colors;
 }
@@ -192,7 +205,10 @@ export function CloudBarChart<T extends Record<string, unknown>>({
   series: CloudSeries[];
   showLegend?: boolean;
 }) {
-  const colors = useChartColors();
+  // Scope token reads to this chart's subtree so local theme scopes
+  // (print pages, force-Ink surfaces) resolve the correct palette.
+  const scopeRef = React.useRef<HTMLDivElement | null>(null);
+  const colors = useChartColors(scopeRef);
   const t = tooltipStyles(colors);
   const colorFor = (s: CloudSeries) =>
     s.tone === "accent" ? colors.accent : colors.primary;
@@ -200,6 +216,7 @@ export function CloudBarChart<T extends Record<string, unknown>>({
   if (!data || data.length === 0) return <ChartEmpty />;
 
   return (
+    <div ref={scopeRef} className="h-full w-full">
     <ResponsiveContainer width="100%" height="100%">
       <BarChart data={data} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
         <CartesianGrid
@@ -242,6 +259,7 @@ export function CloudBarChart<T extends Record<string, unknown>>({
         ))}
       </BarChart>
     </ResponsiveContainer>
+    </div>
   );
 }
 
@@ -256,13 +274,15 @@ export function CloudAreaChart<T extends Record<string, unknown>>({
   yKey: keyof T & string;
   name?: string;
 }) {
-  const colors = useChartColors();
+  const scopeRef = React.useRef<HTMLDivElement | null>(null);
+  const colors = useChartColors(scopeRef);
   const t = tooltipStyles(colors);
   const gradientId = React.useId();
 
   if (!data || data.length === 0) return <ChartEmpty />;
 
   return (
+    <div ref={scopeRef} className="h-full w-full">
     <ResponsiveContainer width="100%" height="100%">
       <AreaChart data={data} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
         <defs>
@@ -307,5 +327,6 @@ export function CloudAreaChart<T extends Record<string, unknown>>({
         />
       </AreaChart>
     </ResponsiveContainer>
+    </div>
   );
 }

@@ -90,7 +90,7 @@ export function CaseStudyCard({ caseStudy, index = 0 }: CaseStudyCardProps) {
       style={{ "--stagger-index": index } as React.CSSProperties}
     >
       {/* Resting layer — quiet and uniform so a grid of tiles reads as one piece. */}
-      <div className="relative aspect-[16/10] overflow-hidden bg-[radial-gradient(circle_at_30%_30%,hsl(189,100%,75%,0.14),transparent_60%)]">
+      <div className="relative aspect-[16/10] overflow-hidden bg-[radial-gradient(circle_at_30%_30%,color-mix(in_srgb,var(--color-bb-cyan)_14%,transparent),transparent_60%)]">
         {caseStudy.heroImageUrl ? (
           <Image
             src={caseStudy.heroImageUrl}
@@ -127,6 +127,7 @@ export function CaseStudyCard({ caseStudy, index = 0 }: CaseStudyCardProps) {
           </div>
         )}
         {caseStudy.clientName && (
+          /* Chip over photography / brand wash — literal by design (§2.7). */
           <span className="absolute left-4 top-4 inline-flex items-center rounded-full border border-white/20 bg-black/35 px-2 py-0.5 text-[0.625rem] uppercase tracking-widest text-white backdrop-blur-md">
             {caseStudy.clientName}
           </span>

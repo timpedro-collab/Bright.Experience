@@ -75,7 +75,7 @@ export default async function InformaSellerKitPage({
         </header>
 
         <div className="mt-14 max-w-3xl">
-          <p className="text-overline text-[var(--color-bb-cyan)]">
+          <p className="text-overline text-brand-cyan">
             The Informa seller&apos;s kit
           </p>
           <h1 className="text-display-grotesk mt-3 text-4xl leading-tight sm:text-5xl">
@@ -112,7 +112,7 @@ export default async function InformaSellerKitPage({
 
           <KitSection overline="Promise this" title="What the sponsor gets">
             <SponsorGets />
-            <div className="mt-8 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-[var(--color-bb-cobalt)]/50 bg-[var(--color-bb-cobalt)]/10 p-6">
+            <div className="mt-8 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-primary/50 bg-primary/10 p-6">
               <div>
                 <h3 className="font-semibold">Show them the report before they sign</h3>
                 <p className="mt-1 max-w-xl text-sm leading-relaxed text-muted-foreground">
@@ -122,7 +122,7 @@ export default async function InformaSellerKitPage({
               </div>
               <Link
                 href="/informa/report"
-                className="inline-flex items-center gap-2 rounded-lg border border-border/70 px-4 py-2 text-sm font-medium transition-colors hover:border-[var(--color-bb-cyan)] hover:text-[var(--color-bb-cyan)]"
+                className="inline-flex items-center gap-2 rounded-lg border border-border/70 px-4 py-2 text-sm font-medium transition-colors hover:border-brand-cyan hover:text-brand-cyan"
               >
                 Open the sample report
                 <ArrowRight className="size-4" aria-hidden />
@@ -180,7 +180,7 @@ export default async function InformaSellerKitPage({
             Questions mid-deal? Write to{" "}
             <a
               href={`mailto:${KIT_BRIEF_EMAIL}`}
-              className="text-foreground underline underline-offset-4 transition-colors hover:text-[var(--color-bb-cyan)]"
+              className="text-foreground underline underline-offset-4 transition-colors hover:text-brand-cyan"
             >
               {KIT_BRIEF_EMAIL}
             </a>{" "}

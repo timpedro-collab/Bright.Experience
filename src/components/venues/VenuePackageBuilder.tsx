@@ -159,7 +159,7 @@ export function VenuePackageBuilder({
                   )}
                 >
                   {includesBrightBlue && (
-                    <Check size={10} className="text-white" />
+                    <Check size={10} className="text-primary-foreground" />
                   )}
                 </div>
                 Includes Bright.Blue Machine

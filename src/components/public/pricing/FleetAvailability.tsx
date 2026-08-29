@@ -14,7 +14,7 @@ export function FleetAvailability({ months }: { months: MonthAvailability[] }) {
   if (shown.length === 0) return null;
 
   return (
-    <div className="rounded-2xl border border-border bg-muted/30 p-6 md:p-8">
+    <div className="rounded-[var(--radius-card)] border border-border bg-muted/30 p-6 md:p-8">
       <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
         Fleet availability — live from the booking calendar
       </p>
@@ -40,7 +40,7 @@ export function FleetAvailability({ months }: { months: MonthAvailability[] }) {
                 <div
                   className={cn(
                     "h-full rounded-full",
-                    full ? "bg-destructive/70" : "bg-[var(--color-bb-cobalt)]",
+                    full ? "bg-destructive/70" : "bg-primary",
                   )}
                   style={{ width: `${Math.min(100, Math.round(ratio * 100))}%` }}
                 />

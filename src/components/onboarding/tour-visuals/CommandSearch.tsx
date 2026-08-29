@@ -29,22 +29,22 @@ export function CommandSearch() {
   return (
     <div className="w-full max-w-sm mx-auto">
       <motion.div
-        className="rounded-2xl border border-white/10 bg-white/[0.04] overflow-hidden backdrop-blur-xl"
+        className="rounded-2xl border border-border bg-popover/95 overflow-hidden backdrop-blur-xl"
         initial={{ opacity: 0, y: 20, scale: 0.95 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ delay: 0.3, type: "spring", stiffness: 200 }}
       >
-        <div className="flex items-center gap-3 px-4 py-3 border-b border-white/5">
-          <Search className="size-4 text-white/30" />
+        <div className="flex items-center gap-3 px-4 py-3 border-b border-border/50">
+          <Search className="size-4 text-muted-foreground/50" />
           <div className="flex-1 relative">
-            <span className="text-sm text-white/80">{typed}</span>
+            <span className="text-sm text-foreground/85">{typed}</span>
             <motion.span
-              className="inline-block w-[2px] h-4 bg-[var(--color-bb-cyan)] ml-[1px] align-middle"
+              className="inline-block w-[2px] h-4 bg-brand-cyan ml-[1px] align-middle"
               animate={{ opacity: [1, 0] }}
               transition={{ duration: 0.6, repeat: Infinity, repeatType: "reverse" }}
             />
           </div>
-          <span className="text-[10px] text-white/20 border border-white/10 rounded px-1.5 py-0.5">
+          <span className="text-[10px] text-muted-foreground/40 border border-border rounded px-1.5 py-0.5">
             ⌘K
           </span>
         </div>
@@ -62,21 +62,21 @@ export function CommandSearch() {
                 return (
                   <motion.div
                     key={r.label}
-                    className={`flex items-center gap-3 px-4 py-2.5 ${i === 0 ? "bg-white/[0.04]" : ""}`}
+                    className={`flex items-center gap-3 px-4 py-2.5 ${i === 0 ? "bg-accent" : ""}`}
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: r.delay }}
                   >
-                    <div className="flex items-center justify-center size-7 rounded-lg bg-white/[0.04]">
-                      <Icon className="size-3.5 text-[var(--color-bb-cyan)]" />
+                    <div className="flex items-center justify-center size-7 rounded-lg bg-secondary">
+                      <Icon className="size-3.5 text-brand-cyan" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs font-medium text-white/90 truncate">{r.label}</p>
-                      <p className="text-[10px] text-white/35">{r.meta}</p>
+                      <p className="text-xs font-medium text-foreground/90 truncate">{r.label}</p>
+                      <p className="text-[10px] text-muted-foreground/55">{r.meta}</p>
                     </div>
                     {i === 0 && (
                       <motion.span
-                        className="text-[9px] text-[var(--color-bb-cyan)] font-medium"
+                        className="text-[9px] text-brand-cyan font-medium"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.4 }}

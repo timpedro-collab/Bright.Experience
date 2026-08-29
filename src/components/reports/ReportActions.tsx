@@ -38,7 +38,7 @@ export function PublishReportBanner({
   const [note, setNote] = useState("");
 
   return (
-    <div className="mb-6 rounded-md border border-amber-300/40 bg-amber-50/50 dark:bg-amber-950/20 p-4">
+    <div className="mb-6 rounded-md border border-warning/30 bg-warning/10 p-4">
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1">
           <p className="text-sm font-medium text-foreground">Draft report</p>
@@ -47,7 +47,7 @@ export function PublishReportBanner({
             and publish when ready.
           </p>
           {!invoiceIssued && (
-            <p className="mt-2 flex items-start gap-1.5 text-xs text-amber-700 dark:text-amber-400">
+            <p className="mt-2 flex items-start gap-1.5 text-xs text-warning">
               <Receipt size={13} className="mt-0.5 shrink-0" aria-hidden />
               No invoice issued for this event yet. Best practice: invoice
               first, so the results land after the ask.

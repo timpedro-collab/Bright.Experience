@@ -49,43 +49,42 @@ export default function SetPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen grid grid-cols-1 lg:grid-cols-[5fr_6fr]">
-      <aside className="relative isolate overflow-hidden bg-[hsl(233_70%_8%)] text-[hsl(40_28%_92%)] flex flex-col justify-between p-8 lg:p-12 min-h-[40vh] lg:min-h-screen">
+    <div className="min-h-screen grid grid-cols-1 lg:grid-cols-[5fr_6fr] bg-background text-foreground">
+      <aside className="relative isolate overflow-hidden flex flex-col justify-between p-8 lg:p-12 min-h-[40vh] lg:min-h-screen">
         <div className="absolute inset-0 -z-10 opacity-90">
           <RidgeArtwork
             seed="bright.welcome"
             lines={36}
             amplitude={110}
-            className="text-[hsl(230,93%,53%)]"
+            className="text-primary"
           />
           <div
             aria-hidden
-            className="absolute inset-0 bg-gradient-to-tr from-[hsl(233_70%_8%)]/95 via-[hsl(233_70%_8%)]/60 to-transparent"
+            className="absolute inset-0 bg-gradient-to-tr from-background/95 via-background/60 to-transparent"
           />
         </div>
         <header className="relative">
           <BrandLockup size="md" tagline="The portal for your activations" />
         </header>
         <div className="relative max-w-[34ch]">
-          <EditorialEyebrow accent className="text-[hsl(189_100%_75%)]">
-            Welcome aboard
-          </EditorialEyebrow>
-          <h1 className="text-display text-[clamp(2rem,3.5vw,3.25rem)] mt-3 leading-[1.05] text-[hsl(40_28%_94%)]">
-            Set your&nbsp;password.
+          <EditorialEyebrow accent>Welcome aboard</EditorialEyebrow>
+          <h1 className="text-display text-[clamp(2rem,3.5vw,3.25rem)] mt-3 leading-[1.05] text-foreground">
+            Set your&nbsp;
+            <span className="text-brand-gradient">password</span>.
           </h1>
-          <p className="mt-4 text-base text-[hsl(40_28%_92%)]/80 max-w-[44ch]">
+          <p className="mt-4 text-base text-muted-foreground max-w-[44ch]">
             You&apos;ve been invited to Bright.Experience. Choose a password to
             secure your account.
           </p>
         </div>
-        <footer className="relative text-overline text-[hsl(40_28%_92%)]/60">
-          <span className="text-[hsl(40_28%_92%)]">bright.blue</span>
+        <footer className="relative text-overline text-muted-foreground">
+          <span className="text-foreground">bright.blue</span>
           <span className="mx-2 opacity-50">/</span>
           London · Milton Keynes · Minneapolis · Prague · Dubai
         </footer>
       </aside>
 
-      <main className="theme-light bg-[hsl(40_30%_91%)] text-[hsl(233_50%_8%)] flex items-center justify-center p-6 lg:p-12">
+      <main className="flex items-center justify-center p-6 lg:p-12">
         <div className="w-full max-w-[480px]">
           <EditorialEyebrow accent>Almost there</EditorialEyebrow>
           <h2 className="text-display text-foreground text-[clamp(1.75rem,3vw,2.5rem)] mt-2 leading-tight">
@@ -94,13 +93,13 @@ export default function SetPasswordPage() {
 
           {done ? (
             <div className="mt-8 space-y-4">
-              <div className="flex items-start gap-3 rounded-md border border-emerald-600/30 bg-emerald-50/60 px-4 py-3">
-                <CheckCircle2 size={20} className="text-emerald-600 mt-0.5 shrink-0" />
+              <div className="flex items-start gap-3 rounded-md border border-success/30 bg-success/15 px-4 py-3">
+                <CheckCircle2 size={20} className="text-success mt-0.5 shrink-0" />
                 <div>
-                  <p className="text-sm font-medium text-emerald-800">
+                  <p className="text-sm font-medium text-success">
                     You&apos;re all set!
                   </p>
-                  <p className="mt-1 text-sm text-emerald-700">
+                  <p className="mt-1 text-sm text-muted-foreground">
                     Taking you to your portal…
                   </p>
                 </div>
@@ -117,7 +116,7 @@ export default function SetPasswordPage() {
                 {error && (
                   <div
                     role="alert"
-                    className="rounded-md border border-[hsl(0_72%_48%)]/40 bg-[hsl(0_72%_48%)]/8 px-3 py-2 text-sm text-[hsl(0_72%_38%)]"
+                    className="rounded-md border border-destructive/40 bg-destructive/15 px-3 py-2 text-sm text-destructive"
                   >
                     {error}
                   </div>
@@ -136,7 +135,7 @@ export default function SetPasswordPage() {
                     minLength={8}
                     autoComplete="new-password"
                     placeholder="At least 8 characters"
-                    className="w-full bg-card text-foreground placeholder:text-muted-foreground/70 px-4 py-2.5 rounded-md border border-border focus:outline-none focus:ring-2 focus:ring-[var(--color-bb-cobalt)] focus:border-[var(--color-bb-cobalt)] transition"
+                    className="w-full bg-card text-foreground placeholder:text-muted-foreground/70 px-4 py-2.5 rounded-md border border-border focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring transition"
                   />
                 </div>
 
@@ -153,14 +152,14 @@ export default function SetPasswordPage() {
                     minLength={8}
                     autoComplete="new-password"
                     placeholder="Type it again"
-                    className="w-full bg-card text-foreground placeholder:text-muted-foreground/70 px-4 py-2.5 rounded-md border border-border focus:outline-none focus:ring-2 focus:ring-[var(--color-bb-cobalt)] focus:border-[var(--color-bb-cobalt)] transition"
+                    className="w-full bg-card text-foreground placeholder:text-muted-foreground/70 px-4 py-2.5 rounded-md border border-border focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring transition"
                   />
                 </div>
 
                 <button
                   type="submit"
                   disabled={loading || !password || !confirm}
-                  className="group w-full inline-flex items-center justify-center gap-2 rounded-md bg-[var(--color-bb-cobalt)] px-4 py-3 text-sm font-medium text-primary-foreground transition hover:brightness-110 disabled:opacity-50 disabled:pointer-events-none"
+                  className="group w-full inline-flex items-center justify-center gap-2 rounded-md bg-primary px-4 py-3 text-sm font-medium text-primary-foreground transition hover:brightness-110 disabled:opacity-50 disabled:pointer-events-none"
                 >
                   {loading ? (
                     <>Setting password…</>

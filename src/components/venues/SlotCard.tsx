@@ -93,7 +93,7 @@ export function SlotCard({
               value={sponsorId}
               onChange={(e) => setSponsorId(e.target.value)}
               aria-label="Sponsor"
-              className="w-full rounded-md border border-border/40 bg-transparent px-2 py-1.5 text-xs outline-none focus:border-[var(--color-bb-cobalt)]"
+              className="w-full rounded-md border border-border/40 bg-transparent px-2 py-1.5 text-xs outline-none focus:border-primary"
             >
               {sponsors.map((s) => (
                 <option key={s.id} value={s.id} className="bg-background">

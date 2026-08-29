@@ -72,7 +72,7 @@ export default async function HelpArticlePage({
 
           <Link
             href="/help"
-            className="inline-flex items-center gap-1.5 text-sm text-[var(--color-bb-cobalt)] hover:opacity-80 transition-opacity"
+            className="inline-flex items-center gap-1.5 text-sm text-primary hover:opacity-80 transition-opacity"
           >
             <ArrowLeft size={14} /> Back to Help Center
           </Link>

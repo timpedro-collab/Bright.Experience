@@ -152,7 +152,7 @@ function AssetReviewRow({
         onClick={onToggle}
         className="w-full text-left p-4 flex items-center gap-4 hover:bg-accent transition-colors"
       >
-        <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-[var(--radius-control)] border border-amber-300/30 bg-amber-300/10 text-amber-200">
+        <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-[var(--radius-control)] border border-warning/30 bg-warning/15 text-warning">
           <Clock className="h-4 w-4" />
         </span>
         <div className="min-w-0 flex-1">
@@ -259,11 +259,11 @@ function AssetReviewRow({
               </div>
 
               {asset.uploadWarnings && asset.uploadWarnings.length > 0 && (
-                <div className="rounded-xl border border-amber-400/30 bg-amber-400/10 p-3">
-                  <p className="flex items-center gap-1.5 text-overline text-amber-300">
+                <div className="rounded-xl border border-warning/30 bg-warning/15 p-3">
+                  <p className="flex items-center gap-1.5 text-overline text-warning">
                     <AlertTriangle className="h-3.5 w-3.5" /> Spec flags from upload
                   </p>
-                  <ul className="mt-2 space-y-1 text-xs text-amber-100/90">
+                  <ul className="mt-2 space-y-1 text-xs text-warning/90">
                     {asset.uploadWarnings.map((w, i) => (
                       <li key={i} className="flex gap-1.5">
                         <span aria-hidden>•</span>

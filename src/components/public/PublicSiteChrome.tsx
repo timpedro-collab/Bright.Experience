@@ -10,6 +10,7 @@
 import Link from "next/link";
 import { ArrowUpRight, Mail } from "lucide-react";
 
+import { Button } from "@/components/ui/button";
 import { BrandLockup } from "@/components/ui/brand-mark";
 import { Container } from "@/components/ui/section";
 import { PublicMobileMenu } from "@/components/public/PublicMobileMenu";
@@ -106,13 +107,13 @@ export function PublicSiteChrome({
             >
               Sign in
             </Link>
-            <Link
-              href="/quiz"
-              className="hidden md:inline-flex items-center gap-1.5 bg-[var(--color-bb-cobalt)] text-white px-4 py-2 rounded-sm text-sm font-medium hover:opacity-90 transition-opacity"
-            >
-              Find your fit
-              <ArrowUpRight className="h-3.5 w-3.5" />
-            </Link>
+            {/* The header's one gradient accent — the primary CTA. */}
+            <Button size="sm" variant="brand" asChild className="hidden md:inline-flex">
+              <Link href="/quiz">
+                Find your fit
+                <ArrowUpRight className="h-3.5 w-3.5" />
+              </Link>
+            </Button>
             <PublicMobileMenu links={PRIMARY_LINKS} />
           </div>
         </Container>
@@ -121,9 +122,10 @@ export function PublicSiteChrome({
       <main id="main-content" className="flex-1 scroll-mt-6">{children}</main>
 
       {/* Editorial footer — bright.blue lockup, locations strip, link columns.
-          Always the dark ink surface: `theme-dark` scopes the token remap so
-          text/borders stay legible when the site theme is light. */}
-      <footer className="theme-dark border-t border-border/40 bg-[hsl(233,66%,5%)] text-foreground">
+          Deliberately cinematic: stays force-Ink (`theme-dark`, sanctioned in
+          docs/design-language.md §1) on the deepest brand surface in both
+          themes, so the site always signs off in ink. */}
+      <footer className="theme-dark border-t border-border/40 bg-bb-deep-ink text-foreground">
         <Container className="py-16">
           <div className="grid gap-10 sm:grid-cols-2 md:grid-cols-[1.4fr_1fr_1fr_1fr_1fr]">
             <div>
@@ -137,7 +139,7 @@ export function PublicSiteChrome({
               </p>
               <a
                 href="mailto:hello@brightblue.com"
-                className="mt-6 inline-flex items-center gap-2 text-sm text-foreground hover:text-[var(--color-bb-cobalt)] transition-colors"
+                className="mt-6 inline-flex items-center gap-2 text-sm text-foreground hover:text-brand-cyan transition-colors"
               >
                 <Mail className="h-4 w-4" /> hello@brightblue.com
               </a>

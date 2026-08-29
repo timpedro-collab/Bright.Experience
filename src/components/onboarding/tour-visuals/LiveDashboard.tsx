@@ -44,28 +44,29 @@ export function LiveDashboard() {
         animate={{ opacity: 1 }}
         transition={{ delay: 0.2 }}
       >
+        {/* The real live dashboard renders "Live" in the success tone. */}
         <motion.span
-          className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-500/15 border border-red-500/30 text-[10px] font-bold text-red-400 uppercase tracking-wider"
+          className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-success/15 border border-success/30 text-[10px] font-bold text-success uppercase tracking-wider"
           animate={{ opacity: [1, 0.5, 1] }}
           transition={{ duration: 1.5, repeat: Infinity }}
         >
-          <span className="size-1.5 rounded-full bg-red-400" />
+          <span className="size-1.5 rounded-full bg-success" />
           Live
         </motion.span>
-        <span className="text-[10px] text-white/30">Updates every 10s</span>
+        <span className="text-[10px] text-muted-foreground/50">Updates every 10s</span>
       </motion.div>
 
       <div className="grid grid-cols-3 gap-2">
         {[
-          { icon: Zap, label: "Plays", value: plays, color: "text-[var(--color-bb-cyan)]" },
-          { icon: Users, label: "Leads", value: leads, color: "text-emerald-400" },
-          { icon: Activity, label: "Conv %", value: conv, suffix: "%", color: "text-amber-400" },
+          { icon: Zap, label: "Plays", value: plays, color: "text-brand-cyan" },
+          { icon: Users, label: "Leads", value: leads, color: "text-success" },
+          { icon: Activity, label: "Conv %", value: conv, suffix: "%", color: "text-warning" },
         ].map((stat, i) => {
           const Icon = stat.icon;
           return (
             <motion.div
               key={stat.label}
-              className="rounded-xl border border-white/8 bg-white/[0.03] p-3 text-center"
+              className="rounded-xl border border-border bg-card p-3 text-center"
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 + i * 0.1 }}
@@ -74,24 +75,24 @@ export function LiveDashboard() {
               <p className={`text-xl font-bold tabular-nums ${stat.color}`}>
                 {stat.value.toLocaleString()}{stat.suffix ?? ""}
               </p>
-              <p className="text-[9px] text-white/35 mt-0.5">{stat.label}</p>
+              <p className="text-[9px] text-muted-foreground/55 mt-0.5">{stat.label}</p>
             </motion.div>
           );
         })}
       </div>
 
       <motion.div
-        className="rounded-xl border border-white/8 bg-white/[0.03] p-4"
+        className="rounded-xl border border-border bg-card p-4"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.8 }}
       >
-        <p className="text-[9px] uppercase tracking-widest text-white/30 mb-3">Plays over time</p>
+        <p className="text-[9px] uppercase tracking-widest text-muted-foreground/50 mb-3">Plays over time</p>
         <svg viewBox="0 0 240 80" className="w-full" preserveAspectRatio="none">
           <defs>
             <linearGradient id="tour-chart-fill" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="var(--color-bb-cyan)" stopOpacity="0.3" />
-              <stop offset="100%" stopColor="var(--color-bb-cyan)" stopOpacity="0" />
+              <stop offset="0%" stopColor="var(--color-brand-cyan)" stopOpacity="0.3" />
+              <stop offset="100%" stopColor="var(--color-brand-cyan)" stopOpacity="0" />
             </linearGradient>
           </defs>
           {[20, 40, 60].map((y) => (
@@ -107,7 +108,7 @@ export function LiveDashboard() {
           <motion.path
             d={`M0,${80 - CHART_POINTS[0] * 0.55} ${CHART_POINTS.map((p, i) => `L${(i / (CHART_POINTS.length - 1)) * 240},${80 - p * 0.55}`).join(" ")}`}
             fill="none"
-            stroke="var(--color-bb-cyan)"
+            stroke="var(--color-brand-cyan)"
             strokeWidth="2"
             strokeLinecap="round"
             initial={{ pathLength: 0 }}
@@ -118,7 +119,7 @@ export function LiveDashboard() {
             cx={240}
             cy={80 - CHART_POINTS[CHART_POINTS.length - 1] * 0.55}
             r="4"
-            fill="var(--color-bb-cyan)"
+            fill="var(--color-brand-cyan)"
             initial={{ opacity: 0 }}
             animate={{ opacity: [0, 1, 0.5, 1] }}
             transition={{ delay: 2.5, duration: 1.5, repeat: Infinity }}

@@ -188,7 +188,7 @@ export function AnnotatablePreview({
           <div className="flex items-center gap-2">
             <span className="text-overline text-muted-foreground">Notes</span>
             {openCount > 0 ? (
-              <span className="inline-flex items-center rounded-full bg-[var(--color-bb-cobalt)]/10 px-2 py-0.5 text-[10px] font-semibold text-[var(--color-bb-cobalt)] tabular-nums">
+              <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary tabular-nums">
                 {openCount} open
               </span>
             ) : (
@@ -228,7 +228,7 @@ export function AnnotatablePreview({
                 type="button"
                 onClick={() => toggleResolve(a)}
                 disabled={pending}
-                className="shrink-0 text-muted-foreground hover:text-emerald-500"
+                className="shrink-0 text-muted-foreground hover:text-success"
                 aria-label={a.resolved ? "Reopen note" : "Resolve note"}
                 title={a.resolved ? "Reopen" : "Resolve"}
               >
@@ -263,8 +263,8 @@ function Pin({
         // Open pins are loud; resolved pins recede so the remaining work
         // stays scannable on a heavily-annotated proof.
         annotation.resolved
-          ? "h-4 w-4 border-emerald-500/60 bg-emerald-500/60 text-white opacity-70"
-          : "h-5 w-5 border-white bg-primary text-primary-foreground",
+          ? "h-4 w-4 border-success/60 bg-success/60 text-primary-foreground opacity-70"
+          : "h-5 w-5 border-foreground bg-primary text-primary-foreground",
       )}
       style={{ left: `${annotation.x}%`, top: `${annotation.y}%` }}
       title={annotation.body}

@@ -25,7 +25,9 @@ export function TourCompleteScreen() {
         spread: 140,
         startVelocity: 40,
         origin: { y: 0.55 },
-        colors: ["#2A3BB7", "#00D4FF", "#F5F0E8", "#ffffff"],
+        // canvas-confetti needs literal hex — these are the Ink brand tokens:
+        // cobalt, accent cyan, soft cyan, white.
+        colors: ["#183EF6", "#00BFE8", "#80ECFF", "#ffffff"],
       });
     });
   }, [phase]);
@@ -39,12 +41,13 @@ export function TourCompleteScreen() {
       aria-modal="true"
       aria-label={config.celebrationTitle}
       tabIndex={-1}
-      className="theme-dark fixed inset-0 z-[10000] flex items-center justify-center text-foreground outline-none"
+      className="theme-dark ink-glows fixed inset-0 z-[10000] flex items-center justify-center text-foreground outline-none"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
     >
-      <div className="absolute inset-0 bg-gradient-to-br from-[var(--color-bb-deep-ink)] via-[#0d1147] to-[var(--color-bb-cobalt)]" />
+      {/* Ink canvas + ambient corner glows — the deck's cinematic backdrop. */}
+      <div className="absolute inset-0 bg-background" />
 
       <motion.div
         className="relative z-10 flex flex-col items-center text-center px-6 max-w-md"
@@ -64,7 +67,8 @@ export function TourCompleteScreen() {
             cy="40"
             r="36"
             fill="none"
-            stroke="rgba(0,212,255,0.15)"
+            stroke="var(--color-brand-cyan)"
+            strokeOpacity="0.15"
             strokeWidth="3"
           />
           <motion.circle
@@ -72,7 +76,7 @@ export function TourCompleteScreen() {
             cy="40"
             r="36"
             fill="none"
-            stroke="var(--color-bb-cyan)"
+            stroke="var(--color-brand-cyan)"
             strokeWidth="3"
             strokeLinecap="round"
             initial={{ pathLength: 0 }}
@@ -93,7 +97,7 @@ export function TourCompleteScreen() {
         </motion.svg>
 
         <motion.h1
-          className="text-3xl font-bold text-white"
+          className="text-3xl font-bold text-foreground"
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
@@ -102,7 +106,7 @@ export function TourCompleteScreen() {
         </motion.h1>
 
         <motion.p
-          className="mt-3 text-base text-white/60"
+          className="mt-3 text-base text-muted-foreground"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.7 }}

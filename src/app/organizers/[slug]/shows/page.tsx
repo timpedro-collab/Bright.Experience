@@ -252,7 +252,7 @@ function ShowCard({
 
   return (
     <Link href={`/organizers/${slug}/shows/${show.id}`} className="group block">
-      <Card className="h-full transition-colors group-hover:border-[var(--color-bb-cobalt)]/40 group-hover:bg-accent/50">
+      <Card className="h-full transition-colors group-hover:border-primary/40 group-hover:bg-accent/50">
         <CardContent className="p-5">
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0">

@@ -59,7 +59,7 @@ export default async function CaseStudiesPage({
             seed="catalog::case-studies"
             lines={22}
             amplitude={70}
-            className="text-[hsl(230,93%,53%)]"
+            className="text-bb-cobalt"
           />
           <div
             aria-hidden

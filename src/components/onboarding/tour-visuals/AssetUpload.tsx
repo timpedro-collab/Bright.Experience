@@ -33,7 +33,7 @@ export function AssetUpload() {
   return (
     <div className="w-full max-w-sm mx-auto space-y-4">
       <motion.div
-        className="flex flex-col items-center gap-2 rounded-2xl border-2 border-dashed border-white/10 bg-white/[0.02] py-6 px-4"
+        className="flex flex-col items-center gap-2 rounded-2xl border-2 border-dashed border-input bg-card/50 py-6 px-4"
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
@@ -42,9 +42,9 @@ export function AssetUpload() {
           animate={{ y: [0, -4, 0] }}
           transition={{ duration: 2, repeat: Infinity, repeatDelay: 1 }}
         >
-          <Upload className="size-6 text-[var(--color-bb-cyan)]/60" />
+          <Upload className="size-6 text-brand-cyan/60" />
         </motion.div>
-        <p className="text-xs text-white/40">Drag files or click to upload</p>
+        <p className="text-xs text-muted-foreground/60">Drag files or click to upload</p>
       </motion.div>
 
       <div className="space-y-2">
@@ -56,25 +56,25 @@ export function AssetUpload() {
             return (
               <motion.div
                 key={f.id}
-                className="flex items-center gap-3 rounded-xl border border-white/8 bg-white/[0.03] p-3"
+                className="flex items-center gap-3 rounded-xl border border-border bg-card p-3"
                 initial={{ opacity: 0, x: -20, height: 0 }}
                 animate={{ opacity: 1, x: 0, height: "auto" }}
                 transition={{ delay: 0.6 + i * 1.2, type: "spring", stiffness: 200 }}
               >
-                <div className="flex items-center justify-center size-9 rounded-lg bg-white/[0.04] shrink-0">
-                  <Icon className="size-4 text-[var(--color-bb-cyan)]" />
+                <div className="flex items-center justify-center size-9 rounded-lg bg-secondary shrink-0">
+                  <Icon className="size-4 text-brand-cyan" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-medium text-white/80 truncate">{f.name}</p>
+                  <p className="text-xs font-medium text-foreground/85 truncate">{f.name}</p>
                   <div className="flex items-center gap-2 mt-1">
-                    <div className="flex-1 h-1 rounded-full bg-white/5 overflow-hidden">
+                    <div className="flex-1 h-1 rounded-full bg-muted overflow-hidden">
                       <motion.div
-                        className="h-full rounded-full bg-[var(--color-bb-cyan)]"
+                        className="h-full rounded-full bg-primary"
                         animate={{ width: `${isDone ? 100 : prog}%` }}
                         transition={{ type: "spring", stiffness: 100 }}
                       />
                     </div>
-                    <span className="text-[9px] text-white/30 tabular-nums shrink-0">{f.size}</span>
+                    <span className="text-[9px] text-muted-foreground/50 tabular-nums shrink-0">{f.size}</span>
                   </div>
                 </div>
                 <AnimatePresence mode="wait">
@@ -84,7 +84,7 @@ export function AssetUpload() {
                       animate={{ scale: 1 }}
                       transition={{ type: "spring", stiffness: 500 }}
                     >
-                      <Check className="size-4 text-emerald-400" />
+                      <Check className="size-4 text-success" />
                     </motion.div>
                   )}
                 </AnimatePresence>

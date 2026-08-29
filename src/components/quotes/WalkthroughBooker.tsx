@@ -100,9 +100,9 @@ export function WalkthroughBooker({
 
   if (confirmed) {
     return (
-      <div className="rounded-[var(--radius-card)] border border-[hsl(142_60%_40%)]/30 bg-[hsl(142_60%_40%)]/[0.07] p-5">
+      <div className="rounded-[var(--radius-card)] border border-success/30 bg-success/15 p-5">
         <div className="flex items-start gap-3">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[hsl(142_60%_38%)] text-white">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-success text-primary-foreground">
             <Check className="h-4 w-4" aria-hidden />
           </div>
           <div className="min-w-0">

@@ -19,17 +19,17 @@ export function ApprovalFlow() {
   return (
     <div className="w-full max-w-sm mx-auto flex flex-col items-center gap-5">
       <motion.div
-        className="w-full rounded-2xl border border-white/10 bg-white/[0.03] overflow-hidden"
+        className="w-full rounded-2xl border border-border bg-card overflow-hidden"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3, type: "spring", stiffness: 200 }}
       >
-        <div className="aspect-[16/9] bg-gradient-to-br from-[var(--color-bb-cobalt)]/20 to-[var(--color-bb-cyan)]/10 flex items-center justify-center relative">
+        <div className="aspect-[16/9] bg-gradient-to-br from-primary/20 to-brand-cyan/10 flex items-center justify-center relative">
           <div className="grid grid-cols-3 gap-2 p-4 w-full">
             {[1, 2, 3, 4, 5, 6].map((i) => (
               <motion.div
                 key={i}
-                className="aspect-square rounded-lg bg-white/[0.06] border border-white/5"
+                className="aspect-square rounded-lg bg-secondary border border-border/50"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.5 + i * 0.1 }}
@@ -39,12 +39,14 @@ export function ApprovalFlow() {
           <motion.div
             className="absolute top-2 right-2 px-2 py-0.5 rounded-full text-[9px] font-medium border"
             animate={{
+              // framer-motion can't interpolate var() — literal rgb equivalents
+              // of the Ink success / warning status tokens.
               backgroundColor:
-                phase === "approved" ? "rgba(52,211,153,0.15)" : "rgba(251,191,36,0.15)",
+                phase === "approved" ? "rgba(30,184,89,0.15)" : "rgba(244,187,42,0.15)",
               borderColor:
-                phase === "approved" ? "rgba(52,211,153,0.3)" : "rgba(251,191,36,0.3)",
+                phase === "approved" ? "rgba(30,184,89,0.3)" : "rgba(244,187,42,0.3)",
               color:
-                phase === "approved" ? "rgb(52,211,153)" : "rgb(251,191,36)",
+                phase === "approved" ? "rgb(30,184,89)" : "rgb(244,187,42)",
             }}
           >
             {phase === "approved" ? "Approved" : "Pending review"}
@@ -53,8 +55,8 @@ export function ApprovalFlow() {
 
         <div className="p-4 space-y-3">
           <div>
-            <p className="text-xs font-semibold text-white/90">Screen designs v3</p>
-            <p className="text-[10px] text-white/40 mt-0.5">Creative proof · 6 screens</p>
+            <p className="text-xs font-semibold text-foreground/90">Screen designs v3</p>
+            <p className="text-[10px] text-muted-foreground/60 mt-0.5">Creative proof · 6 screens</p>
           </div>
 
           <AnimatePresence mode="wait">
@@ -67,11 +69,12 @@ export function ApprovalFlow() {
                 exit={{ opacity: 0 }}
                 transition={{ delay: 0.8 }}
               >
-                <button className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg bg-[var(--color-bb-cobalt)] text-xs font-medium text-white/90">
+                {/* Primary CTA carries the brand gradient — the card's one accent. */}
+                <button className="chip-brand-gradient flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-medium">
                   <ThumbsUp className="size-3" />
                   Approve
                 </button>
-                <button className="flex-1 py-2 rounded-lg border border-white/10 text-xs text-white/50">
+                <button className="flex-1 py-2 rounded-lg border border-border text-xs text-muted-foreground">
                   Request changes
                 </button>
               </motion.div>
@@ -85,7 +88,7 @@ export function ApprovalFlow() {
                 exit={{ opacity: 0 }}
               >
                 <motion.div
-                  className="size-5 border-2 border-[var(--color-bb-cyan)] border-t-transparent rounded-full"
+                  className="size-5 border-2 border-brand-cyan border-t-transparent rounded-full"
                   animate={{ rotate: 360 }}
                   transition={{ duration: 0.8, repeat: Infinity, ease: "linear" }}
                 />
@@ -94,13 +97,13 @@ export function ApprovalFlow() {
             {phase === "approved" && (
               <motion.div
                 key="approved"
-                className="flex items-center justify-center gap-2 py-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20"
+                className="flex items-center justify-center gap-2 py-2.5 rounded-lg bg-success/10 border border-success/20"
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ type: "spring", stiffness: 400 }}
               >
-                <Shield className="size-4 text-emerald-400" />
-                <span className="text-xs font-semibold text-emerald-400">Approved</span>
+                <Shield className="size-4 text-success" />
+                <span className="text-xs font-semibold text-success">Approved</span>
               </motion.div>
             )}
           </AnimatePresence>

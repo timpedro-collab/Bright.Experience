@@ -40,7 +40,9 @@ export function MachineCard({ machine, index = 0, featured = false }: MachineCar
       <div
         className={cn(
           "relative aspect-[4/3] overflow-hidden",
-          "bg-[radial-gradient(circle_at_30%_30%,hsl(230,93%,53%,0.25),transparent_60%),radial-gradient(circle_at_70%_70%,hsl(189,100%,75%,0.18),transparent_55%)]"
+          // Token plate under product photography — avoids white-box framing on Ink.
+          "bg-muted",
+          "bg-[radial-gradient(circle_at_30%_30%,color-mix(in_srgb,var(--color-bb-cobalt)_25%,transparent),transparent_60%),radial-gradient(circle_at_70%_70%,color-mix(in_srgb,var(--color-bb-cyan)_18%,transparent),transparent_55%)]"
         )}
       >
         {machine.heroImageUrl ? (
@@ -58,6 +60,7 @@ export function MachineCard({ machine, index = 0, featured = false }: MachineCar
             </span>
           </div>
         )}
+        {/* Photography scrim + chip over it — literal by design (§2.7). */}
         <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/60 to-transparent" />
         {machine.capacityLabel && (
           <span className="absolute left-3 top-3 rounded-full border border-white/15 bg-black/45 px-2.5 py-1 text-[0.7rem] font-medium text-white/90 backdrop-blur-sm">
@@ -85,7 +88,7 @@ export function MachineCard({ machine, index = 0, featured = false }: MachineCar
           </div>
           <span
             aria-hidden
-            className="mt-1 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-border bg-muted/50 text-muted-foreground transition-all group-hover:bg-primary group-hover:border-primary group-hover:text-white"
+            className="mt-1 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-border bg-muted/50 text-muted-foreground transition-all group-hover:bg-primary group-hover:border-primary group-hover:text-primary-foreground"
           >
             <ArrowRight className="h-3.5 w-3.5" />
           </span>

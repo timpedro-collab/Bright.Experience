@@ -26,7 +26,7 @@ export function TaskGroup({
   }[tone];
 
   const accentClass = {
-    default: "text-[var(--color-bb-cobalt)]",
+    default: "text-primary",
     destructive: "text-destructive",
     warning: "text-warning",
     success: "text-success",

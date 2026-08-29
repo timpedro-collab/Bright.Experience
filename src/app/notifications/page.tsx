@@ -137,7 +137,7 @@ export default async function NotificationsPage({
                 </p>
                 <Link
                   href="/settings/notifications"
-                  className="mt-3 inline-block text-overline text-[var(--color-bb-cobalt)] underline decoration-from-font underline-offset-4 font-medium"
+                  className="mt-3 inline-block text-overline text-primary underline decoration-from-font underline-offset-4 font-medium"
                 >
                   Open notification preferences →
                 </Link>
@@ -153,7 +153,7 @@ export default async function NotificationsPage({
                     </p>
                     <Link
                       href="/inbox"
-                      className="mt-3 inline-block text-overline text-[var(--color-bb-cobalt)] underline decoration-from-font underline-offset-4 font-medium"
+                      className="mt-3 inline-block text-overline text-primary underline decoration-from-font underline-offset-4 font-medium"
                     >
                       Open the work hub →
                     </Link>

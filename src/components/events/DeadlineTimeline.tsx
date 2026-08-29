@@ -15,14 +15,14 @@ interface DeadlineTimelineProps {
 
 const URGENCY_STYLES: Record<DeadlineUrgency, { dot: string; text: string; badge: string }> = {
   on_track: {
-    dot: "bg-emerald-400",
-    text: "text-emerald-400",
-    badge: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30",
+    dot: "bg-success",
+    text: "text-success",
+    badge: "bg-success/15 text-success border-success/30",
   },
   due_soon: {
-    dot: "bg-amber-400",
-    text: "text-amber-400",
-    badge: "bg-amber-500/15 text-amber-400 border-amber-500/30",
+    dot: "bg-warning",
+    text: "text-warning",
+    badge: "bg-warning/15 text-warning border-warning/30",
   },
   overdue: {
     dot: "bg-destructive",
@@ -78,7 +78,7 @@ export function DeadlineTimeline({ deadlines, isInternal = false, viewerRole }: 
             </span>
           )}
           {dueSoon > 0 && (
-            <span className="flex items-center gap-1 text-amber-400">
+            <span className="flex items-center gap-1 text-warning">
               <Clock size={12} />
               {dueSoon} due within 7 days
             </span>
@@ -104,8 +104,8 @@ export function DeadlineTimeline({ deadlines, isInternal = false, viewerRole }: 
                   d.urgency === "overdue"
                     ? "border-destructive bg-destructive/20"
                     : d.urgency === "due_soon"
-                      ? "border-amber-400 bg-amber-400/20"
-                      : "border-emerald-400/60 bg-emerald-400/10"
+                      ? "border-warning bg-warning/20"
+                      : "border-success/60 bg-success/10"
                 )}
               />
 

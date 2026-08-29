@@ -138,7 +138,7 @@ export default function FaqPage() {
       <Section spacing="md" className="border-b border-border/60">
         <Container>
           <div className="max-w-3xl">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground mb-3">
+            <p className="text-overline text-brand-cyan mb-3">
               FAQ
             </p>
             <h1 className="text-display-grotesk text-4xl text-foreground md:text-6xl">
@@ -158,7 +158,7 @@ export default function FaqPage() {
           <div className="mx-auto max-w-3xl space-y-12">
             {GROUPS.map((group) => (
               <div key={group.heading}>
-                <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground mb-4">
+                <h2 className="text-overline text-muted-foreground mb-4">
                   {group.heading}
                 </h2>
                 <div className="space-y-3">
@@ -173,7 +173,7 @@ export default function FaqPage() {
               </div>
             ))}
 
-            <div className="rounded-2xl border border-border bg-muted/30 p-8 text-center">
+            <div className="rounded-[var(--radius-card)] border border-border bg-muted/30 p-8 text-center">
               <h2 className="text-display-grotesk text-2xl text-foreground md:text-3xl">
                 Something we didn&apos;t cover?
               </h2>

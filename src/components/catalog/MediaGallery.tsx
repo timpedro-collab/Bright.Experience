@@ -87,7 +87,7 @@ function SingleItem({
       type="button"
       onClick={onClick}
       aria-label={label}
-      className="group relative w-full overflow-hidden rounded-xl border border-white/8 cursor-zoom-in"
+      className="group relative w-full overflow-hidden rounded-[var(--radius-card)] border border-border cursor-zoom-in"
     >
       <div className="relative aspect-[16/9]">
         {item.type === "video" ? (
@@ -132,7 +132,7 @@ function MasonryGrid({ items, onOpen }: { items: MediaItem[]; onOpen: (i: number
                 type="button"
                 onClick={() => onOpen(3)}
                 aria-label={`Show the remaining ${rest.length - 3} items`}
-                className="absolute inset-0 flex items-center justify-center rounded-xl bg-black/50 backdrop-blur-sm text-white font-semibold text-lg hover:bg-black/60 transition-colors"
+                className="absolute inset-0 flex items-center justify-center rounded-[var(--radius-card)] bg-black/50 backdrop-blur-sm text-white font-semibold text-lg hover:bg-black/60 transition-colors"
               >
                 +{rest.length - 3} more
               </button>
@@ -154,7 +154,7 @@ function Tile({
       type="button"
       onClick={onClick}
       aria-label={label}
-      className={cn("group relative w-full overflow-hidden rounded-xl border border-white/8 cursor-zoom-in", aspect)}
+      className={cn("group relative w-full overflow-hidden rounded-[var(--radius-card)] border border-border cursor-zoom-in", aspect)}
     >
       {item.type === "video" ? (
         <VideoThumbnail item={item} />
@@ -179,8 +179,9 @@ function VideoThumbnail({ item }: { item: MediaItem }) {
       {item.poster ? (
         <Image src={item.poster} alt={item.alt ?? ""} fill className="object-cover" />
       ) : (
-        <div className="absolute inset-0 bg-gradient-to-br from-[var(--color-bb-deep-ink)] to-[var(--color-bb-cobalt)]" />
+        <div className="absolute inset-0 bg-gradient-to-br from-bb-deep-ink to-bb-cobalt" />
       )}
+      {/* Play chip floats over video posters/photography — literal by design. */}
       <div className="absolute inset-0 flex items-center justify-center">
         <div className="flex size-14 items-center justify-center rounded-full bg-white/15 backdrop-blur-md border border-white/20">
           <Play className="size-6 text-white ml-0.5" fill="white" />
@@ -198,6 +199,9 @@ function HoverOverlay() {
   );
 }
 
+/* The lightbox is a full-bleed photography viewer: its black veil and white
+   controls are deliberate literals (scrim over media, design-language §2.7)
+   and identical in both themes. */
 function Lightbox({
   items, index, onClose, onPrev, onNext,
 }: {

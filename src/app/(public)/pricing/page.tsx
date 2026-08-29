@@ -35,7 +35,7 @@ export default async function PricingPage({ searchParams }: PageProps) {
       <Section spacing="md" className="border-b border-border/60">
         <Container>
           <div className="max-w-3xl">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground mb-3">
+            <p className="text-overline text-brand-cyan mb-3">
               Pricing
             </p>
             <h1 className="text-display-grotesk text-4xl text-foreground md:text-6xl">

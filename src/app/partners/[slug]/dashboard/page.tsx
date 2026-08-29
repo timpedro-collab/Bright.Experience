@@ -136,12 +136,12 @@ export default async function PartnerDashboardPage({ params }: DashboardPageProp
           <Card>
             <CardHeader className="flex-row items-center justify-between space-y-0 pb-3">
               <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="h-4 w-4 text-[var(--color-bb-cobalt)]" />
+                <TrendingUp className="h-4 w-4 text-primary" />
                 Your book of business
               </CardTitle>
               <Link
                 href={`/partners/${slug}/clients`}
-                className="inline-flex items-center gap-1 text-xs font-medium text-[var(--color-bb-cobalt)] hover:underline"
+                className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
               >
                 All clients <ArrowRight className="h-3 w-3" />
               </Link>

@@ -88,7 +88,7 @@ export default async function PackageDetailPage({ params }: PageProps) {
               </div>
             </div>
             <div className="rounded-[var(--radius-card)] border border-border/60 bg-muted/40 p-6 backdrop-blur-md">
-              <p className="text-overline text-muted-foreground mb-3">What&apos;s included</p>
+              <p className="text-overline text-brand-cyan mb-3">What&apos;s included</p>
               {features.length === 0 ? (
                 <p className="text-sm text-muted-foreground">Details available on request.</p>
               ) : (
@@ -117,7 +117,7 @@ export default async function PackageDetailPage({ params }: PageProps) {
               {addons.map((addon) => (
                 <div
                   key={addon.id}
-                  className="rounded-[var(--radius-card)] border border-white/[0.06] bg-[hsl(233,56%,11%,0.55)] p-5 backdrop-blur-md"
+                  className="glass-subtle rounded-[var(--radius-card)] p-5"
                 >
                   <div className="flex items-center justify-between gap-2">
                     <h3 className="text-heading text-base font-semibold">{addon.name}</h3>

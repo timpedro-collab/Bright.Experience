@@ -64,7 +64,7 @@ export function FleetConfigTabs({
           className={cn(
             "flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors",
             scope === SHOW_SCOPE
-              ? "border-[var(--color-bb-cobalt)] bg-[var(--color-bb-cobalt)]/10"
+              ? "border-primary bg-primary/10"
               : "border-border bg-muted/40 hover:bg-accent"
           )}
         >
@@ -86,7 +86,7 @@ export function FleetConfigTabs({
                 className={cn(
                   "flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors",
                   scope === machine.id
-                    ? "border-[var(--color-bb-cobalt)] bg-[var(--color-bb-cobalt)]/10"
+                    ? "border-primary bg-primary/10"
                     : "border-border bg-muted/40 hover:bg-accent"
                 )}
               >
@@ -101,7 +101,7 @@ export function FleetConfigTabs({
                   </span>
                 </span>
                 {hasOwn && (
-                  <Badge className="ml-1 border-[var(--color-bb-cobalt)]/30 bg-[var(--color-bb-cobalt)]/15 text-[10px] text-foreground">
+                  <Badge className="ml-1 border-primary/30 bg-primary/15 text-[10px] text-foreground">
                     Custom
                   </Badge>
                 )}

@@ -9,9 +9,9 @@ import type { BenchmarkVerdict } from "@/lib/metrics/benchmark-compare";
 function DirectionIndicator({ direction }: { direction: BenchmarkVerdict["direction"] }) {
   const className = cn(
     "inline-flex shrink-0",
-    direction === "above" && "text-emerald-600",
+    direction === "above" && "text-success",
     direction === "level" && "text-muted-foreground",
-    direction === "below" && "text-amber-600",
+    direction === "below" && "text-warning",
   );
 
   if (direction === "above") {

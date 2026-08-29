@@ -132,12 +132,14 @@ function CapabilityRow({ capability, on, onToggle }: CapabilityRowProps) {
         className={cn(
           "relative h-6 w-11 shrink-0 rounded-full border transition-colors",
           on
-            ? "border-primary/60 bg-[linear-gradient(90deg,hsl(230,93%,53%),hsl(189,100%,75%))]"
-            : "border-white/15 bg-muted/40"
+            ? "border-primary/60 bg-[linear-gradient(90deg,var(--color-bb-cobalt),var(--color-brand-cyan))]"
+            : "border-border bg-muted"
         )}
       >
         <span
           className={cn(
+            // bg-white knob is a deliberate literal: it rides the brand
+            // gradient track and stays white in both themes, like a real switch.
             "absolute top-1/2 -translate-y-1/2 h-4 w-4 rounded-full bg-white shadow-sm transition-all duration-200",
             on ? "left-[calc(100%-1.125rem)]" : "left-0.5"
           )}

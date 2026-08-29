@@ -22,7 +22,7 @@ export function MachinesShowcase({ machines }: { machines: ShowcaseMachine[] }) 
       <Container>
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div className="max-w-2xl">
-            <p className="text-overline text-muted-foreground mb-2">The hardware</p>
+            <p className="text-overline text-brand-cyan mb-2">The hardware</p>
             <h2 className="text-display-grotesk text-4xl text-foreground md:text-5xl">
               Machines built to earn their floor space
             </h2>

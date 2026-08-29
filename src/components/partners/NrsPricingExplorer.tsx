@@ -245,7 +245,7 @@ export function NrsPricingExplorer() {
               services on your GSC master contract, nothing else.
             </p>
             {deal.belowPilotMinimum ? (
-              <p className="mt-3 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-900 [.theme-dark_&]:bg-amber-950 [.theme-dark_&]:text-amber-200">
+              <p className="mt-3 rounded-md border border-warning/30 bg-warning/15 px-3 py-2 text-sm text-warning">
                 The pilot commitment is {COMMITMENT.pilotMinUnits}–
                 {COMMITMENT.pilotMaxUnits} units. Add placements to reach the
                 minimum.

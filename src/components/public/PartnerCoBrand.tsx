@@ -85,7 +85,7 @@ export function PartnerCoBrand({
         ×
       </span>
       <span className="font-[var(--font-heading)] text-base font-bold tracking-tight text-foreground">
-        bright<span className="text-[var(--color-bb-cobalt)]">.blue</span>
+        bright<span className="text-primary">.blue</span>
       </span>
     </span>
   );

@@ -73,7 +73,7 @@ export function InboxFilters({ events, categories }: InboxFiltersProps) {
   return (
     <div
       className={cn(
-        "flex flex-wrap items-center gap-3 rounded-[var(--radius-card)] border border-white/[0.06] bg-[hsl(233,50%,9%)] p-4",
+        "flex flex-wrap items-center gap-3 rounded-[var(--radius-card)] border border-border bg-card p-4",
         pending && "opacity-70"
       )}
     >
@@ -137,7 +137,7 @@ function FilterSelect({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         className={cn(
-          "h-9 rounded-[var(--radius-control)] border border-white/10 bg-white/[0.03] px-3 text-sm text-foreground",
+          "h-9 rounded-[var(--radius-control)] border border-input bg-muted px-3 text-sm text-foreground",
           "focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         )}
       >

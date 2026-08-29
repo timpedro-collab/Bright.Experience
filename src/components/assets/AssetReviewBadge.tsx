@@ -21,7 +21,7 @@ const STYLES: Record<
 > = {
   pending_review: {
     label: "Pending Bright.Blue review",
-    classes: "border-amber-300/30 bg-amber-300/10 text-amber-200",
+    classes: "border-warning/30 bg-warning/15 text-warning",
     Icon: Clock,
   },
   approved: {

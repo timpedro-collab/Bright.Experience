@@ -64,7 +64,7 @@ export function CommercialCoverSlide({ onAdvance }: DeckShellSlideProps) {
             className="text-display-grotesk mt-4 max-w-3xl text-6xl leading-[0.94] sm:text-7xl"
           >
             {COMMERCIAL_COVER.title}{" "}
-            <span className="bg-gradient-to-r from-[var(--color-bb-cobalt)] to-[var(--color-bb-cyan)] bg-clip-text text-transparent">
+            <span className="text-brand-gradient">
               {COMMERCIAL_COVER.accent}
             </span>
           </motion.h1>
@@ -107,7 +107,7 @@ export function CommercialMissionSlide({}: DeckShellSlideProps) {
           <motion.div
             key={pillar.title}
             variants={commercialRise}
-            className="border-t-2 border-[var(--color-bb-cyan)] pt-5"
+            className="border-t-2 border-brand-cyan pt-5"
           >
             <CommercialIndex index={index} />
             <h3 className="mt-4 text-2xl font-semibold leading-tight">
@@ -141,7 +141,7 @@ export function CustomerGoalsSlide({}: DeckShellSlideProps) {
           <motion.div
             key={item.title}
             variants={commercialRise}
-            className="border-t-2 border-[var(--color-bb-cyan)] pt-5"
+            className="border-t-2 border-brand-cyan pt-5"
           >
             <div className="flex items-center justify-between">
               <CommercialIndex index={index} />
@@ -149,7 +149,7 @@ export function CustomerGoalsSlide({}: DeckShellSlideProps) {
                 Goal
               </span>
             </div>
-            <p className="mt-5 text-4xl font-semibold tracking-tight text-[var(--color-bb-cyan)]">
+            <p className="mt-5 text-4xl font-semibold tracking-tight text-brand-cyan">
               {item.metric}
             </p>
             <h3 className="mt-4 text-lg font-semibold">{item.title}</h3>

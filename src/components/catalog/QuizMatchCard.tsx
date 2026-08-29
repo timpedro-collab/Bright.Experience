@@ -227,7 +227,7 @@ function ProjectedReach({ recommendation }: { recommendation: QuizRecommendation
         : "Your event";
 
   return (
-    <div className="rounded-[var(--radius-card)] border border-primary/25 bg-[linear-gradient(135deg,hsl(230,93%,53%,0.08),hsl(189,100%,75%,0.05))] p-5">
+    <div className="rounded-[var(--radius-card)] border border-primary/25 bg-[linear-gradient(135deg,color-mix(in_srgb,var(--color-bb-cobalt)_8%,transparent),color-mix(in_srgb,var(--color-bb-cyan)_5%,transparent))] p-5">
       <div className="mb-3 flex items-center justify-between gap-2">
         <p className="text-overline text-primary">Projected reach</p>
         <span className="text-xs text-muted-foreground">{context}</span>

@@ -21,7 +21,7 @@ export default function CatalogLoading() {
             seed="catalog::loading"
             lines={22}
             amplitude={70}
-            className="text-[hsl(230,93%,53%)]"
+            className="text-bb-cobalt"
           />
           <div
             aria-hidden
@@ -30,8 +30,8 @@ export default function CatalogLoading() {
         </div>
         <Container className="relative pt-16 md:pt-20 pb-10">
           <EditorialEyebrow accent>Catalogue</EditorialEyebrow>
-          <div className="mt-2 h-12 w-2/3 rounded-md bg-white/[0.05] animate-pulse" />
-          <div className="mt-3 h-5 w-1/2 rounded-md bg-white/[0.04] animate-pulse" />
+          <div className="mt-2 h-12 w-2/3 rounded-md bg-muted animate-pulse" />
+          <div className="mt-3 h-5 w-1/2 rounded-md bg-muted/70 animate-pulse" />
         </Container>
       </section>
       <Section>

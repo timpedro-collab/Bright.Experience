@@ -7,7 +7,7 @@
 /** "01" — the mono numbered eyebrow from the pricing design language. */
 export function MonoIndex({ index }: { index: number }) {
   return (
-    <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-bb-cobalt)]">
+    <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">
       {String(index + 1).padStart(2, "0")}
     </span>
   );
@@ -15,4 +15,4 @@ export function MonoIndex({ index }: { index: number }) {
 
 /** Cyan-glow frame for machine mockups, straight from the pricing PDF. */
 export const GLOW_FRAME =
-  "overflow-hidden rounded-xl border border-[var(--color-bb-cyan)]/40 [box-shadow:0_0_36px_-10px_var(--color-bb-cyan)]";
+  "overflow-hidden rounded-xl border border-brand-cyan/40 [box-shadow:0_0_36px_-10px_var(--color-brand-cyan)]";

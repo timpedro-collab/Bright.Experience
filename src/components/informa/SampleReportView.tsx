@@ -69,7 +69,7 @@ export function SampleReportView() {
     <div className="space-y-8">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex flex-wrap items-center gap-3">
-          <Badge variant="outline" className="border-[var(--color-bb-cyan)]/60 text-[var(--color-bb-cyan)]">
+          <Badge variant="outline" className="border-brand-cyan/60 text-brand-cyan">
             {SAMPLE_REPORT.meta.label}
           </Badge>
           <span className="text-sm text-muted-foreground">

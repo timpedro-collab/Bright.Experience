@@ -45,7 +45,7 @@ export function OverviewNextStep({
       ? "bg-warning"
       : nextStep.tone === "success"
         ? "bg-success"
-        : "bg-[var(--color-bb-cobalt)]"; // brand + info both use cobalt
+        : "bg-primary"; // brand + info both use cobalt
 
   return (
     <section className="py-10 md:py-12">
@@ -66,7 +66,7 @@ export function OverviewNextStep({
         <div className="flex flex-col md:items-end gap-2 mt-4 md:mt-0">
           <Link
             href={nextStep.primaryAction.href}
-            className={`inline-flex items-center gap-2 text-white px-5 py-2.5 rounded-sm text-sm font-medium hover:opacity-90 transition-opacity ${toneBg}`}
+            className={`inline-flex items-center gap-2 text-primary-foreground px-5 py-2.5 rounded-sm text-sm font-medium hover:opacity-90 transition-opacity ${toneBg}`}
           >
             {nextStep.primaryAction.label}
             <ArrowRight className="h-4 w-4" />

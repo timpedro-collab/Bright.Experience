@@ -81,7 +81,7 @@ export function AdNetworkMediaKit() {
         {funnel.map((stage, i) => (
           <motion.li key={stage.key} variants={rise} className="relative">
             <div className="h-full rounded-2xl border border-border/70 bg-card/50 p-6">
-              <p className="text-xs font-semibold uppercase tracking-widest text-[var(--color-bb-cobalt)]">
+              <p className="text-xs font-semibold uppercase tracking-widest text-primary">
                 {String(i + 1).padStart(2, "0")} · {stage.label}
               </p>
               <p className="mt-3 text-3xl font-bold tabular-nums text-heading">
@@ -106,9 +106,9 @@ export function AdNetworkMediaKit() {
         {statTiles.map((tile) => (
           <div
             key={tile.label}
-            className="rounded-xl border border-[var(--color-bb-cobalt)]/40 bg-[var(--color-bb-cobalt)]/5 px-4 py-3"
+            className="rounded-xl border border-primary/40 bg-primary/5 px-4 py-3"
           >
-            <p className="text-xs font-semibold uppercase tracking-widest text-[var(--color-bb-cyan)]">
+            <p className="text-xs font-semibold uppercase tracking-widest text-brand-cyan">
               {tile.label}
             </p>
             <p className="mt-1 text-2xl font-bold tabular-nums">{tile.value}</p>
@@ -121,7 +121,7 @@ export function AdNetworkMediaKit() {
       <div className="grid gap-4 md:grid-cols-3">
         {SLOT_MECHANICS.map((item) => (
           <div key={item.title} className="rounded-2xl border border-border/70 bg-card/50 p-6">
-            <h3 className="font-semibold text-[var(--color-bb-cyan)]">{item.title}</h3>
+            <h3 className="font-semibold text-brand-cyan">{item.title}</h3>
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
               {item.detail}
             </p>
@@ -130,7 +130,7 @@ export function AdNetworkMediaKit() {
       </div>
 
       {/* Price + proof */}
-      <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-[var(--color-bb-cobalt)]/50 bg-[var(--color-bb-cobalt)]/10 p-6">
+      <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-primary/50 bg-primary/10 p-6">
         <div>
           <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
             Rate card
@@ -148,7 +148,7 @@ export function AdNetworkMediaKit() {
         </div>
         <Link
           href="/informa/report"
-          className="inline-flex items-center gap-2 rounded-lg border border-border/70 px-4 py-2 text-sm font-medium transition-colors hover:border-[var(--color-bb-cyan)] hover:text-[var(--color-bb-cyan)]"
+          className="inline-flex items-center gap-2 rounded-lg border border-border/70 px-4 py-2 text-sm font-medium transition-colors hover:border-brand-cyan hover:text-brand-cyan"
         >
           See the ad loop in the sample report
           <ArrowRight className="size-4" aria-hidden />

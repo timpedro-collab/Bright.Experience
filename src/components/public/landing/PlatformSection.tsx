@@ -58,7 +58,7 @@ export function PlatformSection() {
     <Section className="border-t border-border/60">
       <Container>
         <div className="mx-auto max-w-2xl text-center mb-14">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground mb-3">
+          <p className="text-overline text-brand-cyan mb-3">
             The Turnkey Platform
           </p>
           <h2 className="text-display-grotesk text-4xl text-foreground md:text-5xl text-balance">
@@ -75,7 +75,7 @@ export function PlatformSection() {
             means for them. */}
         <div className="mb-16 grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
           <Reveal>
-            <p className="text-overline text-[var(--color-bb-cobalt)] mb-3">
+            <p className="text-overline text-brand-cyan mb-3">
               Your event, live
             </p>
             <h3 className="text-heading text-2xl font-bold text-foreground md:text-3xl text-balance">
@@ -83,7 +83,7 @@ export function PlatformSection() {
             </h3>
             <ul className="mt-6 space-y-4 text-muted-foreground">
               <li className="flex gap-3">
-                <span aria-hidden className="mt-2 size-1.5 shrink-0 rounded-full bg-[var(--color-bb-cobalt)]" />
+                <span aria-hidden className="mt-2 size-1.5 shrink-0 rounded-full bg-primary" />
                 <span>
                   <span className="font-medium text-foreground">Live counters</span>{" "}
                   — plays, leads and prize drops tick up in real time while
@@ -91,7 +91,7 @@ export function PlatformSection() {
                 </span>
               </li>
               <li className="flex gap-3">
-                <span aria-hidden className="mt-2 size-1.5 shrink-0 rounded-full bg-[var(--color-bb-cobalt)]" />
+                <span aria-hidden className="mt-2 size-1.5 shrink-0 rounded-full bg-primary" />
                 <span>
                   <span className="font-medium text-foreground">A feed of every interaction</span>{" "}
                   — each play, lead and dispense as it happens, machine by
@@ -99,7 +99,7 @@ export function PlatformSection() {
                 </span>
               </li>
               <li className="flex gap-3">
-                <span aria-hidden className="mt-2 size-1.5 shrink-0 rounded-full bg-[var(--color-bb-cobalt)]" />
+                <span aria-hidden className="mt-2 size-1.5 shrink-0 rounded-full bg-primary" />
                 <span>
                   <span className="font-medium text-foreground">A board-ready report</span>{" "}
                   — the full story of the day, in your inbox within 24 hours.
@@ -116,7 +116,7 @@ export function PlatformSection() {
           {PLATFORM_CAPABILITIES.map((c) => (
             <div
               key={c.title}
-              className="flex gap-4 rounded-2xl border border-border bg-muted/40 p-7"
+              className="flex gap-4 rounded-[var(--radius-card)] border border-border bg-card p-7"
             >
               <div className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-background/60 ring-1 ring-border">
                 <Image
@@ -145,22 +145,24 @@ export function PlatformSection() {
           {PLATFORM_CHIPS.map((chip) => (
             <span
               key={chip}
-              className="rounded-full border border-border bg-muted/40 px-4 py-1.5 text-xs font-medium text-muted-foreground"
+              className="rounded-full border border-border bg-card px-4 py-1.5 text-xs font-medium text-muted-foreground"
             >
               {chip}
             </span>
           ))}
         </div>
 
-        <div className="relative mt-12 overflow-hidden rounded-2xl border border-white/8 bg-gradient-to-br from-[var(--color-bb-deep-ink)] via-[#0d1147] to-[var(--color-bb-cobalt)] p-10 md:p-14">
+        {/* Cinematic Cloud band — force-Ink (`theme-dark`) so the deep-ink
+            gradient panel and its telemetry stay legible in Ink Light too. */}
+        <div className="theme-dark relative mt-12 overflow-hidden rounded-[var(--radius-card)] border border-border bg-gradient-to-br from-bb-deep-ink via-bb-ink-soft to-bb-cobalt p-10 md:p-14">
           <RidgeArtwork
             seed="landing::platform"
             lines={20}
             amplitude={60}
-            className="text-[hsl(230,93%,53%)] opacity-40"
+            className="text-bb-cobalt opacity-40"
           />
           <div className="relative text-center">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--color-bb-cyan)] mb-3">
+            <p className="text-overline text-brand-cyan mb-3">
               Bright.Blue Cloud · Live from the Show Floor
             </p>
             <LiveShowFloorStats />

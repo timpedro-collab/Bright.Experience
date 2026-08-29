@@ -20,7 +20,7 @@ export function ProposalJourney({ journey }: { journey: Journey }) {
                 aria-hidden
                 className={cn(
                   "mx-2 h-px w-6 sm:w-10",
-                  step.state === "upcoming" ? "bg-border" : "bg-[var(--color-bb-cobalt)]/50",
+                  step.state === "upcoming" ? "bg-border" : "bg-primary/50",
                 )}
               />
             )}
@@ -29,9 +29,9 @@ export function ProposalJourney({ journey }: { journey: Journey }) {
                 className={cn(
                   "inline-flex size-5 items-center justify-center rounded-full text-[10px] font-semibold tabular-nums",
                   step.state === "done" &&
-                    "bg-[var(--color-bb-cobalt)] text-white",
+                    "bg-primary text-primary-foreground",
                   step.state === "current" &&
-                    "border-2 border-[var(--color-bb-cobalt)] text-[var(--color-bb-cobalt)]",
+                    "border-2 border-primary text-primary",
                   step.state === "upcoming" &&
                     "border border-border text-muted-foreground",
                 )}

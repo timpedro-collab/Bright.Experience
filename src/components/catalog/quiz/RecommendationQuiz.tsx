@@ -127,7 +127,7 @@ export function RecommendationQuiz({
       <CardContent className="space-y-6 p-6 md:p-8">
         <div aria-hidden className="h-1 w-full overflow-hidden rounded-full bg-muted/40">
           <div
-            className="h-full rounded-full bg-[linear-gradient(90deg,hsl(230,93%,53%),hsl(189,100%,75%))] transition-[width] duration-500"
+            className="h-full rounded-full bg-[linear-gradient(90deg,var(--color-bb-cobalt),var(--color-brand-cyan))] transition-[width] duration-500"
             style={{ width: `${pct}%` }}
           />
         </div>

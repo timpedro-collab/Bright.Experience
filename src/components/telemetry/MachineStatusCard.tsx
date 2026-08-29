@@ -32,10 +32,10 @@ const STATUS_STYLES: Record<
   string,
   { bg: string; text: string; label: string; customerLabel: string }
 > = {
-  available: { bg: "bg-success/10", text: "text-success", label: "Available", customerLabel: "Ready" },
-  deployed: { bg: "bg-brand/10", text: "text-brand", label: "Deployed", customerLabel: "On site" },
-  maintenance: { bg: "bg-warning/10", text: "text-warning", label: "Maintenance", customerLabel: "Being serviced" },
-  retired: { bg: "bg-muted", text: "text-muted-foreground", label: "Retired", customerLabel: "Offline" },
+  available: { bg: "bg-success/15", text: "text-success border-success/30", label: "Available", customerLabel: "Ready" },
+  deployed: { bg: "bg-primary/15", text: "text-primary border-primary/30", label: "Deployed", customerLabel: "On site" },
+  maintenance: { bg: "bg-warning/15", text: "text-warning border-warning/30", label: "Maintenance", customerLabel: "Being serviced" },
+  retired: { bg: "bg-muted", text: "text-muted-foreground border-border", label: "Retired", customerLabel: "Offline" },
 };
 
 function getRelativeTime(timestamp: string): string {
@@ -100,10 +100,9 @@ export function MachineStatusCard({
           </div>
           <Badge
             className={cn(
-              "text-xs",
+              "text-xs border",
               style.bg,
               style.text,
-              "border-0",
               statusPulse && "status-pulse"
             )}
           >

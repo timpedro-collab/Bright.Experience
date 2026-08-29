@@ -47,7 +47,7 @@ export function AssetSpecCard({ asset }: AssetSpecCardProps) {
       </p>
 
       {asset.isPhysical && (
-        <div className="flex items-center gap-1.5 text-xs text-amber-400">
+        <div className="flex items-center gap-1.5 text-xs text-warning">
           <Package size={12} />
           Physical branding (wrap, print, or signage)
         </div>
@@ -88,7 +88,7 @@ export function AssetSpecCard({ asset }: AssetSpecCardProps) {
             href={asset.referenceUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 text-xs text-[var(--color-bb-cobalt)] hover:underline"
+            className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
           >
             <Link2 size={10} /> View reference
           </a>
@@ -98,7 +98,7 @@ export function AssetSpecCard({ asset }: AssetSpecCardProps) {
             href={asset.specDocumentUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 text-xs text-[var(--color-bb-cobalt)] hover:underline"
+            className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
           >
             <Download size={10} /> Download template
           </a>

@@ -55,7 +55,7 @@ export default async function TemplatesPage() {
               <Link
                 key={template.id}
                 href={`/admin/templates/${template.id}/edit`}
-                className="border border-border/60 bg-card/40 rounded-md p-5 space-y-3 block hover:border-[var(--color-bb-cobalt)]/40 transition-colors"
+                className="border border-border/60 bg-card/40 rounded-md p-5 space-y-3 block hover:border-primary/40 transition-colors"
               >
                 <div className="flex items-center justify-between gap-2">
                   <h3 className="text-sm font-semibold text-foreground truncate">

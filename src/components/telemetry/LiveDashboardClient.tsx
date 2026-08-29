@@ -224,7 +224,7 @@ export function LiveDashboardClient({
               </button>
               {source === "cloud" && (
                 <Badge variant="outline" className="text-[0.6rem] gap-1">
-                  <span className="size-1.5 rounded-full bg-cyan-400" />
+                  <span className="size-1.5 rounded-full bg-brand-cyan" />
                   Cloud
                 </Badge>
               )}

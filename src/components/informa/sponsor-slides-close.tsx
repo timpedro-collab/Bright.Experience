@@ -34,7 +34,7 @@ import { cn } from "@/lib/utils";
 export function SponsorNumbersSlide({ config }: SponsorSlideProps) {
   return (
     <SlideFrame>
-      <p className="text-overline text-[var(--color-bb-cyan)]">Your numbers</p>
+      <p className="text-overline text-brand-cyan">Your numbers</p>
       <h2 className="text-display-grotesk mt-2 max-w-3xl text-4xl sm:text-5xl">
         What a placement at {config.show} creates
       </h2>
@@ -58,7 +58,7 @@ export function SponsorNumbersSlide({ config }: SponsorSlideProps) {
 export function SponsorProofSlide({}: SponsorSlideProps) {
   return (
     <SlideFrame>
-      <p className="text-overline text-[var(--color-bb-cyan)]">Proof</p>
+      <p className="text-overline text-brand-cyan">Proof</p>
       <h2 className="text-display-grotesk mt-2 max-w-2xl text-4xl sm:text-5xl">
         On show floors already
       </h2>
@@ -144,7 +144,7 @@ export function SponsorReportSlide({}: SponsorSlideProps) {
 
   return (
     <SlideFrame>
-      <p className="text-overline text-[var(--color-bb-cyan)]">After the show</p>
+      <p className="text-overline text-brand-cyan">After the show</p>
       <h2 className="text-display-grotesk mt-2 max-w-3xl text-4xl sm:text-5xl">
         The report that survives your internal meeting
       </h2>
@@ -169,7 +169,7 @@ export function SponsorReportSlide({}: SponsorSlideProps) {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.35, duration: 0.5 }}
-          className="rounded-2xl border border-[var(--color-bb-cobalt)]/50 bg-[var(--color-bb-cobalt)]/10 p-6"
+          className="rounded-2xl border border-primary/50 bg-primary/10 p-6"
         >
           <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
             From the sample report
@@ -193,7 +193,7 @@ export function SponsorReportSlide({}: SponsorSlideProps) {
           <div className="mt-6 flex flex-wrap gap-3">
             <Link
               href="/informa/report"
-              className="inline-flex items-center gap-2 rounded-lg bg-[var(--color-bb-cobalt)] px-4 py-2 text-sm font-semibold text-white transition-transform hover:scale-105"
+              className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-transform hover:scale-105"
             >
               Open the full sample report
               <ArrowUpRight className="size-4" aria-hidden />
@@ -201,7 +201,7 @@ export function SponsorReportSlide({}: SponsorSlideProps) {
             <a
               href={SAMPLE_REPORT_PDF}
               download
-              className="inline-flex items-center gap-2 rounded-lg border border-border/70 px-4 py-2 text-sm font-medium transition-colors hover:border-[var(--color-bb-cyan)] hover:text-[var(--color-bb-cyan)]"
+              className="inline-flex items-center gap-2 rounded-lg border border-border/70 px-4 py-2 text-sm font-medium transition-colors hover:border-brand-cyan hover:text-brand-cyan"
             >
               <Download className="size-4" aria-hidden />
               PDF
@@ -216,7 +216,7 @@ export function SponsorReportSlide({}: SponsorSlideProps) {
 export function SponsorCloseSlide({ config }: SponsorSlideProps) {
   return (
     <SlideFrame>
-      <p className="text-overline text-[var(--color-bb-cyan)]">Lock it in</p>
+      <p className="text-overline text-brand-cyan">Lock it in</p>
       <h2 className="text-display-grotesk mt-2 max-w-3xl text-4xl sm:text-5xl">
         Three steps to the floor at {config.show}
       </h2>
@@ -233,7 +233,7 @@ export function SponsorCloseSlide({ config }: SponsorSlideProps) {
             variants={rise}
             className="rounded-2xl border border-border/70 bg-card/50 p-6"
           >
-            <span className="flex size-8 items-center justify-center rounded-full border border-[var(--color-bb-cobalt)]/60 text-sm font-bold text-[var(--color-bb-cyan)]">
+            <span className="flex size-8 items-center justify-center rounded-full border border-primary/60 text-sm font-bold text-brand-cyan">
               {i + 1}
             </span>
             <h3 className="mt-4 font-semibold">{s.step}</h3>

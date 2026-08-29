@@ -101,11 +101,11 @@ export function VersionCompareSlider({
         />
       </div>
 
-      {/* Version chips */}
+      {/* Version chips — scrim labels over artwork stay literal per design-language §2. */}
       <span className="pointer-events-none absolute left-3 top-3 rounded-full bg-black/60 px-2 py-0.5 text-[0.625rem] font-semibold uppercase tracking-widest text-white backdrop-blur-sm">
         {before.label}
       </span>
-      <span className="pointer-events-none absolute right-3 top-3 rounded-full bg-[var(--color-bb-cobalt)]/85 px-2 py-0.5 text-[0.625rem] font-semibold uppercase tracking-widest text-white backdrop-blur-sm">
+      <span className="pointer-events-none absolute right-3 top-3 rounded-full bg-primary/85 px-2 py-0.5 text-[0.625rem] font-semibold uppercase tracking-widest text-primary-foreground backdrop-blur-sm">
         {after.label}
       </span>
 
@@ -119,12 +119,12 @@ export function VersionCompareSlider({
         aria-valuenow={Math.round(position)}
         aria-orientation="horizontal"
         onKeyDown={onKeyDown}
-        className="absolute inset-y-0 z-10 w-0.5 cursor-ew-resize bg-white shadow-[0_0_0_1px_rgba(0,0,0,0.25)] outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="absolute inset-y-0 z-10 w-0.5 cursor-ew-resize bg-foreground shadow-[0_0_0_1px_rgba(0,0,0,0.25)] outline-none focus-visible:ring-2 focus-visible:ring-ring"
         style={{ left: `${position}%` }}
       >
         <span
           aria-hidden
-          className="absolute left-1/2 top-1/2 flex size-8 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-black/10 bg-white text-[0.625rem] font-bold text-foreground shadow-md"
+          className="absolute left-1/2 top-1/2 flex size-8 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-border bg-popover text-[0.625rem] font-bold text-foreground shadow-md"
         >
           ⇄
         </span>

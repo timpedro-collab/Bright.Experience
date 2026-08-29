@@ -61,30 +61,30 @@ export function LiveShowFloorStats() {
   return (
     <>
       <p
-        className="text-5xl font-bold text-white tabular-nums md:text-6xl"
+        className="text-5xl font-bold text-foreground tabular-nums md:text-6xl"
         aria-live="polite"
       >
         {formatNumber(leads)}
       </p>
-      <p className="text-sm text-white/50 mt-1">Leads captured this month</p>
+      <p className="text-sm text-muted-foreground mt-1">Leads captured this month</p>
       <div className="mt-8 grid grid-cols-3 gap-6 text-center max-w-md mx-auto">
         <div>
-          <p className="text-2xl font-bold text-white tabular-nums">
+          <p className="text-2xl font-bold text-foreground tabular-nums">
             {formatNumber(plays)}
           </p>
-          <p className="text-[10px] uppercase tracking-widest text-white/40">
+          <p className="text-overline text-muted-foreground/70">
             Plays
           </p>
         </div>
         <div>
-          <p className="text-2xl font-bold text-white tabular-nums">28s</p>
-          <p className="text-[10px] uppercase tracking-widest text-white/40">
+          <p className="text-2xl font-bold text-foreground tabular-nums">28s</p>
+          <p className="text-overline text-muted-foreground/70">
             Avg Dwell
           </p>
         </div>
         <div>
-          <p className="text-2xl font-bold text-white tabular-nums">96%</p>
-          <p className="text-[10px] uppercase tracking-widest text-white/40">
+          <p className="text-2xl font-bold text-foreground tabular-nums">96%</p>
+          <p className="text-overline text-muted-foreground/70">
             Opt-In
           </p>
         </div>

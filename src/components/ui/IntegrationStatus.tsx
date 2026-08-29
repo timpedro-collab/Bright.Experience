@@ -59,7 +59,7 @@ function StatusRow({
         <Icon
           size={14}
           className={cn(
-            connected ? "text-emerald-400" : "text-muted-foreground",
+            connected ? "text-success" : "text-muted-foreground",
           )}
         />
         <span className="text-sm text-foreground">{label}</span>
@@ -67,7 +67,7 @@ function StatusRow({
       <span
         className={cn(
           "text-xs font-medium",
-          connected ? "text-emerald-400" : "text-muted-foreground",
+          connected ? "text-success" : "text-muted-foreground",
         )}
       >
         {connected ? "Connected" : "Not configured"}

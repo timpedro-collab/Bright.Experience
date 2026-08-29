@@ -25,7 +25,7 @@ export function KitSection({
 }) {
   return (
     <section className="border-t border-border/60 py-14">
-      <p className="text-overline text-[var(--color-bb-cyan)]">{overline}</p>
+      <p className="text-overline text-brand-cyan">{overline}</p>
       <h2 className="text-display-grotesk mt-2 text-3xl sm:text-4xl">{title}</h2>
       <div className="mt-8">{children}</div>
     </section>
@@ -37,7 +37,7 @@ export function RepScript() {
     <div className="grid gap-4 md:grid-cols-3">
       {REP_SCRIPT.map((b, i) => (
         <div key={b.beat} className="rounded-2xl border border-border/70 bg-card/50 p-6">
-          <p className="text-xs font-semibold uppercase tracking-widest text-[var(--color-bb-cobalt)]">
+          <p className="text-xs font-semibold uppercase tracking-widest text-primary">
             {String(i + 1).padStart(2, "0")} · {b.beat}
           </p>
           <p className="mt-3 leading-relaxed text-muted-foreground">
@@ -69,7 +69,7 @@ export function SponsorGets() {
     <ul className="grid gap-3 sm:grid-cols-2">
       {SPONSOR_GETS.map((item) => (
         <li key={item} className="flex items-start gap-3 text-sm leading-relaxed text-muted-foreground">
-          <Check className="mt-0.5 size-4 shrink-0 text-[var(--color-bb-cyan)]" aria-hidden />
+          <Check className="mt-0.5 size-4 shrink-0 text-brand-cyan" aria-hidden />
           {item}
         </li>
       ))}
@@ -95,7 +95,7 @@ export function DealFlowSteps() {
     <ol className="grid gap-4 md:grid-cols-3">
       {DEAL_FLOW.map((s, i) => (
         <li key={s.step} className="rounded-2xl border border-border/70 bg-card/50 p-6">
-          <span className="flex size-8 items-center justify-center rounded-full bg-[var(--color-bb-cobalt)] text-sm font-bold text-white">
+          <span className="flex size-8 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground">
             {i + 1}
           </span>
           <h3 className="mt-3 font-semibold">{s.step}</h3>

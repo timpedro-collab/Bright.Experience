@@ -81,7 +81,7 @@ export default async function ConfirmationPage({
 
       <section className="mx-auto max-w-2xl px-6 py-12">
         {/* The thing they just bought, made visible — a machine, not a form. */}
-        <div className="mb-10 flex items-center gap-5 rounded-2xl border border-border/60 bg-muted/20 p-5">
+        <div className="mb-10 flex items-center gap-5 rounded-[var(--radius-card)] border border-border/60 bg-muted/20 p-5">
           <div className="relative h-28 w-24 shrink-0">
             <Image
               src={machineRenderFor(machine?.name)}

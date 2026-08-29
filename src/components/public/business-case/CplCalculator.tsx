@@ -51,7 +51,7 @@ export function CplCalculator() {
   );
 
   return (
-    <div className="rounded-2xl border border-border bg-muted/30 p-6 md:p-8">
+    <div className="rounded-[var(--radius-card)] border border-border bg-muted/30 p-6 md:p-8">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <label htmlFor="cpl-leads" className="block text-sm font-medium text-foreground">
@@ -66,7 +66,7 @@ export function CplCalculator() {
               step={50}
               value={leads}
               onChange={(e) => setLeads(Number(e.target.value))}
-              className="h-2 w-56 cursor-pointer appearance-none rounded-full bg-border accent-[var(--color-bb-cobalt)]"
+              className="h-2 w-56 cursor-pointer appearance-none rounded-full bg-border accent-primary"
             />
             <span className="w-14 text-right text-lg font-semibold tabular-nums text-foreground">
               {leads}

@@ -423,7 +423,7 @@ export default async function ShowMachinePage({ params }: Props) {
                     />
                     <Link
                       href={`/organizers/${slug}/sponsors`}
-                      className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-[var(--color-bb-cobalt)] hover:underline"
+                      className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
                     >
                       See the whole rate card <ArrowRight size={12} />
                     </Link>
@@ -442,7 +442,7 @@ export default async function ShowMachinePage({ params }: Props) {
                     </p>
                     <Link
                       href={inventoryHref}
-                      className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-[var(--color-bb-cobalt)] hover:underline"
+                      className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
                     >
                       Open a slot <ArrowRight size={12} />
                     </Link>

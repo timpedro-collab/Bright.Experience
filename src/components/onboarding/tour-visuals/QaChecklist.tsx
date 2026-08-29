@@ -32,24 +32,24 @@ export function QaChecklist() {
   return (
     <div className="w-full max-w-sm mx-auto">
       <motion.div
-        className="rounded-2xl border border-white/10 bg-white/[0.03] overflow-hidden"
+        className="rounded-2xl border border-border bg-card overflow-hidden"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3, type: "spring", stiffness: 200 }}
       >
-        <div className="px-5 py-3 border-b border-white/5 flex items-center justify-between">
-          <span className="text-[10px] uppercase tracking-widest text-white/40">
+        <div className="px-5 py-3 border-b border-border/50 flex items-center justify-between">
+          <span className="text-[10px] uppercase tracking-widest text-muted-foreground/60">
             QA readiness check
           </span>
           <motion.span
-            className="text-xs tabular-nums font-medium text-white/50"
+            className="text-xs tabular-nums font-medium text-muted-foreground"
             key={checked.length}
           >
             {checked.length}/{ITEMS.length}
           </motion.span>
         </div>
 
-        <ul className="divide-y divide-white/5">
+        <ul className="divide-y divide-border/50">
           {ITEMS.map((item, i) => {
             const isDone = checked.includes(item.id);
             return (
@@ -68,16 +68,16 @@ export function QaChecklist() {
                       animate={{ scale: 1 }}
                       transition={{ type: "spring", stiffness: 500 }}
                     >
-                      <CheckCircle2 className="size-4 text-emerald-400" />
+                      <CheckCircle2 className="size-4 text-success" />
                     </motion.div>
                   ) : (
-                    <Circle key="open" className="size-4 text-white/20" />
+                    <Circle key="open" className="size-4 text-muted-foreground/30" />
                   )}
                 </AnimatePresence>
-                <span className={`flex-1 text-xs ${isDone ? "text-white/35 line-through" : "text-white/75"}`}>
+                <span className={`flex-1 text-xs ${isDone ? "text-muted-foreground/55 line-through" : "text-foreground/80"}`}>
                   {item.label}
                 </span>
-                <span className="text-[8px] uppercase tracking-wider text-white/20">
+                <span className="text-[8px] uppercase tracking-wider text-muted-foreground/40">
                   {item.category}
                 </span>
               </motion.li>
@@ -86,12 +86,12 @@ export function QaChecklist() {
         </ul>
 
         <motion.div
-          className="px-5 py-3 border-t border-white/5"
+          className="px-5 py-3 border-t border-border/50"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 3.8 }}
         >
-          <div className="flex items-center gap-2 text-[10px] text-amber-400/80">
+          <div className="flex items-center gap-2 text-[10px] text-warning/80">
             <AlertTriangle className="size-3" />
             <span>2 items remaining before go-live</span>
           </div>

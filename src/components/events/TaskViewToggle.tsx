@@ -25,7 +25,7 @@ export function TaskViewToggle({
         className={cn(
           "px-3 py-1.5 text-xs font-medium rounded-md transition-colors",
           currentView === "mine"
-            ? "bg-[var(--color-bb-cobalt)] text-white"
+            ? "bg-primary text-primary-foreground"
             : "text-muted-foreground hover:text-foreground"
         )}
       >
@@ -37,7 +37,7 @@ export function TaskViewToggle({
         className={cn(
           "px-3 py-1.5 text-xs font-medium rounded-md transition-colors",
           currentView === "all"
-            ? "bg-[var(--color-bb-cobalt)] text-white"
+            ? "bg-primary text-primary-foreground"
             : "text-muted-foreground hover:text-foreground"
         )}
       >

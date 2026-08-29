@@ -47,11 +47,11 @@ function RangeBar({ entry, max }: { entry: IndexEntry; max: number }) {
       aria-label={`Middle half of events: ${Math.round(entry.p25)} to ${Math.round(entry.p75)}, median ${Math.round(entry.median)}`}
     >
       <div
-        className="absolute top-0 h-2 rounded-full bg-[var(--color-bb-cobalt)]/25"
+        className="absolute top-0 h-2 rounded-full bg-primary/25"
         style={{ left: `${left}%`, width: `${width}%` }}
       />
       <div
-        className="absolute top-[-3px] h-3.5 w-[3px] rounded-full bg-[var(--color-bb-cobalt)]"
+        className="absolute top-[-3px] h-3.5 w-[3px] rounded-full bg-primary"
         style={{ left: `calc(${medianAt}% - 1.5px)` }}
       />
     </div>
@@ -61,7 +61,7 @@ function RangeBar({ entry, max }: { entry: IndexEntry; max: number }) {
 function MetricTable({ group }: { group: IndexMetricGroup }) {
   const max = Math.max(...group.entries.map((e) => e.p75 ?? e.median));
   return (
-    <div className="rounded-2xl border border-border bg-muted/30 p-6 md:p-8">
+    <div className="rounded-[var(--radius-card)] border border-border bg-muted/30 p-6 md:p-8">
       <div className="flex items-baseline justify-between gap-4">
         <h3 className="text-lg font-semibold text-foreground">
           {group.metricLabel}
@@ -113,7 +113,7 @@ export default async function BrightIndexPage() {
       <Section spacing="md" className="border-b border-border/60">
         <Container>
           <div className="max-w-3xl">
-            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+            <p className="text-overline text-brand-cyan mb-3">
               The Bright Index
             </p>
             <h1 className="text-display-grotesk text-4xl text-foreground md:text-6xl">
@@ -174,7 +174,7 @@ export default async function BrightIndexPage() {
         <Container>
           <div className="grid gap-10 md:grid-cols-[1fr_1.2fr] md:items-start">
             <div>
-              <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+              <p className="text-overline text-muted-foreground mb-3">
                 Methodology
               </p>
               <h2 className="text-display-grotesk text-3xl text-foreground">
@@ -224,9 +224,9 @@ export default async function BrightIndexPage() {
 
       <Section className="border-b border-border/60">
         <Container>
-          <div className="rounded-2xl border border-[var(--color-bb-cobalt)]/40 bg-[var(--color-bb-cobalt)]/[0.04] p-8 md:p-12">
+          <div className="rounded-[var(--radius-card)] border border-primary/40 bg-primary/5 p-8 md:p-12">
             <div className="max-w-2xl">
-              <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+              <p className="text-overline text-muted-foreground mb-3">
                 The annual read
               </p>
               <h2 className="text-display-grotesk text-3xl text-foreground md:text-4xl">

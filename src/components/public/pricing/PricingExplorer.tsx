@@ -54,7 +54,7 @@ export function PricingExplorer({ initialPersona = "brand" }: PricingExplorerPro
               className={cn(
                 "rounded-full border px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                 persona === p.id
-                  ? "border-[var(--color-bb-cobalt)] bg-[var(--color-bb-cobalt)] text-white"
+                  ? "border-primary bg-primary text-primary-foreground"
                   : "border-border text-muted-foreground hover:border-foreground/30 hover:text-foreground",
               )}
             >
@@ -92,7 +92,7 @@ export function PricingExplorer({ initialPersona = "brand" }: PricingExplorerPro
       {showsGrid && (
         <>
           {persona === "agency" && (
-            <div className="mt-6 rounded-[var(--radius-card)] border border-border/60 bg-muted/40 px-5 py-4 text-sm text-muted-foreground">
+            <div className="mt-6 rounded-[var(--radius-card)] border border-border/60 bg-card px-5 py-4 text-sm text-muted-foreground">
               <span className="font-medium text-foreground">Trade terms:</span>{" "}
               the bands below are rack. Recognised agencies and planners work
               on commissionable rates (10–15% by volume) —{" "}
@@ -136,8 +136,8 @@ export function PricingExplorer({ initialPersona = "brand" }: PricingExplorerPro
           </p>
 
           {persona === "brand" && (
-            <div className="mt-10 rounded-2xl border border-border bg-muted/30 p-6 md:p-8">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+            <div className="mt-10 rounded-[var(--radius-card)] border border-border bg-card p-6 md:p-8">
+              <p className="text-overline text-muted-foreground">
                 The arithmetic your CFO will do anyway
               </p>
               <p className="mt-3 max-w-3xl text-base leading-relaxed text-foreground/90">
@@ -207,7 +207,7 @@ function PartnerRoute({
   ctaHref: string;
 }) {
   return (
-    <div className="mt-8 rounded-2xl border border-border bg-muted/30 p-8 md:p-10">
+    <div className="mt-8 rounded-[var(--radius-card)] border border-border bg-card p-8 md:p-10">
       <h3 className="text-display-grotesk text-2xl text-foreground md:text-3xl">
         {heading}
       </h3>
@@ -219,7 +219,7 @@ function PartnerRoute({
           <li key={b} className="flex items-start gap-2 text-sm text-foreground/90">
             <span
               aria-hidden
-              className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--color-bb-cobalt)]"
+              className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary"
             />
             <span>{b}</span>
           </li>

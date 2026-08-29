@@ -120,8 +120,8 @@ export function DealBriefBuilder() {
                     className={cn(
                       "rounded-full border px-3 py-1.5 text-sm transition-colors",
                       active
-                        ? "border-[var(--color-bb-cobalt)] bg-[var(--color-bb-cobalt)]/15 text-foreground"
-                        : "border-border/70 text-muted-foreground hover:border-[var(--color-bb-cobalt)]/50"
+                        ? "border-primary bg-primary/15 text-foreground"
+                        : "border-border/70 text-muted-foreground hover:border-primary/50"
                     )}
                   >
                     {label}

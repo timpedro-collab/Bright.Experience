@@ -18,7 +18,7 @@ export function DeliveryTimeline() {
         <li key={phase.phase} className="relative pb-8 last:pb-0">
           <span
             aria-hidden
-            className="absolute -left-8 top-1 flex size-8 -translate-x-1/2 items-center justify-center rounded-full border border-[var(--color-bb-cobalt)]/60 bg-background text-xs font-bold text-[var(--color-bb-cyan)]"
+            className="absolute -left-8 top-1 flex size-8 -translate-x-1/2 items-center justify-center rounded-full border border-primary/60 bg-background text-xs font-bold text-brand-cyan"
           >
             {i + 1}
           </span>
@@ -37,7 +37,7 @@ export function SiteRequirements() {
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
       {SITE_REQUIREMENTS.map((req) => (
         <div key={req.need} className="rounded-2xl border border-border/70 bg-card/50 p-5">
-          <h3 className="text-sm font-semibold text-[var(--color-bb-cyan)]">{req.need}</h3>
+          <h3 className="text-sm font-semibold text-brand-cyan">{req.need}</h3>
           <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{req.detail}</p>
         </div>
       ))}

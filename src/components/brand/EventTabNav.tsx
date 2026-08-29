@@ -31,9 +31,9 @@ interface EventTabNavProps {
 }
 
 const STATUS_DOT: Record<Exclude<SectionStatus, "neutral">, string> = {
-  green: "bg-[hsl(142_60%_45%)]",
-  amber: "bg-[hsl(43_90%_55%)]",
-  red: "bg-[hsl(0_72%_55%)]",
+  green: "bg-success",
+  amber: "bg-warning",
+  red: "bg-destructive",
 };
 
 const STATUS_LABEL: Record<Exclude<SectionStatus, "neutral">, string> = {

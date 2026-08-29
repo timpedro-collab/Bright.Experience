@@ -157,7 +157,7 @@ export function NotificationList({ notifications }: NotificationListProps) {
           <div className="mb-3 flex items-baseline justify-between gap-3">
             <h2
               id="action-items-heading"
-              className="text-overline text-[var(--color-bb-cobalt)]"
+              className="text-overline text-primary"
             >
               Awaiting you · {actionItems.length}
             </h2>
@@ -242,7 +242,7 @@ function NotificationRow({
           className={cn(
             "absolute left-0 top-2 bottom-2 w-[2px] rounded-full",
             isAction && isUnread
-              ? "bg-[var(--color-bb-cobalt)]"
+              ? "bg-primary"
               : "bg-transparent",
           )}
         />
@@ -251,7 +251,7 @@ function NotificationRow({
         <span
           className={cn(
             "inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-border/60 bg-card/60",
-            isAction && "text-[var(--color-bb-cobalt)]",
+            isAction && "text-primary",
           )}
         >
           <Icon className="h-3.5 w-3.5" aria-hidden />
@@ -263,7 +263,7 @@ function NotificationRow({
               className={cn(
                 "text-overline whitespace-nowrap",
                 isAction
-                  ? "text-[var(--color-bb-cobalt)]"
+                  ? "text-primary"
                   : "text-muted-foreground",
               )}
             >
@@ -271,10 +271,7 @@ function NotificationRow({
                 <span
                   aria-label="Unread"
                   className={cn(
-                    "inline-block mr-1.5 h-1.5 w-1.5 rounded-full align-middle",
-                    isAction
-                      ? "bg-[var(--color-bb-cobalt)]"
-                      : "bg-primary",
+                    "inline-block mr-1.5 h-1.5 w-1.5 rounded-full align-middle bg-primary",
                   )}
                 />
               )}

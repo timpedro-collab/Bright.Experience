@@ -48,7 +48,7 @@ export function TaskRow({
               ? "bg-destructive"
               : dueSoonState
                 ? "bg-warning"
-                : "bg-[var(--color-bb-cobalt)]/40",
+                : "bg-primary/40",
         )}
       />
 

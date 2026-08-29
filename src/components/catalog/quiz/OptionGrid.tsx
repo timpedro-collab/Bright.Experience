@@ -35,7 +35,7 @@ export function OptionGrid({
               "group relative flex items-start gap-3 rounded-[var(--radius-control)] border border-border bg-muted/40 p-4 text-left",
               "transition-all duration-150 hover:border-primary/40 hover:bg-primary/8",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-              isSelected && "border-primary bg-primary/10 shadow-[0_0_0_1px_hsl(230,93%,53%,0.5),var(--bb-shadow-premium)]"
+              isSelected && "border-primary bg-primary/10 shadow-[0_0_0_1px_color-mix(in_srgb,var(--color-bb-cobalt)_50%,transparent),var(--bb-shadow-premium)]"
             )}
           >
             <span
@@ -58,7 +58,7 @@ export function OptionGrid({
               className={cn(
                 "mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center border transition-all",
                 multi ? "rounded-md" : "rounded-full",
-                isSelected ? "border-primary bg-primary text-primary-foreground" : "border-white/15 bg-muted/40 text-transparent group-hover:border-primary/40"
+                isSelected ? "border-primary bg-primary text-primary-foreground" : "border-border bg-muted text-transparent group-hover:border-primary/40"
               )}
             >
               {multi ? (

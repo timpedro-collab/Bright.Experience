@@ -42,7 +42,7 @@ export function LegalShell({
             seed={`legal::${title.toLowerCase()}`}
             lines={22}
             amplitude={70}
-            className="text-[hsl(230,93%,53%)]"
+            className="text-bb-cobalt"
           />
           <div
             aria-hidden
@@ -65,14 +65,14 @@ export function LegalShell({
           {!approved && (
             <aside
               role="status"
-              className="mb-8 flex items-start gap-3 rounded-[var(--radius-card)] border border-amber-500/30 bg-amber-500/[0.04] p-4 text-sm"
+              className="mb-8 flex items-start gap-3 rounded-[var(--radius-card)] border border-warning/30 bg-warning/10 p-4 text-sm"
             >
-              <AlertTriangle className="h-5 w-5 shrink-0 text-amber-500/90" />
-              <p className="text-amber-500/95">
+              <AlertTriangle className="h-5 w-5 shrink-0 text-warning" />
+              <p className="text-warning">
                 <span className="font-semibold uppercase tracking-widest text-xs">
                   Replace before launch
                 </span>
-                <span className="block mt-1 text-amber-100/80">
+                <span className="block mt-1 text-muted-foreground">
                   This is placeholder copy structured for counsel review. The
                   approved version replaces this whole page in Phase 1 of the
                   Path to 10/10 plan.
@@ -80,7 +80,11 @@ export function LegalShell({
               </p>
             </aside>
           )}
-          <div className="prose prose-invert max-w-none">{children}</div>
+          {/* Theme-aware prose: element colors pinned to semantic tokens so
+              legal copy reads correctly on both Ink and Ink Light. */}
+          <div className="prose max-w-none prose-headings:text-foreground prose-p:text-muted-foreground prose-strong:text-foreground prose-li:text-muted-foreground prose-a:text-primary">
+            {children}
+          </div>
         </Container>
       </Section>
     </>

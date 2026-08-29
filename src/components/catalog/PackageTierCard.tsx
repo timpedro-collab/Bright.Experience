@@ -36,7 +36,7 @@ export function PackageTierCard({
   return (
     <Card className={cn(
       "relative flex flex-col overflow-hidden",
-      featured && "border-brand/40 shadow-[0_0_30px_-10px_hsl(230,93%,53%,0.3)]"
+      featured && "border-brand/40 shadow-[0_0_30px_-10px_color-mix(in_srgb,var(--color-bb-cobalt)_30%,transparent)]"
     )}>
       {featured && (
         <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand to-brand-soft" />

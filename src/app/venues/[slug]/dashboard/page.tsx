@@ -183,12 +183,12 @@ export default async function VenueDashboardPage({ params }: Props) {
           <Card>
             <CardHeader className="flex-row items-center justify-between space-y-0 pb-3">
               <CardTitle className="flex items-center gap-2">
-                <Monitor className="h-4 w-4 text-[var(--color-bb-cobalt)]" />
+                <Monitor className="h-4 w-4 text-primary" />
                 Your placements
               </CardTitle>
               <Link
                 href={`/venues/${slug}/placements`}
-                className="text-xs font-medium text-[var(--color-bb-cobalt)] hover:underline"
+                className="text-xs font-medium text-primary hover:underline"
               >
                 Manage
               </Link>

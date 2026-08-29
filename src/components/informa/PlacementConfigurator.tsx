@@ -72,7 +72,7 @@ function StatTile({
     <div
       className={
         highlight
-          ? "rounded-xl border border-[var(--color-bb-cobalt)]/60 bg-[var(--color-bb-cobalt)]/10 p-4"
+          ? "rounded-xl border border-primary/60 bg-primary/10 p-4"
           : "rounded-xl border border-border/70 bg-card/50 p-4"
       }
     >

@@ -99,7 +99,7 @@ export function BriefingFileUpload({ eventId, existingFiles, readOnly = false }:
                   href={f.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-[var(--color-bb-cobalt)] hover:underline truncate"
+                  className="text-primary hover:underline truncate"
                 >
                   {cleanFileName(f.name)}
                   <ExternalLink size={10} className="inline ml-1 -mt-0.5" />

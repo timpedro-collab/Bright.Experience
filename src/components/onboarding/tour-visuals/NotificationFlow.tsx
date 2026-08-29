@@ -8,7 +8,7 @@ const NOTIFICATIONS = [
   {
     id: 1,
     icon: CheckCircle2,
-    iconColor: "text-emerald-400",
+    iconColor: "text-success",
     title: "Creative proof approved",
     body: "Your team signed off on the screen designs",
     time: "Just now",
@@ -16,7 +16,7 @@ const NOTIFICATIONS = [
   {
     id: 2,
     icon: FileText,
-    iconColor: "text-[var(--color-bb-cyan)]",
+    iconColor: "text-brand-cyan",
     title: "New report available",
     body: "Post-event performance report is ready to view",
     time: "2m ago",
@@ -24,7 +24,7 @@ const NOTIFICATIONS = [
   {
     id: 3,
     icon: MessageSquare,
-    iconColor: "text-blue-400",
+    iconColor: "text-info",
     title: "Message from your Account Manager",
     body: "Quick update on the logistics timeline",
     time: "5m ago",
@@ -51,13 +51,13 @@ export function NotificationFlow() {
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 0.2, type: "spring", stiffness: 300 }}
       >
-        <div className="flex items-center justify-center size-14 rounded-2xl border border-white/10 bg-white/[0.04]">
-          <Bell className="size-6 text-white/60" />
+        <div className="flex items-center justify-center size-14 rounded-2xl border border-border bg-card">
+          <Bell className="size-6 text-muted-foreground" />
         </div>
         <AnimatePresence>
           {visible.length > 0 && (
             <motion.span
-              className="absolute -top-1.5 -right-1.5 flex items-center justify-center size-5 rounded-full bg-[var(--color-bb-cyan)] text-[10px] font-bold text-[var(--color-bb-deep-ink)]"
+              className="absolute -top-1.5 -right-1.5 flex items-center justify-center size-5 rounded-full bg-primary text-[10px] font-bold text-primary-foreground"
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ type: "spring", stiffness: 500 }}
@@ -69,7 +69,7 @@ export function NotificationFlow() {
         </AnimatePresence>
         {visible.length > 0 && (
           <motion.div
-            className="absolute inset-0 rounded-2xl border-2 border-[var(--color-bb-cyan)]"
+            className="absolute inset-0 rounded-2xl border-2 border-brand-cyan"
             initial={{ opacity: 0.6, scale: 1 }}
             animate={{ opacity: 0, scale: 1.5 }}
             transition={{ duration: 1, repeat: 2, repeatDelay: 0.5 }}
@@ -84,7 +84,7 @@ export function NotificationFlow() {
             return (
               <motion.div
                 key={n.id}
-                className="flex items-start gap-3 p-3.5 rounded-xl border border-white/8 bg-white/[0.03]"
+                className="flex items-start gap-3 p-3.5 rounded-xl border border-border bg-card"
                 initial={{ opacity: 0, y: -20, scale: 0.95 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 transition={{
@@ -94,14 +94,14 @@ export function NotificationFlow() {
                   delay: i * 0.05,
                 }}
               >
-                <div className="flex items-center justify-center size-8 rounded-lg bg-white/[0.04] shrink-0 mt-0.5">
+                <div className="flex items-center justify-center size-8 rounded-lg bg-secondary shrink-0 mt-0.5">
                   <Icon className={`size-4 ${n.iconColor}`} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-semibold text-white/90 truncate">{n.title}</p>
-                  <p className="text-[11px] text-white/40 mt-0.5 truncate">{n.body}</p>
+                  <p className="text-xs font-semibold text-foreground/90 truncate">{n.title}</p>
+                  <p className="text-[11px] text-muted-foreground/60 mt-0.5 truncate">{n.body}</p>
                 </div>
-                <span className="text-[9px] text-white/25 shrink-0 mt-0.5">{n.time}</span>
+                <span className="text-[9px] text-muted-foreground/40 shrink-0 mt-0.5">{n.time}</span>
               </motion.div>
             );
           })}
@@ -109,7 +109,7 @@ export function NotificationFlow() {
       </div>
 
       <motion.div
-        className="flex items-center gap-1.5 text-[10px] text-white/30"
+        className="flex items-center gap-1.5 text-[10px] text-muted-foreground/50"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 3.2 }}

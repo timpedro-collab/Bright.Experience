@@ -241,7 +241,9 @@ export function TourSpotlight() {
       {/* Scrim — full backdrop when centred, 4 panels around the target when
           anchored so the element shows through at full brightness. Panels are
           interactive (block stray clicks); the hole is left open for action
-          steps and covered by a blocker for non-action steps. */}
+          steps and covered by a blocker for non-action steps.
+          The #060924 ink scrim is deliberate cinematic art direction — it must
+          stay dark over the page in BOTH user themes, like a photo scrim. */}
       {halo ? (
         <>
           <div
@@ -317,7 +319,7 @@ export function TourSpotlight() {
       <AnimatePresence mode="wait">
         <motion.div
           key={currentStepIndex}
-          className="theme-dark w-full rounded-2xl border border-white/10 bg-[#0b0f30]/95 p-5 text-foreground shadow-2xl"
+          className="theme-dark w-full rounded-[var(--radius-card)] border border-border bg-popover/95 p-5 text-foreground shadow-2xl"
           initial={{ opacity: 0, y: 8, scale: 0.98 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: -8, scale: 0.98 }}
@@ -330,31 +332,31 @@ export function TourSpotlight() {
           )}
 
           <div className="flex items-center justify-between">
-            <span className="text-[10px] uppercase tracking-[0.2em] text-[var(--color-bb-cyan)] font-medium">
+            <span className="text-[10px] uppercase tracking-[0.2em] text-brand-cyan font-medium">
               Step {currentStepIndex + 1} of {totalSteps}
             </span>
             <button
               type="button"
               onClick={skip}
-              className="text-[11px] text-white/30 hover:text-white/60 transition-colors"
+              className="text-[11px] text-muted-foreground/60 hover:text-muted-foreground transition-colors"
             >
               Skip tour
             </button>
           </div>
 
-          <h2 className="mt-2 text-lg font-bold text-white leading-snug">
+          <h2 className="mt-2 text-lg font-bold text-foreground leading-snug">
             {currentStep.title}
           </h2>
           <p className="sr-only">
             Use the left and right arrow keys to move between steps, or press
             Escape to leave the tour.
           </p>
-          <p className="mt-1.5 text-sm leading-relaxed text-white/55">
+          <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
             {currentStep.description}
           </p>
 
           {hasAction && currentStep.action && (
-            <div className="mt-3 flex items-center gap-2 rounded-lg border border-[var(--color-bb-cyan)]/30 bg-[var(--color-bb-cyan)]/10 px-3 py-2 text-xs text-[var(--color-bb-cyan)]">
+            <div className="mt-3 flex items-center gap-2 rounded-lg border border-brand-cyan/30 bg-brand-cyan/10 px-3 py-2 text-xs text-brand-cyan">
               <MousePointerClick className="size-3.5 shrink-0" />
               <span>{currentStep.action.hint}</span>
             </div>
@@ -367,10 +369,10 @@ export function TourSpotlight() {
                 key={i}
                 className={`h-1 rounded-full transition-all duration-300 ${
                   i === currentStepIndex
-                    ? "w-5 bg-[var(--color-bb-cyan)]"
+                    ? "w-5 bg-brand-cyan"
                     : i < currentStepIndex
-                      ? "w-1.5 bg-white/25"
-                      : "w-1.5 bg-white/10"
+                      ? "w-1.5 bg-muted-foreground/40"
+                      : "w-1.5 bg-input"
                 }`}
               />
             ))}
@@ -382,7 +384,7 @@ export function TourSpotlight() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-9 px-3 text-white/45 hover:text-white hover:bg-white/5 gap-1.5"
+                  className="h-9 px-3 text-muted-foreground hover:text-foreground hover:bg-secondary gap-1.5"
                   onClick={prev}
                 >
                   <ArrowLeft className="size-4" />

@@ -61,7 +61,7 @@ export default function ForVenuesPage() {
       <Section spacing="md" className="border-b border-border/60">
         <Container>
           <div className="max-w-3xl">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground mb-3">
+            <p className="text-overline text-brand-cyan mb-3">
               For venues
             </p>
             <h1 className="text-display-grotesk text-4xl text-foreground md:text-6xl">
@@ -92,7 +92,7 @@ export default function ForVenuesPage() {
       <Section className="border-b border-border/60">
         <Container>
           <div className="mx-auto max-w-2xl text-center mb-14">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground mb-3">
+            <p className="text-overline text-muted-foreground mb-3">
               How hosting works
             </p>
             <h2 className="text-display-grotesk text-3xl text-foreground md:text-5xl text-balance">
@@ -103,13 +103,13 @@ export default function ForVenuesPage() {
             {STEPS.map((step, i) => (
               <div
                 key={step.title}
-                className="relative rounded-2xl border border-border bg-muted/40 p-8"
+                className="relative rounded-[var(--radius-card)] border border-border bg-muted/40 p-8"
               >
                 <span className="absolute right-6 top-6 text-sm font-semibold tabular-nums text-muted-foreground/40">
                   0{i + 1}
                 </span>
-                <div className="mb-5 flex size-12 items-center justify-center rounded-xl bg-[var(--color-bb-cobalt)]/10 ring-1 ring-[var(--color-bb-cobalt)]/20">
-                  <step.icon className="h-5 w-5 text-[var(--color-bb-cobalt)]" aria-hidden />
+                <div className="mb-5 flex size-12 items-center justify-center rounded-[var(--radius-control)] bg-primary/10 ring-1 ring-primary/20">
+                  <step.icon className="h-5 w-5 text-primary" aria-hidden />
                 </div>
                 <h3 className="text-lg font-semibold text-foreground mb-2">
                   {step.title}
@@ -127,7 +127,7 @@ export default function ForVenuesPage() {
         <Container>
           <div className="grid gap-10 md:grid-cols-[1fr_1.2fr] md:items-start">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground mb-3">
+              <p className="text-overline text-muted-foreground mb-3">
                 The economics
               </p>
               <h2 className="text-display-grotesk text-3xl text-foreground md:text-4xl">
@@ -160,9 +160,9 @@ export default function ForVenuesPage() {
 
       <Section>
         <Container>
-          <div className="rounded-2xl border border-border bg-muted/30 p-8 text-center md:p-12">
+          <div className="rounded-[var(--radius-card)] border border-border bg-muted/30 p-8 text-center md:p-12">
             <CalendarClock
-              className="mx-auto h-8 w-8 text-[var(--color-bb-cobalt)]"
+              className="mx-auto h-8 w-8 text-primary"
               aria-hidden
             />
             <h2 className="text-display-grotesk mt-4 text-3xl text-foreground md:text-4xl">
